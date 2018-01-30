@@ -1,0 +1,1 @@
+./ministun -t 10000 -c 10 -l 192.168.0.104 -d stun.sipgate.net:10000

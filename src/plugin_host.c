@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (c) 2017, luotang.me <wypx520@gmail.com>, China.
+* Copyright (c) 2017-2018, luotang.me <wypx520@gmail.com>, China.
 * All rights reserved.
 *
 * Distributed under the terms of the GNU General Public License v2.
@@ -10,10 +10,9 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
+
 #include "utils.h"
 #include "plugin.h"
-
-
 #include <unistd.h>   
 #include <dirent.h>  
 #include <sys/stat.h>  
@@ -29,14 +28,6 @@ int plugins_size(void) {
 	return list_size(&phost->plugins);
 }
 
-int plugins_reg_observer(plug_func listener) {
-	phost->observer = listener;
-	return 0;
-}
-int plugins_unreg_observer(plug_func listener) {
-	return 0;
-}
-
 int plugins_scaning(char* dir, int flags) {
 	
 	#define FULLPATH_LEN 256
@@ -44,10 +35,10 @@ int plugins_scaning(char* dir, int flags) {
 	char cwd[FULLPATH_LEN];
 	
 #ifdef WIN32	
-		DWORD res = ::GetCurrentDirectoryA(256, cwd);	  
+	DWORD res = ::GetCurrentDirectoryA(256, cwd);	  
 #else    
-		cwd[0] = '\0';	 
-		char * res = getcwd(cwd, 256);	 
+	cwd[0] = '\0';	 
+	char * res = getcwd(cwd, 256);	 
 #endif
 	
 	struct stat s;
@@ -71,16 +62,6 @@ int plugins_scaning(char* dir, int flags) {
 			continue;
 
 		printf("%s\n", dir_entry->d_name);
-	#if 0	
-		if( last_slash )
-			snprintf(path, FULLPATH_LEN, "%s%s", dir, dir_entry->d_name);
-		else
-			snprintf(path, FULLPATH_LEN, "%s/%s", dir, dir_entry->d_name);
-
-		//int res = get_plugin_name(dir_entry->d_name);
-
-		//pf_install_plugin(path, dir_entry->d_name );        
-	#endif
 	}
 	closedir(dir_info);
 	return 0;
@@ -99,6 +80,9 @@ int plugins_start(void) {
 	struct plugin*		p = NULL;
 	struct list_head*	head = NULL;
 
+	if (0 == list_size(&phost->plugins))
+		return 0;
+
 	list_for_each(head, &phost->plugins) {
 	   p = list_entry(head, struct plugin, head);
 	
@@ -111,6 +95,9 @@ int plugins_start(void) {
 int plugins_stop(void) {
 	struct plugin* 		p = NULL;
     struct list_head*   head = NULL;
+
+	if (0 == list_size(&phost->plugins))
+		return 0;
 
 	list_for_each(head, &phost->plugins) {
        p = list_entry(head, struct plugin, head);
@@ -126,6 +113,9 @@ int plugins_uninstall(void) {
 	struct plugin* p 	 = NULL;
 	struct list_head* 	tmp  = NULL;
     struct list_head*   head = NULL;
+
+	if (0 == list_size(&phost->plugins))
+		return 0;
 
 	/* plugin interface it self */
     list_for_each_safe(head, tmp, &phost->plugins) {

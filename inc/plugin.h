@@ -1,25 +1,34 @@
-/*
-	微内核: 核心层的设计和实现
-	1. 插件的加载, 检测,初始化. 插件的加载利用Linux共享库的动态加载技术
-	2. 服务的注册, 服务的注册与调用采用表驱动的方法. 核心层中维护一个服务注册表.
-	3. 服务的调用
+/**************************************************************************
+*
+* Copyright (c) 2017-2018, luotang.me <wypx520@gmail.com>, China.
+* All rights reserved.
+*
+* Distributed under the terms of the GNU General Public License v2.
+*
+* This software is provided 'as is' with no explicit or implied warranties
+* in respect of its properties, including, but not limited to, correctness
+* and/or fitness for purpose.
+*
+**************************************************************************/
+
+/** 微内核的插件架构 -- OSGI的 "微内核+系统插件+应用插件" 结构
+
+	框架分为宿主程序和插件对象两部分, 宿主可以独立存在，可以动态加载插件.
+
+	1. 插件的加载
+	   利用Linux共享库的动态加载技术
+	2. 服务的注册
+	   采用表驱动的方法. 核心层中维护一个服务注册表, 隐藏服务接口具体实现.
+	3. 服务的调用 
+	   插件宿主的回调插件提供的服务接口函数
 	4. 服务的管理
+	   插件宿主管理插件的生命周期, 处理插件的错误事件
+	5. 服务的通信
+	   插件之间采用组件通信/路由机制, 参考[luotang.me---libipc]
+	6. 服务事件的广播和订阅(这个目前还没有考虑要支持)
+	   利用观察者模式,在宿主中加载插件后,实现事件注册,进而插件通信其他
 
-	框架分为宿主程序和插件对象两部分
-	两部分交互基于一种公共的通信契约
-	宿主程序可以独立存在
 
-
-	使用插件的原因
-	可以在无需对程序进行重新编译和发布的条件下扩展程序的功能
-	可以在不需要程序源代码的环境下为程序增加新的功能
-	在一个程序的业务逻辑不断发生改变、新的规则频频加入时能够灵活适应
-	
-	插件要求的基础设施统一, 插件之间通讯, 动态壮哉, 依赖解耦
-	利用观察者模式,在宿主中加载插件后,便能实现事件注册,进而实现插件之间的通信。
-
-	宿主程序(host)和插件(plugin)
-	
 	Discovery
 	Registration
 	Application hooks to which plugins attach
@@ -72,18 +81,17 @@ struct plugin {
 	plug_func	get_param;
 	plug_func	set_param;
 	plug_func	handler;
-	plug_func	request;	//send request message to other plungins
-	plug_func	responce; 	//send responce message to other plungins
+	//plug_func	request;	//send request message to other plungins
+	//plug_func	responce; 	//send responce message to other plungins
 	plug_func	deinit;
 	
-	struct plugin_host*	phost;
+	//struct plugin_host*	phost;
 }__attribute__((__packed__));
 
 
 struct plugin_host {
 	int			number;
 	int			state;
-	plug_func	observer; 	//observer called synchronously after a plugin state change.
 	struct list_head plugins;
 }__attribute__((__packed__));
 

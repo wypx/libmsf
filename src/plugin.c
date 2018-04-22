@@ -1,3 +1,16 @@
+/**************************************************************************
+*
+* Copyright (c) 2017-2018, luotang.me <wypx520@gmail.com>, China.
+* All rights reserved.
+*
+* Distributed under the terms of the GNU General Public License v2.
+*
+* This software is provided 'as is' with no explicit or implied warranties
+* in respect of its properties, including, but not limited to, correctness
+* and/or fitness for purpose.
+*
+**************************************************************************/
+
 
 #include "utils.h"
 #include "file.h"
@@ -55,7 +68,7 @@ struct plugin* plugin_loading(const char* name, int type)
 	   p->loadtype = PLUGIN_STATIC;
    }
    
-   p->phost = phost;
+  // p->phost = phost;
 
    printf("plugin_load : '%s' successful\n", path);
 

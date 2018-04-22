@@ -1,3 +1,15 @@
+/**************************************************************************
+*
+* Copyright (c) 2017-2018, luotang.me <wypx520@gmail.com>, China.
+* All rights reserved.
+*
+* Distributed under the terms of the GNU General Public License v2.
+*
+* This software is provided 'as is' with no explicit or implied warranties
+* in respect of its properties, including, but not limited to, correctness
+* and/or fitness for purpose.
+*
+**************************************************************************/
 
 /*
 	这里有一个函数名字是 foo.当我们同时使用test1.o和test2.o,
@@ -27,9 +39,8 @@
 	抄录一段 gcc 手册里面的话解释下函数属性是干啥的
 	In GNU C, you declare certain things about functions called in your program 
 	which help the compiler optimize function calls and check your code more carefully.
-
-	
 	*/
+	
 #include "plugin_stub.h"
 
 int __foo() {
@@ -59,9 +70,9 @@ int foo() __attribute__ ((weak, alias("__foo")));
 
 
 
-int plug_func_stub(const char* func, ...)
+int plugin_func_stub(const char* func, ...)
 {
-	printf("plug_func_stub func[%s] 401 \n", func);
+	printf("plugin_func_stub func[%s] 401 \n", func);
 	return 401;	
 }
 

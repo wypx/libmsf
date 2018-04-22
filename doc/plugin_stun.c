@@ -35,8 +35,6 @@ static int  stun_set_param(void* data, unsigned int len);
 static int  stun_start(void* data, unsigned int len);
 static int  stun_stop(void* data, unsigned int len);
 
-static int  stun_responce(void* data, unsigned int len);
-static int  stun_request(void* data, unsigned int len);
 static int  stun_handler(void* data, unsigned int len);
 
 
@@ -47,8 +45,6 @@ struct plugin plugin_stun = {
 	.stop 		= stun_stop,
 	.get_param 	= stun_get_param,
 	.set_param 	= stun_set_param,
-	.request 	= stun_request,
-	.responce	= stun_responce,
 	.handler	= stun_handler,
 	.deinit		= stun_deinit,
 };
@@ -91,36 +87,9 @@ static int stun_start(void* data, unsigned int len){
 static int stun_stop(void* data, unsigned int len){
 	printf("This is func %s, line number %d\n", __FUNCTION__, __LINE__);
 
-	struct plugin_message m;
-	memset(&m, 0, sizeof(m));
-
-	m.command = 100;
-	m.resp = 1;
-	memcpy(m.dest, "plugin_p2p", strlen("plugin_p2p"));
-	memcpy(m.rest, "plugin_stun", strlen("plugin_stun"));
-	
-	p->phost->observer(&m, sizeof(m));
-	
 	return 0;
 }
 
-
-static int stun_responce(void* data, unsigned int len) {
-	printf("%s recv stun_responce \n", __FUNCTION__);
-
-	struct plugin_message* m = (struct plugin_message*)data;
-
-	printf("stun_responce command = %d\n", m->command);
-	printf("stun_responce rest = %s\n", m->rest);
-	printf("stun_responce dest = %s\n", m->dest);
-	return 0;
-}
-
-static int stun_request(void* data, unsigned int len) {
-
-	
-	return 0;
-}
 static int stun_handler(void* data, unsigned int len) {
 	printf("This is func %s, line number %d\n", __FUNCTION__, __LINE__);
 	return 0;

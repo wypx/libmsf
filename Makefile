@@ -45,7 +45,7 @@ plugins:
 	$(CC) $(IFLAGS) -fPIC -shared doc/plugin_stun.c -o ./lib/plugin_stun.so -L../libipc/lib -lgbase
 	$(CC) $(IFLAGS) -fPIC -shared doc/plugin_p2p.c -o ./lib/plugin_p2p.so -L../libipc/lib -lgbase
 bin:
-	$(CC) $(IFLAGS) -rdynamic -o lib/test doc/test.c -ldl -L./lib -lplugin
+	$(CC) $(IFLAGS) -rdynamic -o lib/plugin_test doc/test.c -ldl -L./lib -lplugin
 
 test:all plugins bin
 	#cd lib && ./plug_test

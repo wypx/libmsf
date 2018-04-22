@@ -8,26 +8,12 @@ int test2(int a, int b) {
 }
 int ATTRIBUTE_WIKE test(int a, int b);
 
-int callback(void* data, unsigned int len) {
-
-	struct plugin_message* m = (struct plugin_message*)data;
-
-	struct plugin* p = plugin_lookup(m->dest);
-
-	p->request(m, sizeof(struct plugin_message));
-	p->responce(m, sizeof(struct plugin_message));
-
-};
-
-
 int main() {
 
 	printf("############## plugin_host_scaning ###############\n");
 	plugins_scaning("plugins", 0);
 
 	plugins_init();
-
-	plugins_reg_observer(callback);
 
 	printf("\nplugins_size = %d\n", plugins_size());
 
@@ -37,6 +23,11 @@ int main() {
 
 
 	printf("\nplugins_size = %d\n", plugins_size());
+
+	printf("\n############## plugin_start #####################\n");
+	plugin_start("plugin_p2p");
+	plugin_start("plugin_stun");
+
 
 	printf("\n############## plugins_start #####################\n");
 	plugins_start();
@@ -51,9 +42,16 @@ int main() {
 	FUNCK(test,  1, 2);
 	FUNCK(test2, 1, 2);
 
+
+	printf("\n############## plugin_stop ######################\n");
+	plugin_stop("plugin_p2p");
+	plugin_stop("plugin_stun");
+
 	printf("\n############## plugins_stop ######################\n");
 	plugins_stop();
-	
+
+
+	printf("\n############## plugins_uninstall #################\n");
 	plugins_uninstall();
 
 	printf("plugins_size = %d\n", plugins_size());

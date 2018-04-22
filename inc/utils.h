@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (c) 2017, luotang.me <wypx520@gmail.com>, China.
+* Copyright (c) 2017-2018, luotang.me <wypx520@gmail.com>, China.
 * All rights reserved.
 *
 * Distributed under the terms of the GNU General Public License v2.
@@ -12,8 +12,8 @@
 **************************************************************************/
 
 /*  Open Shared Object
-	RTLD_LAZY 暂缓决定,等有需要时再解出符号 
-　　RTLD_NOW 立即决定,返回前解除所有未决定的符号 
+	RTLD_LAZY 	暂缓决定,等有需要时再解出符号 
+　　RTLD_NOW 	立即决定,返回前解除所有未决定的符号 
 　　RTLD_LOCAL  与RTLD_GLOBAL作用相反,
 				动态库中定义的符号不能被其后打开的其它库重定位
 				如果没有指明是RTLD_GLOBAL还是RTLD_LOCAL,则缺省为RTLD_LOCAL.

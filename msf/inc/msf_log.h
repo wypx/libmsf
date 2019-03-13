@@ -30,16 +30,16 @@
 
 
 enum LOGCOLOR {
-	LC_DEBUG = 0,
-	LC_VERBOSE,
-	LC_INFO,
-	LC_WARN,
-	LC_ERR,
-	LC_ALERT,
-	LC_NOTICE,
-	LC_CRIT,
-	LC_CHAIN,
-	LC_MAX,
+    LC_DEBUG = 0,
+    LC_VERBOSE,
+    LC_INFO,
+    LC_WARN,
+    LC_ERR,
+    LC_ALERT,
+    LC_NOTICE,
+    LC_CRIT,
+    LC_CHAIN,
+    LC_MAX,
 };
 
 enum loglevel {
@@ -50,8 +50,6 @@ enum loglevel {
     DBG_DEBUG,
     DBG_MAX
 };
-
-
 
 enum logstat { 
    L_CLOSED, 
@@ -67,15 +65,10 @@ enum log_type_t {
     LOG_STDERR  = 2, /*stderr*/
     LOG_FILE    = 3,
     LOG_RSYSLOG = 4,
-
     LOG_MAX_OUTPUT = 255
 } ;
 
-
-s32 log_write(s32 level, s8 *mod, s8 *fmt, ...);
-s32 log_init(void);
+s32 log_write(s32 level, s8 *mod, const s8 *func, const s8 *file, s32 line, s8 *fmt, ...);
+s32 log_init(const s8 *log_path);
 void log_free(void);
-
-
-
 

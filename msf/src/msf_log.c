@@ -1,10 +1,17 @@
-#include <msf_log.h>
+
 
 /*
  * Session logging.
  */
 #include <stdarg.h>
 #include <fcntl.h>
+#include <msf_log.h>
+
+#define MSF_MOD_LOGGER "MSF_LOG"
+
+#define MSF_LOG(level, ...) \
+    log_write(level, MSF_MOD_LOGGER, __func__, __FILE__, __LINE__, __VA_ARGS__)
+
 
 #define LOG_FILE_PATH       "/home/luotang.me/log/rapberry.log"
 #define LOG_FILE_ZIP        "/home/luotang.me/log/tomato-%ld.zip"
@@ -19,8 +26,8 @@ static const s8 *loglevel[] = {
     "FATAL",
     "ERROR",
     "WARN",
-    "INFO",
     "DEBUG",
+    "INFO",
 };
 
 static const s8 *logcolor[] = {
@@ -204,13 +211,13 @@ static s32 log_update_file(struct log_param* ctx, s32 last_write_pos) {
 
     ret = lseek(ctx->logfd, 0, SEEK_SET); 
     if(ret < 0) {
-        fprintf(stderr, "Lseek file start error:%s.\n", strerror(errno));
+         MSF_LOG(DBG_ERROR, "Lseek file start error:%s.\n", strerror(errno));
         return -1;
     } 
     snprintf(log_info, LOG_MAX_HEAD_LEN, LOG_TITLE, last_write_pos);
     ret  = write(ctx->logfd, log_info, strlen(log_info)); 
     if(ret != (int)strlen(log_info)) {
-        fprintf(stderr, "Write file header error:%s.\n", strerror(errno));
+        MSF_LOG(DBG_ERROR, "Write file header error:%s.\n", strerror(errno));
         return -1;
     }
     lplog->logsize += last_write_pos;
@@ -221,7 +228,7 @@ static s32 log_update_file(struct log_param* ctx, s32 last_write_pos) {
 static s32 log_write_file(struct log_param* ctx, const s8 *info, s32 len)
 { 
     if (!info || len <= 0) {
-        fprintf(stderr, "Write file param is error.\n");
+        MSF_LOG(DBG_ERROR, "Write file param is error.\n");
         return -1;
     } 
 
@@ -239,7 +246,7 @@ static s32 log_write_file(struct log_param* ctx, const s8 *info, s32 len)
 
     total_len = lseek(ctx->logfd, 0, SEEK_END); 
     if(total_len < 0) {
-        fprintf(stderr, "Lseek total_len error:%s.\n", strerror(errno));
+         MSF_LOG(DBG_ERROR, "Lseek total_len error:%s.\n", strerror(errno));
         goto err;
     } else if(0 == total_len) {
         /* write header info */
@@ -250,7 +257,7 @@ static s32 log_write_file(struct log_param* ctx, const s8 *info, s32 len)
         total_len += LOG_MAX_HEAD_LEN;
         ret = lseek(ctx->logfd, LOG_MAX_HEAD_LEN, SEEK_SET);
         if (ret < 0) {
-            fprintf(stderr, "Lseek log_head_len failed, errno(%d).\n", errno);
+            MSF_LOG(DBG_ERROR, "Lseek log_head_len failed, errno(%d).\n", errno);
             goto err;
         }
     }
@@ -258,7 +265,7 @@ static s32 log_write_file(struct log_param* ctx, const s8 *info, s32 len)
     /* jump to file start */
     ret = lseek(ctx->logfd, 0, SEEK_SET); 
     if (ret < 0) {
-        fprintf(stderr, "Lseek file start error:%s\n", strerror(errno));
+        MSF_LOG(DBG_ERROR, "Lseek file start error:%s\n", strerror(errno));
         goto err;
     }
 
@@ -266,7 +273,7 @@ static s32 log_write_file(struct log_param* ctx, const s8 *info, s32 len)
         device maybe reboot*/
     ret = read(ctx->logfd, read_buf, LOG_MAX_HEAD_LEN);
     if ( ret < 0 ) { 
-        fprintf(stderr, "Read info failed(%d-%d)\n", ret, len);
+        MSF_LOG(DBG_ERROR, "Read info failed(%d-%d)\n", ret, len);
         goto err;
     }
 
@@ -275,13 +282,13 @@ static s32 log_write_file(struct log_param* ctx, const s8 *info, s32 len)
     //printf("log last_write_pos:%d\n", last_write_pos);
 
     if (last_write_pos + len > LOG_MAX_FILE_SIZE) {
-        fprintf(stderr, "Write log roolback.\n"); 
+        MSF_LOG(DBG_ERROR, "Write log roolback.\n"); 
         last_write_pos = LOG_MAX_HEAD_LEN;
     }
     /* Skip log header*/
     ret = lseek(ctx->logfd, last_write_pos, SEEK_SET); 
     if (ret < 0) { 
-        fprintf(stderr, "Lseek last_write_pos errno(%d).\n", errno);
+        MSF_LOG(DBG_ERROR, "Lseek last_write_pos errno(%d).\n", errno);
         goto err;
     }
     total_len = last_write_pos;
@@ -289,7 +296,7 @@ static s32 log_write_file(struct log_param* ctx, const s8 *info, s32 len)
 
     ret = write(ctx->logfd, info, len); 
     if(ret != len){  
-        fprintf(stderr, "Lseek write log errno(%d).\n", errno);
+        MSF_LOG(DBG_ERROR, "Lseek write log errno(%d).\n", errno);
         goto err;
     }
 
@@ -335,7 +342,7 @@ s32 log_init(const s8 *log_path) {
     lplog->logver       = 1;
     lplog->logpid       = getpid();
     lplog->logstat      = L_CLOSED;
-    lplog->logmlevel    = DBG_DEBUG;
+    lplog->logmlevel    = DBG_INFO;
     lplog->logsize      = LOG_MAX_FILE_SIZE;
 
     pthread_mutex_init( &(lplog->log_mutex), NULL );
@@ -347,7 +354,7 @@ s32 log_init(const s8 *log_path) {
             O_CREAT | O_RDWR | O_APPEND , 0766); 
         if (lplog->logfd < 0) {
             fprintf(stderr, "Fail to open log file(%s).\n", log_path);
-            lplog->logstat 	= L_ERROR;
+            lplog->logstat = L_ERROR;
             return -1;
         }
     }
@@ -359,7 +366,7 @@ s32 log_init(const s8 *log_path) {
 #endif
 
 
-    lplog->logstat 	= L_OPEN;
+    lplog->logstat  = L_OPEN;
 
     return 0;
 }
@@ -409,8 +416,8 @@ s32 log_write(s32 level, s8 *mod, const s8 *func, const s8 *file, s32 line, s8 *
     msf_memzero(log_name, sizeof(log_name));
     msf_memzero(newfmt, sizeof(newfmt));
 
-    if( level < lplog->logmlevel || !mod || !fmt) {
-        //goto err;
+    if (unlikely(!mod || !fmt)) {
+        goto err;
     }
 
     {
@@ -454,7 +461,7 @@ s32 log_write(s32 level, s8 *mod, const s8 *func, const s8 *file, s32 line, s8 *
                tmfmt, errno);
         goto err;
     }
-    va_end( ap );
+    va_end(ap);
 
     }
 
@@ -470,7 +477,7 @@ s32 log_write(s32 level, s8 *mod, const s8 *func, const s8 *file, s32 line, s8 *
         //bufchain_add(&lplog->queue, data, strlen(data));
     } else if (lplog->logstat == L_OPEN) {
     
-        if (lplog->blogout) {
+        if (lplog->blogout && level < lplog->logmlevel) {
             fprintf(stderr, "%s\n", data);
         }
         if (lplog->blogfile) {

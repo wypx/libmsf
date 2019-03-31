@@ -10,17 +10,23 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-#include <msf.h>
 #include <cJSON.h>
+#include <msf_log.h>
+#include <msf_os.h>
 
-#define DEF_PROC_KEY_NAME 		"proc_name"
-#define DEF_PROC_KEY_AUTHOR 	"proc_author"
-#define DEF_PROC_KEY_VERSION 	"proc_version"
-#define DEF_PROC_KEY_DESC 		"proc_desc"
-#define DEF_PROC_KEY_SVCS 		"proc_svcs"
+#define MSF_MOD_SHELL "MSF_SHELL"
+#define MSF_SHELL_LOG(level, ...) \
+    log_write(level, MSF_MOD_SHELL, __func__, __FILE__, __LINE__, __VA_ARGS__)
 
-#define DEF_SVC_KEY_NAME 		"svc_name"
-#define DEF_SVC_KEY_LIBS 		"svc_libs"
+
+#define DEF_PROC_KEY_NAME       "proc_name"
+#define DEF_PROC_KEY_AUTHOR     "proc_author"
+#define DEF_PROC_KEY_VERSION    "proc_version"
+#define DEF_PROC_KEY_DESC       "proc_desc"
+#define DEF_PROC_KEY_SVCS       "proc_svcs"
+
+#define DEF_SVC_KEY_NAME        "svc_name"
+#define DEF_SVC_KEY_LIBS        "svc_libs"
 
 static struct process gproc;
 struct process *g_proc = &gproc;
@@ -89,7 +95,7 @@ static s32 config_parse_proc(const s8 *confbuff) {
 
     root = cJSON_Parse(confbuff);
     if (!root) {
-        printf("Failed to parse buff to json object.\n");
+        MSF_SHELL_LOG(DBG_ERROR, "Failed to parse buff to json object.");
         goto cleanup;
     }
 
@@ -98,7 +104,7 @@ static s32 config_parse_proc(const s8 *confbuff) {
         memcpy(g_proc->proc_name, tmp->valuestring, 
             min(sizeof(g_proc->proc_author)-1, strlen(tmp->valuestring)));
     } else {
-        printf("Failed to parse author json object.\n");
+        MSF_SHELL_LOG(DBG_ERROR, "Failed to parse author json object.");
         goto cleanup;
     }
 
@@ -107,7 +113,7 @@ static s32 config_parse_proc(const s8 *confbuff) {
         memcpy(g_proc->proc_author, tmp->valuestring, 
             min(sizeof(g_proc->proc_author)-1, strlen(tmp->valuestring)));
     } else {
-        printf("Failed to parse author json object.\n");
+        MSF_SHELL_LOG(DBG_ERROR, "Failed to parse author json object.");
         goto cleanup;
     }
 
@@ -116,7 +122,7 @@ static s32 config_parse_proc(const s8 *confbuff) {
         memcpy(g_proc->proc_version, tmp->valuestring, 
             min(sizeof(g_proc->proc_version)-1, strlen(tmp->valuestring)));
     } else {
-        printf("Failed to parse version json object.\n");
+        MSF_SHELL_LOG(DBG_ERROR, "Failed to parse version json object.");
         goto cleanup;
     }
 
@@ -125,7 +131,7 @@ static s32 config_parse_proc(const s8 *confbuff) {
         memcpy(g_proc->proc_desc, tmp->valuestring, 
             min(sizeof(g_proc->proc_desc)-1, strlen(tmp->valuestring)));
     } else {
-        printf("Failed to parse desc json object.\n");
+        MSF_SHELL_LOG(DBG_ERROR, "Failed to parse desc json object.");
         goto cleanup;
     }
 
@@ -133,7 +139,7 @@ static s32 config_parse_proc(const s8 *confbuff) {
     if (svc_array) {
         g_proc->proc_svc_num = cJSON_GetArraySize(svc_array);		
     } else {
-        printf("Failed to parse svcs json object.\n");
+        MSF_SHELL_LOG(DBG_ERROR, "Failed to parse svcs json object.");
         goto cleanup;
     }
 
@@ -143,7 +149,7 @@ static s32 config_parse_proc(const s8 *confbuff) {
 
     g_proc->proc_svcs = MSF_NEW(struct svcinst, g_proc->proc_svc_num);
     if (!g_proc->proc_svcs) {
-        printf("Failed to new svcs object.\n");
+        MSF_SHELL_LOG(DBG_ERROR, "Failed to new svcs object.");
         goto cleanup;
     } else {
         memset(g_proc->proc_svcs, 0, 
@@ -153,7 +159,7 @@ static s32 config_parse_proc(const s8 *confbuff) {
     for (proc_idx = 0; proc_idx < g_proc->proc_svc_num; proc_idx++) {		
         rc = config_parse_svc(svc_array, proc_idx);
         if (rc < 0) {
-            printf("Failed to parse svc %d.\n", proc_idx);
+            MSF_SHELL_LOG(DBG_ERROR, "Failed to parse svc %d.", proc_idx);
             sfree(g_proc->proc_svcs);
             goto cleanup;
         }
@@ -168,7 +174,7 @@ cleanup:
 s32 config_init(s8 *conf_file) {
 
     if (unlikely(!conf_file)) {
-        printf("Config file is null.\n");
+        MSF_SHELL_LOG(DBG_ERROR, "Config file is null.");
         return -1;
     }
 
@@ -176,12 +182,12 @@ s32 config_init(s8 *conf_file) {
 
     confbuff = config_read_file(conf_file);
     if (!confbuff) {
-        printf("Failed to read %s.\n", conf_file);
+        MSF_SHELL_LOG(DBG_ERROR, "Failed to read %s.", conf_file);
         return -1;
     }
 
     if (config_parse_proc(confbuff) < 0) {
-        printf("Failed to parse %s.\n", conf_file);
+        MSF_SHELL_LOG(DBG_ERROR, "Failed to parse %s.", conf_file);
         sfree(confbuff);
         return -1;
     }
@@ -202,7 +208,7 @@ s32 service_init(void) {
 
     for (svc_idx = 0; svc_idx < g_proc->proc_svc_num; svc_idx++) {
         if (svcinst_init(&(g_proc->proc_svcs[svc_idx])) < 0) {
-            printf("Failed to load svc %d.\n", svc_idx);
+            MSF_SHELL_LOG(DBG_ERROR, "Failed to load svc %d.", svc_idx);
             return -1;
         };
     }
@@ -210,7 +216,7 @@ s32 service_init(void) {
     for (svc_idx = 0; svc_idx < g_proc->proc_svc_num; svc_idx++) {
         svc_cb = g_proc->proc_svcs[svc_idx].svc_cb;
         if (svc_cb->init(NULL, 0) < 0) {
-            printf("Failed to init svc %d.\n", svc_idx);
+            MSF_SHELL_LOG(DBG_ERROR, "Failed to init svc %d.", svc_idx);
             return -1;
         }
     }
@@ -224,7 +230,7 @@ s32 process_init(s32 argc, s8 *argv[]) {
     //process_try_lock(g_proc->proc_name, 1);
 
     if (msf_init_setproctitle(argc, argv) < 0) {
-        printf("Failed to init process title.\n");
+        MSF_SHELL_LOG(DBG_ERROR, "Failed to init process title.");
         return -1;
     }
 
@@ -238,7 +244,7 @@ s32 process_init(s32 argc, s8 *argv[]) {
 }
 
 void show_version(void) {
-    fprintf(stderr,
+    MSF_SHELL_LOG(DBG_INFO, 
         "process name:%s \n"
         "process author:%s \n"
         "process version: %s\n"
@@ -250,7 +256,7 @@ void show_version(void) {
 }
 
 void show_usage(void) {
-    fprintf(stderr,
+    MSF_SHELL_LOG(DBG_INFO, 
             "Usage: %s [-?hvdc] [-d level] [-c config-file] [-k signal]\n"
             "       -h        Print help message.\n"
             "       -v        Show Version and exit.\n"
@@ -268,16 +274,14 @@ void show_usage(void) {
 s32 options_parse(s32 argc, s8 *argv[]) {
     s32 c;
 
-    printf("optind:%d, opterr: %d\n", optind, opterr);
+    MSF_SHELL_LOG(DBG_INFO, "optind:%d, opterr: %d\n", optind, opterr);
 
     //getopt_long
     while ((c = getopt(argc, argv, "hvdc:k:?")) != -1) {
         switch (c) {
             case 'h':
-                show_usage();
-                break;
             case 'v':
-                show_version();
+                show_usage();
                 break;
             case 'd':
                 g_proc->proc_daemon = true;
@@ -299,9 +303,17 @@ s32 options_parse(s32 argc, s8 *argv[]) {
                 else
                    show_usage();
                 break;
+            case 'm':
+                if ((s32) strlen(optarg) < 1)
+                   show_usage();
+                if (!msf_strncmp(optarg, "reload", strlen(optarg)))
+                   g_proc->proc_signo = SIGHUP;
+                else
+                   show_usage();
+                break;
             case '?':
             default:
-                printf("Unknown option: %c\n",(s8)optopt);
+                MSF_SHELL_LOG(DBG_ERROR, "Unknown option: %c.",(s8)optopt);
                 show_usage();
                 break;
         }
@@ -314,12 +326,12 @@ s32 options_parse(s32 argc, s8 *argv[]) {
 static  __attribute__((constructor(101))) void before1()
 {
  
-    printf("before1\n");
+    MSF_SHELL_LOG(DBG_ERROR, "before1");
 }
 static  __attribute__((constructor(102))) void before2()
 {
  
-    printf("before2\n");
+    MSF_SHELL_LOG(DBG_ERROR, "before2.");
 }
 
 
@@ -350,14 +362,22 @@ static inline __attribute__((always_inline)) void test5()
 
 __attribute__((destructor)) void after_main()  
 {  
-   printf("after main\n\n");  
+   MSF_SHELL_LOG(DBG_ERROR, "after main.");  
 } 
 
 
-/* ./msf_kernel -c msf_daemon_config.json */
+/* ./msf_shell -c msf_daemon_config.json */
 s32 main(s32 argc, s8 *argv[]) {
 
     if (unlikely((3 != argc && 2 != argc) || (3 == argc && !argv[2]))) {
+        return -1;
+    }
+
+    s8 log_path[256] = { 0 };
+
+    snprintf(log_path, sizeof(log_path)-1, "%s.log", "agent");
+
+    if (log_init(log_path) < 0) {
         return -1;
     }
 
@@ -365,29 +385,25 @@ s32 main(s32 argc, s8 *argv[]) {
         return -1;
     }
 
-    if (logger_init() < 0) {
-    	return -1;
-    }
-
     memset(g_proc, 0, sizeof(struct process));
     g_proc->user  = MSF_CONF_UNSET_UINT;
     g_proc->group = MSF_CONF_UNSET_UINT;
 
-    printf("Msf kernel init pid(%d) argv2[%s].\n", getpid(), argv[2]);
+    MSF_SHELL_LOG(DBG_INFO, "Msf shell init pid(%d) argv(%s).", getpid(), argv[2]);
 
     if (config_init(argv[2]) < 0) {
         return -1;
     }
 
     if (likely(g_proc->logfd) > 0) {
-        msf_set_stderr(g_proc->logfd);
+        //msf_set_stderr(g_proc->logfd);
     }
 
     if (process_init(argc, argv) < 0) {
         return -1;
     }
 
-    printf("Msf kernel init sucessful.\n");
+    MSF_SHELL_LOG(DBG_INFO, "Msf shell init sucessful.");
 
     for ( ;; ) {
         sleep(1);

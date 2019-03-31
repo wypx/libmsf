@@ -154,6 +154,10 @@ typedef unsigned long long int  u64;
     (void) (&_x == &_y);    \
     _x > _y ? _x : _y; })
 
+#ifndef roundup
+# define roundup(x, y)  ((((x) + ((y) - 1)) / (y)) * (y))
+#endif /* !defined(roundup) */
+
 #define MSF_ABS(value)       (((value) >= 0) ? (value) : - (value))
 
 #define MSF_NEW(t,n)        ((t*) malloc(sizeof(t) * (n)))
@@ -286,6 +290,7 @@ typedef unsigned long long int  u64;
         (fp) = NULL;} \
     } while(0)
 
+#define MSF_PACKED_MEMORY  __attribute__((__packed__))
 
 #define msf_tolower(c)      (u8) ((c >= 'A' && c <= 'Z') ? (c | 0x20) : c)
 #define msf_toupper(c)      (u8) ((c >= 'a' && c <= 'z') ? (c & ~0x20) : c)
@@ -314,10 +319,20 @@ typedef unsigned long long int  u64;
 #define offsetof(type, field) ((off_t)(&((type *)0)->field))
 #endif
 
-#define msf_align(d, a)     	(((d) + (a - 1)) & ~(a - 1))
+#define msf_align(d, a)         (((d) + (a - 1)) & ~(a - 1))
 
 #define msf_align_ptr(p, a)  \
     (u8 *) (((u32) (p) + ((u32) a - 1)) & ~((u32) a - 1))
+
+
+
+#define msf_test_bits(mask, addr)   (((*addr) & (mask)) != 0)
+#define msf_clr_bits(mask, addr)    ((*addr) &= ~(mask))
+#define msf_set_bits(mask, addr)    ((*addr) |= (mask))
+
+#define msf_test_bit(nr, addr)  (*(addr) & (1ULL << (nr)))
+#define msf_set_bit(nr, addr)   (*(addr) |=  (1ULL << (nr)))
+#define msf_clr_bit(nr, addr)   (*(addr) &=  ~(1ULL << (nr)))
 
 #define MSF_FILE_READ       0
 #define MSF_FILE_WRITE      1

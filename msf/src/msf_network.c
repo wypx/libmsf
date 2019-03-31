@@ -104,24 +104,31 @@ int shutdown(int sockfd,int howto);  //·µ»Ø³É¹¦Îª0£¬³ö´íÎª-1.    ¸Ãº¯ÊýµÄÐÐÎªÒÀÀ
 #define KERNEL_SO_REUSEPORT      2
 #define KERNEL_TCP_AUTOCORKING   4
 
+#define MSF_MOD_NETWORK "NETWORK"
+
+#define MSF_NETWORK_LOG(level, ...) \
+    log_write(level, MSF_MOD_NETWORK, __func__, __FILE__, __LINE__, __VA_ARGS__)
+
+
 static s32 kernel_features = 1;
 static s32 portreuse = 1;
 
-
 const struct in6_addr g_any6addr = IN6ADDR_ANY_INIT; 
 static u32 old_gateway = 0;
+
+
 /*
 * Checks validity of an IP address string based on the version
 * AF_INET6 AF_INET
 */
-s32 isipaddr(const s8 *ip, u32 af_type) {
+s32 msf_isipaddr(const s8 *ip, u32 af_type) {
     s8  addr[sizeof(struct in6_addr)];
     s32 len = sizeof(addr);
 
 #ifdef WIN32
     if (WSAStringToAddress(ip, af_type, NULL, PADDR(addr), &len) == 0)
         return 1;
-#else /*~WIN32*/    
+#else /*~WIN32*/
     if (inet_pton(af_type, ip, addr) == 1)
         return 1;
 #endif /*WIN32*/
@@ -129,38 +136,30 @@ s32 isipaddr(const s8 *ip, u32 af_type) {
     return 0;
 }
 
-#include <sys/utsname.h>
-int evutil_sockaddr_cmp(const struct sockaddr *sa1, const struct sockaddr *sa2,
-int include_port)
-{
-    int r;
-    if (0 != (r = (sa1->sa_family - sa2->sa_family)))
-    return r;
+s32 msf_sockaddr_cmp(const struct sockaddr *sa1, const struct sockaddr *sa2) {
+
+    if (sa1->sa_family != sa2->sa_family)
+        return -1;
 
     if (sa1->sa_family == AF_INET) {
         const struct sockaddr_in *sin1, *sin2;
         sin1 = (const struct sockaddr_in *)sa1;
         sin2 = (const struct sockaddr_in *)sa2;
-        if (sin1->sin_addr.s_addr < sin2->sin_addr.s_addr)
-        return -1;
-        else if (sin1->sin_addr.s_addr > sin2->sin_addr.s_addr)
-        return 1;
-        else if (include_port &&
-        (r = ((int)sin1->sin_port - (int)sin2->sin_port)))
-            return r;
-        else
+
+        if ((sin1->sin_addr.s_addr == sin2->sin_addr.s_addr) &&
+            ((s32)sin1->sin_port == (s32)sin2->sin_port)) {
             return 0;
+        }
+        return -1;
     }
 #ifdef AF_INET6
     else if (sa1->sa_family == AF_INET6) {
         const struct sockaddr_in6 *sin1, *sin2;
         sin1 = (const struct sockaddr_in6 *)sa1;
         sin2 = (const struct sockaddr_in6 *)sa2;
-        if ((r = memcmp(sin1->sin6_addr.s6_addr, sin2->sin6_addr.s6_addr, 16)))
-            return r;
-        else if (include_port &&
-        (r = ((int)sin1->sin6_port - (int)sin2->sin6_port)))
-            return r;
+        if ((0 == memcmp(sin1->sin6_addr.s6_addr, sin2->sin6_addr.s6_addr, 16)) &&
+                ((s32)sin1->sin6_port == (s32)sin2->sin6_port))
+            return 0;
         else
             return 0;
     }
@@ -168,42 +167,12 @@ int include_port)
     return 1;
 }
 
-
-/* Getting localhost official canonical name */
-s8 *get_local_name(void) {
-    struct utsname name;
-    struct addrinfo hints, *res = NULL;
-    s8 *canonname = NULL;
-    size_t len = 0;
-
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_flags = AI_CANONNAME;
-
-    if (uname(&name) < 0)
-        return NULL;
-
-    if (getaddrinfo(name.nodename, NULL, &hints, &res) != 0)
-        return NULL;
-
-    if (res && res->ai_canonname) {
-        len = strlen(res->ai_canonname);
-        canonname = malloc(len + 1);
-        if (canonname) {
-            memcpy(canonname, res->ai_canonname, len);
-        }
-    }
-
-    freeaddrinfo(res);
-
-    return canonname;
-}
-
-u16 inet_sockaddrport(struct sockaddr_storage *addr)
+u16 msf_sockaddr_port(struct sockaddr_storage *addr)
 {
     u16 port;
 
     if (addr->ss_family == AF_INET6) {
-    struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *) addr;
+        struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *) addr;
         port = addr6->sin6_port;
     } else {
         /* Note: this might be AF_UNSPEC if it is the sequence number of
@@ -214,39 +183,6 @@ u16 inet_sockaddrport(struct sockaddr_storage *addr)
 
     return port;
 }
-
-s32 socket_ip_str(s32 fd, s8 **buf,  u32 size, u32 *len) {
-    s32 rc = -1;
-    struct sockaddr_storage addr;
-    socklen_t s_len = sizeof(addr);
-
-    memset(&addr, 0, sizeof(addr));
-
-    rc = getpeername(fd, (struct sockaddr*)&addr, &s_len);
-    if (unlikely(rc == -1)) {
-        printf("[FD %i] Can't get addr for this socket\n", fd);
-        return -1;
-    }
-    errno = 0;
-
-    if (addr.ss_family == AF_INET) {
-    if ((inet_ntop(AF_INET, &((struct sockaddr_in*)&addr)->sin_addr,
-        *buf, size)) == NULL) {
-        printf("socket_ip_str: Can't get the IP text form (%i)\n", errno);
-        return -1;
-    }
-    } else if (addr.ss_family == AF_INET6) {
-    if ((inet_ntop(AF_INET6, &((struct sockaddr_in6 *)&addr)->sin6_addr,
-        *buf, size)) == NULL) {
-            printf("socket_ip_str: Can't get the IP text form (%i)", errno);
-            return -1;
-        }
-    }
-
-    *len = strlen(*buf);
-    return 0;
-}
-
 
 /**
 * linuxÂÊÇtcp_cork,ÉÏÃæµÄÒâË¼¾ÍÊÇËµ,µ±Ê¹ÓÃsendfileº¯ÊýÊ±,
@@ -301,8 +237,8 @@ s32 socket_ip_str(s32 fd, s8 **buf,  u32 size, u32 *len) {
 * Example from:
 * http://www.baus.net/on-tcp_cork
 */
-s32 socket_cork_flag(s32 fd, u32 state) {
-    printf("Socket, set Cork Flag FD %i to %s", fd, (state ? "ON" : "OFF"));
+s32 msf_socket_cork_flag(s32 fd, u32 state) {
+    MSF_NETWORK_LOG(DBG_ERROR, "Socket, set Cork Flag FD %i to %s", fd, (state ? "ON" : "OFF"));
 
 #if defined (TCP_CORK)
     return setsockopt(fd, SOL_TCP, TCP_CORK, &state, sizeof(state));
@@ -311,7 +247,7 @@ s32 socket_cork_flag(s32 fd, u32 state) {
 #endif
 }
 
-s32 socket_blocking(s32 fd) {
+s32 msf_socket_blocking(s32 fd) {
 #ifdef WIN32
     unsigned long nonblocking = 0;
     return ioctlsocket(fd, FIONBIO, &val);
@@ -334,12 +270,12 @@ s32 socket_blocking(s32 fd) {
 *
 * ioctl() in Linux 2.4 and 2.6 uses BKL, however, fcntl(F_SETFL) uses it too.
 */
-int socket_nonblocking(int fd) {
+s32 msf_socket_nonblocking(s32 fd) {
 #ifdef _WIN32
     {
-        unsigned long nonblocking = 1;
+        s32 nonblocking = 1;
         if (ioctlsocket(fd, FIONBIO, &nonblocking) == SOCKET_ERROR) {
-            printf(fd, "fcntl(%d, F_GETFL)", (int)fd);
+            MSF_NETWORK_LOG(DBG_ERROR, fd, "fcntl(%d, F_GETFL)", (int)fd);
             return -1;
         }
     }
@@ -347,12 +283,12 @@ int socket_nonblocking(int fd) {
     {
     s32 flags;
     if ((flags = fcntl(fd, F_GETFL, NULL)) < 0) {
-        printf("fcntl(%d, F_GETFL)", fd);
+        MSF_NETWORK_LOG(DBG_ERROR, "fcntl(%d, F_GETFL)", fd);
         return -1;
     }
     if (!(flags & O_NONBLOCK)) {
         if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
-                printf("fcntl(%d, F_SETFL)", fd);
+                MSF_NETWORK_LOG(DBG_ERROR, "fcntl(%d, F_SETFL)", fd);
                 return -1;
             }
         }
@@ -368,7 +304,7 @@ int socket_nonblocking(int fd) {
 
 /* Set the socket send timeout (SO_SNDTIMEO socket option) to the specified
 * number of milliseconds, or disable it if the 'ms' argument is zero. */
-s32 socket_timeout(s32 fd, u32 ms) {
+s32 msf_socket_timeout(s32 fd, u32 ms) {
 
     struct timeval tv;
 
@@ -376,12 +312,12 @@ s32 socket_timeout(s32 fd, u32 ms) {
     tv.tv_usec = (ms%1000)*1000;
 
     if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv) < 0 )) {
-        printf("setsocketopt SO_SNDTIMEO errno %d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "setsocketopt SO_SNDTIMEO errno %d.", errno);
         //return -1;
     }
 
     if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv) < 0 )) {
-        printf("setsocketopt failed errno %d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "setsocketopt failed errno %d.", errno);
     }
 
     return 0;
@@ -391,7 +327,7 @@ s32 socket_timeout(s32 fd, u32 ms) {
 * Ä¬ÈÏÇé¿öÏÂ,serverÖØÆô,µ÷ÓÃsocket,bind,È»ºólisten,»áÊ§°Ü.
 * ÒòÎª¸Ã¶Ë¿ÚÕýÔÚ±»Ê¹ÓÃ.Èç¹ûÉè¶¨SO_REUSEADDR,ÄÇÃ´serverÖØÆô²Å»á³É¹¦.
 * Òò´Ë,ËùÓÐµÄTCP server¶¼±ØÐëÉè¶¨´ËÑ¡Ïî,ÓÃÒÔÓ¦¶ÔserverÖØÆôµÄÏÖÏó*/
-s32 socket_reuseaddr(s32 fd) {
+s32 msf_socket_reuseaddr(s32 fd) {
 
 #if defined(SO_REUSEADDR) && !defined(_WIN32)
     s32 one = 1;
@@ -404,7 +340,7 @@ s32 socket_reuseaddr(s32 fd) {
 #endif
 }
 
-s32 socket_reuseport(s32 fd) {
+s32 msf_socket_reuseport(s32 fd) {
 #if defined __linux__ && defined(SO_REUSEPORT)
     s32 on = 1;
     /* REUSEPORT on Linux 3.9+ means, "Multiple servers (processes or
@@ -413,13 +349,13 @@ s32 socket_reuseport(s32 fd) {
 #endif
 }
 
-s32 socket_linger(s32 fd) {
+s32 msf_socket_linger(s32 fd) {
     struct linger l;
     l.l_onoff = 1;
     l.l_linger = 0;
     if (setsockopt(fd, SOL_SOCKET, SO_LINGER, 
         (void*)&l, sizeof(l)) < 0) {
-        fprintf(stderr, "set socket opt linger errno: %s.\n", strerror(errno));
+        MSF_NETWORK_LOG(DBG_ERROR, "Socket opt linger errno: %s.", strerror(errno));
         return -1;
     }
     return 0;
@@ -429,10 +365,10 @@ s32 socket_linger(s32 fd) {
 * Set TCP keep alive option to detect dead peers. The interval option
 * is only used for Linux as we are using Linux-specific APIs to set
 * the probe send time, interval, and count. */
-s32 socket_alive(s32 fd) {
+s32 msf_socket_alive(s32 fd) {
     s32 flags = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (void*)&flags, sizeof(flags)) < 0) {
-        printf("setsockopt(SO_KEEPALIVE)\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "setsockopt(SO_KEEPALIVE).");
         return -1;
     }
 
@@ -472,7 +408,7 @@ s32 socket_alive(s32 fd) {
     return 0;
 }
 
-s32 socket_closeonexec(s32 fd)
+s32 msf_socket_closeonexec(s32 fd)
 {
 #if !defined(_WIN32) 
     s32 flags;
@@ -551,12 +487,12 @@ core(tcp_coreÉèÖÃ)Ëã·¨£¬ÊÜµ½¶Ô·½Ó¦´ðºó£¬ÄÚºËÊ×ÏÈ¼ì²éµ±Ç°»º³åÇøÖÐµÄ°üÊÇ·ñÓÐ1500£¬
 µÈ´ý200ms£¬Èç¹û200msÄÚ»¹Ã»ÓÐ1500×Ö½Ú£¬Ôò·¢ËÍ
 */ //²Î¿¼http://m.blog.csdn.net/blog/c_cyoxi/8673645
 
-s32 socket_tcp_nodelay(const s32 fd) {
+s32 msf_socket_tcp_nodelay(const s32 fd) {
 
     s32 on = 1;
 
     if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &on, sizeof(on)) < 0) {
-        printf("setsockopt TCP_NODELAY: %s", strerror(errno));
+        MSF_NETWORK_LOG(DBG_ERROR, "setsockopt TCP_NODELAY: %s", strerror(errno));
         return -1;
     };
     return 0;
@@ -590,7 +526,7 @@ ngx_tcp_push(s32 s)//Ñ¡Ïî½öÔÚÊ¹ÓÃsendfileµÄÊ±ºò²Å¿ªÆô
 *
 *  TCP Fast Open: expediting web services: http://lwn.net/Articles/508865/
 */
-s32 socket_tcp_fastopen(s32 fd) {
+s32 msf_socket_tcp_fastopen(s32 fd) {
 #if defined (__linux__)
     s32 qlen = 5;
     return setsockopt(fd, SOL_TCP, TCP_FASTOPEN, &qlen, sizeof(qlen));
@@ -629,7 +565,7 @@ TCP_DEFER_ACCEPT ¶ÔÐÔÄÜµÄ¹±Ï×£¬¾ÍÔÚÓÚ¼õÉÙÏµÍ³µ÷ÓÃÁË¡£
 */
 
 
-s32 socket_tcp_defer_accept(s32 fd) {
+s32 msf_socket_tcp_defer_accept(s32 fd) {
 #if defined (__linux__)
     /* TCP_DEFER_ACCEPT tells the kernel to call defer accept() only after data
     * has arrived and ready to read */
@@ -716,10 +652,10 @@ s32 msf_eventfd_notify(s32 efd) {
     //ssize_t s = eventfd_write(efd, &u);
     ssize_t s = write(efd, &u, sizeof(u));  
     if (s != sizeof(u64)) {
-        printf("Writing(%ld) ret(%ld) to thread notify pipe error\n", u, s);
+        MSF_NETWORK_LOG(DBG_ERROR, "Writing(%ld) ret(%ld) to notify error.", u, s);
         return -1;
     } else {
-        printf("Writing(%ld) ret(%ld) to thread notify pipe successful.\n", u, s);
+        MSF_NETWORK_LOG(DBG_INFO, "Writing(%ld) ret(%ld) to notify successful.", u, s);
     }
     return 0;
 }
@@ -731,10 +667,10 @@ s32 msf_eventfd_clear(s32 efd) {
     //ssize_t s = eventfd_read(efd, &u); 
     ssize_t s = read(efd, &u, sizeof(u));  
     if (s != sizeof(u64)) {
-        printf("Read(%ld) cnt(%ld) to thread clear pipe error\n", u, s);
+        MSF_NETWORK_LOG(DBG_ERROR, "Read(%ld) cnt(%ld) to thread clear error.", u, s);
         return -1;
     } else {
-        printf("Read(%ld) cnt(%ld) to thread clear pipe successful.\n", u, s);
+        MSF_NETWORK_LOG(DBG_INFO, "Read(%ld) cnt(%ld) to thread clear successful.", u, s);
     }
     return 0;
 }
@@ -744,8 +680,8 @@ s32 msf_eventfd_clear(s32 efd) {
 * flags.  Returns -1 on error or if eventfd is not supported.
 * flags:  EFD_NONBLOCK EFD_CLOEXEC EFD_SEMAPHORE.
 */
-s32 msf_eventfd(u32 initval, s32 flags)
-{
+s32 msf_eventfd(u32 initval, s32 flags) {
+
 #if defined(MSF_HAVE_EVENTFD) && defined(MSF_HAVE_SYS_EVENTFD_H)
     s32 r;
 #if defined(EFD_CLOEXEC) && defined(EFD_NONBLOCK)
@@ -756,24 +692,24 @@ s32 msf_eventfd(u32 initval, s32 flags)
 #endif
     r = eventfd(initval, 0);
     if (r < 0) {
-        fprintf(stderr, "Failed to create event fd, errno(%d).\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "Failed to create event fd, errno(%d).", errno);
         return r;
     }
 
     if (flags & EFD_CLOEXEC) {
-        if (socket_closeonexec(r) < 0) {
-            fprintf(stderr, "Failed to set event fd cloexec, errno(%d).\n", errno);
+        if (msf_socket_closeonexec(r) < 0) {
+            MSF_NETWORK_LOG(DBG_ERROR, "Failed to set event fd cloexec, errno(%d).", errno);
             sclose(r);
             return -1;
         }
     }
 
     if (flags & EFD_NONBLOCK) {
-    if (socket_nonblocking(r) < 0) {
-    fprintf(stderr, "Failed to set event fd nonblock, errno(%d).\n", errno);
-        sclose(r);
-        return -1;
-    }
+        if (msf_socket_nonblocking(r) < 0) {
+            MSF_NETWORK_LOG(DBG_ERROR, "Failed to set event fd nonblock, errno(%d).", errno);
+            sclose(r);
+            return -1;
+        }
     }
     return r;
 #else
@@ -799,7 +735,7 @@ s32 msf_timerfd(u32 initval, s32 flags) {
 }
 
 
-s32 socket_create(u32 domain, u32 type, u32 protocol) {
+s32 msf_socket_create(u32 domain, u32 type, u32 protocol) {
     s32 fd = -1;
 
 #ifdef SOCK_CLOEXEC
@@ -816,7 +752,7 @@ s32 socket_create(u32 domain, u32 type, u32 protocol) {
     return fd;
 }
 
-s32 socket_bind(s32 fd, const struct sockaddr *addr,
+s32 msf_socket_bind(s32 fd, const struct sockaddr *addr,
     socklen_t addrlen, u32 backlog)
 {
     s32 ret = -1;
@@ -826,15 +762,15 @@ s32 socket_bind(s32 fd, const struct sockaddr *addr,
     s32 e = errno;
     switch (e) {
         case 0:
-            printf("Could not bind socket\n");
+            MSF_NETWORK_LOG(DBG_ERROR, "Could not bind socket.");
             break;
         case EADDRINUSE:
-            printf("Port %d for receiving UDP is in use\n", 8888);
+            MSF_NETWORK_LOG(DBG_ERROR, "Port %d for receiving UDP is in use.", 8888);
             break;
         case EADDRNOTAVAIL:
             break;
         default:
-            printf("Could not bind UDP receive port errno:%d\n", e);
+            MSF_NETWORK_LOG(DBG_ERROR, "Could not bind UDP receive port errno:%d.", e);
             break;
         }
         return -1;
@@ -854,9 +790,9 @@ s32 socket_bind(s32 fd, const struct sockaddr *addr,
     */
 
     if (kernel_features & KERNEL_TCP_FASTOPEN) {
-    ret = socket_tcp_fastopen(fd);
+        ret = msf_socket_tcp_fastopen(fd);
         if (unlikely(ret == -1)) {
-            printf("Could not set TCP_FASTOPEN\n");
+            MSF_NETWORK_LOG(DBG_ERROR, "Could not set TCP_FASTOPEN.");
         }
     }
 
@@ -868,9 +804,8 @@ s32 socket_bind(s32 fd, const struct sockaddr *addr,
     return 0;
 }
 
-
 /* Network helpers */
-void socket_debug(s32 fd) {
+void msf_socket_debug(s32 fd) {
 
     s32 rc;
     s8 ip[64];
@@ -885,14 +820,14 @@ void socket_debug(s32 fd) {
 
     rc = getsockname(fd, (struct sockaddr *)&cliaddr, &addrlen);
     if (rc < 0) {
-        printf("Conn getsockname failed, errno(%d).\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "Conn getsockname failed, errno(%d).", errno);
         return;
     }
 
     if (cliaddr.ss_family == AF_UNIX) { 
         
         cun = SINU(&cliaddr);
-        printf("Unix local[%s] clifd[%d].\n", cun->sun_path, fd);
+        MSF_NETWORK_LOG(DBG_DEBUG, "Unix local[%s] clifd[%d].", cun->sun_path, fd);
 
     } else if (cliaddr.ss_family == AF_INET) {
 
@@ -900,60 +835,60 @@ void socket_debug(s32 fd) {
 
         /* inet_ntoa(sin->sin_addr) */
         inet_ntop(cliaddr.ss_family, &sin->sin_addr, ip, sizeof(ip));
-        printf("Network ipv4 local[%s] port[%d].\n", ip, ntohs(sin->sin_port));
+        MSF_NETWORK_LOG(DBG_DEBUG, "Network ipv4 local[%s] port[%d].", ip, ntohs(sin->sin_port));
 
     } else if (cliaddr.ss_family == AF_INET6) {
 
         sin6 = SIN6(&cliaddr);
         inet_ntop(cliaddr.ss_family, &sin6->sin6_addr, ip, sizeof(ip));
-        printf("Network ipv6 local[%s] port[%d].\n", ip, ntohs(sin6->sin6_port));
+        MSF_NETWORK_LOG(DBG_DEBUG, "Network ipv6 local[%s] port[%d].", ip, ntohs(sin6->sin6_port));
     }
 
     memset(ip, 0, sizeof(ip));
     memset(&cliaddr, 0, sizeof(cliaddr));
     rc = getpeername(fd, (struct sockaddr *)&cliaddr, &addrlen);
     if (rc < 0) {
-        printf("Conn getpeername failed, errno(%d).\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "Conn getpeername failed, errno(%d).", errno);
         return;
     }
     
     if (cliaddr.ss_family == AF_UNIX) { 
 
         cun = SINU(&cliaddr);
-        printf("Unix peer[%s] clifd[%d].\n", cun->sun_path, fd);
+        MSF_NETWORK_LOG(DBG_DEBUG, "Unix peer[%s] clifd[%d].", cun->sun_path, fd);
 
     } else if (cliaddr.ss_family == AF_INET) {
 
         sin = SIN(&cliaddr);
         /* inet_ntoa(sin->sin_addr) */
         inet_ntop(cliaddr.ss_family, &sin->sin_addr, ip, sizeof(ip));	
-        printf("Network ipv4 peer[%s] port[%d].\n", ip, ntohs(sin->sin_port));
+        MSF_NETWORK_LOG(DBG_DEBUG, "Network ipv4 peer[%s] port[%d].", ip, ntohs(sin->sin_port));
 
     } else if (cliaddr.ss_family == AF_INET6) {
 
         sin6 = SIN6(&cliaddr);
         inet_ntop(cliaddr.ss_family, &sin6->sin6_addr, ip, sizeof(ip));
-        printf("Network ipv6 peer[%s] port[%d].\n",  ip, ntohs(sin6->sin6_port));
+        MSF_NETWORK_LOG(DBG_DEBUG, "Network ipv6 peer[%s] port[%d].",  ip, ntohs(sin6->sin6_port));
     }
 }
 
-s32 connect_to_unix_socket (const s8 *cname, const s8 *sname) {
+s32 msf_connect_to_unix_socket (const s8 *cname, const s8 *sname) {
     s32 fd  = -1;
-    s32 len =	0;
+    s32 len =   0;
     struct sockaddr_un addr;
 
     if (unlikely(!cname || !sname)) {
         goto err;
     }
 
-    fd = socket_create(AF_UNIX, SOCK_STREAM, 0);
+    fd = msf_socket_create(AF_UNIX, SOCK_STREAM, 0);
     if (unlikely(fd < 0)) {
-        printf ("failed to open socket: %s.\n", strerror (errno));
+        printf ("failed to open socket: %s.", strerror (errno));
         goto err;
     }
 
-    if (unlikely(socket_nonblocking(fd) < 0 || socket_linger(fd) < 0)) {
-        printf ("socket_set_noblocking,linger,alive: %s.\n", strerror (errno));
+    if (unlikely(msf_socket_nonblocking(fd) < 0 || msf_socket_linger(fd) < 0)) {
+        printf ("socket_set_noblocking,linger,alive: %s.", strerror (errno));
         goto err;
     }
 
@@ -966,13 +901,13 @@ s32 connect_to_unix_socket (const s8 *cname, const s8 *sname) {
     unlink(addr.sun_path);    /* in case it already exists */
 
     if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-        printf("bind failed  errno %d fd %d.\n", errno, fd);
+        MSF_NETWORK_LOG(DBG_ERROR, "bind failed  errno %d fd %d.", errno, fd);
         goto err;
     }
 
     /* ÔÝ²»ÉèÖÃÈ¨ÏÞÊ¹ÓÃÄ¬ÈÏµÄ0777 CLI_PERM */
     if (chmod(addr.sun_path, 0777) < 0) {
-        printf("chmod sun_path %s failed.\n", addr.sun_path);
+        MSF_NETWORK_LOG(DBG_ERROR, "chmod sun_path %s failed.", addr.sun_path);
         goto err;
     }
 
@@ -983,7 +918,7 @@ s32 connect_to_unix_socket (const s8 *cname, const s8 *sname) {
         if (errno == EINPROGRESS) 
             return fd;
         else {
-            printf ("[%d] failed to connect to %s: %s.\n", 
+            MSF_NETWORK_LOG(DBG_ERROR, "[%d] failed to connect to %s: %s.", 
                 fd, addr.sun_path, strerror (errno));
             goto err;
         }
@@ -995,7 +930,7 @@ s32 connect_to_unix_socket (const s8 *cname, const s8 *sname) {
     return -1;
 }
  
-s32 connect_to_host (const s8 *host, const s8 *port)
+s32 msf_connect_to_host(const s8 *host, const s8 *port)
 {
     s32 flag = 1;
     s32 fd  = -1;
@@ -1014,7 +949,7 @@ s32 connect_to_host (const s8 *host, const s8 *port)
     * connectivity. */
     rc = getaddrinfo (host, port, &hints, &res);
     if (unlikely(rc < 0)) {
-        printf ("Connect to %s port %s failed (getaddrinfo: %s)\n",
+        printf ("Connect to %s port %s failed (getaddrinfo: %s).",
             host, port, strerror(errno));
         return -1;
     }
@@ -1030,7 +965,7 @@ s32 connect_to_host (const s8 *host, const s8 *port)
         if (errno == EINPROGRESS) {
             break;
         } else {
-            printf("Connect errno:%s.\n", strerror(errno));
+            MSF_NETWORK_LOG(DBG_ERROR, "Connect errno:%s.", strerror(errno));
             sclose(fd);
             continue;
         }
@@ -1049,26 +984,26 @@ s32 connect_to_host (const s8 *host, const s8 *port)
         goto err;
     }
 
-    if (unlikely(socket_nonblocking(fd) < 0 || socket_tcp_nodelay(fd) < 0
-         || socket_linger(fd) < 0 || socket_alive(fd) < 0)) {
+    if (unlikely(msf_socket_nonblocking(fd) < 0 || msf_socket_tcp_nodelay(fd) < 0
+         || msf_socket_linger(fd) < 0 || msf_socket_alive(fd) < 0)) {
      printf ("socket_set_noblocking,linger,alive,tcp_nodelay: %s", strerror (errno));
      goto err;
     }
 
 #if 0
 	 if (socket_reuseport(fd) < 0) {
-		 printf("socket_nonblocking failed\n");
+		 MSF_NETWORK_LOG(DBG_ERROR, "socket_nonblocking failed.");
 		 goto err;
 	 }
 	 
  
 	 if (socket_reuseaddr(fd) < 0) {
-		 printf("socket_nonblocking failed\n");
+		 MSF_NETWORK_LOG(DBG_ERROR, "socket_nonblocking failed.");
 		 goto err;
 	 }
  
 	 if(socket_bind(fd, r->ai_addr, r->ai_addrlen, 128) < 0) {
-		 printf("Cannot listen on %s:%s\n", host, port);
+		 MSF_NETWORK_LOG(DBG_ERROR, "Cannot listen on %s:%s.", host, port);
 		 goto err;
 	 }
 #endif
@@ -1106,70 +1041,68 @@ s32 msf_recvmsg(s32 clifd, struct msghdr *msg) {
      int ret = sendto(fd, buf_, count, 0, (struct sockaddr*)&sa, sizeof(sa));
 #if 0
  bytes_sent = sendto(to->fd, data, len, 0,
-				 SOCK_PADDR(to), to->addr_len);
+     SOCK_PADDR(to), to->addr_len);
 #endif
-	 return ret;
+     return ret;
  }
  
- 
-  /* Sets the DSCP value of socket 'fd' to 'dscp', which must be 63 or less.
-   * 'family' must indicate the socket's address family (AF_INET or AF_INET6, to
-   * do anything useful). */
-  s32 set_dscp(s32 fd, u32 family, u8 dscp)
-  {
-	  s32 retval;
-	  s32 val;
-  
+/* Sets the DSCP value of socket 'fd' to 'dscp', which must be 63 or less.
+* 'family' must indicate the socket's address family (AF_INET or AF_INET6, to
+* do anything useful). */
+s32 msf_set_dscp(s32 fd, u32 family, u8 dscp) {
+    s32 retval;
+    s32 val;
+
 #ifdef _WIN32
-	  /* XXX: Consider using QoS2 APIs for Windows to set dscp. */
-	  return 0;
+    /* XXX: Consider using QoS2 APIs for Windows to set dscp. */
+    return 0;
 #endif
-  
-	  if (dscp > 63) {
-		  return -1;
-	  }
-	  val = dscp << 2;
-  
-	  switch (family) {
-	  case AF_INET:
-		  retval = setsockopt(fd, IPPROTO_IP, IP_TOS, &val, sizeof val);
-		  break;
-  
-	  case AF_INET6:
-		  retval = setsockopt(fd, IPPROTO_IPV6, IPV6_TCLASS, &val, sizeof val);
-		  break;
-  
-	  default:
-		  return ENOPROTOOPT;
-	  }
-  
-	  return retval ? errno : 0;
-  }
- 
+
+    if (dscp > 63) {
+      return -1;
+    }
+    val = dscp << 2;
+
+    switch (family) {
+        case AF_INET:
+          retval = setsockopt(fd, IPPROTO_IP, IP_TOS, &val, sizeof val);
+          break;
+
+        case AF_INET6:
+          retval = setsockopt(fd, IPPROTO_IPV6, IPV6_TCLASS, &val, sizeof val);
+          break;
+
+        default:
+          return ENOPROTOOPT;
+    }
+
+    return retval ? errno : 0;
+}
+
 /* Reads and discards up to 'n' datagrams from 'fd', stopping as soon as no
 * more data can be immediately read.	('fd' should therefore be in
 * non-blocking mode.)*/
-void drain_fd(s32 fd, u32 n_packets) {
+void msf_drain_fd(s32 fd, u32 n_packets) {
 
-	if (invalid_socket == fd) return;
+    if (invalid_socket == fd) return;
 
-	for (; n_packets > 0; n_packets--) {
-	 	/* 'buffer' only needs to be 1 byte long in most circumstances.  This
-	  	* size is defensive against the possibility that we someday want to
-	  	* use a Linux tap device without TUN_NO_PI, in which case a buffer
-	  	* smaller than sizeof(struct tun_pi) will give EINVAL on read. */
-	 	s8 buffer[128];
-	 	if (read(fd, buffer, sizeof buffer) <= 0) {
-		 	break;
-	 	}
-	}
+    for (; n_packets > 0; n_packets--) {
+        /* 'buffer' only needs to be 1 byte long in most circumstances.  This
+        * size is defensive against the possibility that we someday want to
+        * use a Linux tap device without TUN_NO_PI, in which case a buffer
+        * smaller than sizeof(struct tun_pi) will give EINVAL on read. */
+        s8 buffer[128];
+        if (read(fd, buffer, sizeof buffer) <= 0) {
+            break;
+        }
+    }
 }
  
  
  /*
   * Sets a socket's send buffer size to the maximum allowed by the system.
   */
-void socket_maximize_sndbuf(const s32 sfd) {
+void msf_socket_maximize_sndbuf(const s32 sfd) {
     socklen_t intsize = sizeof(s32);
     s32 last_good = 0;
     s32 min, max, avg;
@@ -1203,7 +1136,7 @@ void socket_maximize_sndbuf(const s32 sfd) {
     	 max = avg - 1;
      }
     }
-    fprintf(stderr, "<%d send buffer was %d, now %d\n", sfd, old_size, last_good);
+    MSF_NETWORK_LOG(DBG_ERROR, "<%d send buffer was %d, now %d.", sfd, old_size, last_good);
 }
 
 
@@ -1344,12 +1277,12 @@ s32 get_ifaddr_by_ioconf(s8 *iface, s8 *ip, s32 len)
     bzero(&ifconf, sizeof(ifconf));
 
     if (!iface || !ip || len < 16) {
-        printf("get_ipaddr param err .\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "get_ipaddr param err .");
         return -1;
     }
 
     if((sock_fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
-        printf("socket failed !errno = %d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "socket failed !errno = %d.", errno);
         return -1;
     }
 
@@ -1360,7 +1293,7 @@ s32 get_ifaddr_by_ioconf(s8 *iface, s8 *ip, s32 len)
     * Get all interfaces list
     */
     if(ioctl(sock_fd, SIOCGIFCONF, &ifconf) < 0) {
-        printf("SIOCGIFCONF socket failed !errno = %d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "SIOCGIFCONF socket failed !errno = %d.", errno);
         sclose(sock_fd);
         return -1;
     }
@@ -1373,7 +1306,7 @@ s32 get_ifaddr_by_ioconf(s8 *iface, s8 *ip, s32 len)
         if(AF_INET == ifreq->ifr_flags   //for ipv4
         &&  0 == msf_strncmp(ifreq->ifr_name, iface, sizeof(ifreq->ifr_name)))
         {
-            printf("Interface_name:[%s], IP_addr:[%s], ifr_size:[%lu]\n", 
+            MSF_NETWORK_LOG(DBG_ERROR, "Interface_name:[%s], IP_addr:[%s], ifr_size:[%lu].", 
             ifreq->ifr_name, 
             inet_ntoa(((struct sockaddr_in*)&(ifreq->ifr_addr))->sin_addr), 
             sizeof(struct ifreq));
@@ -1449,13 +1382,13 @@ int get_ifaddr_by_sock(char* ip, int slen) {
 
     bzero(&localaddr,sizeof(localaddr));
     getsockname(fd, (struct sockaddr*)&localaddr, &len);
-    printf("local ip is %s port:%d\n", 
+    MSF_NETWORK_LOG(DBG_ERROR, "local ip is %s port:%d.", 
     inet_ntop(AF_INET, &localaddr.sin_addr, buf, sizeof(buf)),
     ntohs(localaddr.sin_port));
     bzero(&peeraddr,sizeof(peeraddr));
     getpeername(fd, (struct sockaddr*)&peeraddr, &len);
 
-    printf("peer ip is %s port:%d\n", 
+    MSF_NETWORK_LOG(DBG_ERROR, "peer ip is %s port:%d.", 
     inet_ntop(AF_INET, &peeraddr.sin_addr, buf, sizeof(buf)),
     ntohs(peeraddr.sin_port));
 
@@ -1475,7 +1408,7 @@ int get_ifaddr_by_addrinfo(char* ip, int len) {
     int  ret = -1;
     char host_name[128] = { 0 };
     gethostname(host_name, sizeof(host_name));
-    printf("host_name:%s\n", host_name);
+    MSF_NETWORK_LOG(DBG_ERROR, "host_name:%s.", host_name);
 
     struct addrinfo*	ailist=NULL, *aip=NULL;
     struct sockaddr_in*	saddr;
@@ -1486,17 +1419,17 @@ int get_ifaddr_by_addrinfo(char* ip, int len) {
             saddr=(struct sockaddr_in*)aip->ai_addr;
             addr=inet_ntoa(saddr->sin_addr);
         }
-        printf("addr:%s\n",addr);
+        MSF_NETWORK_LOG(DBG_ERROR, "addr:%s.",addr);
     }
 
-    printf("\n-------www.luotang.me host info---------\n");
+    MSF_NETWORK_LOG(DBG_ERROR, "\n-------www.luotang.me host info---------\n");
     getaddrinfo("www.luotang.me", "http", NULL, &ailist);
     for(aip=ailist; aip != NULL; aip=aip->ai_next) {
         if(aip->ai_family == AF_INET) {
             saddr=(struct sockaddr_in*)aip->ai_addr;
             addr=inet_ntoa(saddr->sin_addr);
         }
-        printf("www.luotang.me addr:%s\n",addr);
+        MSF_NETWORK_LOG(DBG_ERROR, "www.luotang.me addr:%s.",addr);
     }
 
     return 0;
@@ -1557,7 +1490,7 @@ int  get_ifaddr_by_getifaddrs(char* ip, int len) {
     /* Display interface name and family (including symbolic
     *                  form of the latter for the common families) */
 
-    printf("%s  address family: %d%s\n",
+    MSF_NETWORK_LOG(DBG_ERROR, "%s  address family: %d%s.",
     ifa->ifa_name, family,
     (family == AF_PACKET) ? " (AF_PACKET)" :
     (family == AF_INET) ?  " (AF_INET)" :
@@ -1565,17 +1498,17 @@ int  get_ifaddr_by_getifaddrs(char* ip, int len) {
 
     if (NULL != (*ifa).ifa_addr) { 
         inet_ntop(AF_INET, &(((struct sockaddr_in*)((*ifa).ifa_addr))->sin_addr), ip, 64); 
-        printf("\t%s", ip); 
+        MSF_NETWORK_LOG(DBG_ERROR, "\t%s", ip); 
     } else { 
-        printf("\t\t"); 
+        MSF_NETWORK_LOG(DBG_ERROR, "\t\t"); 
     }
 
     if (NULL != (*ifa).ifa_netmask) { 
         inet_ntop(AF_INET,
         &(((struct sockaddr_in*)((*ifa).ifa_netmask))->sin_addr), netmask, 64); 
-            printf("\t%s", netmask); 
+            MSF_NETWORK_LOG(DBG_ERROR, "\t%s", netmask); 
         } else { 
-            printf("\t\t"); 
+            MSF_NETWORK_LOG(DBG_ERROR, "\t\t"); 
     } 
     /* For an AF_INET* interface address, display the address */
 
@@ -1585,10 +1518,10 @@ int  get_ifaddr_by_getifaddrs(char* ip, int len) {
     sizeof(struct sockaddr_in6),
     host, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
     if (s != 0) {
-        printf("getnameinfo() failed: %s\n", gai_strerror(s));
+        MSF_NETWORK_LOG(DBG_ERROR, "getnameinfo() failed: %s.", gai_strerror(s));
         exit(EXIT_FAILURE);
     }
-    printf("\taddress: <%s>\n", host);
+    MSF_NETWORK_LOG(DBG_ERROR, "\taddress: <%s>.", host);
     }
     }
 
@@ -1637,7 +1570,7 @@ s32 epoll_add_signal(void) {
 */	
 
 /* create a UNIX domain stream socket */
-s32 server_unix_socket(s32 backlog, s8 *unixpath, s32 access_mask) {
+s32 msf_server_unix_socket(s32 backlog, s8 *unixpath, s32 access_mask) {
 
     s32 sfd = -1;
     u32 len = 0;
@@ -1649,19 +1582,19 @@ s32 server_unix_socket(s32 backlog, s8 *unixpath, s32 access_mask) {
     memset(&s_un, 0, sizeof(struct sockaddr_un));
     s_un.sun_family = AF_UNIX;
 
-    sfd = socket_create(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
+    sfd = msf_socket_create(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
     if (unlikely(sfd < 0)) {
-        fprintf(stderr, "socket failed errno(%s).\n", strerror(errno));
+        MSF_NETWORK_LOG(DBG_ERROR, "socket failed errno(%s).", strerror(errno));
         return -1;
     }
 
-    if (unlikely(socket_reuseaddr(sfd) < 0)) {
-        fprintf(stderr, "set socket opt  errno: %s.\n", strerror(errno));
+    if (unlikely(msf_socket_reuseaddr(sfd) < 0)) {
+        MSF_NETWORK_LOG(DBG_ERROR, "set socket opt  errno: %s.", strerror(errno));
         sclose(sfd);
         return -1;
     }
 
-    if (unlikely(socket_linger(sfd) < 0)) {
+    if (unlikely(msf_socket_linger(sfd) < 0)) {
         sclose(sfd);
         return -1;
     }
@@ -1685,7 +1618,7 @@ s32 server_unix_socket(s32 backlog, s8 *unixpath, s32 access_mask) {
     /* bind the name to the descriptor */
     if (bind(sfd, (struct sockaddr *)&s_un, sizeof(s_un)) < 0) {
         umask(old_umask);
-        fprintf(stderr, "bind %s failed  errno: %s.\n", 
+        MSF_NETWORK_LOG(DBG_ERROR, "Bind %s failed  errno: %s.", 
         s_un.sun_path, strerror(errno));
         sclose(sfd);
         return -1;
@@ -1694,7 +1627,7 @@ s32 server_unix_socket(s32 backlog, s8 *unixpath, s32 access_mask) {
 
 #if 0
     if (unlikely(socket_tcp_nodelay(sfd) < 0)) {
-        fprintf(stderr, "4set socket opt  errno: %s\n", strerror(errno));
+        MSF_NETWORK_LOG(DBG_ERROR, "4set socket opt  errno: %s.", strerror(errno));
         sclose(sfd);
         return -1;
     }
@@ -1702,7 +1635,7 @@ s32 server_unix_socket(s32 backlog, s8 *unixpath, s32 access_mask) {
 
     if (listen(sfd, backlog) < 0) { 
         /* tell kernel we're a server */
-        fprintf(stderr, "listen call failed errno %s.\n", strerror(errno));
+        MSF_NETWORK_LOG(DBG_ERROR, "listen call failed errno %s.", strerror(errno));
         sclose(sfd);
         return -1;
     }
@@ -1717,7 +1650,7 @@ s32 server_unix_socket(s32 backlog, s8 *unixpath, s32 access_mask) {
 * @param portnumber_file A filepointer to write the port numbers to
 *    when they are successfully added to the list of ports we listen on.
 */
-s32 server_socket(s8 *interf, s32 protocol, s32 port, s32 backlog) {
+s32 msf_server_socket(s8 *interf, s32 protocol, s32 port, s32 backlog) {
 
 #ifdef _WIN32
     WSADATA wsa_data;
@@ -1740,7 +1673,7 @@ s32 server_socket(s8 *interf, s32 protocol, s32 port, s32 backlog) {
     error = getaddrinfo(interf, port_buf, &hints, &ai);
     if (unlikely(error != 0)) {
         if (error != EAI_SYSTEM)
-            fprintf(stderr, "getaddrinfo(): %s\n", gai_strerror(error));
+            MSF_NETWORK_LOG(DBG_ERROR, "getaddrinfo(): %s.", gai_strerror(error));
         else
             perror("getaddrinfo()");
         return -1;
@@ -1776,14 +1709,14 @@ s32 server_socket(s8 *interf, s32 protocol, s32 port, s32 backlog) {
     }
 #endif
 
-    socket_nonblocking(sfd);
-    socket_reuseaddr(sfd);
+    msf_socket_nonblocking(sfd);
+    msf_socket_reuseaddr(sfd);
     if (IS_UDP(protocol)) {
-     socket_maximize_sndbuf(sfd);
+        msf_socket_maximize_sndbuf(sfd);
     } else {
-     socket_linger(sfd);
-     socket_alive(sfd);
-     socket_tcp_nodelay(sfd);
+        msf_socket_linger(sfd);
+        msf_socket_alive(sfd);
+        msf_socket_tcp_nodelay(sfd);
     }
     /* set socket attribute */
 
@@ -1811,13 +1744,13 @@ s32 server_socket(s8 *interf, s32 protocol, s32 port, s32 backlog) {
 
         if (getsockname(sfd, (struct sockaddr*)&saddr, &len) == 0) {
             if (next->ai_addr->sa_family == AF_INET) {
-                printf("[%s] fd[%d] %s INET: %u\n", 
+                MSF_NETWORK_LOG(DBG_ERROR, "[%s] fd[%d] %s INET: %u.", 
                     inet_ntoa(sin->sin_addr),
                     sfd,
                     IS_UDP(protocol) ? "UDP" : "TCP",
                     ntohs(sin->sin_port));
             } else if (next->ai_addr->sa_family == AF_INET6){
-                printf("[%s] fd[%d] %s INET6: %u\n", 
+                MSF_NETWORK_LOG(DBG_ERROR, "[%s] fd[%d] %s INET6: %u.", 
                     inet_ntoa(sin->sin_addr),
                     sfd,
                     IS_UDP(protocol) ? "UDP" : "TCP",
@@ -1825,7 +1758,7 @@ s32 server_socket(s8 *interf, s32 protocol, s32 port, s32 backlog) {
             } else if (next->ai_addr->sa_family == AF_UNIX) {
               struct sockaddr_un* cun = (struct sockaddr_un*)&saddr;
 
-              printf("server unix_path[%s]\n", cun->sun_path);
+              MSF_NETWORK_LOG(DBG_ERROR, "server unix_path[%s].", cun->sun_path);
             }
         }
         }
@@ -1960,7 +1893,7 @@ int get_gateway(char *if_name, char *p_gateway, int len)
 
     fp = fopen(ROUTE_FILE, "r");
     if(NULL == fp){
-        printf("open file failed %d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "open file failed %d.", errno);
         return -1;
     }
 
@@ -1979,7 +1912,7 @@ int get_gateway(char *if_name, char *p_gateway, int len)
         r = fscanf(fp, "%63s%lx%lx%X%d%d%d%lx%d%d%d\n",
          devname, &d, &g, &flgs, &ref, &use, &metric, &m, &mtu, &win, &ir);
         if (r != 11){
-            printf("get_gateway fscanf error and r=%d,errno=%d\n", 
+            MSF_NETWORK_LOG(DBG_ERROR, "get_gateway fscanf error and r=%d,errno=%d.", 
             r, errno);
             break;
         }
@@ -2030,7 +1963,7 @@ int BaseNet_GetSubNet(char* subnet, char* ifname){
     fd_netmask = socket( AF_INET, SOCK_STREAM, 0 );
     if(fd_netmask == -1)
     {
-        perror("create socket failture...GetLocalNetMask\n");
+        perror("create socket failture...GetLocalNetMask.");
         return -1;
     }
 
@@ -2039,14 +1972,14 @@ int BaseNet_GetSubNet(char* subnet, char* ifname){
 
     if( (ioctl(fd_netmask, SIOCGIFNETMASK, &ifr_mask ) ) < 0 )
     {
-        printf("mac ioctl error\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "mac ioctl error.");
         return -1;
     }
 
     net_mask = ( struct sockaddr_in * )&( ifr_mask.ifr_netmask );
     strcpy( netmask_addr, inet_ntoa( net_mask -> sin_addr ) );
 
-    printf("local netmask:%s\n",netmask_addr);
+    MSF_NETWORK_LOG(DBG_ERROR, "local netmask:%s.",netmask_addr);
 
 
     sclose(fd_netmask);
@@ -2062,7 +1995,7 @@ int BaseNet_SetSubNet(char* subnet){
 
     fd_netmask = socket( AF_INET, SOCK_STREAM, 0 );
     if( fd_netmask == -1) {
-        perror("Not create network socket connect\n");
+        perror("Not create network socket connect.");
         return -1;
     }
 
@@ -2073,7 +2006,7 @@ int BaseNet_SetSubNet(char* subnet){
     inet_pton(AF_INET, subnet, &sin_net_mask ->sin_addr);
 
     if(ioctl(fd_netmask, SIOCSIFNETMASK, &ifr_mask ) < 0) {
-        printf("sock_netmask ioctl error\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "sock_netmask ioctl error.");
         return -1;
     }
 
@@ -2101,7 +2034,7 @@ s32 if_up(s8 *if_name)
     flag = IFF_UP;
 
     if(ioctl(s, SIOCGIFFLAGS, &ifr) < 0){
-        printf("if_up ioctl(SIOCGIFFLAGS) error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "if_up ioctl(SIOCGIFFLAGS) error and errno=%d.", errno);
         sclose(s);
         return -1;
     }
@@ -2109,7 +2042,7 @@ s32 if_up(s8 *if_name)
     ifr.ifr_ifru.ifru_flags |= flag;
 
     if(ioctl(s, SIOCSIFFLAGS, &ifr) < 0){
-        printf("if_up ioctl(SIOCSIFFLAGS) error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "if_up ioctl(SIOCSIFFLAGS) error and errno=%d.", errno);
         sclose(s);
         return -1;
     }
@@ -2131,7 +2064,7 @@ s32 if_down(s8* if_name)
     }
 
     if (0 == msf_strcmp(if_name, "lo")){
-        printf("You can't pull down interface lo\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "You can't pull down interface lo.");
         return -1;
     }
 
@@ -2144,7 +2077,7 @@ s32 if_down(s8* if_name)
     flag = ~(IFF_UP);
 
     if (ioctl(s, SIOCGIFFLAGS, &ifr) < 0){
-        printf("if_down ioctl error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "if_down ioctl error and errno=%d.", errno);
         sclose(s);
         return -1;
     }
@@ -2152,7 +2085,7 @@ s32 if_down(s8* if_name)
     ifr.ifr_ifru.ifru_flags &= flag;
 
     if(ioctl(s, SIOCSIFFLAGS, &ifr) < 0){
-        printf("if_down ioctl error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "if_down ioctl error and errno=%d.", errno);
         sclose(s);
         return -1;
     }
@@ -2169,7 +2102,7 @@ int get_mac(char* if_name, char* p_mac, int len)
     memset(&ifr, 0, sizeof(struct ifreq));
 
     if (!if_name || !p_mac){
-        printf("get_mac param err.\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "get_mac param err.");
         return -1;
     }
 
@@ -2178,19 +2111,19 @@ int get_mac(char* if_name, char* p_mac, int len)
     }
 
     if(len < 18){
-        printf("The mac need 18 byte !\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "The mac need 18 byte !.");
         return -1;
     }
 
     if((s = socket(PF_INET, SOCK_STREAM, 0)) < 0){
-        printf("socket failed! errno = %d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "socket failed! errno = %d.", errno);
         return -1;
     }
 
     strncpy(ifr.ifr_name, if_name, sizeof(ifr.ifr_name)-1);
 
     if(ioctl(s, SIOCGIFHWADDR, &ifr) != 0){
-        printf("get_mac ioctl error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "get_mac ioctl error and errno=%d.", errno);
         sclose(s);
         return -1;
     }
@@ -2217,7 +2150,7 @@ int set_mac(char* if_name, char* p_mac_addr)
     memset(&ifr, 0, sizeof(ifr));
 
     if(!if_name || !p_mac_addr) {
-        printf("param error\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "param error.");
         return -1;
     }
 
@@ -2228,7 +2161,7 @@ int set_mac(char* if_name, char* p_mac_addr)
     memcpy(ifr.ifr_name, if_name, min(strlen(if_name), sizeof(ifr.ifr_name)-1));
 
     if (ioctl(s, SIOCGIFHWADDR, &ifr) < 0){
-        printf("ioctl error and errno=%d\n",errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "ioctl error and errno=%d.",errno);
         sclose(s);
         return -1;
     }
@@ -2236,7 +2169,7 @@ int set_mac(char* if_name, char* p_mac_addr)
     get_family = ifr.ifr_ifru.ifru_hwaddr.sa_family;
 
     if(if_down(if_name) != 0){
-        printf("if_down failed\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "if_down failed.");
     }
 
     bzero(&ifr, sizeof(struct ifreq));
@@ -2270,13 +2203,13 @@ int set_mac(char* if_name, char* p_mac_addr)
     }
 
     if(ioctl(s, SIOCSIFHWADDR, &ifr) < 0){
-        printf("set_mac ioctl error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "set_mac ioctl error and errno=%d.", errno);
         sclose(s);
         return -1;
     }
 
     if(if_up(if_name) != 0){
-        printf("if_up down failed..\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "if_up down failed.");
     }
     sclose(s);
     return 0;
@@ -2290,7 +2223,7 @@ int get_mac_num(char* if_name, char* p_mac, int len) {
     memset(&ifr, 0, sizeof(ifr));
 
     if (!if_name || !p_mac){
-        printf("get_mac_num param error\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "get_mac_num param error.");
         return -1;
     }
 
@@ -2299,7 +2232,7 @@ int get_mac_num(char* if_name, char* p_mac, int len) {
     }
 
     if(len < 6){
-        printf("The mac need 18 byte !\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "The mac need 18 byte !.");
         return -1;
     }
 
@@ -2311,7 +2244,7 @@ int get_mac_num(char* if_name, char* p_mac, int len) {
     strncpy(ifr.ifr_name, if_name, MIN(strlen(if_name), 16));
 
     if(ioctl(s, SIOCGIFHWADDR, &ifr) != 0){
-        printf("get_mac_num ioctl error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "get_mac_num ioctl error and errno=%d.", errno);
         sclose(s);
         return -1;
     }
@@ -2329,7 +2262,7 @@ int getMacNum(void){
     FILE* f = fopen("/proc/net/dev", "r");
     if (!f)
     {
-        fprintf(stderr, "Open /proc/net/dev failed!errno:%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "Open /proc/net/dev failed!errno:%d.", errno);
         return nCount;
     }
 
@@ -2364,24 +2297,24 @@ int get_netmask(char* if_name, char *p_netmask, int len)
     memset(&addr_temp, 0, sizeof(addr_temp));
 
     if (!if_name || !p_netmask){
-        printf("get_netmask param error\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "get_netmask param error.");
         return -1;
     }
 
     if(len < 16){
-        printf("The netmask need 16 byte !\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "The netmask need 16 byte !.");
         return -1;
     }
 
     if((s = socket(PF_INET, SOCK_STREAM, 0)) < 0){
-        printf("socket failed !errno = %d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "socket failed !errno = %d.", errno);
         return -1;
     }
 
     strncpy(ifr.ifr_name, if_name, sizeof(ifr.ifr_name)-1);
 
     if(ioctl(s, SIOCGIFNETMASK, &ifr) < 0){
-        printf("get_netmask ioctl error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "get_netmask ioctl error and errno=%d.", errno);
         sclose(s);
         return -1;
     }
@@ -2408,7 +2341,7 @@ int set_netmask(char* if_name, char* p_netmask)
     memset(&netmask_addr, 0, sizeof(netmask_addr));
 
     if (!if_name || !p_netmask){
-    printf("set_netmask: param err.\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "set_netmask: param err.");
         return -1;
     }
 
@@ -2425,7 +2358,7 @@ int set_netmask(char* if_name, char* p_netmask)
     memcpy(&ifr.ifr_ifru.ifru_netmask, &netmask_addr, sizeof(struct sockaddr_in));
 
     if(ioctl(s, SIOCSIFNETMASK, &ifr) < 0){
-        printf("set_netmask ioctl error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "set_netmask ioctl error and errno=%d.", errno);
         sclose(s);
         return -1;
     }
@@ -2444,24 +2377,24 @@ int get_broadcast_addr(char* if_name, char *p_broadcast, int len)
     memset(&addr_temp, 0, sizeof(addr_temp));
 
     if (!if_name || !p_broadcast){
-        printf("get_broadcast_addr param error\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "get_broadcast_addr param error.");
         return -1;
     }
 
     if(len<16){
-        printf("The broadcast need 16 byte !\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "The broadcast need 16 byte !.");
         return -1;
     }
 
     if((s = socket(PF_INET, SOCK_STREAM, 0)) < 0){
-        printf("socket failed !errno = %d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "socket failed !errno = %d.", errno);
         return -1;
     }
 
     strncpy(ifr.ifr_name, if_name, sizeof(ifr.ifr_name)-1);
 
     if(ioctl(s, SIOCGIFBRDADDR, &ifr) < 0){
-        printf("get_broadcast ioctl error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "get_broadcast ioctl error and errno=%d.", errno);
         sclose(s);
         return -1;
     }
@@ -2506,7 +2439,7 @@ int set_broadcast_addr(char* if_name, char* p_broadcast)
 
     if(ioctl(s, SIOCSIFBRDADDR, &ifr) < 0){
         sclose(s);
-        printf("set_broadcast_addr ioctl error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "set_broadcast_addr ioctl error and errno=%d.", errno);
         return -1;
     }
 
@@ -2530,7 +2463,7 @@ int add_ipv6_addr(char *p_ip_v6, int prefix_len)
         return -1;
     }
 
-    if((socketfd = socket_create(AF_INET6, SOCK_DGRAM, 0)) < 0){
+    if((socketfd = msf_socket_create(AF_INET6, SOCK_DGRAM, 0)) < 0){
         return -1;
     }
     strncpy(ifr.ifr_name, "eth0", sizeof(ifr.ifr_name));
@@ -2572,7 +2505,7 @@ int del_ipv6_addr(char* p_ip_v6, int prefix_len)
     memset(&ifr, 0, sizeof(ifr));
     memset(&ifr6, 0, sizeof(ifr6));
 
-    if((socketfd = socket_create(AF_INET6, SOCK_DGRAM, 0)) < 0){
+    if((socketfd = msf_socket_create(AF_INET6, SOCK_DGRAM, 0)) < 0){
         return -1;
     }
 
@@ -2593,9 +2526,9 @@ int del_ipv6_addr(char* p_ip_v6, int prefix_len)
     if(ioctl(socketfd, SIOCDIFADDR, &ifr6) < 0){
      if(errno != EADDRNOTAVAIL){
         if(!(errno == EIO))
-        printf("del_ipv6_addr: ioctl(SIOCDIFADDR)\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "del_ipv6_addr: ioctl(SIOCDIFADDR).");
      }else{
-        printf("del_ipv6_addr: ioctl(SIOCDIFADDR): No such address, errno %d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "del_ipv6_addr: ioctl(SIOCDIFADDR): No such address, errno %d.", errno);
      }
 
      sclose(socketfd);
@@ -2640,7 +2573,7 @@ int del_v6_gateway(struct in6_addr *ipaddr)
     /*¨¦?3y?¡¤¨®¨¦*/
     if (ioctl(sockfd, SIOCDELRT, &v6_rt) < 0) {
         sclose(sockfd); 
-        printf("del route ioctl error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "del route ioctl error and errno=%d.", errno);
         return -1;  
     }
     sclose(sockfd); 
@@ -2691,7 +2624,7 @@ int set_v6gateway(char* if_name, char* gateway)
     /*¨¬¨ª?¨®?¡¤¨®¨¦*/
     if (ioctl(sockfd, SIOCADDRT, &v6_rt) < 0){
         sclose(sockfd);
-        printf("add route ioctl error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "add route ioctl error and errno=%d.", errno);
         return -1;
     }
     sclose(sockfd);
@@ -2730,7 +2663,7 @@ int get_valid_ipv6(char *device_name, struct in6_addr *ipv6, unsigned int *prefi
 #if 0
     if(get_ipv6addr_num(device_name, &ipv61, &prefix1, &ipv62, &prefix2) != OK)
     {
-    printf("update_net_param-- get_ipv6addr_num failed,errno:%d\n",errno);  
+    MSF_NETWORK_LOG(DBG_ERROR, "update_net_param-- get_ipv6addr_num failed,errno:%d.",errno);  
     }
     else
     {
@@ -2784,13 +2717,13 @@ int get_dns(char* p_dns1, char* p_dns2)
     memset(dns, 0, sizeof(dns));
 
     if (! p_dns1 || !p_dns2){
-        printf("get_dns: param err.\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "get_dns: param err.");
         return -1;
     }
 
     fp = fopen(RESOLV_FILE, "r");
     if(NULL == fp){
-        printf("can not open file /etc/resolv.conf\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "can not open file /etc/resolv.conf.");
         return -1;
     }
 
@@ -2842,7 +2775,7 @@ int set_mtu(char *if_name, int mtu)
 
     if(ioctl(s, SIOCSIFMTU, &ifr) < 0){
         sclose(s);
-        printf("set_mtu ioctl error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "set_mtu ioctl error and errno=%d.", errno);
         return -1;
     }
     sclose(s);
@@ -2862,11 +2795,11 @@ int set_net_if_param(char *ifname, int speed,
     memset(&ecmd, 0, sizeof(ecmd));
 
     if(!ifname){
-        printf("set_net_param param error \n");
+        MSF_NETWORK_LOG(DBG_ERROR, "set_net_param param error .");
         return -1;
     }
 
-    printf("name = %s, speed = %d, duplex = %d, and autoneg = %d\n", 
+    MSF_NETWORK_LOG(DBG_ERROR, "name = %s, speed = %d, duplex = %d, and autoneg = %d.", 
      ifname, speed, duplex, autoneg);
 
     /* Setup our control structures. */
@@ -2876,7 +2809,7 @@ int set_net_if_param(char *ifname, int speed,
     /* Open control socket. */
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd < 0) {
-        printf("Cannot get control socket\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "Cannot get control socket.");
         return -1;
     }
 
@@ -2885,7 +2818,7 @@ int set_net_if_param(char *ifname, int speed,
     ifr.ifr_data = (caddr_t)&ecmd;
     err = ioctl(fd, SIOCETHTOOL, &ifr);
     if (err < 0) {
-        printf("Cannot get current device settings\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "Cannot get current device settings.");
     }
     else
     {
@@ -2903,7 +2836,7 @@ int set_net_if_param(char *ifname, int speed,
             ecmd.speed = SPEED_1000;
             break;
          default:
-            printf("invalid speed mode\n");
+            MSF_NETWORK_LOG(DBG_ERROR, "invalid speed mode.");
             sclose(fd);
             return -1;
         }
@@ -2913,7 +2846,7 @@ int set_net_if_param(char *ifname, int speed,
          } else if (1 == duplex) {
             ecmd.duplex = DUPLEX_FULL;
          } else {
-            printf("invlid duplex mode\n"); 
+            MSF_NETWORK_LOG(DBG_ERROR, "invlid duplex mode."); 
          }
      }else{
         ecmd.autoneg = AUTONEG_ENABLE;
@@ -2931,7 +2864,7 @@ int set_net_if_param(char *ifname, int speed,
         ifr.ifr_data = (caddr_t)&ecmd;
         err = ioctl(fd, SIOCETHTOOL, &ifr);
         if (err < 0) {
-            printf("Cannot set new settings: %s\n", strerror(errno));
+            MSF_NETWORK_LOG(DBG_ERROR, "Cannot set new settings: %s.", strerror(errno));
             sclose(fd);
             return err;
         }
@@ -2980,7 +2913,7 @@ s32 set_active_route(s8* p_route, s8* p_mask,
     rt.rt_dev = active_inferface;
 
     if (ioctl(s, SIOCADDRT, &rt) < 0){
-        printf("set_route ioctl error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "set_route ioctl error and errno=%d.", errno);
         sclose(s);
         return -1;
     }
@@ -3223,7 +3156,7 @@ int isSameSubnet(char* if_name, char *gateway)
     if (inet_aton(tmp, &ip) == 0){
         return -1;
     }
-    printf("ip address: 0x%x\n", ip.s_addr);
+    MSF_NETWORK_LOG(DBG_ERROR, "ip address: 0x%x.", ip.s_addr);
 
     /* get eth0 subnet mask */
     memset(tmp, 0, sizeof(tmp));
@@ -3235,7 +3168,7 @@ int isSameSubnet(char* if_name, char *gateway)
     if (inet_aton(tmp, &mask) == 0){
         return -1;
     }
-    printf("ip mask: 0x%x\n", mask.s_addr);
+    MSF_NETWORK_LOG(DBG_ERROR, "ip mask: 0x%x.", mask.s_addr);
 
     if(mask.s_addr == 0){
         return -1;
@@ -3246,16 +3179,16 @@ memset(&gw, 0, sizeof(struct in_addr));
 if (inet_aton(gateway, &gw) == 0){
  return -1;
 }
-printf("ip gateway: 0x%x\n", gw.s_addr);
+MSF_NETWORK_LOG(DBG_ERROR, "ip gateway: 0x%x.", gw.s_addr);
 
 i = (ip.s_addr & mask.s_addr); 		 /* IP & Mask */
 g = (gw.s_addr & mask.s_addr); 		 /* Gateway & Mask */
 if(i == g){
- printf("is in same subnet\n");
+ MSF_NETWORK_LOG(DBG_ERROR, "is in same subnet.");
  return 1;
 }
 
-printf("isn't in same subnet\n");
+MSF_NETWORK_LOG(DBG_ERROR, "isn't in same subnet.");
 return 0;
 }
 
@@ -3279,7 +3212,7 @@ int del_gateway(void) {
 
     if(ioctl(s, SIOCDELRT, &rt) < 0){
         err = errno;
-        printf("del_gateway ioctl error and errno=%d\n", err);
+        MSF_NETWORK_LOG(DBG_ERROR, "del_gateway ioctl error and errno=%d.", err);
         sclose(s);
         if(3 == err){
             return 0; // linux general errno 3 :  No such process
@@ -3300,12 +3233,12 @@ s32 del_active_route(s8* active_if, s8* p_route, s8* p_mask) {
     memset((char *)&gateway_addr, 0, sizeof(gateway_addr));
 
     if (!active_if || !p_route || !p_mask){
-        printf("del_route param error\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "del_route param error.");
         return -1;
     }
 
     if((s = socket(PF_INET, SOCK_DGRAM, 0)) < 0){
-        printf("del_route create socket error\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "del_route create socket error.");
         return -1;
     }
 
@@ -3325,7 +3258,7 @@ s32 del_active_route(s8* active_if, s8* p_route, s8* p_mask) {
     rt.rt_dev = active_if;
 
     if(ioctl(s,SIOCDELRT,&rt) < 0){
-        printf("del_route ioctl error and errno=%d\n",errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "del_route ioctl error and errno=%d.",errno);
         sclose(s);
         return -1;
     }
@@ -3348,12 +3281,12 @@ int set_active_gateway(char* if_name, char* gateway)
     memset(&gw, 0, sizeof(gw));
 
     if (!if_name || !gateway){
-        printf("gateway is null !prog return err.\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "gateway is null !prog return err.");
         return -1;
     }
 
     if (del_gateway() != 0){
-        printf("del_gateway err.\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "del_gateway err.");
     }
 
     memset(gwip, 0, sizeof(gwip));
@@ -3370,7 +3303,7 @@ int set_active_gateway(char* if_name, char* gateway)
 
     // ¡¤¨¤?1¨ª?1?¡À?¨¦¨¨???a0.0.0.0
     if (0 == strcmp(gateway, "0.0.0.0")){
-        printf("interface isn't set gateway.\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "interface isn't set gateway.");
         return 0;
     }
 
@@ -3409,7 +3342,7 @@ int set_active_gateway(char* if_name, char* gateway)
     rt.rt_dev = if_name;
 
     if(ioctl(s, SIOCADDRT, &rt) < 0){
-        printf("set_gateway ioctl error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "set_gateway ioctl error and errno=%d.", errno);
         sclose(s);
         return -1;
     }
@@ -3426,7 +3359,7 @@ s32 set_ipaddr(const s8* if_name, const s8* ip) {
     memset(&addr, 0, sizeof(addr));
 
     if(!if_name || !ip){
-        printf("param error\n");
+        MSF_NETWORK_LOG(DBG_ERROR, "param error.");
         return -1;
     }
 
@@ -3443,7 +3376,7 @@ s32 set_ipaddr(const s8* if_name, const s8* ip) {
     memcpy(&ifr.ifr_ifru.ifru_addr,&addr,sizeof(struct sockaddr_in));
 
     if(ioctl(s, SIOCSIFADDR, &ifr) < 0){
-        printf("set_ipaddr ioctl error and errno=%d\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "set_ipaddr ioctl error and errno=%d.", errno);
         sclose(s);
         return -1;
     }
@@ -3543,12 +3476,12 @@ s32 netlink_socket_create() {
     */
 
     if (bind(nl_fd, (struct sockaddr*)&saddr, sizeof(saddr)) < 0) {
-        perror("bind() error\n");
+        perror("bind() error.");
         close(nl_fd);
         return -1;
     }
 
-    socket_nonblocking(nl_fd);
+    msf_socket_nonblocking(nl_fd);
 
     return nl_fd;
 }
@@ -3575,8 +3508,8 @@ s32 netlink_sendo(s32 fd, s8 *data, u32 len) {
     memcpy(NLMSG_DATA(nlh), data, len);
     int rc = sendto(fd, nlh, nlh->nlmsg_len, 0, (struct sockaddr *)&daddr, sizeof(struct sockaddr_nl));
     if (!rc) {
-    perror("sendto error\n");
-        close(fd);
+        perror("sendto error.");
+        sclose(fd);
         exit(-1);
     }
     return rc;
@@ -3598,7 +3531,7 @@ s32 netlink_recvfrom(s32 fd, s8 *data, u32 len) {
     s32 ret = recvfrom(fd, &u_info, sizeof(user_msg_info), 0, 
     (struct sockaddr *)&daddr, &sock_len);
     if(!ret) {
-        perror("recv form kernel error\n");
+        perror("recv form kernel error.");
         close(fd);
         return -1;
     }
@@ -3623,7 +3556,7 @@ static s32 nl_write(s32 fd, void *data, s32 len) {
     nlh.nlmsg_type = 0;
 
     memset(&msg, 0, sizeof(msg));
-    msg.msg_name= (void*)&dest_addr;
+    msg.msg_name= (s8*)&dest_addr;
     msg.msg_namelen = sizeof(dest_addr);
     msg.msg_iov = iov;
     msg.msg_iovlen = 2;
@@ -3631,7 +3564,7 @@ static s32 nl_write(s32 fd, void *data, s32 len) {
     return sendmsg(fd, &msg, 0);
 }
 
-static s32 nl_read(s32 fd, void *data, s32 len) {
+static sl_read(s32 fd, void *data, s32 len) {
     struct iovec iov[2];
     struct msghdr msg;
     struct nlmsghdr nlh;
@@ -3693,11 +3626,11 @@ s32 msf_epoll_create(void) {
         ep_fd = epoll_create(512);
         if (ep_fd < 0) {
             if (errno != ENOSYS) {
-                fprintf(stderr, "Failed to create epoll fd, errno(%d).\n", errno);
+                MSF_NETWORK_LOG(DBG_ERROR, "Failed to create epoll fd, errno(%d).", errno);
                 return -1;
             }
         }
-        socket_closeonexec(ep_fd);
+        msf_socket_closeonexec(ep_fd);
     }
     
     return ep_fd;
@@ -3719,11 +3652,11 @@ s32 msf_add_event(s32 epfd, s32 clifd, short event, void *p) {
          * we must retry with MOD. */
         if (errno == EEXIST) {
             if (epoll_ctl(epfd, EPOLL_CTL_MOD, clifd, &ev) < 0) {
-                printf("Epoll MOD(%d) on %d retried as ADD; that failed too.\n",
+                MSF_NETWORK_LOG(DBG_ERROR, "Epoll MOD(%d) on %d retried as ADD; that failed too.",
                      (s32)event, clifd);
                 return 0;
             } else {
-               printf("Epoll MOD(%d) on %d retried as ADD; succeeded.",
+               MSF_NETWORK_LOG(DBG_ERROR, "Epoll MOD(%d) on %d retried as ADD; succeeded.",
                 (s32)event, clifd);
                return -1;
             }
@@ -3738,18 +3671,18 @@ s32 msf_mod_event(s32 epfd, s32 clifd, short event) {
     ev.data.fd = clifd;     
 
     if (epoll_ctl(epfd, EPOLL_CTL_MOD, clifd, &ev) < 0) {
-        fprintf(stderr, "Failed to mod epoll event, errno(%d).\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "Failed to mod epoll event, errno(%d).", errno);
         /* If a MOD operation fails with ENOENT, the
          * fd was probably closed and re-opened.  We
          * should retry the operation as an ADD.
          */
         if (errno == ENOENT) {
              if (epoll_ctl(epfd, EPOLL_CTL_ADD, clifd, &ev) < 0) {
-                printf("Epoll MOD(%d) on %d retried as ADD; that failed too.\n",
+                MSF_NETWORK_LOG(DBG_ERROR, "Epoll MOD(%d) on %d retried as ADD; that failed too.",
                      (s32)event, clifd);
                 return 0;
             } else {
-               printf("Epoll MOD(%d) on %d retried as ADD; succeeded.",
+               MSF_NETWORK_LOG(DBG_ERROR, "Epoll MOD(%d) on %d retried as ADD; succeeded.",
                 (s32)event, clifd);
                return -1;
             }
@@ -3761,18 +3694,17 @@ s32 msf_mod_event(s32 epfd, s32 clifd, short event) {
 s32 msf_del_event(s32 epfd, s32 clifd) {
 
     if (epoll_ctl(epfd, EPOLL_CTL_DEL, clifd, NULL) < 0) {
-        fprintf(stderr, "Failed to del epoll event, errno(%d).\n", errno);
+        MSF_NETWORK_LOG(DBG_ERROR, "Failed to del epoll event, errno(%d).", errno);
         if (errno == ENOENT || errno == EBADF || errno == EPERM) {
             /* If a delete fails with one of these errors,
              * that's fine too: we closed the fd before we
              * got around to calling epoll_dispatch. */
-            printf("Epoll DEL on fd %d gave %s: DEL was unnecessary.",
+            MSF_NETWORK_LOG(DBG_ERROR, "Epoll DEL on fd %d gave %s: DEL was unnecessary.",
                 clifd,
                 strerror(errno));
             return 0;
         }
         return -1;
     }
-    return 0;
+        return 0;
 }
-

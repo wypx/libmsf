@@ -89,11 +89,10 @@ struct msf_event_base {
 } __attribute__((__packed__));
 
 
-void msf_timer_init(void);
+s32 msf_timer_init(void);
 void msf_timer_destroy(void);
-u32 msf_timer_add(u32 timer_id, s32 interval, s32 (*fun)(void*), void *arg, s32 flag, s32 exe_num);
+s32 msf_timer_add(u32 timer_id, s32 interval, s32 (*fun)(void*), void *arg, s32 flag, s32 exe_num);
 s32 msf_timer_remove(u32 timer_id);
-s32 msf_timer_process(void);
 
 struct msf_event *msf_event_create(s32 fd,
         void (*read_cbs)(void *),

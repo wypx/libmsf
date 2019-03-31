@@ -10,7 +10,7 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-#include <msf.h>
+#include <msf_daemon.h>
 #include <cJSON.h>
 
 #define DEF_MSF_DAEMON_NAME "msf_daemon"

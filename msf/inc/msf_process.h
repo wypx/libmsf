@@ -15,25 +15,25 @@ struct exec_conf {
     s8         *name;
     s8 *const  *argv;
     s8 *const  *envp;
-}__attribute__((__packed__));
+} MSF_PACKED_MEMORY;
 
 struct svcinst {
-    u32 svc_state;
-    s8 svc_name[32];
-    s8 svc_lib[32];
+    u32     svc_state;
+    s8      svc_name[32];
+    s8      svc_lib[32];
 
-    u32 svc_deplib_num;
-    s8 *svc_deplib[8];
+    u32     svc_deplib_num;
+    s8      *svc_deplib[8];
 
     MSF_DLHANDLE svc_handle;
     struct svc *svc_cb;
-} __attribute__((__packed__));
+} MSF_PACKED_MEMORY;
 
 enum process_state {
     proc_state_init,
     proc_state_start,
     proc_state_stop,
-} __attribute__((__packed__));
+} MSF_PACKED_MEMORY;
 
 
 struct process_desc {
@@ -46,9 +46,9 @@ struct process_desc {
     s8      proc_name[64];
     s8      proc_path[64]; /* Check access first*/
     s8      proc_conf[64]; /* Check access first*/
-} __attribute__((__packed__));
+} MSF_PACKED_MEMORY;
 
-struct process {	
+struct process {
     enum process_state proc_state;
 
     pid_t  pid;
@@ -93,9 +93,8 @@ struct process {
 
     u32 proc_svc_num;
     struct svcinst *proc_svcs;
-} __attribute__((__packed__));
+} MSF_PACKED_MEMORY;
 
-s32 thread_set_affinity(u32 cpu_id);
 s32 process_try_lock(const s8 *proc_name, u32 mode);
 s32 process_spwan(struct process_desc *proc_desc);
 s32 svcinst_init(struct svcinst *svc);

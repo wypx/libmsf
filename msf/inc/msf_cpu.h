@@ -1,5 +1,7 @@
 #include <msf_utils.h>
 
+#include <sched.h>
+#include <numa.h>
 
 /* CPU信息描述
  * (user, nice, system,idle, iowait, irq, softirq, stealstolen, guest)的9元组
@@ -34,28 +36,28 @@
 #define MOD_NAME_CPU 	"CPU"
  
 struct cpu_key {
- 	u32 length;
- 	s8  name[CPU_KEY_LEN];
+    u32 length;
+    s8  name[CPU_KEY_LEN];
 };
 
  struct cpu_snapshot {
     s8	cpuid[20];
-	unsigned long user;
-	unsigned long nice;
-	unsigned long system;
-	unsigned long idle;
-	unsigned long iowait;
+    unsigned long user;
+    unsigned long nice;
+    unsigned long system;
+    unsigned long idle;
+    unsigned long iowait;
 
-	/* percent values */
-	unsigned long irq;	/* Overall CPU usage */
-	unsigned long softirq;/* user space (user + nice) */
-	unsigned long stealstolen; /* kernel space percent     */
-	unsigned long guest;
+    /* percent values */
+    unsigned long irq;	/* Overall CPU usage */
+    unsigned long softirq;/* user space (user + nice) */
+    unsigned long stealstolen; /* kernel space percent     */
+    unsigned long guest;
 
-	double avg_all;
-	double avg_user;
-	double avg_kernel;
-	/* necessary... */
+    double avg_all;
+    double avg_user;
+    double avg_kernel;
+    /* necessary... */
     struct cpu_key k_cpu;
     struct cpu_key k_user;
     struct cpu_key k_system;
@@ -101,20 +103,25 @@ struct cpu_stats {
 /* CPU Input configuration & context */
 struct cpu_config {
     /* setup */
-	long processors_configured;
+    long processors_configured;
     long processors_avalible;   /* number of processors currently online (available) */
     long cpu_ticks;      		/* CPU ticks (Kernel setting) */
-	long total_pages;
-	long free_pages;
-	long page_size;
-	long long total_mem;
-	long long free_mem ;
-	long total_fds;				/* one process open file fd MAX %ld */
+    long total_pages;
+    long free_pages;
+    long page_size;
+    long long total_mem;
+    long long free_mem ;
+    long total_fds;				/* one process open file fd MAX %ld */
 
-	long n_processors;
+    long n_processors;
     s32 interval_sec;    		/* interval collection time (Second) */
     s32 interval_nsec;  	 	/* interval collection time (Nanosecond) */
     struct cpu_stats cstats;
 };
+
+u32 msf_get_cpu(void);
+
+s32 thread_pin_to_cpu(u32 cpu_id);
+s32 process_pin_to_cpu(s32 cpu_id);
 
 

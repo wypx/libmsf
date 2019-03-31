@@ -1,14 +1,17 @@
 
 #include <msf_os.h>
+#include <msf_cpu.h>
+#include <msf_network.h>
 
-s32  msf_ncpu; //cpu个数
+#define MSF_MOD_OS "OS"
+#define MSF_OS_LOG(level, ...) \
+    log_write(level, MSF_MOD_OS, __func__, __FILE__, __LINE__, __VA_ARGS__)
+
+
 s32  msf_max_sockets;//每个进程能打开的最多文件数
 u32  msf_inherited_nonblocking;
 u32  msf_tcp_nodelay_and_tcp_nopush;
 
-
-/* 每个进程能打开的最多文件数 */
-struct rlimit  rlmt;
 
 /* 返回一个分页的大小，单位为字节(Byte).
  * 该值为系统的分页大小,不一定会和硬件分页大小相同*/
@@ -25,37 +28,6 @@ u32  msf_pagesize_shift;
  * 这样可以提高程序的效率.有分配内存池的接口, Nginx会将内存池边界
  * 对齐到 CPU cache行大小32位平台, cacheline_size=32 */
 u32 msf_cacheline_size;
-
-
-u8  msf_linux_kern_ostype[50];
-u8  msf_linux_kern_osrelease[50];
-
-
-int msf_osinfo() {
-
-    struct utsname	u;   
-    if (uname(&u) == -1) {
-       return -1;
-    }
-
-    printf("u.sysname:%s\n", u.sysname); //当前操作系统名
-    printf("u.nodename:%s\n", u.nodename); //网络上的名称
-    printf("u.release:%s\n", u.release); //当前发布级别
-    printf("u.version:%s\n", u.version); //当前发布版本
-    printf("u.machine:%s\n", u.machine); //当前硬件体系类型
-    //printf("u.__domainname:%s\n", u.__domainname); //当前硬件体系类型
-
-#if _UTSNAME_DOMAIN_LENGTH - 0
-#ifdef __USE_GNU
-    //printf("u.domainname::%s\n ", u.domainname);
-    //char domainname[_UTSNAME_DOMAIN_LENGTH]; //当前域名
-#else
-    printf("u.__domainname::%s\n", u.__domainname);
-    //char __domainname[_UTSNAME_DOMAIN_LENGTH];
-#endif
-#endif
-    return 0;
-}
 
 s32 msf_set_user(struct process *proc) {
 
@@ -94,65 +66,7 @@ s32 msf_set_user(struct process *proc) {
 
 }
 
-#if (MSF_HAVE_CPUSET_SETAFFINITY)
 
-#include <sys/cpuset.h>
-
-void msf_setaffinity(u64 cpu_affinity) {
-    cpuset_t    mask;
-    u32  i;
-
-    printf("cpuset_setaffinity(0x%08Xl)\n", cpu_affinity);
-
-    CPU_ZERO(&mask);
-    i = 0;
-    do {
-        if (cpu_affinity & 1) {
-            CPU_SET(i, &mask);
-        }
-        i++;
-        cpu_affinity >>= 1;
-    } while (cpu_affinity);
-
-    if (cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_PID, -1,
-                           sizeof(cpuset_t), &mask) == -1)
-    {
-
-    }
-}
-
-#elif (MSF_HAVE_SCHED_SETAFFINITY)
-
-void msf_setaffinity(u64 cpu_affinity)
-{
-    cpu_set_t   mask;
-    u32  i;
-
-    printf("sched_setaffinity(%ld)\n", cpu_affinity);
-
-    CPU_ZERO(&mask);
-    i = 0;
-    do {
-        if (cpu_affinity & 1) {
-            CPU_SET(i, &mask);
-        }
-        i++;
-        cpu_affinity >>= 1;
-    } while (cpu_affinity);
-
-    if (sched_setaffinity(0, sizeof(cpu_set_t), &mask) == -1) {
-    }
-}
-
-#endif
-
-
-s32 msf_set_priority(struct process *proc) {
-
-    setpriority(PRIO_PROCESS, 0, proc->priority);
-
-    return 0;
-}
 
 s32 msf_set_rlimit(struct process *proc) {
 
@@ -193,7 +107,7 @@ s32 msf_set_rlimit(struct process *proc) {
     }
 
 
-    msf_setaffinity(proc->cpu_affinity);
+    process_pin_to_cpu(proc->cpu_affinity);
 
     /* allow coredump after setuid() in Linux 2.4.x */
     msf_enable_coredump();
@@ -230,7 +144,7 @@ s32 msf_get_meminfo(struct msf_meminfo *mem) {
     return 0;
 }
 
-s32 msf_get_hdinfo(struct msf_hdinfo *hd) {
+s32 msf_get_hdinfo(struct msf_hdd *hd) {
 
     FILE *fp = NULL;
     s8 buffer[80],a[80],d[80],e[80],f[80], buf[256];
@@ -256,42 +170,85 @@ s32 msf_get_hdinfo(struct msf_hdinfo *hd) {
     return 0;
 }
 
+struct msf_os os;
+struct msf_os *g_os = &os;
+
+#define MB (1024 * 1024)
+
 s32 msf_os_init(void) {
 
     u32  n;
 
+    /* 每个进程能打开的最多文件数 */
+    struct rlimit   rlmt;
     struct utsname  u;
     
     if (uname(&u) == -1) {
+        MSF_OS_LOG(DBG_ERROR, "Uname failed, errno(%d).", errno);
         return -1;
     }
 
-    (void) memcpy(msf_linux_kern_ostype, (u8 *) u.sysname,
-                       sizeof(msf_linux_kern_ostype));
+    (void) memcpy(g_os->sysname, (u8 *) u.sysname,
+                  min(sizeof(g_os->sysname), strlen(u.sysname)));
+    (void) memcpy(g_os->nodename, (u8 *) u.nodename,
+                  min(sizeof(g_os->nodename), strlen(u.nodename)));
+    (void) memcpy(g_os->release, (u8 *) u.release,
+                       min(sizeof(g_os->release), strlen(u.release)));
+    (void) memcpy(g_os->version, (u8 *) u.version,
+                       min(sizeof(g_os->version), strlen(u.version)));
+    (void) memcpy(g_os->machine, (u8 *) u.machine,
+                           min(sizeof(g_os->machine), strlen(u.machine)));
+    (void) memcpy(g_os->domainname, (u8 *) u.domainname,
+                              min(sizeof(g_os->domainname), strlen(u.domainname)));
 
-    (void) memcpy(msf_linux_kern_osrelease, (u8 *) u.release,
-                       sizeof(msf_linux_kern_osrelease));
+#ifdef WIN32
+    SYSTEM_INFO info; 
+    GetSystemInfo(&info); 
+    g_os->cpuonline = info.dwNumberOfProcessors;
+#endif
 
-    msf_pagesize = getpagesize();
+    /* GNU fuction 
+    * getpagesize();
+    * get_nprocs_conf();
+    * get_nprocs();
+    */
+    g_os->pagesize = sysconf(_SC_PAGESIZE);
+    g_os->pagenum_all = sysconf(_SC_PHYS_PAGES);
+    g_os->pagenum_ava = sysconf(_SC_AVPHYS_PAGES);
+    g_os->memsize = g_os->pagesize * g_os->pagenum_all / MB;
+    g_os->cpuconf = sysconf(_SC_NPROCESSORS_CONF);
+    g_os->cpuonline = sysconf(_SC_NPROCESSORS_ONLN);
+    g_os->maxfileopen = sysconf(_SC_OPEN_MAX);
+    g_os->tickspersec = sysconf(_SC_CLK_TCK);
+    g_os->maxhostname = sysconf(_SC_HOST_NAME_MAX);
+    g_os->maxloginname = sysconf(_SC_LOGIN_NAME_MAX);
 
-    for (n = msf_pagesize; n >>= 1; msf_pagesize_shift++) { /* void */ }
-
-    if (msf_ncpu == 0) {
-        msf_ncpu = sysconf(_SC_NPROCESSORS_ONLN); //获取系统中可用的 CPU 数量, 没有被激活的 CPU 则不统计 在内, 例如热添加后还没有激活的. 
+    if (getrlimit(RLIMIT_NOFILE, &rlmt) == -1) {
+        MSF_OS_LOG(DBG_ERROR, "Getrlimit failed, errno(%d).", errno);
+        return -1;
     }
 
+    g_os->maxsocket = (s32) rlmt.rlim_cur;
 
-    if (msf_ncpu < 1) {
-        msf_ncpu = 1;
-    }
+    MSF_OS_LOG(DBG_DEBUG, "OS type:%s.",        g_os->sysname);
+    MSF_OS_LOG(DBG_DEBUG, "OS nodename:%s.",    g_os->nodename);
+    MSF_OS_LOG(DBG_DEBUG, "OS release:%s.",     g_os->release);
+    MSF_OS_LOG(DBG_DEBUG, "OS version:%s.",     g_os->version);
+    MSF_OS_LOG(DBG_DEBUG, "OS machine:%s.",     g_os->machine);
+    MSF_OS_LOG(DBG_DEBUG, "OS domainname:%s.",  g_os->domainname);
+    MSF_OS_LOG(DBG_DEBUG, "Processors configured is :%ld.", g_os->cpuconf);
+    MSF_OS_LOG(DBG_DEBUG, "Processors available is :%ld.", g_os->cpuonline);
+    MSF_OS_LOG(DBG_DEBUG, "The pagesize: %ld.", g_os->pagesize);
+    MSF_OS_LOG(DBG_DEBUG, "The pages all num: %ld", g_os->pagenum_all);
+    MSF_OS_LOG(DBG_DEBUG, "The pages available: %ld.", g_os->pagenum_ava);
+    MSF_OS_LOG(DBG_DEBUG, "The memory size: %lld MB.", g_os->memsize);
+    MSF_OS_LOG(DBG_DEBUG, "The files max opened: %ld.", g_os->maxfileopen);
+    MSF_OS_LOG(DBG_DEBUG, "The socket max opened: %ld.", g_os->maxsocket);
+    MSF_OS_LOG(DBG_DEBUG, "The ticks per second: %ld.", g_os->tickspersec);
+    MSF_OS_LOG(DBG_DEBUG, "The max len host name: %ld.", g_os->maxhostname);
+    MSF_OS_LOG(DBG_DEBUG, "The max len login name: %ld.", g_os->maxloginname);
 
     msf_cpuinfo();
-
-    if (getrlimit(RLIMIT_NOFILE, &rlmt) == -1) {  
-          return -1;
-    }
-
-    msf_max_sockets = (s32) rlmt.rlim_cur;
 
     return 0;
 }

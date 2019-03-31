@@ -15,15 +15,33 @@
 #include <msf_miniheap.h>
 #include <msf_atomic.h>
 
+#define MSF_MOD_EVENT "EVENT"
+#define MSF_EVENT_LOG(level, ...) \
+    log_write(level, MSF_MOD_EVENT, __func__, __FILE__, __LINE__, __VA_ARGS__)
 
 struct min_heap g_msf_min_heap;
 
 extern const struct msf_event_ops epollops;
 
-void msf_timer_init(void) {
+s32 msf_timer_process(void);
+void* msf_timer_loop(void *param);
+
+s32 msf_timer_init(void) {
+
+    s32 rc = -1;
+    pthread_t tm_tid;
+
     min_heap_ctor_(&g_msf_min_heap);
+
+    rc = pthread_spawn(&tm_tid, (void*)msf_timer_loop, NULL);
+    if (rc < 0) {
+        MSF_EVENT_LOG(DBG_ERROR, 
+            "Timer thread create failed, ret(%d), errno(%d).", rc, errno);
+        return -1;
+    }
+    return 0;
 }
- 
+
 void msf_timer_destroy(void) {
     u32 i;
     for (i = 0; i < g_msf_min_heap.n; i++) {
@@ -32,7 +50,7 @@ void msf_timer_destroy(void) {
     min_heap_dtor_(&g_msf_min_heap);
 }
 
-u32 msf_timer_add(u32 timer_id, s32 interval, s32 (*fun)(void*), void *arg,
+s32 msf_timer_add(u32 timer_id, s32 interval, s32 (*fun)(void*), void *arg,
         s32 flag /* = CYCLE_TIMER */, s32 exe_num /* =  0 */)
 {
     struct timeval now;
@@ -40,13 +58,17 @@ u32 msf_timer_add(u32 timer_id, s32 interval, s32 (*fun)(void*), void *arg,
 
     ev = MSF_NEW(struct msf_event, 1);
     if (NULL == ev) {
-        printf("Msf fail to new one event, errno(%d).\n", errno);
+        MSF_EVENT_LOG(DBG_ERROR, "Msf fail to new one event, errno(%d).", errno);
         return -1;
     }
 
     msf_memzero(ev, sizeof(struct msf_event));
 
     ev->ev_cbs = MSF_NEW(struct msf_event_cbs, 1);
+    if (!ev->ev_cbs) {
+        sfree(ev);
+        return -1;
+    }
 
     min_heap_elem_init_(ev);
 
@@ -116,45 +138,34 @@ s32 msf_timer_process(void) {
 
 
 int stop_server = 0;
-static void aeGetTime(long *seconds, long *milliseconds)
-{
-    struct timeval tv;
- 
-    gettimeofday(&tv, NULL);
-    *seconds = tv.tv_sec;
-    *milliseconds = tv.tv_usec/1000;
-}
 
-
-static void do_epoll(int listenfd)
-{
-    int epollfd;
+void* msf_timer_loop(void *param) {
+    s32 rc = -1;
+    s32 epfd = -1;
+    struct msf_event *ev = NULL;
     struct epoll_event events[EPOLLEVENTS];
-    int ret;
-    //创建一个描述符
-    int error;
-    epollfd = epoll_create(1024);//1024 is just a hint for the kernel
-    if (epollfd == -1)
-    {
-        //return do_error(epollfd, &error);
+    
+    epfd = msf_epoll_create();
+    if (epfd < 0) {
+        MSF_EVENT_LOG(DBG_ERROR, "Create epfd faild.");
+        return NULL;
     }
-    //添加监听描述符事件
-    //add_event(epollfd,listenfd,EPOLLIN);
-    struct msf_event *ev;
+    
     struct timeval now;
     struct timeval tv;
     struct timeval *tvp = NULL;
-    while (stop_server == 0 )
-    {
-        if ((ev = min_heap_top_(&g_msf_min_heap)) != NULL)
-        {
-            long now_sec, now_ms;//come from redis src "ae.c", int aeProcessEvents(aeEventLoop *eventLoop, int flags)
-            aeGetTime(&now_sec, &now_ms);
+    long long ms = 0;
+    
+    while (stop_server == 0 ) {
+        if ((ev = min_heap_top_(&g_msf_min_heap)) != NULL) {
+
+            MSF_GETIMEOFDAY(&now)
+
             tvp = &tv;
             /* How many milliseconds we need to wait for the next
              * time event to fire? */
-            long long ms = (ev->ev_timeout.tv_sec - now_sec) * 1000 +
-                    (ev->ev_timeout.tv_usec / 1000 - now_ms);
+            ms = (ev->ev_timeout.tv_sec - now.tv_sec) * 1000 +
+                    (ev->ev_timeout.tv_usec - now.tv_usec)/1000;
  
             if (ms > 0) {
                 tvp->tv_sec = ms / 1000;
@@ -164,43 +175,39 @@ static void do_epoll(int listenfd)
                 tvp->tv_usec = 0;
             }
  
-            /* maybe error
-            gettime(&now);
+            MSF_GETIMEOFDAY(&now)
  
-            tv.tv_sec = event->ev_timeout.tv_sec - now.tv_sec;;
-            tv.tv_usec = event->ev_timeout.tv_usec - now.tv_usec;
+            tv.tv_sec = ev->ev_timeout.tv_sec - now.tv_sec;;
+            tv.tv_usec = ev->ev_timeout.tv_usec - now.tv_usec;
             if ( tv.tv_usec < 0 )
             {
                 tv.tv_usec += 1000000;
                 tv.tv_sec--;
-                printf("tv.tv_usec < 0\n");
+                MSF_EVENT_LOG(DBG_ERROR, "tv.tv_usec < 0.");
             }
             tvp = &tv;
-            */
+           
         }
         else
         {
             tvp = NULL;
-            printf("tvp == NULL\n");
+            MSF_EVENT_LOG(DBG_ERROR, "tvp == NULL.");
         }
-        //获取已经准备好的描述符事件
         if (tvp == NULL)
         {
-            ret = epoll_wait(epollfd, events, EPOLLEVENTS, -1);
+            rc = epoll_wait(epfd, events, EPOLLEVENTS, 2000);
         }
         else
         {
-            printf("timer_wait:%ld\n", tvp->tv_sec*1000 + tvp->tv_usec/1000);//ms
-            ret = epoll_wait(epollfd, events, EPOLLEVENTS, tvp->tv_sec*1000 + tvp->tv_usec/1000);//ms
+            MSF_EVENT_LOG(DBG_ERROR, "timer_wait:%ld.", tvp->tv_sec*1000 + tvp->tv_usec/1000);//ms
+            rc = epoll_wait(epfd, events, EPOLLEVENTS, tvp->tv_sec*1000 + tvp->tv_usec/1000);//ms
         }
  
-        //handle_events(epollfd,events,ret,listenfd);
         msf_timer_process();
     }
-    sclose(epollfd);
+    sclose(epfd);
+    return NULL;
 }
-
-
 
 #include <signal.h>
 
@@ -208,7 +215,7 @@ static void do_epoll(int listenfd)
 /////////////////////////////////////////////
 static void signal_exit_func(int signo)
 {
-    printf("exit signo is %d\n", signo);
+    MSF_EVENT_LOG(DBG_ERROR, "exit signo is %d.", signo);
     stop_server = 1;
 }
 
@@ -232,25 +239,6 @@ static void signal_exit_handler()
     //执行kill -9 pid命令，系统给对应程序发送的信号是SIGKILL，即exit。exit信号不会被系统阻塞，所以kill -9能顺利杀掉进程。
 }
 
-static int timerfun_callback(int arg)
-{
-   printf("id is %d\n", arg);
-   //return 0;
-   //kill timer,返回值为0,目的是不让它再次加入堆
-   return 1;
-}
-
-void timer_test(void) {
-
-    int  listenfd;
-
-    msf_timer_init();
-    do_epoll(listenfd);
-
-    msf_timer_destroy();
-}
-
-
 static const struct msf_event_ops *eventops[] = {
     &epollops,
     NULL
@@ -267,15 +255,15 @@ struct msf_event *msf_event_create(s32 fd,
 
     ev = MSF_NEW(struct msf_event , 1);
     if (!ev) {
-        printf("Failed to new event, errno(%d).\n", errno);
+        MSF_EVENT_LOG(DBG_ERROR, "Failed to new event, errno(%d).", errno);
         return NULL;
     }
     
     msf_memzero(ev, sizeof(struct msf_event));
     
-    ev->ev_cbs = MSF_NEW(struct msf_event_cbs, 1);;
+    ev->ev_cbs = MSF_NEW(struct msf_event_cbs, 1);
     if (!ev->ev_cbs) {
-        printf("Failed to new event cbs, errno(%d).\n", errno);
+        MSF_EVENT_LOG(DBG_ERROR, "Failed to new event cbs, errno(%d).", errno);
         sfree(ev);
         return NULL;
     }
@@ -296,7 +284,7 @@ struct msf_event *msf_event_create(s32 fd,
     }
 
     ev->ev_fd = fd;
-    
+
     return ev;
 }
 
@@ -311,7 +299,7 @@ void msf_event_destroy(struct msf_event *ev) {
 s32 msf_event_add(struct msf_event_base *eb, struct msf_event *ev) {
 
     if (unlikely(!eb || !eb->ev_ops || !ev)) {
-        printf("%s:%d paraments is NULL\n", __func__, __LINE__);
+        MSF_EVENT_LOG(DBG_ERROR, "%s:%d paraments is NULL.", __func__, __LINE__);
         return -1;
     }
     return eb->ev_ops->add(eb, ev);
@@ -319,7 +307,7 @@ s32 msf_event_add(struct msf_event_base *eb, struct msf_event *ev) {
 
 s32 msf_event_del(struct msf_event_base *eb, struct msf_event *ev) {
     if (unlikely(!eb || !eb->ev_ops || !ev)) {
-        printf("%s:%d paraments is NULL\n", __func__, __LINE__);
+        MSF_EVENT_LOG(DBG_ERROR, "%s:%d paraments is NULL.", __func__, __LINE__);
         return -1;
     }
     return eb->ev_ops->del(eb, ev);
@@ -336,11 +324,11 @@ struct msf_event_base *msf_event_base_create(void) {
         return NULL;
     }
 
-    socket_nonblocking(fds[0]);
+    msf_socket_nonblocking(fds[0]);
 
     eb = MSF_NEW(struct msf_event_base, 1);
     if (!eb) {
-        printf("New event_base failed.\n");
+        MSF_EVENT_LOG(DBG_ERROR, "New event_base failed.");
         sclose(fds[0]);
         sclose(fds[1]);
         return NULL;
@@ -378,7 +366,7 @@ s32 msf_event_base_loop(struct msf_event_base *eb) {
     while (eb->loop) {
         ret = ev_ops->dispatch(eb, NULL);
         if (ret == -1) {
-            printf("Dispatch event list failed.\n");
+            MSF_EVENT_LOG(DBG_ERROR, "Dispatch event list failed.");
             return -1;
         }
     }
@@ -398,11 +386,12 @@ void msf_event_base_loop_break(struct msf_event_base *eb) {
 s32 msf_event_base_wait(struct msf_event_base *eb) {
     return eb->ev_ops->dispatch(eb, NULL);
 }
+
 void msf_event_base_signal(struct msf_event_base *eb) {
     s8 buf[1];
     buf[0] = false;
     if (1 != write(eb->wfd, buf, 1)) {
-        perror("write error");
+        perror("write pipe error");
     }
 }
 

@@ -10,7 +10,12 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-#include "msf.h"
+#include "msf_process.h"
+#include <msf_log.h>
+
+#define MSF_MOD_SVC "SVC"
+#define MSF_SVC_LOG(level, ...) \
+    log_write(level, MSF_MOD_SVC, __func__, __FILE__, __LINE__, __VA_ARGS__)
 
 s32 svcinst_init(struct svcinst *svc) {
 
@@ -23,17 +28,17 @@ s32 svcinst_init(struct svcinst *svc) {
 
     svc->svc_handle = plugin_load_dynamic(svc->svc_lib);
     if (!svc->svc_handle) {
-    printf("plugin_load lib: '%s' failed\n", svc->svc_lib);
+        MSF_SVC_LOG(DBG_ERROR, "plugin_load lib: '%s' failed\n", svc->svc_lib);
         return -1;
     }
 
     svc->svc_cb = plugin_load_symbol(svc->svc_handle, svc->svc_name);
     if (!svc->svc_cb) {
-    printf("plugin_load symbol: '%s' failed\n", svc->svc_name);
+        MSF_SVC_LOG(DBG_ERROR, "plugin_load symbol: '%s' failed\n", svc->svc_name);
         MSF_DLCLOSE(svc->svc_handle);
         return -1;
     } else {
-        printf("plugin_load: '%s' successful\n", svc->svc_lib);
+        MSF_SVC_LOG(DBG_ERROR, "plugin_load: '%s' successful\n", svc->svc_lib);
     }
 
     return 0;

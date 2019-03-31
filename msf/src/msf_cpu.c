@@ -414,11 +414,160 @@ s32 cpu_collect(struct cpu_config *cpu_ctx)
     s = cpu_snapshot_percent(cstats, ctx);
 
     for (i = 1; i < ctx->n_processors + 1; i++) {
-		
         struct cpu_snapshot *e = &s[i];
     }
 
     cpu_snapshots_switch(cstats);
+
+    return 0;
+}
+
+
+
+/*********************************CPU Affinity**************************************/
+struct getcpu_cache {
+    unsigned long blob[128 / sizeof(long)];
+};
+
+typedef long (*vgetcpu_fn)(unsigned *cpu,
+              unsigned *node, struct getcpu_cache *tcache);
+vgetcpu_fn vgetcpu;
+
+s32 msf_init_vgetcpu(void) {
+    void *vdso;
+
+    MSF_DLERROR();
+    vdso = MSF_DLOPEN_L("linux-vdso.so.1");
+    if (!vdso)
+        return -1;
+    vgetcpu = (vgetcpu_fn)MSF_DLSYM(vdso, "__vdso_getcpu");
+    MSF_DLCLOSE(vdso);
+    return !vgetcpu ? -1 : 0;
+}
+
+u32 msf_get_cpu(void) {
+    static s32 first = 1;
+    u32 cpu;
+
+    if (!first && vgetcpu) {
+        vgetcpu(&cpu, NULL, NULL);
+        return cpu;
+    }
+    if (!first)
+        return sched_getcpu();
+
+    first = 0;
+    if (msf_init_vgetcpu() < 0) {
+        vgetcpu = NULL;
+        return sched_getcpu();
+    }
+    vgetcpu(&cpu, NULL, NULL);
+    return cpu;
+}
+
+
+s32 thread_pin_to_cpu(u32 cpu_id) {
+    s32 rc;
+
+    cpu_set_t cpu_info;
+    CPU_ZERO(&cpu_info);
+    CPU_SET(cpu_id, &cpu_info);
+    rc = pthread_setaffinity_np(pthread_self(), 
+        sizeof(cpu_set_t), &cpu_info);
+
+    if (rc < 0) {
+        printf("set thread(%u) affinity failed\n", cpu_id);
+    }
+
+#if 0
+    for (s32 j = 0; j < srv->max_cores; j++) {
+        if (CPU_ISSET(j, &cpu_info)) {
+            printf("CPU %d\n", j);
+        }
+    }
+#endif
+    return rc;
+}
+
+
+#if (MSF_HAVE_CPUSET_SETAFFINITY)
+
+#include <sys/cpuset.h>
+
+s32 process_pin_to_cpu(s32 cpu_id)
+{
+    s32 rc = -1;
+
+    cpu_set_t mask;
+    cpu_set_t get;
+
+    CPU_ZERO(&mask);
+    CPU_SET(cpu_id, &mask);
+
+    if (numa_num_task_cpus() > CPU_SETSIZE)
+        return -1;
+
+    if (CPU_COUNT(&mask) == 1)
+        return 0;
+
+    if (cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_PID, -1, 
+        sizeof(cpuset_t), &mask) < 0) {
+        printf("Could not set CPU affinity, continuing.\n");
+    }
+
+    /* guaranteed to take effect immediately */
+    sched_yield();
+
+    return rc;
+}
+
+
+#elif (MSF_HAVE_SCHED_SETAFFINITY)
+
+s32 process_pin_to_cpu(s32 cpu_id)
+{
+    s32 rc = -1;
+
+    cpu_set_t mask;
+    cpu_set_t get;
+
+    CPU_ZERO(&mask);
+    CPU_SET(cpu_id, &mask);
+
+    if (numa_num_task_cpus() > CPU_SETSIZE)
+        return -1;
+
+    if (CPU_COUNT(&mask) == 1)
+        return 0;
+    
+    if (sched_setaffinity(0, sizeof(mask), &mask) < 0) {
+        printf("Could not set CPU affinity, continuing.\n");
+    }
+
+    /* guaranteed to take effect immediately */
+    sched_yield();
+
+    CPU_ZERO(&get);
+    if (sched_getaffinity(0, sizeof(get), &get) == -1) {
+        printf("Could not get CPU affinity, continuing.\n");
+    }
+
+    for (int i = 0; i < get_nprocs_conf(); i++) {
+        if (CPU_ISSET(i, &get))//判断线程与哪个CPU有亲和力  
+        {
+            printf("this process %d is running processor: %d\n", i, i);
+        }
+    }  
+
+    return rc;
+}
+
+#endif
+
+
+s32 msf_set_priority(s32 priority) {
+
+    setpriority(PRIO_PROCESS, 0, priority);
 
     return 0;
 }

@@ -18,7 +18,11 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include <msf_utils.h>
+#include <msf_log.h>
+
+#define MSF_MOD_UTILS "UTILS"
+#define MSF_UTILS_LOG(level, ...) \
+    log_write(level, MSF_MOD_UTILS, __func__, __FILE__, __LINE__, __VA_ARGS__)
 
 void msf_touppercase(s8 *s) {
     while (*s) {
@@ -56,7 +60,7 @@ void msf_susleep(s32 s, s32 us) {
 #endif
 
 s32 signal_handler(s32 sig, sighandler_t handler) {
-    fprintf(stderr, "signal handled: %s.\n", strsignal(sig));
+    MSF_UTILS_LOG(DBG_INFO, "signal handled: %s.", strsignal(sig));
     struct sigaction action;
     action.sa_handler = handler;
     sigemptyset(&action.sa_mask);
@@ -201,7 +205,7 @@ void* plugin_load_dynamic(const s8 *path) {
 
     handle = MSF_DLOPEN_L(path);
     if (!handle) {
-        printf("DLOPEN_L() %s\n", MSF_DLERROR());
+        MSF_UTILS_LOG(DBG_ERROR, "DLOPEN_L() %s.", MSF_DLERROR());
     }
 
     return handle;
@@ -223,7 +227,7 @@ void *plugin_load_symbol(void *handler, const s8 *symbol)
     s = MSF_DLSYM(handler, symbol);
 
     if (!s) {
-        printf("DLSYM() %s\n", MSF_DLERROR());
+        MSF_UTILS_LOG(DBG_ERROR, "DLSYM() %s.", MSF_DLERROR());
     }
     return s;
 }
@@ -242,7 +246,7 @@ s8 *sys_output_dev(const s8 *pDevDsc) {
     if (NULL != pDevDsc) {
         if ((strlen(pDevDsc) > 0) && (strlen(pDevDsc) < sizeof(szDevPrint))){
             strcpy(szDevPrint, pDevDsc);
-            printf("sys output dev set (%s)\n", szDevPrint);
+            MSF_UTILS_LOG(DBG_ERROR, "sys output dev set (%s).", szDevPrint);
         }else{
             szDevPrint[0] = 0;
         }
@@ -275,7 +279,7 @@ s32 redirection_output(const s8* device_name, s32* fd_output, s32* fd_stdout) {
     /* 复制标准输出描述符 */		
     *fd_stdout = dup(STDOUT_FILENO);
     if (*fd_stdout < 0) {
-        printf("err in dup STDOUT.\n");
+        MSF_UTILS_LOG(DBG_ERROR, "err in dup STDOUT.");
         close(*fd_output);
         *fd_output = -1;
         return -1;
@@ -283,7 +287,7 @@ s32 redirection_output(const s8* device_name, s32* fd_output, s32* fd_stdout) {
 
     /*复制打开设备的描述符，并指定其值为 标准输出描述符 */
     if (dup2(*fd_output, STDOUT_FILENO) < 0){
-        printf("err in dup STDOUT.\n");
+        MSF_UTILS_LOG(DBG_ERROR, "err in dup STDOUT.");
         close(*fd_output);
         *fd_output = -1;
         *fd_stdout = -1;
@@ -292,7 +296,7 @@ s32 redirection_output(const s8* device_name, s32* fd_output, s32* fd_stdout) {
 
     /*复制打开设备的描述符，并指定其值为 标准错误描述符 */
     if (dup2(*fd_output, STDERR_FILENO) < 0){
-        printf("err in dup STDERR.\n");
+        MSF_UTILS_LOG(DBG_ERROR, "err in dup STDERR.");
         close(*fd_output);
         *fd_output = -1;
         *fd_stdout = -1;
@@ -321,13 +325,13 @@ int rdirection_output_cancle(int* fd_output, int* fd_stdout)
 
     /* 关闭重定向标准输出的设备，用保存的标准输出描述符的值来恢复标准输出 */
     if (dup2(*fd_stdout, STDOUT_FILENO) < 0){
-        printf("<rdirection_output_cancle> err in cancle redirection STDOUT.\n");
+        MSF_UTILS_LOG(DBG_ERROR, "<rdirection_output_cancle> err in cancle redirection STDOUT.\n");
         return -1;
     }
 
     /* 关闭重定向标准输出的设备，用保存的标准输出描述符的值来恢复标准错误 */
     if (dup2(*fd_stdout, STDERR_FILENO) < 0){
-        printf("<rdirection_output_cancle> err in cancle redirection STDERR.\n");
+        MSF_UTILS_LOG(DBG_ERROR, "<rdirection_output_cancle> err in cancle redirection STDERR.\n");
         return -1;
     }
 
@@ -395,7 +399,7 @@ s32 daemonize(s32 nochdir, s32 noclose)
 
     if (bytes <= 0) {
         /* closed fd (without writing) == failure in grandchild */
-        fputs("daemonized server failed to start; check error log for details\n", stderr);
+        MSF_UTILS_LOG(DBG_ERROR, "Failed to daemonize.");
         exit(-1);
     }
 
@@ -435,28 +439,28 @@ s32 daemonize(s32 nochdir, s32 noclose)
     //fclose(stdout);
     if (noclose == 0 && (fd = open("/dev/null", O_RDWR, 0)) != -1) {
         if(dup2(fd, STDIN_FILENO) < 0) {
-            perror("dup2 stdin");
+            MSF_UTILS_LOG(DBG_ERROR, "dup2 stdin");
             return (-1);
         }
         if(dup2(fd, STDOUT_FILENO) < 0) {
-            perror("dup2 stdout");
+            MSF_UTILS_LOG(DBG_ERROR, "dup2 stdout");
             return (-1);
         }
         if(dup2(fd, STDERR_FILENO) < 0) {
-            perror("dup2 stderr");
+            MSF_UTILS_LOG(DBG_ERROR, "dup2 stderr");
             return (-1);
         }
 
         if (fd > STDERR_FILENO) {
             if(close(fd) < 0) {
-                perror("close");
+                MSF_UTILS_LOG(DBG_ERROR, "close fd failed");
                 return (-1);
             }
         }
     }
 #else
     if (daemon(0, 0) < 0) {
-        perror("daemon()");
+        MSF_UTILS_LOG(DBG_ERROR, "daemon()");
     }
 #endif
 
@@ -499,7 +503,7 @@ void save_pid(const s8 *pid_file) {
             if (fgets(buffer, sizeof(buffer), fp) != NULL) {
                 unsigned int pid;
                 if (safe_strtoul(buffer, &pid) && kill((pid_t)pid, 0) == 0) {
-                    fprintf(stderr, "WARNING: The pid file contained the following (running) pid: %u\n", pid);
+                    MSF_UTILS_LOG(DBG_ERROR, "WARNING: The pid file contained the following (running) pid: %u\n", pid);
                 }
             }
             fclose(fp);
@@ -515,17 +519,17 @@ void save_pid(const s8 *pid_file) {
     snprintf(tmp_pid_file, sizeof(tmp_pid_file), "%s.tmp", pid_file);
 
     if ((fp = fopen(tmp_pid_file, "w")) == NULL) {
-        printf("Could not open the pid file %s for writing", tmp_pid_file);
+        MSF_UTILS_LOG(DBG_ERROR, "Could not open the pid file %s for writing", tmp_pid_file);
         return;
     }
 
     fprintf(fp,"%ld\n", (long)getpid());
     if (fclose(fp) == -1) {
-        printf("Could not close the pid file %s", tmp_pid_file);
+        MSF_UTILS_LOG(DBG_ERROR, "Could not close the pid file %s", tmp_pid_file);
     }
 
     if (rename(tmp_pid_file, pid_file) != 0) {
-        printf("Could not rename the pid file from %s to %s",
+        MSF_UTILS_LOG(DBG_ERROR, "Could not rename the pid file from %s to %s",
                 tmp_pid_file, pid_file);
     }
 }
@@ -536,7 +540,7 @@ void remove_pidfile(const s8 *pid_file) {
 
     if (access(pid_file, F_OK) == 0) {
         if (unlink(pid_file) != 0) {
-            printf("Could not remove the pid file %s", pid_file);
+            MSF_UTILS_LOG(DBG_ERROR, "Could not remove the pid file %s", pid_file);
         }
     }
 }
@@ -709,14 +713,14 @@ s32 pthread_spawn(pthread_t *tid, void* (*func)(void *), void *arg) {
     sigaddset (&signal_mask, SIGPIPE);
     rc = pthread_sigmask (SIG_BLOCK, &signal_mask, NULL);
     if (rc != 0) {
-        printf("block sigpipe error\n");
+        MSF_UTILS_LOG(DBG_ERROR, "block sigpipe error\n");
     } 
 #endif
 
     pthread_attr_init(&thread_attr);
     pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_JOINABLE);
     if (pthread_create(tid, &thread_attr, (void *)func, arg) < 0) {
-        perror("pthread_create");
+        MSF_UTILS_LOG(DBG_ERROR, "pthread_create");
         return -1;
     }
 

@@ -1,5 +1,5 @@
 #
-# Makefile for msf_kernel process 
+# Makefile for msf_shell process 
 # by luotang 2018.11.15
 #
 
@@ -7,7 +7,7 @@ ROOTDIR = ../../..
 include $(ROOTDIR)/Rules.make
 
 TMP_PATH= bin
-TARGET	= $(BINPATH)/msf_kernel
+TARGET	= $(BINPATH)/msf_shell
 
 SRCS 	= $(wildcard src/*.c)
 OBJS	= $(SRCS:%.c=$(TMP_PATH)/%.o)
@@ -17,7 +17,7 @@ cJSON_OBJS = $(TMP_PATH)/src/cJSON.o
 IFLAGS 		= -I./inc -I $(ROOTDIR)/inc -I../msf_thirdparty/cJSON -I../msf/inc 
 CFLAGS 		= -Wall -W -O2 -Wswitch-default -Wpointer-arith -Wno-unused -g
 DFLAGS 		= -D_GNU_SOURCE 
-LD_FLAGS 	= -ldl -lpthread -L$(LIBPATH) -lmsf
+LD_FLAGS 	= -ldl -lpthread -lnuma -L$(LIBPATH) -lmsf
 
 GFLAG 		= $(CFLAGS) $(DFLAGS) $(IFLAGS)
 

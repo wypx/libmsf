@@ -44,7 +44,7 @@
 
 #endif
 
-#include <msf_utils.h>
+#include <msf_log.h>
 
 #define invalid_socket      -1
 
@@ -83,6 +83,40 @@
 #define IN_IS_ADDR_NETADDR(ip, mask)        (!((ip)&(~(mask))))	//网络地址，即主机号全零
 #define IN_IS_ADDR_UNSPECIFIED(ip)          (!(ip)) //地址为全零
 
+#define INVALID_SOCKET      (-1)
+#define MSF_ESHUTDOWN       ESHUTDOWN
+#define MSF_EINPROGRESS     EINPROGRESS /* connect on non-blocking socket */
+#define MSF_EAGAIN          EAGAIN      /* recv    on non-blocking socket */
+#define MSF_WOULDBLOCK      EWOULDBLOCK /* recv    on non-blocking socket */
+#define MSF_ECONNABORTED    ECONNABORTED
+#define MSF_ECONNRESET      ECONNRESET
+#define MSF_ECONNREFUSED    ECONNREFUSED
+    
+static inline s32 msf_pipe(s32 socks[2], s32 is_blocking) {
+    return 0;
+    //return pipe2(socks, is_blocking ? 0 : O_NONBLOCK);
+}
+
+static inline s32 msf_socket_non_blocking(s32 domain, s32 type, s32 protocol) {
+    return socket(domain, type | SOCK_NONBLOCK, protocol);
+}
+
+    
+/* NOTE: we aren't using static inline function here; because accept4 requires
+ * defining _GNU_SOURCE and we don't want users to be forced to define it in
+ * their application */
+#define msf_accept_non_blocking(sockfd, addr, addrlen) \
+        accept4(sockfd, addr, addrlen, SOCK_NONBLOCK)
+    
+static inline s32 msf_timerfd_create(void) {
+    return timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+}
+
+static inline s32 msf_timerfd_settime(s32 fd, s32 flags,
+                  const struct itimerspec *new_value,
+                  struct itimerspec *old_value) {
+    return timerfd_settime(fd, flags, new_value, old_value);
+}
 
 
 #ifndef INET_ADDRSTRLEN
@@ -109,18 +143,18 @@
 #define PADDR(a)            ((struct sockaddr *)a)
 
 enum net_protocol {
-    TCPV4	= IPPROTO_TCP, /**< TCP protocol */
+    TCPV4   = IPPROTO_TCP, /**< TCP protocol */
     TCPV6,
-    UDPV4	= IPPROTO_UDP, /**< UDP protocol */
+    UDPV4   = IPPROTO_UDP, /**< UDP protocol */
     UDPV6,
-    UNIX, 	/* Unix sockets*/
+    UNIX,   /* Unix sockets*/
     MUTICAST,
 };
 
-#define IS_TCP(x) 		(x == SOCK_STREAM || x == SOCK_STREAM)
-#define IS_UDP(x) 		(x == SOCK_DGRAM || x == SOCK_DGRAM)
-#define IS_UNIX(x) 		(x == SOCK_STREAM)
-#define IS_MUTICATS(x) 	(x == SOCK_STREAM)
+#define IS_TCP(x)       (x == SOCK_STREAM || x == SOCK_STREAM)
+#define IS_UDP(x)       (x == SOCK_DGRAM || x == SOCK_DGRAM)
+#define IS_UNIX(x)      (x == SOCK_STREAM)
+#define IS_MUTICATS(x)  (x == SOCK_STREAM)
 
 /* Macro: True iff the IPv4 address 'addr', in host order, is in 127.0.0.0/8
  */
@@ -169,58 +203,49 @@ typedef union {
     //struct sockaddr_storage sa_stor; 
 } sock_addr_base;
 
-s32 isipaddr(const s8 *ip, u32 af_type);
-
-s32 socket_ip_str(s32 fd, s8 **buf,  u32 size, u32 *len);
-
-s32 socket_cork_flag(s32 fd, u32 state);
-s32 socket_blocking(s32 fd);
-s32 socket_nonblocking(s32 fd);
-
-s32 socket_alive(s32 fd);
-s32 socket_linger(s32 fd);
-s32 socket_timeout(s32 fd, u32 us);
-s32 socket_reuseaddr(s32 fd);
-s32 socket_reuseport(s32 fd);
-s32 socket_closeonexec(s32 fd);
-
-s32 socket_tcp_defer_accept(s32 fd);
-s32 socket_tcp_nodelay(s32 fd);
-s32 socket_tcp_fastopen(s32 fd);
+s32 msf_isipaddr(const s8 *ip, u32 af_type);
+s32 msf_sockaddr_cmp(const struct sockaddr *sa1, const struct sockaddr *sa2);
+u16 msf_sockaddr_port(struct sockaddr_storage *addr);
 
 
-s32 socket_create(u32 domain, u32 type, u32 protocol);
-s32 socket_bind(s32 fd, const struct sockaddr *addr,
+s32 msf_socket_cork_flag(s32 fd, u32 state);
+s32 msf_socket_blocking(s32 fd);
+s32 msf_socket_nonblocking(s32 fd);
+s32 msf_socket_alive(s32 fd);
+s32 msf_socket_linger(s32 fd);
+s32 msf_socket_timeout(s32 fd, u32 us);
+s32 msf_socket_reuseaddr(s32 fd);
+s32 msf_socket_reuseport(s32 fd);
+s32 msf_socket_closeonexec(s32 fd);
+
+s32 msf_socket_tcp_defer_accept(s32 fd);
+s32 msf_socket_tcp_nodelay(s32 fd);
+s32 msf_socket_tcp_fastopen(s32 fd);
+
+s32 msf_set_dscp(s32 fd, u32 family, u8 dscp);
+
+s32 msf_socket_create(u32 domain, u32 type, u32 protocol);
+s32 msf_socket_bind(s32 fd, const struct sockaddr *addr,
                 socklen_t addrlen, u32 backlog);
-
-s32 recvn(s32 fd, void* const buf_, u32 n);
-s32 sendn(const s32 fd, const void * const buf_, 
-            u32 count, const u32 timeout);
-
-s32 readn(s32 fd, void* const buf_, u32 n);
-s32 writen(const s32 fd, const void * const buf_, 
-                u32 count, const u32 timeout);
 
 s32 udp_recvn(s32 fd, void* const buf_, u32 n);
 s32 udp_sendn(const s32 fd, const void * const buf_, 
                 u32 count, const u32 timeout);
 
 s32 msf_sendmsg(s32 clifd, struct msghdr *msg);
-
 s32 msf_recvmsg(s32 clifd, struct msghdr *msg);
 
+void msf_drain_fd(s32 fd, u32 n_packets);
 
-void drain_fd(s32 fd, u32 n_packets);
+void msf_socket_debug(s32 fd);
 
-void socket_debug(s32 fd);
+s32 msf_server_unix_socket(s32 backlog, s8 *unixpath, s32 access_mask);
+s32 msf_server_socket(s8 *interf, s32 protocol, s32 port, s32 backlog);
 
-s32 server_unix_socket(s32 backlog, s8 *unixpath, s32 access_mask);
-s32 server_socket(s8 *interf, s32 protocol, s32 port, s32 backlog);
+s32 msf_connect_to_unix_socket(const s8 *cname, const s8 *sname);
+s32 msf_connect_to_host (const s8 *host, const s8 *port);
 
-s32 connect_to_unix_socket(const s8 *cname, const s8 *sname);
-s32 connect_to_host (const s8 *host, const s8 *port);
-
-void socket_maximize_sndbuf(const s32 sfd);
+void msf_socket_maximize_sndbuf(const s32 sfd);
 
 
 #define MACADDR_IS_ZERO(x) \

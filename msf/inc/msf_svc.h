@@ -49,5 +49,5 @@ struct svc {
     svc_func get_param;
     svc_func set_param;
     svc_func msg_handler;
-} __attribute__((__packed__));
+} MSF_PACKED_MEMORY;
 

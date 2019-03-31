@@ -10,36 +10,11 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-#include <sched.h>
 #include <sys/file.h>
 #include <sys/wait.h>
 #include <sys/sysinfo.h>
-
-#include <msf.h>
-
-s32 thread_set_affinity(u32 cpu_id) {
-    s32 rc;
-
-    cpu_set_t cpu_info;
-    CPU_ZERO(&cpu_info);
-    CPU_SET(cpu_id, &cpu_info);
-    rc = pthread_setaffinity_np(pthread_self(), 
-        sizeof(cpu_set_t), &cpu_info);
-
-    if (rc < 0) {
-        printf("set thread(%u) affinity failed\n", cpu_id);
-    }
-
-#if 0
-    for (s32 j = 0; j < srv->max_cores; j++) {
-        if (CPU_ISSET(j, &cpu_info)) {
-            printf("CPU %d\n", j);
-        }
-    }
-#endif
-    return rc;
-}
-
+#include <msf_process.h>
+#include <msf_network.h>
 
 s32 msf_lockfile(s32 fd) {
     struct flock fl;
@@ -113,11 +88,11 @@ s32 process_try_lock(const s8 *proc_name, u32 mode) {
     fd = open(proc_file, O_RDWR | O_CREAT | O_CLOEXEC, 
     				S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (fd < 0) {
-    	printf("Open prcoess lock file(%s) failed, errno(%d)\n", proc_name, errno);
-    	return true;
+        printf("Open prcoess lock file(%s) failed, errno(%d)\n", proc_name, errno);
+        return true;
     }
 
-    socket_closeonexec(fd);
+    msf_socket_closeonexec(fd);
 
     if (0 == flock(fd, LOCK_EX | LOCK_NB)) {
         printf("(%s) has not been locked, lock it.\n", proc_file);
@@ -129,34 +104,6 @@ s32 process_try_lock(const s8 *proc_name, u32 mode) {
         }
         rc = false;
     }
-
-    return rc;
-}
-
-s32 process_set_affinity(s32 cpu_id) //传递线程标号 自己定义
-{
-    s32 rc = -1;
-
-    cpu_set_t mask;
-    cpu_set_t get;	
-
-    CPU_ZERO(&mask);
-    CPU_SET(cpu_id, &mask);
-    if (sched_setaffinity(0, sizeof(mask), &mask) < 0) {                     
-        printf("Could not set CPU affinity, continuing.\n");
-    }
-
-    CPU_ZERO(&get);                     
-    if (sched_getaffinity(0, sizeof(get), &get) == -1) {                              
-        printf("Could not get CPU affinity, continuing.\n");
-    }
-
-    for (int i = 0; i < get_nprocs_conf(); i++) {                            
-        if (CPU_ISSET(i, &get))//判断线程与哪个CPU有亲和力  
-        {
-            printf("this process %d is running processor: %d\n", i, i);
-        }
-    }  
 
     return rc;
 }
@@ -291,7 +238,7 @@ s32 process_spwan(struct process_desc *proc_desc) {
         if (fcntl(ngx_processes[s].channel[0], F_SETOWN, ngx_pid) == -1) {
             ngx_log_error(NGX_LOG_ALERT, cycle->log, ngx_errno,
                           "fcntl(F_SETOWN) failed while spawning \"%s\"", name);
-            ngx_close_channel(ngx_processes[s].channel, cycle->log);
+            ngx_close_channel(ngx_processes[s].channel, cycle->lo;
             return NGX_INVALID_PID;
         }
             
@@ -357,4 +304,5 @@ s32 process_spwan(struct process_desc *proc_desc) {
 
         return 0;
 }
+
 

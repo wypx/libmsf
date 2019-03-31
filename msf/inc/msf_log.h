@@ -43,19 +43,19 @@ enum LOGCOLOR {
 };
 
 enum loglevel {
-    DBG_FATAL = 0,   
-    DBG_ERROR,     
-    DBG_WARN,   
-    DBG_INFO,        
+    DBG_FATAL = 0,
+    DBG_ERROR,
+    DBG_WARN,
     DBG_DEBUG,
+    DBG_INFO,
     DBG_MAX
 };
 
 enum logstat { 
-   L_CLOSED, 
-   L_OPENING, 
-   L_OPEN, 
-   L_ERROR, 
+   L_CLOSED,
+   L_OPENING,
+   L_OPEN,
+   L_ERROR,
    L_ZIPING,
 };
 

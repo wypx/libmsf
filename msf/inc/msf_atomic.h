@@ -26,6 +26,8 @@ typedef volatile msf_atomic_uint_t  msf_atomic_t;
 #define msf_atomic_fetch_add(value, add)                                      \
     __sync_fetch_and_add(value, add)
 
+#define msf_atomic_fetch_sub(value, sub)                                      \
+    __sync_fetch_and_sub(value, sub)
 
 #define msf_memory_barrier()        __sync_synchronize()
 
@@ -45,6 +47,7 @@ typedef volatile msf_atomic_uint_t  msf_atomic_t;
 
 #define msf_cpu_pause()         __asm__ ("pause")
 
+//#define msf_cpu_pause() _mm_pause();
 
 /*
  * "cmpxchgq  r, [m]":

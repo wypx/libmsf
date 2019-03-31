@@ -17,7 +17,7 @@ cJSON_OBJS = $(TMP_PATH)/src/cJSON.o
 IFLAGS 		= -I./inc -I $(ROOTDIR)/inc -I../msf_thirdparty/cJSON -I../msf/inc
 CFLAGS 		= -Wall -W -O2 -Wswitch-default -Wpointer-arith -Wno-unused -g
 DFLAGS 		= -D_GNU_SOURCE 
-LD_FLAGS 	= -ldl -lpthread -L$(LIBPATH) -lmsf
+LD_FLAGS 	= -ldl -lpthread -lnuma -L$(LIBPATH) -lmsf
 
 GFLAG 		= $(CFLAGS) $(DFLAGS) $(IFLAGS)
 

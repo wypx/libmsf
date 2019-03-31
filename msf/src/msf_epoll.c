@@ -2,6 +2,11 @@
 #include <msf_network.h>
 #include <msf_event.h>
 
+#define MSF_MOD_EPOLL "MSF_EPOLL"
+#define MSF_EPOLL_LOG(level, ...) \
+    log_write(level, MSF_MOD_EPOLL, __func__, __FILE__, __LINE__, __VA_ARGS__)
+
+
 #define MAX_SECONDS_IN_MSEC_LONG 200
 
 #define DEF_INIT_EPOLL_EVENT_NUM 32
@@ -25,7 +30,7 @@ static void *epoll_init(void) {
 
     ep_ctx = MSF_NEW(struct epoll_ctx, 1);
     if (!ep_ctx) {
-        printf("Failed to new epoll context, errno(%d).\n", errno);
+        MSF_EPOLL_LOG(DBG_ERROR, "Failed to new epoll context, errno(%d).\n", errno);
         return NULL;
     }
     
@@ -75,6 +80,8 @@ static s32 epoll_add(struct msf_event_base *eb, struct msf_event *ev)
         events |= EPOLLRDHUP;
     if (ev->ev_flags & MSF_EVENT_FINALIZE)
         events |= EPOLLHUP;
+    if ( ev->ev_flags & MSF_EVENT_PERSIST)
+        events |= EPOLLONESHOT;
 
     ep_ctx->ev_num++;
 
@@ -141,14 +148,14 @@ static s32 epoll_dispatch(struct msf_event_base *eb, struct timeval *tv) {
     
     nfds = epoll_wait(ep_ctx->ep_fd, events, DEF_INIT_EPOLL_EVENT_NUM, timeout);
     if (unlikely(nfds < 0)) {
-        printf("Epoll wait fail, errno(%d: %s).\n", 
+        MSF_EPOLL_LOG(DBG_ERROR, "Epoll wait fail, errno(%d: %s).\n", 
                 errno, strerror(errno));
         if (errno != EINTR) {
             return -1;
         }
         return 0;
     } else if (0 == nfds) {
-        printf("Epoll wait timeout(%d).\n", timeout);
+        MSF_EPOLL_LOG(DBG_ERROR, "Epoll wait timeout(%d).\n", timeout);
         return 0;
     }
 
@@ -168,11 +175,11 @@ static s32 epoll_dispatch(struct msf_event_base *eb, struct timeval *tv) {
             if (ev->ev_cbs->error_cbs) {
                 ev->ev_cbs->error_cbs(ev->ev_cbs->args);
             } else {
-                printf("Event error cb is valid.\n");
+                MSF_EPOLL_LOG(DBG_ERROR, "Event error cb is valid.\n");
                 if (ev->ev_cbs->read_cbs) {
                     ev->ev_cbs->read_cbs(ev->ev_cbs->args);
                 } else {
-                    printf("Event read cb is valid.\n");
+                    MSF_EPOLL_LOG(DBG_ERROR, "Event read cb is valid.\n");
                 }
             }
         } else {
@@ -180,7 +187,7 @@ static s32 epoll_dispatch(struct msf_event_base *eb, struct timeval *tv) {
                 if (ev->ev_cbs->read_cbs) {
                     ev->ev_cbs->read_cbs(ev->ev_cbs->args);
                 } else {
-                    printf("Event read cb is valid.\n");
+                    MSF_EPOLL_LOG(DBG_ERROR, "Event read cb is valid.\n");
                 }
             }
 
@@ -188,7 +195,7 @@ static s32 epoll_dispatch(struct msf_event_base *eb, struct timeval *tv) {
                 if (ev->ev_cbs->write_cbs) {
                     ev->ev_cbs->write_cbs(ev->ev_cbs->args);
                 } else {
-                    printf("Event write cb is valid.\n");
+                    MSF_EPOLL_LOG(DBG_ERROR, "Event write cb is valid.\n");
                 }
             }
 
@@ -196,7 +203,7 @@ static s32 epoll_dispatch(struct msf_event_base *eb, struct timeval *tv) {
                 if (ev->ev_cbs->error_cbs) {
                     ev->ev_cbs->error_cbs(ev->ev_cbs->args);
                 } else {
-                    printf("Event error cb is valid.\n");
+                    MSF_EPOLL_LOG(DBG_ERROR, "Event error cb is valid.\n");
                 }
             }
         }

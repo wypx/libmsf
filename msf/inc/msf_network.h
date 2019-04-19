@@ -57,9 +57,9 @@
 #define MSF_RPC_UNIX_DLNA   "/var/msf_rpc_dlna.sock"
 #define MSF_RPC_UNIX_UPNP   "/var/msf_rpc_upnp.sock"
 
-#define local_host_v4       "127.0.0.1"
-#define local_host_v6       "[::1]"
-#define local_port          "9999"
+#define LOCAL_HOST_V4       "127.0.0.1"
+#define LOCAL_HOST_V6       "[::1]"
+#define LOCAL_PORT          "9999"
 
 #define RESOLV_FILE         "/etc/resolv.conf"
 #define ROUTE_FILE          "/proc/net/route"
@@ -242,8 +242,8 @@ void msf_socket_debug(s32 fd);
 s32 msf_server_unix_socket(s32 backlog, s8 *unixpath, s32 access_mask);
 s32 msf_server_socket(s8 *interf, s32 protocol, s32 port, s32 backlog);
 
-s32 msf_connect_to_unix_socket(const s8 *cname, const s8 *sname);
-s32 msf_connect_to_host (const s8 *host, const s8 *port);
+s32 msf_connect_unix_socket(const s8 *cname, const s8 *sname);
+s32 msf_connect_host (const s8 *host, const s8 *port);
 
 void msf_socket_maximize_sndbuf(const s32 sfd);
 

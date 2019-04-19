@@ -27,6 +27,8 @@ struct msf_mempool_config g_mempool_config = {
 
 };
 
+s32 msf_mem_register(void *addr, size_t length, 
+                        struct msf_reg_mem *reg_mem);
 s32 msf_mem_dereg(struct msf_reg_mem *reg_mem);
 
 
@@ -352,8 +354,8 @@ void msf_mempool_dump(struct msf_mempool *p)
     printf("------------------------------------------------\n");
     for (i = 0; i < p->slabs_nr; i++) {
         s = &p->slab[i];
-        printf("pool:%p - slab[%d]: " \
-             "size:%zd, used:%d, alloced:%d, max_alloc:%d\n",
+        printf("pool:%p - slab[%u]: " \
+             "size:%zd, used:%lu, alloced:%u, max_alloc:%u\n",
             p, i, s->mb_size, s->used_mb_nr,
             s->curr_mb_nr, s->max_mb_nr);
     }
@@ -705,8 +707,8 @@ s32 msf_mem_alloc(size_t length, struct msf_reg_mem *reg_mem) {
 
     msf_mem_register(reg_mem->addr, length, reg_mem);
     if (!reg_mem->mr) {
-        printf("xio_reg_mr failed. addr:%p, length:%ld\n",
-             reg_mem->addr, length, access);
+        printf("xio_reg_mr failed. addr:%p, length:%ld.",
+             reg_mem->addr, length);
 
     goto cleanup1;
     }

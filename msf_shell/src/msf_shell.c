@@ -14,7 +14,7 @@
 #include <msf_log.h>
 #include <msf_os.h>
 
-#define MSF_MOD_SHELL "MSF_SHELL"
+#define MSF_MOD_SHELL "SHELL"
 #define MSF_SHELL_LOG(level, ...) \
     log_write(level, MSF_MOD_SHELL, __func__, __FILE__, __LINE__, __VA_ARGS__)
 
@@ -375,7 +375,7 @@ s32 main(s32 argc, s8 *argv[]) {
 
     s8 log_path[256] = { 0 };
 
-    snprintf(log_path, sizeof(log_path)-1, "%s.log", "agent");
+    snprintf(log_path, sizeof(log_path)-1, "logger/%s.log", "AGENT");
 
     if (log_init(log_path) < 0) {
         return -1;

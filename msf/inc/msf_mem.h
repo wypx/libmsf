@@ -21,6 +21,8 @@
 #include <sys/mman.h>
 #include <sys/syscall.h>
 
+extern s32 get_cpu_mhz(s32 cpu);
+
 #define HUGE_PAGE_SZ    (2*1024*1024)
 
 #define msf_sfree(ptr) do { \
@@ -139,23 +141,9 @@ static inline s32 msf_pin_to_node(s32 cpu) {
         return -1;
 
     /* is numa_run_on_node() guaranteed to take effect immediately? */
-    sched_yield();
+    msf_sched_yield();
 
     return -1;
-}
-
-#define MSF_F_ALWAYS_INLINE inline __attribute__((always_inline))
-
-#define LIBRARY_INITIALIZER(f) \
-    static void f(void)__attribute__((constructor)); \
-    static void f(void)
-
-#define LIBRARY_FINALIZER(f) \
-    static void f(void)__attribute__((destructor)); \
-    static void f(void)
-
-static inline u64 msf_get_current_thread_id(void) {
-    return (u64)pthread_self();
 }
 
 /*
@@ -452,23 +440,33 @@ static s32 msf_intf_main(s32 argc, s8 *argv[])
             break;
         }
         flags[0] = 0;
+        s8 *if_up= NULL;
+        s8 *if_loop= NULL;
+        s8 *if_master= NULL;
+        
         if (ifa->ifa_flags & IFF_UP)
-            sprintf(flags, "%s %s", flags, "UP");
+            if_up = "UP";
         else
-            sprintf(flags, "%s %s", flags, "DOWN");
+            if_up = "DOWN";
         
         if (ifa->ifa_flags & IFF_LOOPBACK)
-            sprintf(flags, "%s %s", flags, "LOOPBACK");
+            if_loop = "LOOPBACK";
         if (ifa->ifa_flags & IFF_RUNNING)
-            sprintf(flags, "%s %s", flags, "RUNNING");
+            if_loop = "RUNNING";
         if (ifa->ifa_flags & IFF_SLAVE) {
-            char master[256];
+            s8 master[256];
 
             intf_master_name(ifa->ifa_name, master);
-            sprintf(flags, "%s %s - [%s]", flags, "SLAVE", master);
+            if_master = "SLAVE";
+            sprintf(flags, "%s %s %s - [%s]", 
+                if_up, if_loop, if_master, master);
         }
-        if (ifa->ifa_flags & IFF_MASTER)
-        	sprintf(flags, "%s %s", flags, "MASTER");
+        
+        if (ifa->ifa_flags & IFF_MASTER) {
+            if_master = "MASTER";
+            sprintf(flags, "%s %s %s", 
+                if_up, if_loop, if_master);
+        }
 
         numa_node = intf_numa_node(ifa->ifa_name);
         retval = intf_name_best_cpus(ifa->ifa_name,

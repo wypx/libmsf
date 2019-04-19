@@ -20,14 +20,24 @@ typedef long                        msf_atomic_int_t;
 typedef unsigned long               msf_atomic_uint_t;
 typedef volatile msf_atomic_uint_t  msf_atomic_t;
 
-#define msf_atomic_cmp_set(lock, old, set)                                    \
+#define msf_atomic_cmp_set(lock, old, set)  \
     __sync_bool_compare_and_swap(lock, old, set)
 
-#define msf_atomic_fetch_add(value, add)                                      \
+#define msf_atomic_add(value, add)  \
+    __sync_add_and_fetch(value, add)
+
+#define msf_atomic_fetch_add(value, add)  \
     __sync_fetch_and_add(value, add)
 
-#define msf_atomic_fetch_sub(value, sub)                                      \
+#define msf_atomic_fetch_sub(value, sub)  \
     __sync_fetch_and_sub(value, sub)
+
+#define msf_atomic_sub(value, sub)  \
+    __sync_sub_and_fetch(value, sub)
+
+#define msf_atomic_get(value,dstvar) do { \
+    dstvar = __sync_sub_and_fetch(value, 0); \
+} while(0)
 
 #define msf_memory_barrier()        __sync_synchronize()
 
@@ -191,7 +201,6 @@ msf_atomic_fetch_add(msf_atomic_t *value, msf_atomic_int_t add)
     return add;
 }
 
-
 #else
 
 /*
@@ -228,6 +237,20 @@ msf_atomic_fetch_add(msf_atomic_t *value, msf_atomic_int_t add)
 /* old "as" does not support "pause" opcode */
 #define msf_cpu_pause()         __asm__ (".byte 0xf3, 0x90")
 
+
+#elif !defined(__ATOMIC_VAR_FORCE_SYNC_MACROS) && defined(__ATOMIC_RELAXED) && !defined(__sun) && (!defined(__clang__) || !defined(__APPLE__) || __apple_build_version__ > 4210057)
+/* Implementation using __atomic macros. */
+
+#define msf_atomic_fetch_add(var,count) __atomic_add_fetch(&var,(count),__ATOMIC_RELAXED)
+#define msf_atomic_add(var,oldvalue_var,count) do { \
+    oldvalue_var = __atomic_fetch_add(&var,(count),__ATOMIC_RELAXED); \
+} while(0)
+#define msf_atomic_fetch_sub(var,count) __atomic_sub_fetch(&var,(count),__ATOMIC_RELAXED)
+#define msf_atomic_get(var,dstvar) do { \
+    dstvar = __atomic_load_n(&var,__ATOMIC_RELAXED); \
+} while(0)
+
+#define msf_atomic_cmp_set(var,value) __atomic_store_n(&var,value,__ATOMIC_RELAXED)
 
 #endif
 

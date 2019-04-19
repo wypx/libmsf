@@ -872,7 +872,7 @@ void msf_socket_debug(s32 fd) {
     }
 }
 
-s32 msf_connect_to_unix_socket (const s8 *cname, const s8 *sname) {
+s32 msf_connect_unix_socket (const s8 *cname, const s8 *sname) {
     s32 fd  = -1;
     s32 len =   0;
     struct sockaddr_un addr;
@@ -883,12 +883,15 @@ s32 msf_connect_to_unix_socket (const s8 *cname, const s8 *sname) {
 
     fd = msf_socket_create(AF_UNIX, SOCK_STREAM, 0);
     if (unlikely(fd < 0)) {
-        printf ("failed to open socket: %s.", strerror (errno));
+        MSF_NETWORK_LOG(DBG_ERROR, "Failed to open socket: %s.", 
+                    strerror (errno));
         goto err;
     }
 
-    if (unlikely(msf_socket_nonblocking(fd) < 0 || msf_socket_linger(fd) < 0)) {
-        printf ("socket_set_noblocking,linger,alive: %s.", strerror (errno));
+    if (unlikely(msf_socket_nonblocking(fd) < 0 ||
+                    msf_socket_linger(fd) < 0)) {
+        MSF_NETWORK_LOG(DBG_ERROR,
+            "Socket set noblock,linger,alive: %s.", strerror (errno));
         goto err;
     }
 
@@ -901,13 +904,13 @@ s32 msf_connect_to_unix_socket (const s8 *cname, const s8 *sname) {
     unlink(addr.sun_path);    /* in case it already exists */
 
     if (bind(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-        MSF_NETWORK_LOG(DBG_ERROR, "bind failed  errno %d fd %d.", errno, fd);
+        MSF_NETWORK_LOG(DBG_ERROR, "Bind failed  errno %d fd %d.", errno, fd);
         goto err;
     }
 
     /* 暂不设置权限使用默认的0777 CLI_PERM */
     if (chmod(addr.sun_path, 0777) < 0) {
-        MSF_NETWORK_LOG(DBG_ERROR, "chmod sun_path %s failed.", addr.sun_path);
+        MSF_NETWORK_LOG(DBG_ERROR, "Chmod sun_path %s failed.", addr.sun_path);
         goto err;
     }
 
@@ -918,8 +921,8 @@ s32 msf_connect_to_unix_socket (const s8 *cname, const s8 *sname) {
         if (errno == EINPROGRESS) 
             return fd;
         else {
-            MSF_NETWORK_LOG(DBG_ERROR, "[%d] failed to connect to %s: %s.", 
-                fd, addr.sun_path, strerror (errno));
+            MSF_NETWORK_LOG(DBG_ERROR, "Failed to connect %s: %s.", 
+                addr.sun_path, strerror(errno));
             goto err;
         }
     }
@@ -930,7 +933,7 @@ s32 msf_connect_to_unix_socket (const s8 *cname, const s8 *sname) {
     return -1;
 }
  
-s32 msf_connect_to_host(const s8 *host, const s8 *port)
+s32 msf_connect_host(const s8 *host, const s8 *port)
 {
     s32 flag = 1;
     s32 fd  = -1;
@@ -3564,7 +3567,7 @@ static s32 nl_write(s32 fd, void *data, s32 len) {
     return sendmsg(fd, &msg, 0);
 }
 
-static sl_read(s32 fd, void *data, s32 len) {
+static s32 sl_read(s32 fd, void *data, s32 len) {
     struct iovec iov[2];
     struct msghdr msg;
     struct nlmsghdr nlh;

@@ -291,6 +291,19 @@ typedef unsigned long long int  u64;
     } while(0)
 
 #define MSF_PACKED_MEMORY  __attribute__((__packed__))
+#define MSF_ALWAYS_INLINE inline __attribute__((always_inline))
+#define MSF_LIBRARY_INITIALIZER(f) \
+    static void f(void)__attribute__((constructor)); \
+    static void f(void)
+
+#define MSF_LIBRARY_FINALIZER(f) \
+    static void f(void)__attribute__((destructor)); \
+    static void f(void)
+
+static inline u64 msf_get_current_thread_id(void) {
+    return (u64)pthread_self();
+}
+
 
 #define msf_tolower(c)      (u8) ((c >= 'A' && c <= 'Z') ? (c | 0x20) : c)
 #define msf_toupper(c)      (u8) ((c >= 'a' && c <= 'z') ? (c & ~0x20) : c)

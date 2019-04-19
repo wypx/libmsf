@@ -1,5 +1,4 @@
 
-
 /*
  * Session logging.
  */
@@ -109,7 +108,7 @@ static s32 log_current_time(s8 *localtime, u32 len) {
     localtime_r( &t, &tm );
 
     snprintf(localtime, len - 1 , 
-        "%d-%d-%2d-%02d:%02d:%02d",
+        "%d-%d-%d %02d:%02d:%02d",
         tm.tm_year + 1900,
         tm.tm_mon + 1, 
         tm.tm_mday,

@@ -15,7 +15,7 @@
 #include <msf_file.h>
 #include <msf_network.h>
 #include <msf_atomic.h>
-#include <msf_cpu.h>
+//#include <msf_cpu.h>
 
 #include <numa.h> /*debian-ubuntu:apt-get install libnuma-dev*/
 #include <sys/mman.h>

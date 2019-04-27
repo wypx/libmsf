@@ -169,7 +169,7 @@ enum net_protocol {
  * but it appeared that it is not defined on some BSD system
  */
 #ifndef IPPROTO_IPV6
-#define IPPROTO_IPV6 41	
+#define IPPROTO_IPV6 41
 #endif
 
 /* MinGW does not define IPV6_V6ONLY */

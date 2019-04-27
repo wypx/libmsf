@@ -183,7 +183,7 @@ void* msf_timer_loop(void *param) {
             {
                 tv.tv_usec += 1000000;
                 tv.tv_sec--;
-                MSF_EVENT_LOG(DBG_ERROR, "tv.tv_usec < 0.");
+                MSF_EVENT_LOG(DBG_INFO, "tv.tv_usec < 0.");
             }
             tvp = &tv;
            
@@ -191,7 +191,7 @@ void* msf_timer_loop(void *param) {
         else
         {
             tvp = NULL;
-            MSF_EVENT_LOG(DBG_ERROR, "tvp == NULL.");
+            MSF_EVENT_LOG(DBG_INFO, "tvp == NULL.");
         }
         if (tvp == NULL)
         {
@@ -245,7 +245,7 @@ static const struct msf_event_ops *eventops[] = {
 };
 
 
-struct msf_event *msf_event_create(s32 fd,
+struct msf_event *msf_event_new(s32 fd,
         void (*read_cbs)(void *),
         void (*write_cbs)( void *),
         void (*error_cbs)(void *),
@@ -288,10 +288,10 @@ struct msf_event *msf_event_create(s32 fd,
     return ev;
 }
 
-void msf_event_destroy(struct msf_event *ev) {
+void msf_event_free(struct msf_event *ev) {
     if (unlikely(!ev))
         return;
-    
+
     sfree(ev->ev_cbs);
     sfree(ev);
 }
@@ -313,7 +313,7 @@ s32 msf_event_del(struct msf_event_base *eb, struct msf_event *ev) {
     return eb->ev_ops->del(eb, ev);
 }
 
-struct msf_event_base *msf_event_base_create(void) {
+struct msf_event_base *msf_event_base_new(void) {
 
     s32 i;
     s32 fds[2];
@@ -347,18 +347,18 @@ struct msf_event_base *msf_event_base_create(void) {
     return eb;
 }
 
-void msf_event_base_destroy(struct msf_event_base *eb) {
+void msf_event_base_free(struct msf_event_base *eb) {
     if (unlikely(!eb)) {
         return;
     }
     
-    msf_event_base_loop_break(eb);
+    msf_event_base_loopexit(eb);
     sclose(eb->rfd);
     sclose(eb->wfd);
     eb->ev_ops->deinit(eb->ctx);
     sfree(eb);
 }
-s32 msf_event_base_loop(struct msf_event_base *eb) {
+s32 msf_event_base_dispatch(struct msf_event_base *eb) {
 
     s32 ret;
     const struct msf_event_ops *ev_ops = eb->ev_ops;
@@ -374,7 +374,7 @@ s32 msf_event_base_loop(struct msf_event_base *eb) {
     return 0;
 }
 
-void msf_event_base_loop_break(struct msf_event_base *eb) {
+void msf_event_base_loopexit(struct msf_event_base *eb) {
     s8 buf[1];
     buf[0] = false;
     eb->loop = 0;

@@ -637,6 +637,10 @@ static const char *msf_unparse_protoname(int proto)
     }
 }
 
+s32 msf_socketpair(s32 family, s32 type, s32 protocol, s32 fd[2]){
+    return socketpair(family, type, protocol, fd);
+}
+
 /*
 * Every time that a write(2) is performed on an eventfd, the
 * value of the __u64 being written is added to "count" and a
@@ -3621,11 +3625,13 @@ s32 msf_epoll_create(void) {
 
     s32 ep_fd = -1;
 
+#ifdef EVENT__HAVE_EPOLL_CREATE1
     /* First, try the shiny new epoll_create1 interface, if we have it. */
     ep_fd = epoll_create1(EPOLL_CLOEXEC);
+#endif
     if (ep_fd < 0) {
         /* Initialize the kernel queue using the old interface.  
-         * (The	size field is ignored   since 2.6.8.) */
+         * (The size field is ignored   since 2.6.8.) */
         ep_fd = epoll_create(512);
         if (ep_fd < 0) {
             if (errno != ENOSYS) {

@@ -108,16 +108,20 @@ void msf_cpuinfo(void)
         case 15:
             msf_cacheline_size = 128;
             break;
-			
-		default:
-			msf_cacheline_size = 32;
-			break;
+        default:
+            msf_cacheline_size = 32;
+            break;
         }
 
     } else if (msf_strcmp(vendor, "AuthenticAMD") == 0) {
         msf_cacheline_size = 64;
     }
 }
+#else
+void msf_cpuinfo(void) {
+    /*stub function*/
+}
+#endif
 
 #define CPU_KEY_FORMAT(s, key, i)                                \
     s->k_##key.length = snprintf(s->k_##key.name,                \
@@ -338,37 +342,37 @@ static int cpu_init()
         printf("calloc tm_cpu_config error\n");
         return -1;
     }
-	
-	/* Gather number of processors and CPU ticks linux2.6 Later
+
+    /* Gather number of processors and CPU ticks linux2.6 Later
      refer:http://blog.csdn.net/u012317833/article/details/39476831 */
 
-	ctx->processors_configured	= sysconf(_SC_NPROCESSORS_CONF);
-    ctx->processors_avalible	= sysconf(_SC_NPROCESSORS_ONLN);
-	ctx->total_pages  			= sysconf(_SC_PHYS_PAGES);
-	ctx->free_pages				= sysconf(_SC_AVPHYS_PAGES);
-	ctx->page_size 				= sysconf(_SC_PAGESIZE);
-	//ctx->total_mem 				= (ctx->total_pages * ctx->page_size) / ONE_MB;
-	//ctx->free_mem 				= (ctx->free_pages  * ctx->page_size) / ONE_MB; 
-	ctx->cpu_ticks    			= sysconf(_SC_CLK_TCK);
-	ctx->total_fds				= sysconf(_SC_OPEN_MAX); 
-	
+    ctx->processors_configured  = sysconf(_SC_NPROCESSORS_CONF);
+    ctx->processors_avalible    = sysconf(_SC_NPROCESSORS_ONLN);
+    ctx->total_pages            = sysconf(_SC_PHYS_PAGES);
+    ctx->free_pages             = sysconf(_SC_AVPHYS_PAGES);
+    ctx->page_size              = sysconf(_SC_PAGESIZE);
+    //ctx->total_mem            = (ctx->total_pages * ctx->page_size) / ONE_MB;
+    //ctx->free_mem             = (ctx->free_pages  * ctx->page_size) / ONE_MB; 
+    ctx->cpu_ticks              = sysconf(_SC_CLK_TCK);
+    ctx->total_fds              = sysconf(_SC_OPEN_MAX); 
+
     /* Collection time setting */
-    ctx->interval_sec 			= DEFAULT_INTERVAL_SEC;
-    ctx->interval_nsec 			= DEFAULT_INTERVAL_NSEC;
+    ctx->interval_sec           = DEFAULT_INTERVAL_SEC;
+    ctx->interval_nsec          = DEFAULT_INTERVAL_NSEC;
 
     /* Initialize buffers for CPU stats */
-	ctx->cstats.snap_a = MSF_NEW(struct cpu_snapshot, ctx->processors_avalible+ 1);
+    ctx->cstats.snap_a = MSF_NEW(struct cpu_snapshot, ctx->processors_avalible+ 1);
     if (!(ctx->cstats.snap_a)) {
         printf("malloc cpu_snapshot a  error\n");
-		sfree(ctx);
+        sfree(ctx);
         return -1;
     }
 
     ctx->cstats.snap_b = MSF_NEW(struct cpu_snapshot, ctx->processors_avalible+ 1);
     if (!(ctx->cstats.snap_b)) {
         printf("malloc cpu_snapshot b error\n");
-		sfree(ctx->cstats.snap_a);
-		sfree(ctx);
+        sfree(ctx->cstats.snap_a);
+        sfree(ctx);
         return -1;
     }
 
@@ -381,12 +385,12 @@ static int cpu_init()
     rc = cpu_proc_load(ctx);
     if (rc != 0) {
         printf("Could not obtain CPU data\n");
-		sfree(ctx->cstats.snap_b);
+        sfree(ctx->cstats.snap_b);
         sfree(ctx->cstats.snap_a);
-		sfree(ctx);
+        sfree(ctx);
         return -1;
     }
-	
+
     ctx->cstats.snap_active = CPU_SNAP_ACTIVE_B;
 
     /* Set our collector based on time, CPU usage every 1 second */
@@ -572,4 +576,3 @@ s32 msf_set_priority(s32 priority) {
     return 0;
 }
 
-#endif

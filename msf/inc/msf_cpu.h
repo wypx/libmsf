@@ -33,7 +33,7 @@
  */
 
 #define CPU_KEY_LEN     16
-#define MOD_NAME_CPU 	"CPU"
+#define MOD_NAME_CPU    "CPU"
  
 struct cpu_key {
     u32 length;
@@ -49,9 +49,9 @@ struct cpu_key {
     unsigned long iowait;
 
     /* percent values */
-    unsigned long irq;	/* Overall CPU usage */
-    unsigned long softirq;/* user space (user + nice) */
-    unsigned long stealstolen; /* kernel space percent     */
+    unsigned long irq;          /* Overall CPU usage */
+    unsigned long softirq;      /* user space (user + nice) */
+    unsigned long stealstolen;  /* kernel space percent     */
     unsigned long guest;
 
     double avg_all;
@@ -67,8 +67,8 @@ struct cpu_key {
 /* Default collection time: every 1 second (0 nanoseconds) */
 #define DEFAULT_INTERVAL_SEC    1
 #define DEFAULT_INTERVAL_NSEC   0
-#define CPU_SNAP_ACTIVE_A    	0
-#define CPU_SNAP_ACTIVE_B    	1
+#define CPU_SNAP_ACTIVE_A       0
+#define CPU_SNAP_ACTIVE_B       1
 
 #if 0
 struct cpu_snapshot {
@@ -105,17 +105,17 @@ struct cpu_config {
     /* setup */
     long processors_configured;
     long processors_avalible;   /* number of processors currently online (available) */
-    long cpu_ticks;      		/* CPU ticks (Kernel setting) */
+    long cpu_ticks;             /* CPU ticks (Kernel setting) */
     long total_pages;
     long free_pages;
     long page_size;
     long long total_mem;
     long long free_mem ;
-    long total_fds;				/* one process open file fd MAX %ld */
+    long total_fds;             /* one process open file fd MAX %ld */
 
     long n_processors;
-    s32 interval_sec;    		/* interval collection time (Second) */
-    s32 interval_nsec;  	 	/* interval collection time (Nanosecond) */
+    s32 interval_sec;           /* interval collection time (Second) */
+    s32 interval_nsec;          /* interval collection time (Nanosecond) */
     struct cpu_stats cstats;
 };
 

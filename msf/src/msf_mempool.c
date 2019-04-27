@@ -11,7 +11,7 @@
 *
 **************************************************************************/
 #include <msf_mempool.h>
-
+#include <msf_cpu.h>
 
 struct msf_mempool_config g_mempool_config = {
 

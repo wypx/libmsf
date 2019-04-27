@@ -188,18 +188,18 @@ s32 msf_os_init(void) {
         return -1;
     }
 
-    (void) memcpy(g_os->sysname, (u8 *) u.sysname,
-                  min(sizeof(g_os->sysname), strlen(u.sysname)));
-    (void) memcpy(g_os->nodename, (u8 *) u.nodename,
-                  min(sizeof(g_os->nodename), strlen(u.nodename)));
-    (void) memcpy(g_os->release, (u8 *) u.release,
-                       min(sizeof(g_os->release), strlen(u.release)));
-    (void) memcpy(g_os->version, (u8 *) u.version,
-                       min(sizeof(g_os->version), strlen(u.version)));
-    (void) memcpy(g_os->machine, (u8 *) u.machine,
-                           min(sizeof(g_os->machine), strlen(u.machine)));
-    (void) memcpy(g_os->domainname, (u8 *) u.domainname,
-                              min(sizeof(g_os->domainname), strlen(u.domainname)));
+    memcpy(g_os->sysname, (u8 *) u.sysname,
+          min(sizeof(g_os->sysname), strlen(u.sysname)));
+    memcpy(g_os->nodename, (u8 *) u.nodename,
+          min(sizeof(g_os->nodename), strlen(u.nodename)));
+    memcpy(g_os->release, (u8 *) u.release,
+          min(sizeof(g_os->release), strlen(u.release)));
+     memcpy(g_os->version, (u8 *) u.version,
+          min(sizeof(g_os->version), strlen(u.version)));
+     memcpy(g_os->machine, (u8 *) u.machine,
+          min(sizeof(g_os->machine), strlen(u.machine)));
+     memcpy(g_os->domainname, (u8 *) u.domainname,
+          min(sizeof(g_os->domainname), strlen(u.domainname)));
 
 #ifdef WIN32
     SYSTEM_INFO info; 

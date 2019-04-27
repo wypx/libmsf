@@ -94,19 +94,19 @@ void msf_timer_destroy(void);
 s32 msf_timer_add(u32 timer_id, s32 interval, s32 (*fun)(void*), void *arg, s32 flag, s32 exe_num);
 s32 msf_timer_remove(u32 timer_id);
 
-struct msf_event *msf_event_create(s32 fd,
+struct msf_event *msf_event_new(s32 fd,
         void (*read_cbs)(void *),
         void (*write_cbs)(void *),
         void (*error_cbs)(void *),
         void *args);
-void msf_event_destroy(struct msf_event *ev);
+void msf_event_free(struct msf_event *ev);
 s32 msf_event_add(struct msf_event_base *eb, struct msf_event *ev);
 s32 msf_event_del(struct msf_event_base *eb, struct msf_event *ev);
 
-struct msf_event_base *msf_event_base_create(void);
-void msf_event_base_destroy(struct msf_event_base *eb);
-s32 msf_event_base_loop(struct msf_event_base *eb);
-void msf_event_base_loop_break(struct msf_event_base *eb);
+struct msf_event_base *msf_event_base_new(void);
+void msf_event_base_free(struct msf_event_base *eb);
+s32 msf_event_base_dispatch(struct msf_event_base *eb);
+void msf_event_base_loopexit(struct msf_event_base *eb);
 s32 msf_event_base_wait(struct msf_event_base *eb);
 void msf_event_base_signal(struct msf_event_base *eb);
 

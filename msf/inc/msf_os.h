@@ -1,6 +1,6 @@
 
-#include <msf_process.h>
 #include <msf_file.h>
+#include <msf_process.h>
 
 #include <sched.h>
 #include <grp.h>
@@ -66,7 +66,6 @@ s32 msf_get_hdinfo(struct msf_hdd *hd);
 
 void msf_cpuinfo(void);
 s32 msf_set_user(struct process *proc);
-
 s32 msf_os_init(void);
 
 

@@ -1,7 +1,20 @@
+/**************************************************************************
+*
+* Copyright (c) 2017-2019, luotang.me <wypx520@gmail.com>, China.
+* All rights reserved.
+*
+* Distributed under the terms of the GNU General Public License v2.
+*
+* This software is provided 'as is' with no explicit or implied warranties
+* in respect of its properties, including, but not limited to, correctness
+* and/or fitness for purpose.
+*
+**************************************************************************/
 
 #include <msf_os.h>
 #include <msf_cpu.h>
-
+#include <msf_svc.h>
+#include <msf_thread.h>
 
 #if (( __i386__ || __amd64__ ) && ( __GNUC__ || __INTEL_COMPILER ))
 
@@ -57,7 +70,7 @@ static inline void msf_cpuid(u32 i, u32 *buf)
 
 
 /* auto detect the L2 cache line size of modern and widespread CPUs
- * 这个函数便是在获取CPU的信息，根据CPU的型号对ngx_cacheline_size进行设置*/
+ * 杩欎釜鍑芥暟渚挎槸鍦ㄨ幏鍙朇PU鐨勪俊鎭紝鏍规嵁CPU鐨勫瀷鍙峰ngx_cacheline_size杩涜璁剧疆*/
 void msf_cpuinfo(void)
 {
     u8    *vendor;

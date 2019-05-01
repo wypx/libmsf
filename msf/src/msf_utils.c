@@ -22,7 +22,7 @@
 
 #define MSF_MOD_UTILS "UTILS"
 #define MSF_UTILS_LOG(level, ...) \
-    log_write(level, MSF_MOD_UTILS, __func__, __FILE__, __LINE__, __VA_ARGS__)
+    log_write(level, MSF_MOD_UTILS, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 void msf_touppercase(s8 *s) {
     while (*s) {
@@ -64,179 +64,12 @@ s32 signal_handler(s32 sig, sighandler_t handler) {
     struct sigaction action;
     action.sa_handler = handler;
     sigemptyset(&action.sa_mask);
-    /* °²×°ĞÅºÅµÄÊ±ºò, ÉèÖÃ SA_RESTARTÊôĞÔ, 
-     * ÄÇÃ´µ±ĞÅºÅ´¦Àíº¯Êı·µ»Øºó, ±»¸ÃĞÅºÅÖĞ¶ÏµÄÏµÍ³µ÷ÓÃ½«×Ô¶¯»Ö¸´*/
+    /* å®‰è£…ä¿¡å·çš„æ—¶å€™, è®¾ç½® SA_RESTARTå±æ€§, 
+     * é‚£ä¹ˆå½“ä¿¡å·å¤„ç†å‡½æ•°è¿”å›å, è¢«è¯¥ä¿¡å·ä¸­æ–­çš„ç³»ç»Ÿè°ƒç”¨å°†è‡ªåŠ¨æ¢å¤*/
     action.sa_flags =  SA_NODEFER | SA_RESTART;
     sigaction(sig, &action, NULL);
 
     return 0;
-}
-
-s8 *config_read_file(const s8 *filename) {
-    FILE *file = NULL;
-    s64 length = 0;
-    s8 *content = NULL;
-    size_t read_chars = 0;
-
-    /* open in read binary mode */
-    file = fopen(filename, "rb");
-    if (!file) {
-        goto cleanup;
-    }
-
-    /* get the length */
-    if (fseek(file, 0, SEEK_END) != 0) {
-        goto cleanup;
-    }
-
-    length = ftell(file);
-    if (length < 0) {
-        goto cleanup;
-    }
-
-    if (fseek(file, 0, SEEK_SET) != 0) {
-        goto cleanup;
-    }
-
-    /* allocate content buffer */
-    content = (s8*)malloc((size_t)length + 1);
-    if (!content) {
-        goto cleanup;
-    }
-
-    memset(content, 0, (size_t)length + 1);
-
-    /* read the file into memory */
-    read_chars = fread(content, sizeof(char), (size_t)length, file);
-    if ((long)read_chars != length) {
-        sfree(content);
-        goto cleanup;
-    }
-
-    content[read_chars] = '\0';
-
-cleanup:
-    sfclose(file);
-    return content;
-}
-
-s32 file_get_info(const s8 *path, struct file_info *f_info, u32 mode) {
-    struct stat f, target;
-
-    f_info->exists = false;
-
-    /* Stat right resource */
-    if (lstat(path, &f) == -1) {
-        if (errno == EACCES) {
-            f_info->exists = true;
-        }
-        return -1;
-    }
-
-    f_info->exists = true;
-    f_info->is_file = true;
-    f_info->is_link = false;
-    f_info->is_directory = false;
-    f_info->exec_access = false;
-    f_info->read_access = false;
-
-    if (S_ISLNK(f.st_mode)) {
-        f_info->is_link = true;
-        f_info->is_file = false;
-        if (stat(path, &target) == -1) {
-            return -1;
-        }
-    }
-    else {
-        target = f;
-    }
-
-    f_info->size = target.st_size;
-    f_info->last_modification = target.st_mtime;
-
-    if (S_ISDIR(target.st_mode)) {
-        f_info->is_directory = true;
-        f_info->is_file = false;
-    }
-
-#ifndef _WIN32
-    gid_t EGID = getegid();
-    gid_t EUID = geteuid();
-
-    /* Check read access */
-    if (mode & MSF_FILE_READ) {
-        if (((target.st_mode & S_IRUSR) && target.st_uid == EUID) ||
-            ((target.st_mode & S_IRGRP) && target.st_gid == EGID) ||
-            (target.st_mode & S_IROTH)) {
-            f_info->read_access = true;
-        }
-    }
-
-    /* Checking execution */
-    if (mode & MSF_FILE_EXEC) {
-        if ((target.st_mode & S_IXUSR && target.st_uid == EUID) ||
-            (target.st_mode & S_IXGRP && target.st_gid == EGID) ||
-            (target.st_mode & S_IXOTH)) {
-            f_info->exec_access = true;
-        }
-    }
-#endif
-
-    /* Suggest open(2) flags */
-    f_info->flags_read_only = O_RDONLY | O_NONBLOCK;
-
-#if defined(__linux__)
-    /*
-     * If the user is the owner of the file or the user is root, it
-     * can set the O_NOATIME flag for open(2) operations to avoid
-     * inode updates about last accessed time
-     */
-    if (target.st_uid == EUID || EUID == 0) {
-        f_info->flags_read_only |=  O_NOATIME;
-    }
-#endif
-
-    return 0;
-}
-
-
-void* plugin_load_dynamic(const s8 *path) {
-    void *handle = NULL;
-
-    handle = MSF_DLOPEN_L(path);
-    if (!handle) {
-        MSF_UTILS_LOG(DBG_ERROR, "DLOPEN_L() %s.", MSF_DLERROR());
-    }
-
-    return handle;
-}
-
-void *plugin_load_symbol(void *handler, const s8 *symbol)
-{
-    void *s = NULL;
-
-    MSF_DLERROR();/* Clear any existing error */
-
-    /* Writing: cosine = (double (*)(double)) dlsym(handle, "cos");
-       would seem more natural, but the C99 standard leaves
-       casting from "void *" to a function pointer undefined.
-       The assignment used below is the POSIX.1-2003 (Technical
-       Corrigendum 1) workaround; see the Rationale for the
-       POSIX specification of dlsym(). */
-       
-    s = MSF_DLSYM(handler, symbol);
-
-    if (!s) {
-        MSF_UTILS_LOG(DBG_ERROR, "DLSYM() %s.", MSF_DLERROR());
-    }
-    return s;
-}
-
-s32 check_file_exist(s8 *file) {
-
-    if (unlikely(file)) return -1;
-
-    return (access(file, R_OK | W_OK) >= 0) ? 0 : -1;
 }
 
 static s8 szDevPrint[128];
@@ -264,19 +97,15 @@ s32 redirection_output(const s8* device_name, s32* fd_output, s32* fd_stdout) {
     if (!device_name || !fd_output || !fd_stdout) {
         return -1;
     }
-
-    /* Èç¹ûÒÑ¾­´ò¿ªÃèÊö·û */
+    
     if (*fd_output >= 0 || *fd_stdout >= 0) {
         return -1;
     }
-
-    /* ´ò¿ªÊä³öÉè±¸ */
     *fd_output  = open(device_name, O_WRONLY | O_NONBLOCK);	
     if (*fd_output  < 0) {
         return -1;
     }
 
-    /* ¸´ÖÆ±ê×¼Êä³öÃèÊö·û */		
     *fd_stdout = dup(STDOUT_FILENO);
     if (*fd_stdout < 0) {
         MSF_UTILS_LOG(DBG_ERROR, "err in dup STDOUT.");
@@ -285,7 +114,6 @@ s32 redirection_output(const s8* device_name, s32* fd_output, s32* fd_stdout) {
         return -1;
     }
 
-    /*¸´ÖÆ´ò¿ªÉè±¸µÄÃèÊö·û£¬²¢Ö¸¶¨ÆäÖµÎª ±ê×¼Êä³öÃèÊö·û */
     if (dup2(*fd_output, STDOUT_FILENO) < 0){
         MSF_UTILS_LOG(DBG_ERROR, "err in dup STDOUT.");
         close(*fd_output);
@@ -294,7 +122,6 @@ s32 redirection_output(const s8* device_name, s32* fd_output, s32* fd_stdout) {
         return -1;
     }
 
-    /*¸´ÖÆ´ò¿ªÉè±¸µÄÃèÊö·û£¬²¢Ö¸¶¨ÆäÖµÎª ±ê×¼´íÎóÃèÊö·û */
     if (dup2(*fd_output, STDERR_FILENO) < 0){
         MSF_UTILS_LOG(DBG_ERROR, "err in dup STDERR.");
         close(*fd_output);
@@ -310,7 +137,7 @@ s32 redirection_output(const s8* device_name, s32* fd_output, s32* fd_stdout) {
     return 0;
 }
 
-int rdirection_output_cancle(int* fd_output, int* fd_stdout)
+s32 rdirection_output_cancle(s32* fd_output, s32* fd_stdout)
 {
     char szDevDsc = 0;
 
@@ -318,29 +145,21 @@ int rdirection_output_cancle(int* fd_output, int* fd_stdout)
         return -1;
     }
 
-    /* ²ÎÊı¼ì²é */
     if (*fd_output < 0 || *fd_stdout < 0){
         return -1;
     }
-
-    /* ¹Ø±ÕÖØ¶¨Ïò±ê×¼Êä³öµÄÉè±¸£¬ÓÃ±£´æµÄ±ê×¼Êä³öÃèÊö·ûµÄÖµÀ´»Ö¸´±ê×¼Êä³ö */
-    if (dup2(*fd_stdout, STDOUT_FILENO) < 0){
+    
+    if (dup2(*fd_output, STDOUT_FILENO) < 0){
         MSF_UTILS_LOG(DBG_ERROR, "<rdirection_output_cancle> err in cancle redirection STDOUT.\n");
         return -1;
     }
-
-    /* ¹Ø±ÕÖØ¶¨Ïò±ê×¼Êä³öµÄÉè±¸£¬ÓÃ±£´æµÄ±ê×¼Êä³öÃèÊö·ûµÄÖµÀ´»Ö¸´±ê×¼´íÎó */
     if (dup2(*fd_stdout, STDERR_FILENO) < 0){
         MSF_UTILS_LOG(DBG_ERROR, "<rdirection_output_cancle> err in cancle redirection STDERR.\n");
         return -1;
     }
 
-    /* ÊÍ·Å×ÊÔ´ */
-    close(*fd_output);
-    close(*fd_stdout);
-
-    *fd_output = -1;	/* ÖÃÎªÎŞĞ§µÄfd */
-    *fd_stdout = -1;	/* ÖÃÎªÎŞĞ§µÄfd */
+    sclose(*fd_output);
+    sclose(*fd_stdout);
 
     if (NULL != sys_output_dev(&szDevDsc)){
         return -1;
@@ -354,31 +173,32 @@ s32 daemonize(s32 nochdir, s32 noclose)
     s32 fd = -1;
 
 #ifdef SIGTTOU
-/* ÏÂÃæÓÃÓÚÆÁ±ÎÒ»Ğ©ÓĞ¹Ø¿ØÖÆÖÕ¶Ë²Ù×÷µÄĞÅºÅ
-·ÀÖ¹ÊØ»¤½ø³ÌÃ»ÓĞÕı³£ÔË×÷Ö®Ç°¿ØÖÆÖÕ¶ËÊÜµ½¸ÉÈÅÍË³ö»ò¹ÒÆğ */
-    signal(SIGTTOU, SIG_IGN); //ºöÂÔºóÌ¨½ø³ÌĞ´¿ØÖÆÖÕ¶ËĞÅºÅ
+    /* ä¸‹é¢ç”¨äºå±è”½ä¸€äº›æœ‰å…³æ§åˆ¶ç»ˆç«¯æ“ä½œçš„ä¿¡å·
+     * é˜²æ­¢å®ˆæŠ¤è¿›ç¨‹æ²¡æœ‰æ­£å¸¸è¿ä½œä¹‹å‰æ§åˆ¶ç»ˆç«¯å—åˆ°å¹²æ‰°é€€å‡ºæˆ–æŒ‚èµ· */
+    signal(SIGTTOU, SIG_IGN); //å¿½ç•¥åå°è¿›ç¨‹å†™æ§åˆ¶ç»ˆç«¯ä¿¡å·
 #endif
 
 #ifdef SIGTTIN
-    signal(SIGTTIN, SIG_IGN); //ºöÂÔºóÌ¨½ø³Ì¶Á¿ØÖÆÖÕ¶ËĞÅºÅ
+    signal(SIGTTIN, SIG_IGN); //å¿½ç•¥åå°è¿›ç¨‹è¯»æ§åˆ¶ç»ˆç«¯ä¿¡å·
 #endif
+
 #ifdef SIGTSTP
-    signal(SIGTSTP, SIG_IGN); //ºöÂÔÖÕ¶Ë¹ÒÆğ
+    signal(SIGTSTP, SIG_IGN); //å¿½ç•¥ç»ˆç«¯æŒ‚èµ·
 #endif
 
 #ifndef USE_DAEMON
 
-    /* ÏÂÃæ¿ªÊ¼´ÓÆÕÍ¨½ø³Ì×ª»»ÎªÊØ»¤½ø³Ì
-     * Ä¿±ê1£ººóÌ¨ÔËĞĞ¡£
-     * ×ö·¨£ºÍÑÀë¿ØÖÆÖÕ¶Ë->µ÷ÓÃforkÖ®ºóÖÕÖ¹¸¸½ø³Ì
-     * ×Ó½ø³Ì±»initÊÕÑø£¬´Ë²½´ïµ½ºóÌ¨ÔËĞĞµÄÄ¿±ê¡£
+    /* ä¸‹é¢å¼€å§‹ä»æ™®é€šè¿›ç¨‹è½¬æ¢ä¸ºå®ˆæŠ¤è¿›ç¨‹
+     * ç›®æ ‡: åå°è¿è¡Œã€‚
+     * åšæ³•:   è„±ç¦»æ§åˆ¶ç»ˆç«¯->è°ƒç”¨fork->ç»ˆæ­¢çˆ¶è¿›ç¨‹->å­è¿›ç¨‹è¢«initæ”¶å…».
+     *
+     * ç›®æ ‡: è„±ç¦»æ§åˆ¶ç»ˆç«¯, ç™»é™†ä¼šè¯å’Œè¿›ç¨‹ç»„
+     * åšæ³•: ä½¿ç”¨setsidåˆ›å»ºæ–°ä¼šè¯,æˆä¸ºæ–°ä¼šè¯çš„é¦–è¿›ç¨‹,åˆ™ä¸åŸæ¥çš„
+     *       ç™»é™†ä¼šè¯å’Œè¿›ç¨‹ç»„è‡ªåŠ¨è„±ç¦»,ä»è€Œè„±ç¦»æ§åˆ¶ç»ˆç«¯.
+     *       ä¸€æ­¥çš„forkä¿è¯äº†å­è¿›ç¨‹ä¸å¯èƒ½æ˜¯ä¸€ä¸ªä¼šè¯çš„é¦–è¿›ç¨‹,
+     *       è¿™æ˜¯è°ƒç”¨setsidçš„å¿…è¦æ¡ä»¶.
      */
 
-    /*fork() != 0 Ä¿±ê2£ºÍÑÀë¿ØÖÆÖÕ¶Ë£¬µÇÂ½»á»°ºÍ½ø³Ì×é¡£
-     * ×ö·¨£ºÊ¹ÓÃsetsid´´½¨ĞÂ»á»°£¬³ÉÎªĞÂ»á»°µÄÊ×½ø³Ì£¬ÔòÓëÔ­À´µÄ
-     * µÇÂ½»á»°ºÍ½ø³Ì×é×Ô¶¯ÍÑÀë£¬´Ó¶øÍÑÀë¿ØÖÆÖÕ¶Ë¡£
-     * £¨ÉÏÒ»²½µÄfork±£Ö¤ÁË×Ó½ø³Ì²»¿ÉÄÜÊÇÒ»¸ö»á»°µÄÊ×½ø³Ì£¬ÕâÊÇµ÷ÓÃsetsidµÄ±ØÒªÌõ¼ş£©
-     */
     s32 pipefd[2];
     pid_t pid;
 
@@ -416,16 +236,16 @@ s32 daemonize(s32 nochdir, s32 noclose)
 
     if (0 != fork()) exit(0);
 
-    /* ÉÏÃæÒÑ¾­Íê³ÉÁË´ó²¿·Ö¹¤×÷£¬µ«ÊÇÓĞµÄÏµÍ³ÉÏ£¬µ±»á»°Ê×½ø³Ì´ò¿ª
-     * Ò»¸öÉĞÎ´ÓëÈÎºÎ»á»°Ïà¹ØÁªµÄÖÕ¶ËÉè±¸Ê±£¬¸ÃÉè±¸×Ô¶¯×÷Îª¿ØÖÆ
-     * ÖÕ¶Ë·ÖÅä¸ø¸Ã»á»°¡£
-     * Îª±ÜÃâ¸ÃÇé¿ö£¬ÎÒÃÇÔÙ´Îfork½ø³Ì£¬ÓÚÊÇĞÂ½ø³Ì²»ÔÙÊÇ»á»°Ê×½ø³Ì¡£
-     * »á»°Ê×½ø³ÌÍË³öÊ±¿ÉÄÜ»á¸øËùÓĞ»á»°ÄÚµÄ½ø³Ì·¢ËÍSIGHUP£¬¶ø¸Ã
-     * ĞÅºÅÄ¬ÈÏÊÇ½áÊø½ø³Ì£¬¹ÊĞèÒªºöÂÔ¸ÃĞÅºÅÀ´·ÀÖ¹Ëï×Ó½ø³ÌÒâÍâ½áÊø¡£
+    /* ä¸Šé¢å·²ç»å®Œæˆäº†å¤§éƒ¨åˆ†å·¥ä½œï¼Œä½†æ˜¯æœ‰çš„ç³»ç»Ÿä¸Šï¼Œå½“ä¼šè¯é¦–è¿›ç¨‹æ‰“å¼€
+     * ä¸€ä¸ªå°šæœªä¸ä»»ä½•ä¼šè¯ç›¸å…³è”çš„ç»ˆç«¯è®¾å¤‡æ—¶ï¼Œè¯¥è®¾å¤‡è‡ªåŠ¨ä½œä¸ºæ§åˆ¶
+     * ç»ˆç«¯åˆ†é…ç»™è¯¥ä¼šè¯ã€‚
+     * ä¸ºé¿å…è¯¥æƒ…å†µï¼Œæˆ‘ä»¬å†æ¬¡forkè¿›ç¨‹ï¼Œäºæ˜¯æ–°è¿›ç¨‹ä¸å†æ˜¯ä¼šè¯é¦–è¿›ç¨‹ã€‚
+     * ä¼šè¯é¦–è¿›ç¨‹é€€å‡ºæ—¶å¯èƒ½ä¼šç»™æ‰€æœ‰ä¼šè¯å†…çš„è¿›ç¨‹å‘é€SIGHUPï¼Œè€Œè¯¥
+     * ä¿¡å·é»˜è®¤æ˜¯ç»“æŸè¿›ç¨‹ï¼Œæ•…éœ€è¦å¿½ç•¥è¯¥ä¿¡å·æ¥é˜²æ­¢å­™å­è¿›ç¨‹æ„å¤–ç»“æŸã€‚
      */
 
-    /* ×îºóÄ¿±ê£º¸Ä±ä¹¤×÷Ä¿Â¼µ½¸ùÄ¿Â¼¡£
-     * Ô­Òò£º½ø³Ì»î¶¯Ê±£¬Æä¹¤×÷Ä¿Â¼ËùÔÚµÄÎÄ¼şÏµÍ³²»ÄÜĞ¶ÏÂ¡£
+    /* æœ€åç›®æ ‡ï¼šæ”¹å˜å·¥ä½œç›®å½•åˆ°æ ¹ç›®å½•ã€‚
+     * åŸå› ï¼šè¿›ç¨‹æ´»åŠ¨æ—¶ï¼Œå…¶å·¥ä½œç›®å½•æ‰€åœ¨çš„æ–‡ä»¶ç³»ç»Ÿä¸èƒ½å¸ä¸‹ã€‚
      */
 
     if (nochdir == 0) {
@@ -494,56 +314,6 @@ s32 sem_wait_i(sem_t *psem, s32 mswait) {
     } 
     return rv;
 } 
-
-void save_pid(const s8 *pid_file) {
-    FILE *fp = NULL;
-    if (access(pid_file, F_OK) == 0) {
-        if ((fp = fopen(pid_file, "r")) != NULL) {
-            s8 buffer[1024];
-            if (fgets(buffer, sizeof(buffer), fp) != NULL) {
-                unsigned int pid;
-                if (safe_strtoul(buffer, &pid) && kill((pid_t)pid, 0) == 0) {
-                    MSF_UTILS_LOG(DBG_ERROR, "WARNING: The pid file contained the following (running) pid: %u\n", pid);
-                }
-            }
-            fclose(fp);
-        }
-    }
-
-    /* Create the pid file first with a temporary name, then
-     * atomically move the file to the real name to avoid a race with
-     * another process opening the file to read the pid, but finding
-     * it empty.
-     */
-    s8 tmp_pid_file[1024];
-    snprintf(tmp_pid_file, sizeof(tmp_pid_file), "%s.tmp", pid_file);
-
-    if ((fp = fopen(tmp_pid_file, "w")) == NULL) {
-        MSF_UTILS_LOG(DBG_ERROR, "Could not open the pid file %s for writing", tmp_pid_file);
-        return;
-    }
-
-    fprintf(fp,"%ld\n", (long)getpid());
-    if (fclose(fp) == -1) {
-        MSF_UTILS_LOG(DBG_ERROR, "Could not close the pid file %s", tmp_pid_file);
-    }
-
-    if (rename(tmp_pid_file, pid_file) != 0) {
-        MSF_UTILS_LOG(DBG_ERROR, "Could not rename the pid file from %s to %s",
-                tmp_pid_file, pid_file);
-    }
-}
-
-void remove_pidfile(const s8 *pid_file) {
-    if (unlikely(!pid_file))
-      return;
-
-    if (access(pid_file, F_OK) == 0) {
-        if (unlink(pid_file) != 0) {
-            MSF_UTILS_LOG(DBG_ERROR, "Could not remove the pid file %s", pid_file);
-        }
-    }
-}
 
 /* Avoid warnings on solaris, where isspace() is an index into an array, and gcc uses signed chars */
 #define xisspace(c) isspace((u8)c)
@@ -702,31 +472,6 @@ void close_std_fd(void) {
     close(STDOUT_FILENO);
     close(STDERR_FILENO);
 }
-
-s32 pthread_spawn(pthread_t *tid, void* (*func)(void *), void *arg) {
-    s32 rc;
-    pthread_attr_t thread_attr;
-
-#ifndef WIN32
-    sigset_t signal_mask;
-    sigemptyset (&signal_mask);
-    sigaddset (&signal_mask, SIGPIPE);
-    rc = pthread_sigmask (SIG_BLOCK, &signal_mask, NULL);
-    if (rc != 0) {
-        MSF_UTILS_LOG(DBG_ERROR, "block sigpipe error\n");
-    } 
-#endif
-
-    pthread_attr_init(&thread_attr);
-    pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_JOINABLE);
-    if (pthread_create(tid, &thread_attr, (void *)func, arg) < 0) {
-        MSF_UTILS_LOG(DBG_ERROR, "pthread_create");
-        return -1;
-    }
-
-    return 0;
-}
-
 
 //https://blog.csdn.net/hzhsan/article/details/25124901
 //#define refcount_incr(it) ++(it->refcount)

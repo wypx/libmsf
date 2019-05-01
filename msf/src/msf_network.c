@@ -107,7 +107,7 @@ int shutdown(int sockfd,int howto);  //·µ»Ø³É¹¦Îª0£¬³ö´íÎª-1.    ¸Ãº¯ÊýµÄÐÐÎªÒÀÀ
 #define MSF_MOD_NETWORK "NETWORK"
 
 #define MSF_NETWORK_LOG(level, ...) \
-    log_write(level, MSF_MOD_NETWORK, __func__, __FILE__, __LINE__, __VA_ARGS__)
+    log_write(level, MSF_MOD_NETWORK, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 
 static s32 kernel_features = 1;

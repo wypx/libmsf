@@ -10,32 +10,46 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-/** Î¢ÄÚºËµÄ²å¼ş¼Ü¹¹ -- OSGIµÄ "Î¢ÄÚºË+ÏµÍ³²å¼ş+Ó¦ÓÃ²å¼ş" ½á¹¹
 
-	¿ò¼Ü·ÖÎªËŞÖ÷³ÌĞòºÍ²å¼ş¶ÔÏóÁ½²¿·Ö, ËŞÖ÷¿ÉÒÔ¶ÀÁ¢´æÔÚ£¬¿ÉÒÔ¶¯Ì¬¼ÓÔØ²å¼ş.
-
-	1. ²å¼şµÄ¼ÓÔØ
-	   ÀûÓÃLinux¹²Ïí¿âµÄ¶¯Ì¬¼ÓÔØ¼¼Êõ
-	2. ·şÎñµÄ×¢²á
-	   ²ÉÓÃ±íÇı¶¯µÄ·½·¨. ºËĞÄ²ãÖĞÎ¬»¤Ò»¸ö·şÎñ×¢²á±í, Òş²Ø·şÎñ½Ó¿Ú¾ßÌåÊµÏÖ.
-	3. ·şÎñµÄµ÷ÓÃ 
-	   ²å¼şËŞÖ÷µÄ»Øµ÷²å¼şÌá¹©µÄ·şÎñ½Ó¿Úº¯Êı
-	4. ·şÎñµÄ¹ÜÀí
-	   ²å¼şËŞÖ÷¹ÜÀí²å¼şµÄÉúÃüÖÜÆÚ, ´¦Àí²å¼şµÄ´íÎóÊÂ¼ş
-	5. ·şÎñµÄÍ¨ĞÅ
-	   ²å¼şÖ®¼ä²ÉÓÃ×é¼şÍ¨ĞÅ/Â·ÓÉ»úÖÆ, ²Î¿¼[luotang.me---libipc]
-	6. ·şÎñÊÂ¼şµÄ¹ã²¥ºÍ¶©ÔÄ(Õâ¸öÄ¿Ç°»¹Ã»ÓĞ¿¼ÂÇÒªÖ§³Ö)
-	   ÀûÓÃ¹Û²ìÕßÄ£Ê½,ÔÚËŞÖ÷ÖĞ¼ÓÔØ²å¼şºó,ÊµÏÖÊÂ¼ş×¢²á,½ø¶ø²å¼şÍ¨ĞÅÆäËû
-
+/** å¾®å†…æ ¸çš„æ’ä»¶æ¶æ„ -- OSGIçš„ "å¾®å†…æ ¸+ç³»ç»Ÿæ’ä»¶+åº”ç”¨æ’ä»¶" ç»“æ„
+    æ¡†æ¶åˆ†ä¸ºå®¿ä¸»ç¨‹åºå’Œæ’ä»¶å¯¹è±¡ä¸¤éƒ¨åˆ†, å®¿ä¸»å¯ä»¥ç‹¬ç«‹å­˜åœ¨ï¼Œå¯ä»¥åŠ¨æ€åŠ è½½æ’ä»¶.
+    1. æ’ä»¶çš„åŠ è½½
+       åˆ©ç”¨Linuxå…±äº«åº“çš„åŠ¨æ€åŠ è½½æŠ€æœ¯
+    2. æœåŠ¡çš„æ³¨å†Œ
+       é‡‡ç”¨è¡¨é©±åŠ¨çš„æ–¹æ³•. æ ¸å¿ƒå±‚ä¸­ç»´æŠ¤ä¸€ä¸ªæœåŠ¡æ³¨å†Œè¡¨, éšè—æœåŠ¡æ¥å£å…·ä½“å®ç°.
+    3. æœåŠ¡çš„è°ƒç”¨ 
+       æ’ä»¶å®¿ä¸»çš„å›è°ƒæ’ä»¶æä¾›çš„æœåŠ¡æ¥å£å‡½æ•°
+    4. æœåŠ¡çš„ç®¡ç†
+       æ’ä»¶å®¿ä¸»ç®¡ç†æ’ä»¶çš„ç”Ÿå‘½å‘¨æœŸ, å¤„ç†æ’ä»¶çš„é”™è¯¯äº‹ä»¶
+    5. æœåŠ¡çš„é€šä¿¡
+       æ’ä»¶ä¹‹é—´é‡‡ç”¨ç»„ä»¶é€šä¿¡/è·¯ç”±æœºåˆ¶, å‚è€ƒ[luotang.me-librpc]
+    6. æœåŠ¡äº‹ä»¶çš„å¹¿æ’­å’Œè®¢é˜…(è¿™ä¸ªç›®å‰è¿˜æ²¡æœ‰è€ƒè™‘è¦æ”¯æŒ)
+       åˆ©ç”¨è§‚å¯Ÿè€…æ¨¡å¼,åœ¨å®¿ä¸»ä¸­åŠ è½½æ’ä»¶å,å®ç°äº‹ä»¶æ³¨å†Œ,è¿›è€Œæ’ä»¶é€šä¿¡å…¶ä»–
     Discovery
     Registration
     Application hooks to which plugins attach
     Exposing application capabilities back to plugins
-
     Compile: gcc -fPIC -shared xxx.c -o xxx.so 
 */
-	
+
 #include <msf_utils.h>
+#include <dlfcn.h>
+
+/* Linux dl API*/
+#ifndef WIN32  
+#define MSF_DLHANDLE void*
+#define MSF_DLOPEN_L(name) dlopen((name), RTLD_LAZY | RTLD_GLOBAL)
+#define MSF_DLOPEN_N(name) dlopen((name), RTLD_NOW)
+
+#if defined(WIN32)
+#define MSF_DLSYM(handle, symbol)   GetProcAddress((handle), (symbol))
+#define MSF_DLCLOSE(handle)         FreeLibrary(handle)
+#else
+#define MSF_DLSYM(handle, symbol)   dlsym((handle), (symbol))
+#define MSF_DLCLOSE(handle)         dlclose(handle)
+#endif
+#define MSF_DLERROR() dlerror()
+#endif
 
 typedef s32 (*svc_func)(void *data, u32 len);
 
@@ -50,4 +64,28 @@ struct svc {
     svc_func set_param;
     svc_func msg_handler;
 } MSF_PACKED_MEMORY;
+
+struct svcinst {
+    u32 svc_state;
+    s8  svc_name[64];
+    s8  svc_lib[64];
+
+    u32 svc_deplib_num;
+    s8  *svc_deplib[8];
+
+    MSF_DLHANDLE svc_handle;
+    struct svc *svc_cb;
+} MSF_PACKED_MEMORY;
+
+s32 msf_svc_stub(const s8 *func, ...);
+void *msf_load_dynamic(const s8 *path);
+void *msf_load_symbol(void *handler, const s8 *symbol);
+s32 msf_svcinst_init(struct svcinst *svc);
+
+/** if func is null, stub func is called
+  * and print debug info
+  */
+#define MSF_VA_ARGS(...) , ##__VA_ARGS__
+#define MFS_FUNCHK(func, ...) ((!func)?(msf_svc_stub(__FUNCTION__ MSF_VA_ARGS(__VA_ARGS__))):(func(__VA_ARGS__)))
+
 

@@ -13,10 +13,11 @@
 #include <cJSON.h>
 #include <msf_log.h>
 #include <msf_os.h>
+#include <msf_svc.h>
 
-#define MSF_MOD_SHELL "SHELL"
+#define MSF_MOD_SHELL "PROCESS"
 #define MSF_SHELL_LOG(level, ...) \
-    log_write(level, MSF_MOD_SHELL, __func__, __FILE__, __LINE__, __VA_ARGS__)
+    log_write(level, MSF_MOD_SHELL, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 
 #define DEF_PROC_KEY_NAME       "proc_name"
@@ -144,6 +145,7 @@ static s32 config_parse_proc(const s8 *confbuff) {
     }
 
     if (0 == g_proc->proc_svc_num) {
+        MSF_SHELL_LOG(DBG_ERROR, "Process svc num zreo.");
         goto cleanup;
     }
 
@@ -207,9 +209,10 @@ s32 service_init(void) {
     struct svc *svc_cb;
 
     for (svc_idx = 0; svc_idx < g_proc->proc_svc_num; svc_idx++) {
-        if (svcinst_init(&(g_proc->proc_svcs[svc_idx])) < 0) {
+        MSF_SHELL_LOG(DBG_ERROR, "Start to load svc %d.", svc_idx);
+        if (msf_svcinst_init(&(g_proc->proc_svcs[svc_idx])) < 0) {
             MSF_SHELL_LOG(DBG_ERROR, "Failed to load svc %d.", svc_idx);
-            return -1;
+            //return -1;
         };
     }
 
@@ -389,11 +392,13 @@ s32 main(s32 argc, s8 *argv[]) {
     g_proc->user  = MSF_CONF_UNSET_UINT;
     g_proc->group = MSF_CONF_UNSET_UINT;
 
-    MSF_SHELL_LOG(DBG_INFO, "Msf shell init pid(%d) argv(%s).", getpid(), argv[2]);
+    MSF_SHELL_LOG(DBG_DEBUG, "Msf shell init pid(%d) argv(%s).", getpid(), argv[2]);
 
     if (config_init(argv[2]) < 0) {
         return -1;
     }
+
+    MSF_SHELL_LOG(DBG_DEBUG, "Msf config init sucessful.");
 
     if (likely(g_proc->logfd) > 0) {
         //msf_set_stderr(g_proc->logfd);
@@ -403,7 +408,7 @@ s32 main(s32 argc, s8 *argv[]) {
         return -1;
     }
 
-    MSF_SHELL_LOG(DBG_INFO, "Msf shell init sucessful.");
+    MSF_SHELL_LOG(DBG_DEBUG, "Msf process init sucessful.");
 
     for ( ;; ) {
         sleep(1);

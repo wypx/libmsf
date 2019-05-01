@@ -1,10 +1,22 @@
+/**************************************************************************
+*
+* Copyright (c) 2017-2019, luotang.me <wypx520@gmail.com>, China.
+* All rights reserved.
+*
+* Distributed under the terms of the GNU General Public License v2.
+*
+* This software is provided 'as is' with no explicit or implied warranties
+* in respect of its properties, including, but not limited to, correctness
+* and/or fitness for purpose.
+*
+**************************************************************************/
 
 #include <msf_network.h>
 #include <msf_event.h>
 
 #define MSF_MOD_EPOLL "MSF_EPOLL"
 #define MSF_EPOLL_LOG(level, ...) \
-    log_write(level, MSF_MOD_EPOLL, __func__, __FILE__, __LINE__, __VA_ARGS__)
+    log_write(level, MSF_MOD_EPOLL, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 
 #define MAX_SECONDS_IN_MSEC_LONG 200
@@ -175,11 +187,11 @@ static s32 epoll_dispatch(struct msf_event_base *eb, struct timeval *tv) {
             if (ev->ev_cbs->error_cbs) {
                 ev->ev_cbs->error_cbs(ev->ev_cbs->args);
             } else {
-                MSF_EPOLL_LOG(DBG_ERROR, "Event error cb is valid.\n");
+                MSF_EPOLL_LOG(DBG_ERROR, "Event error cb is valid.");
                 if (ev->ev_cbs->read_cbs) {
                     ev->ev_cbs->read_cbs(ev->ev_cbs->args);
                 } else {
-                    MSF_EPOLL_LOG(DBG_ERROR, "Event read cb is valid.\n");
+                    MSF_EPOLL_LOG(DBG_ERROR, "Event read cb is valid.");
                 }
             }
         } else {
@@ -187,7 +199,7 @@ static s32 epoll_dispatch(struct msf_event_base *eb, struct timeval *tv) {
                 if (ev->ev_cbs->read_cbs) {
                     ev->ev_cbs->read_cbs(ev->ev_cbs->args);
                 } else {
-                    MSF_EPOLL_LOG(DBG_ERROR, "Event read cb is valid.\n");
+                    MSF_EPOLL_LOG(DBG_ERROR, "Event read cb is valid.");
                 }
             }
 
@@ -195,7 +207,7 @@ static s32 epoll_dispatch(struct msf_event_base *eb, struct timeval *tv) {
                 if (ev->ev_cbs->write_cbs) {
                     ev->ev_cbs->write_cbs(ev->ev_cbs->args);
                 } else {
-                    MSF_EPOLL_LOG(DBG_ERROR, "Event write cb is valid.\n");
+                    MSF_EPOLL_LOG(DBG_ERROR, "Event write cb is valid.");
                 }
             }
 
@@ -203,7 +215,7 @@ static s32 epoll_dispatch(struct msf_event_base *eb, struct timeval *tv) {
                 if (ev->ev_cbs->error_cbs) {
                     ev->ev_cbs->error_cbs(ev->ev_cbs->args);
                 } else {
-                    MSF_EPOLL_LOG(DBG_ERROR, "Event error cb is valid.\n");
+                    MSF_EPOLL_LOG(DBG_ERROR, "Event error cb is valid.");
                 }
             }
         }

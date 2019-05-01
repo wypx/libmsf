@@ -5,28 +5,28 @@
 
 #define MSF_MOD_OS "OS"
 #define MSF_OS_LOG(level, ...) \
-    log_write(level, MSF_MOD_OS, __func__, __FILE__, __LINE__, __VA_ARGS__)
+    log_write(level, MSF_MOD_OS, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 
-s32  msf_max_sockets;//ÿ�������ܴ򿪵�����ļ���
+s32  msf_max_sockets;//每个进程能打开的最多文件数
 u32  msf_inherited_nonblocking;
 u32  msf_tcp_nodelay_and_tcp_nopush;
 
 
-/* ����һ����ҳ�Ĵ�С����λΪ�ֽ�(Byte).
- * ��ֵΪϵͳ�ķ�ҳ��С,��һ�����Ӳ����ҳ��С��ͬ*/
+/* 返回一个分页的大小，单位为字节(Byte).
+ * 该值为系统的分页大小,不一定会和硬件分页大小相同*/
 u32  msf_pagesize;
 
-/* pagesizeΪ4M, pagesize_shiftӦ��Ϊ12 
- * pagesize������λ�Ĵ���, ��for (n = ngx_pagesize; 
+/* pagesize为4M, pagesize_shift应该为12 
+ * pagesize进行移位的次数, 见for (n = ngx_pagesize; 
  * n >>= 1; ngx_pagesize_shift++) {  }
  */
 u32  msf_pagesize_shift;
 
 /*
- * �����֪��CPU cache�еĴ�С,��ô�Ϳ���������Ե������ڴ�Ķ���ֵ,
- * ����������߳����Ч��.�з����ڴ�صĽӿ�, Nginx�Ὣ�ڴ�ر߽�
- * ���뵽 CPU cache�д�С32λƽ̨, cacheline_size=32 */
+ * 如果能知道CPU cache行的大小,那么就可以有针对性地设置内存的对齐值,
+ * 这样可以提高程序的效率.有分配内存池的接口, Nginx会将内存池边界
+ * 对齐到 CPU cache行大小32位平台, cacheline_size=32 */
 u32 msf_cacheline_size;
 
 s32 msf_set_user(struct process *proc) {
@@ -76,7 +76,7 @@ s32 msf_set_rlimit(struct process *proc) {
         rlmt.rlim_cur = (rlim_t) proc->rlimit_nofile;
         rlmt.rlim_max = (rlim_t) proc->rlimit_nofile;
 
-        //RLIMIT_NOFILEָ���˽��̿ɴ򿪵�����ļ������ʴ�һ��ֵ��������ֵ���������EMFILE����
+        //RLIMIT_NOFILE指定此进程可打开的最大文件描述词大一的值,超出此值,将会产生EMFILE错误。
         if (setrlimit(RLIMIT_NOFILE, &rlmt) == -1) {
         }
     }
@@ -84,7 +84,7 @@ s32 msf_set_rlimit(struct process *proc) {
     if (proc->rlimit_core != -1) {
         rlmt.rlim_cur = (rlim_t) proc->rlimit_core;
         rlmt.rlim_max = (rlim_t) proc->rlimit_core;
-        //�޸Ĺ������̵�core�ļ��ߴ�����ֵ����(RLIMIT_CORE)�������ڲ����������̵��������������ơ�
+       //修改工作进程的core文件尺寸的最大值限制(RLIMIT_CORE),用于在不重启主进程的情况下增大该限制
         if (setrlimit(RLIMIT_CORE, &rlmt) == -1) {
         }
 

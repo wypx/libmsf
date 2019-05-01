@@ -1,6 +1,11 @@
 
 #include <msf_file.h>
+#include <msf_log.h>
+#include <msf_thread.h>
 
+#define MSF_MOD_FILE "FILE"
+#define MSF_FILE_LOG(level, ...) \
+    log_write(level, MSF_MOD_FILE, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 s32 msf_open_tempfile(u8 *name, u32 persistent, u32 access)
 {
@@ -10,7 +15,7 @@ s32 msf_open_tempfile(u8 *name, u32 persistent, u32 access)
               access ? access : 0600);
 
     if (fd != -1 && !persistent) {
-		msf_delete_file(name);
+        msf_delete_file(name);
     }
 
     return fd;
@@ -36,8 +41,6 @@ ssize_t msf_read_file(s32 fd, u8 *buf, size_t size, off_t offset)
     if (n == -1) {
         return -1;
     }
-
-
 #endif
 
     return n;
@@ -53,8 +56,8 @@ ssize_t msf_write_file(s32 fd, u8 *buf, size_t size, off_t offset)
 #if (MSF_HAVE_PWRITE)
 
     for ( ;; ) {
-        /* pwrite() °Ñ»º´æÇø buf ¿ªÍ·µÄ count ¸ö×Ö½ÚĞ´ÈëÎÄ¼şÃèÊö·û 
-         * fd offset Æ«ÒÆÎ»ÖÃÉÏ,ÎÄ¼şÆ«ÒÆÃ»ÓĞ¸Ä±ä*/
+        /* pwrite() æŠŠç¼“å­˜åŒº buf å¼€å¤´çš„ count ä¸ªå­—èŠ‚å†™å…¥æ–‡ä»¶æè¿°ç¬¦ 
+         * fd offset åç§»ä½ç½®ä¸Š,æ–‡ä»¶åç§»æ²¡æœ‰æ”¹å˜*/
         n = pwrite(fd, buf + written, size, offset);
 
         if (n == -1) {
@@ -87,9 +90,9 @@ ssize_t msf_write_file(s32 fd, u8 *buf, size_t size, off_t offset)
 
 s32 msf_set_file_time(u8 *name, s32 fd, time_t s) {
 
-	struct timeval  tv[2];
+    struct timeval  tv[2];
 
-    //tv[0].tv_sec = ngx_time();
+    //tv[0].tv_sec = nsf_time();
     tv[0].tv_usec = 0;
     tv[1].tv_sec = s;
     tv[1].tv_usec = 0;
@@ -105,12 +108,12 @@ s32 msf_set_file_time(u8 *name, s32 fd, time_t s) {
 
 s32 msf_create_file_mapping(struct msf_file_mapping *fm) {
 
-	fm->fd = msf_open_file(fm->name, MSF_FILE_RDWR, MSF_FILE_TRUNCATE,
-						  MSF_FILE_DEFAULT_ACCESS);
+    fm->fd = msf_open_file(fm->name, MSF_FILE_RDWR, MSF_FILE_TRUNCATE,
+            MSF_FILE_DEFAULT_ACCESS);
 
-	if (ftruncate(fm->fd, fm->size) == -1) {
+    if (ftruncate(fm->fd, fm->size) == -1) {
 
- 	}
+    }
 
     fm->addr = mmap(NULL, fm->size, PROT_READ|PROT_WRITE, MAP_SHARED,
                     fm->fd, 0);
@@ -119,23 +122,20 @@ s32 msf_create_file_mapping(struct msf_file_mapping *fm) {
     }
 
 error:
-	msf_close_file(fm->fd);
-	return -1;
+    msf_close_file(fm->fd);
+    return -1;
 }
 
 
 void msf_close_file_mapping(struct msf_file_mapping *fm) {
 
-	if (munmap(fm->addr, fm->size) == -1) {
+    if (munmap(fm->addr, fm->size) == -1) {
 
-	}
+    }
 
-	if (msf_close_file(fm->fd) == -1) {
-	}
-
+    if (msf_close_file(fm->fd) == -1) {
+    }
 }
-
-
 
 s32 msf_open_glob(struct msf_glob *gl) {
     int  n;
@@ -183,100 +183,100 @@ void msf_close_glob(struct msf_glob *gl) {
     globfree(&gl->pglob);
 }
 
-/* ÉèÖÃÒ»°Ñ¶ÁËø,²»µÈ´ı */
+
 s32 msf_trylock_rfd(s32 fd, short start, short whence, short len) {
 
-	struct flock lock;
+    struct flock lock;
 
-	lock.l_type = F_RDLCK;
-	lock.l_start = start;
-	lock.l_whence = whence;//SEEK_CUR,SEEK_SET,SEEK_END
-	lock.l_len = len;
-	lock.l_pid = getpid();
-	/* ×èÈû·½Ê½¼ÓËø */
-	if(fcntl(fd, F_SETLK, &lock) == 0)
-		return 1;
+    lock.l_type = F_RDLCK;
+    lock.l_start = start;
+    lock.l_whence = whence;//SEEK_CUR,SEEK_SET,SEEK_END
+    lock.l_len = len;
+    lock.l_pid = getpid();
+    /* é˜»å¡æ–¹å¼åŠ é” */
+    if(fcntl(fd, F_SETLK, &lock) == 0)
+        return 1;
 
-	return 0;
+    return 0;
 }
 
 s32 msf_lock_rfd(s32 fd, short start, short whence, short len) {
 
-	struct flock lock;
+    struct flock lock;
 
-	lock.l_type = F_RDLCK;
-	lock.l_start = start;
-	lock.l_whence = whence;//SEEK_CUR,SEEK_SET,SEEK_END
-	lock.l_len = len;
-	lock.l_pid = getpid();
-	/* ×èÈû·½Ê½¼ÓËø */
-	if(fcntl(fd, F_SETLKW, &lock) == 0)
-		return 1;
+    lock.l_type = F_RDLCK;
+    lock.l_start = start;
+    lock.l_whence = whence;//SEEK_CUR,SEEK_SET,SEEK_END
+    lock.l_len = len;
+    lock.l_pid = getpid();
+    if(fcntl(fd, F_SETLKW, &lock) == 0)
+        return 1;
 
-	return 0;
+    return 0;
 }
-
 
 s32 msf_trylock_wfd(s32 fd) {
 
-	struct flock  fl;
+    struct flock  fl;
 
-	/* Õâ¸öÎÄ¼şËø²¢²»ÓÃÓÚËøÎÄ¼şÖĞµÄÄÚÈİ,Ìî³äÎª0 */
-	msf_memzero(&fl, sizeof(struct flock));
-	fl.l_type = F_WRLCK; /*F_WRLCKÒâÎ¶×Å²»»áµ¼ÖÂ½ø³ÌË¯Ãß*/
-	fl.l_whence = SEEK_SET;
+    /* è¿™ä¸ªæ–‡ä»¶é”å¹¶ä¸ç”¨äºé”æ–‡ä»¶ä¸­çš„å†…å®¹,å¡«å……ä¸º0 */
+    msf_memzero(&fl, sizeof(struct flock));
+    fl.l_type = F_WRLCK; /*F_WRLCKæ„å‘³ç€ä¸ä¼šå¯¼è‡´è¿›ç¨‹ç¡çœ */
+    fl.l_whence = SEEK_SET;
 
-	/* »ñÈ¡»¥³âËø³É¹¦Ê±»á·µ»Ø0,·ñÔò·µ»ØµÄÆäÊµÊÇerrno´íÎóÂë,
-	 * ¶øÕâ¸ö´íÎóÂëÎªEAGAIN»òÕßEACCESSÊ±±íÊ¾µ±Ç°Ã»ÓĞÄÃµ½»¥³âËø,
-	 * ·ñÔò¿ÉÒÔÈÏÎªfcntlÖ´ĞĞ´íÎó*/
-	if (fcntl(fd, F_SETLK, &fl) == -1) {
-	    return errno;
-	}
+    /* è·å–äº’æ–¥é”æˆåŠŸæ—¶ä¼šè¿”å›0,å¦åˆ™è¿”å›çš„å…¶å®æ˜¯errnoé”™è¯¯ç ,
+     * è€Œè¿™ä¸ªé”™è¯¯ç ä¸ºEAGAINæˆ–è€…EACCESSæ—¶è¡¨ç¤ºå½“å‰æ²¡æœ‰æ‹¿åˆ°äº’æ–¥é”,
+     * å¦åˆ™å¯ä»¥è®¤ä¸ºfcntlæ‰§è¡Œé”™è¯¯*/
+    if (fcntl(fd, F_SETLK, &fl) == -1) {
+        return errno;
+    }
 
-	return 0;
+    return 0;
 }
+
 
 /*
- * ¸Ã½«»á×èÈû½ø³ÌµÄÖ´ĞĞ,Ê¹ÓÃÊ±ĞèÒª·Ç³£½÷É÷,
- * Ëü¿ÉÄÜ»áµ¼ÖÂworker½ø³ÌÄş¿ÉË¯ÃßÒ²²»´¦ÀíÆäËûÕı³£Çë*/
+ * è¯¥å°†ä¼šé˜»å¡è¿›ç¨‹çš„æ‰§è¡Œ,ä½¿ç”¨æ—¶éœ€è¦éå¸¸è°¨æ…,
+ * å®ƒå¯èƒ½ä¼šå¯¼è‡´workerè¿›ç¨‹å®å¯ç¡çœ ä¹Ÿä¸å¤„ç†å…¶ä»–æ­£å¸¸è¯·*/
 s32 msf_lock_wfd(s32 fd) {
 
-	struct flock  fl;
+    struct flock  fl;
 
-	msf_memzero(&fl, sizeof(struct flock));
-	fl.l_type = F_WRLCK;
-	fl.l_whence = SEEK_SET;
+    msf_memzero(&fl, sizeof(struct flock));
+    fl.l_type = F_WRLCK;
+    fl.l_whence = SEEK_SET;
 
-	/* Èç¹û·µ»Ø-1, Ôò±íÊ¾fcntlÖ´ĞĞ´íÎó
-	 * Ò»µ©·µ»Ø0, ±íÊ¾³É¹¦µØÄÃµ½ÁËËø*/
-	if (fcntl(fd, F_SETLKW, &fl) == -1) {
-		return errno;
-	}
+    /* å¦‚æœè¿”å›-1, åˆ™è¡¨ç¤ºfcntlæ‰§è¡Œé”™è¯¯
+     * ä¸€æ—¦è¿”å›0, è¡¨ç¤ºæˆåŠŸåœ°æ‹¿åˆ°äº†é”*/
+    if (fcntl(fd, F_SETLKW, &fl) == -1) {
+        return errno;
+    }
 
-	return 0;
+    return 0;
 }
+
 
 s32 msf_unlock_fd(s32 fd) {
 
-	struct flock  fl;
+    struct flock  fl;
 
-	msf_memzero(&fl, sizeof(struct flock));
-	fl.l_type = F_UNLCK;
-	fl.l_whence = SEEK_SET;
+    msf_memzero(&fl, sizeof(struct flock));
+    fl.l_type = F_UNLCK;
+    fl.l_whence = SEEK_SET;
 
-	if (fcntl(fd, F_SETLK, &fl) == -1) {
-		return	errno;
-	}
+    if (fcntl(fd, F_SETLK, &fl) == -1) {
+        return  errno;
+    }
 
-	return 0;
+    return 0;
 }
 
 
 #if (MSF_HAVE_POSIX_FADVISE) && !(MSF_HAVE_F_READAHEAD)
 
-s32 ngx_read_ahead(s32 fd, size_t n) {
+s32 msf_read_ahead(s32 fd, size_t n) {
 
-	s32  err;
+    s32  err;
 
     err = posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL);
     if (err == 0) {
@@ -291,51 +291,51 @@ s32 ngx_read_ahead(s32 fd, size_t n) {
 
 #if (MSF_HAVE_O_DIRECT)
 
-/* direct AIO¿ÉÒÔ²Î¿¼http://blog.csdn.net/bengda/article/details/21871413
- * ÆÕÍ¨»º´æI/OÓÅµã:
- * »º´æ I/O Ê¹ÓÃÁË²Ù×÷ÏµÍ³ÄÚºË»º³åÇø,ÔÚÒ»¶¨³Ì¶ÈÉÏ·ÖÀëÁËÓ¦ÓÃ³ÌĞò¿Õ¼äºÍÊµ¼ÊµÄÎïÀíÉè±¸.
- * »º´æ I/O ¿ÉÒÔ¼õÉÙ¶ÁÅÌµÄ´ÎÊı, ´Ó¶øÌá¸ßĞÔÄÜ.
- * ÆÕÍ¨»º´æI/OÓÅµãÈ±µã:
- * ÔÚ»º´æ I/O »úÖÆÖĞ, DMA ·½Ê½¿ÉÒÔ½«Êı¾İÖ±½Ó´Ó´ÅÅÌ¶Áµ½Ò³»º´æÖĞ,
- * »òÕß½«Êı¾İ´ÓÒ³»º´æÖ±½ÓĞ´»Øµ½´ÅÅÌÉÏ,¶ø²»ÄÜÖ±½ÓÔÚÓ¦ÓÃ³ÌĞòµØÖ·¿Õ¼äºÍ´ÅÅÌÖ®¼ä½øĞĞÊı¾İ´«Êä,
- * ÕâÑùµÄ»°,Êı¾İÔÚ´«Êä¹ı³ÌÖĞĞèÒªÔÚÓ¦ÓÃ³ÌĞòµØÖ·¿Õ¼äºÍÒ³»º´æÖ®¼ä½øĞĞ¶à´ÎÊı¾İ¿½±´²Ù×÷,
- * ÕâĞ©Êı¾İ¿½±´²Ù×÷Ëù´øÀ´µÄ CPU ÒÔ¼°ÄÚ´æ¿ªÏúÊÇ·Ç³£´óµÄ.
+/* direct AIOå¯ä»¥å‚è€ƒhttp://blog.csdn.net/bengda/article/details/21871413
+ * æ™®é€šç¼“å­˜I/Oä¼˜ç‚¹:
+ * ç¼“å­˜ I/O ä½¿ç”¨äº†æ“ä½œç³»ç»Ÿå†…æ ¸ç¼“å†²åŒº,åœ¨ä¸€å®šç¨‹åº¦ä¸Šåˆ†ç¦»äº†åº”ç”¨ç¨‹åºç©ºé—´å’Œå®é™…çš„ç‰©ç†è®¾å¤‡.
+ * ç¼“å­˜ I/O å¯ä»¥å‡å°‘è¯»ç›˜çš„æ¬¡æ•°, ä»è€Œæé«˜æ€§èƒ½.
+ * æ™®é€šç¼“å­˜I/Oä¼˜ç‚¹ç¼ºç‚¹:
+ * åœ¨ç¼“å­˜ I/O æœºåˆ¶ä¸­, DMA æ–¹å¼å¯ä»¥å°†æ•°æ®ç›´æ¥ä»ç£ç›˜è¯»åˆ°é¡µç¼“å­˜ä¸­,
+ * æˆ–è€…å°†æ•°æ®ä»é¡µç¼“å­˜ç›´æ¥å†™å›åˆ°ç£ç›˜ä¸Š,è€Œä¸èƒ½ç›´æ¥åœ¨åº”ç”¨ç¨‹åºåœ°å€ç©ºé—´å’Œç£ç›˜ä¹‹é—´è¿›è¡Œæ•°æ®ä¼ è¾“,
+ * è¿™æ ·çš„è¯,æ•°æ®åœ¨ä¼ è¾“è¿‡ç¨‹ä¸­éœ€è¦åœ¨åº”ç”¨ç¨‹åºåœ°å€ç©ºé—´å’Œé¡µç¼“å­˜ä¹‹é—´è¿›è¡Œå¤šæ¬¡æ•°æ®æ‹·è´æ“ä½œ,
+ * è¿™äº›æ•°æ®æ‹·è´æ“ä½œæ‰€å¸¦æ¥çš„ CPU ä»¥åŠå†…å­˜å¼€é”€æ˜¯éå¸¸å¤§çš„.
  *
- * direct I/OÓÅµã:
- * Ö±½Ó I/O ×îÖ÷ÒªµÄÓÅµã¾ÍÊÇÍ¨¹ı¼õÉÙ²Ù×÷ÏµÍ³ÄÚºË»º³åÇøºÍÓ¦ÓÃ³ÌĞòµØÖ·¿Õ¼äµÄÊı¾İ¿½±´´ÎÊı,
- * ½µµÍÁË¶ÔÎÄ¼ş¶ÁÈ¡ºÍĞ´ÈëÊ±Ëù´øÀ´µÄ CPU µÄÊ¹ÓÃÒÔ¼°ÄÚ´æ´ø¿íµÄÕ¼ÓÃ.
- * Õâ¶ÔÓÚÄ³Ğ©ÌØÊâµÄÓ¦ÓÃ³ÌĞò£¬±ÈÈç×Ô»º´æÓ¦ÓÃ³ÌĞòÀ´Ëµ£¬²»Ê§ÎªÒ»ÖÖºÃµÄÑ¡Ôñ.
- * Èç¹ûÒª´«ÊäµÄÊı¾İÁ¿ºÜ´ó,Ê¹ÓÃÖ±½Ó I/O µÄ·½Ê½½øĞĞÊı¾İ´«Êä,
- * ¶ø²»ĞèÒª²Ù×÷ÏµÍ³ÄÚºËµØÖ·¿Õ¼ä¿½±´Êı¾İ²Ù×÷µÄ²ÎÓë,Õâ½«»á´ó´óÌá¸ßĞÔÄÜ.
- * direct I/OÈ±µã:
- * ÉèÖÃÖ±½Ó I/O µÄ¿ªÏú·Ç³£´ó,¶øÖ±½Ó I/O ÓÖ²»ÄÜÌá¹©»º´æ I/O µÄÓÅÊÆ.
- * »º´æ I/O µÄ¶Á²Ù×÷¿ÉÒÔ´Ó¸ßËÙ»º³å´æ´¢Æ÷ÖĞ»ñÈ¡Êı¾İ,¶øÖ±½ÓI/O µÄ¶ÁÊı¾İ²Ù×÷»áÔì³É´ÅÅÌµÄÍ¬²½¶Á,
- * Õâ»á´øÀ´ĞÔÄÜÉÏµÄ²îÒì, ²¢ÇÒµ¼ÖÂ½ø³ÌĞèÒª½Ï³¤µÄÊ±¼ä²ÅÄÜÖ´ĞĞÍê;
+ * direct I/Oä¼˜ç‚¹:
+ * ç›´æ¥ I/O æœ€ä¸»è¦çš„ä¼˜ç‚¹å°±æ˜¯é€šè¿‡å‡å°‘æ“ä½œç³»ç»Ÿå†…æ ¸ç¼“å†²åŒºå’Œåº”ç”¨ç¨‹åºåœ°å€ç©ºé—´çš„æ•°æ®æ‹·è´æ¬¡æ•°,
+ * é™ä½äº†å¯¹æ–‡ä»¶è¯»å–å’Œå†™å…¥æ—¶æ‰€å¸¦æ¥çš„ CPU çš„ä½¿ç”¨ä»¥åŠå†…å­˜å¸¦å®½çš„å ç”¨.
+ * è¿™å¯¹äºæŸäº›ç‰¹æ®Šçš„åº”ç”¨ç¨‹åºï¼Œæ¯”å¦‚è‡ªç¼“å­˜åº”ç”¨ç¨‹åºæ¥è¯´ï¼Œä¸å¤±ä¸ºä¸€ç§å¥½çš„é€‰æ‹©.
+ * å¦‚æœè¦ä¼ è¾“çš„æ•°æ®é‡å¾ˆå¤§,ä½¿ç”¨ç›´æ¥ I/O çš„æ–¹å¼è¿›è¡Œæ•°æ®ä¼ è¾“,
+ * è€Œä¸éœ€è¦æ“ä½œç³»ç»Ÿå†…æ ¸åœ°å€ç©ºé—´æ‹·è´æ•°æ®æ“ä½œçš„å‚ä¸,è¿™å°†ä¼šå¤§å¤§æé«˜æ€§èƒ½.
+ * direct I/Oç¼ºç‚¹:
+ * è®¾ç½®ç›´æ¥ I/O çš„å¼€é”€éå¸¸å¤§,è€Œç›´æ¥ I/O åˆä¸èƒ½æä¾›ç¼“å­˜ I/O çš„ä¼˜åŠ¿.
+ * ç¼“å­˜ I/O çš„è¯»æ“ä½œå¯ä»¥ä»é«˜é€Ÿç¼“å†²å­˜å‚¨å™¨ä¸­è·å–æ•°æ®,è€Œç›´æ¥I/O çš„è¯»æ•°æ®æ“ä½œä¼šé€ æˆç£ç›˜çš„åŒæ­¥è¯»,
+ * è¿™ä¼šå¸¦æ¥æ€§èƒ½ä¸Šçš„å·®å¼‚, å¹¶ä¸”å¯¼è‡´è¿›ç¨‹éœ€è¦è¾ƒé•¿çš„æ—¶é—´æ‰èƒ½æ‰§è¡Œå®Œ;
  */
-s32 ngx_directio_on(s32 fd) {
+s32 msf_directio_on(s32 fd) {
 
-	s32  flags;
+    s32  flags;
 
-	flags = fcntl(fd, F_GETFL);
+    flags = fcntl(fd, F_GETFL);
 
-	if (flags == -1) {
-		return -1;
-	}
+    if (flags == -1) {
+        return -1;
+    }
 
-	 return fcntl(fd, F_SETFL, flags | O_DIRECT);
+     return fcntl(fd, F_SETFL, flags | O_DIRECT);
 }
 
-s32 ngx_directio_off(s32 fd) {
+s32 msf_directio_off(s32 fd) {
 
-	s32  flags;
-	
-	flags = fcntl(fd, F_GETFL);
+    s32  flags;
 
-	if (flags == -1) {
-		return -1;
-	}
+    flags = fcntl(fd, F_GETFL);
 
-	return fcntl(fd, F_SETFL, flags & ~O_DIRECT);
+    if (flags == -1) {
+        return -1;
+    }
+
+    return fcntl(fd, F_SETFL, flags & ~O_DIRECT);
 }
 
 #endif
@@ -345,17 +345,17 @@ s32 ngx_directio_off(s32 fd) {
 
 size_t msf_fs_bsize(u8 *name) {
 
-	struct statfs  fs;
+    struct statfs  fs;
 
-	if (statfs((char *) name, &fs) == -1) {
-		return 512;
-	}
+    if (statfs((char *) name, &fs) == -1) {
+        return 512;
+    }
 
-	if ((fs.f_bsize % 512) != 0) {
-		return 512;
-	}
+    if ((fs.f_bsize % 512) != 0) {
+        return 512;
+    }
 
-	return (size_t) fs.f_bsize; /*Ã¿¸öblockÀïÃæ°üº¬µÄ×Ö½ÚÊı*/
+    return (size_t) fs.f_bsize; /*æ¯ä¸ªblocké‡Œé¢åŒ…å«çš„å­—èŠ‚æ•°*/
 }
 
 #elif (MSF_HAVE_STATVFS)
@@ -428,15 +428,15 @@ s32 msf_create_full_path(u8 *dir, u32 access)
 
 s32 msf_create_paths(s8 *path, uid_t user) {
 
-	msf_create_dir(path, 0700);
+    msf_create_dir(path, 0700);
 
-	struct stat  fi;
+    struct stat  fi;
 
     if (msf_file_info((const s8 *) path, &fi) == -1) {
         return -1;
     }
 
-	if (fi.st_uid != user) {
+    if (fi.st_uid != user) {
         if (chown((const char *) path, user, -1) == -1) {
             return -1;
         }
@@ -449,87 +449,18 @@ s32 msf_create_paths(s8 *path, uid_t user) {
             return -1;
         }
     }
-	return 0;
+    return 0;
 }
-
-
-s32 msf_create_pidfile(const s8 *name) {
-
-	u8 pid[MSF_INT64_LEN + 2];
-	s32 fd = msf_open_file(name, MSF_FILE_RDWR,
-                            MSF_FILE_TRUNCATE, MSF_FILE_DEFAULT_ACCESS);
-
-	return 0;
-}
-
-void msf_delete_pidfile(const s8 *name) {
-	msf_delete_file(name);
-}
-
-pid_t msf_read_pidfile(void) {
-
-	FILE *pid_fp = NULL;
-    const s8 *f = "";
-    pid_t pid = -1;
-    s32 i;
-
-    if (f == NULL) {
-        fprintf(stderr, "error: no pid file name defined\n");
-        exit(1);
-    }
-
-    pid_fp = fopen(f, "r");
-    if (pid_fp != NULL) {
-        pid = 0;
-        if (fscanf(pid_fp, "%d", &i) == 1)
-            pid = (pid_t) i;
-        fclose(pid_fp);
-    } else {
-        if (errno != ENOENT) {
-            fprintf(stderr, "error: could not read pid file\n");
-            fprintf(stderr, "\t%s: %s\n", f, strerror(errno));
-            exit(1);
-        }
-    }
-    return pid;
-}
-
-
-s32 msf_check_runningpid(void) {
-    pid_t pid;
-    pid = msf_read_pidfile();
-    if (pid < 2)
-        return 0;
-    if (kill(pid, 0) < 0)
-        return 0;
-    fprintf(stderr, "nginx_master is already running!  process id %ld\n", (long int) pid);
-    return 1;
-}
-
-void msf_write_pidfile(void)
-{
-    FILE *fp;
-    const char *f = NULL;
-    fp = fopen(f, "w+");
-    if (!fp) {
-        fprintf(stderr, "could not write pid file '%s': %s\n", f, strerror(errno));
-        return;
-    }
-    fprintf(fp, "%d\n", (int) getpid());
-    fclose(fp);
-}
-
 
 void msf_enable_coredump(void) {
 
-	#if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
-	
+    #if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
+
     /* Set Linux DUMPABLE flag */
     if (prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) != 0) {
-        fprintf(stderr, "prctl: %s\n", strerror(errno));
-	}
-
-	#endif
+        MSF_FILE_LOG(DBG_ERROR, "prctl: %s\n", strerror(errno));
+    }
+    #endif
 
     /* Make sure coredumps are not limited */
     struct rlimit rlim;
@@ -537,11 +468,219 @@ void msf_enable_coredump(void) {
     if (getrlimit(RLIMIT_CORE, &rlim) == 0) {
         rlim.rlim_cur = rlim.rlim_max;
         if (setrlimit(RLIMIT_CORE, &rlim) == 0) {
-            fprintf(stderr, "Enable Core Dumps OK!\n");
+            MSF_FILE_LOG(DBG_DEBUG, "Enable Core Dumps OK!\n");
             return;
         }
     }
-    fprintf(stderr, "Enable Core Dump failed: %s\n",strerror(errno));
+    MSF_FILE_LOG(DBG_ERROR,  "Enable Core Dump failed: %s\n",strerror(errno));
 }
 
+
+s8 *config_read_file(const s8 *filename) {
+    FILE *file = NULL;
+    s64 length = 0;
+    s8 *content = NULL;
+    size_t read_chars = 0;
+
+    /* open in read binary mode */
+    file = fopen(filename, "rb");
+    if (!file) {
+        goto cleanup;
+    }
+
+    /* get the length */
+    if (fseek(file, 0, SEEK_END) != 0) {
+        goto cleanup;
+    }
+
+    length = ftell(file);
+    if (length < 0) {
+        goto cleanup;
+    }
+
+    if (fseek(file, 0, SEEK_SET) != 0) {
+        goto cleanup;
+    }
+
+    /* allocate content buffer */
+    content = (s8*)malloc((size_t)length + 1);
+    if (!content) {
+        goto cleanup;
+    }
+
+    memset(content, 0, (size_t)length + 1);
+
+    /* read the file into memory */
+    read_chars = fread(content, sizeof(char), (size_t)length, file);
+    if ((long)read_chars != length) {
+        sfree(content);
+        goto cleanup;
+    }
+
+    content[read_chars] = '\0';
+
+cleanup:
+    sfclose(file);
+    return content;
+}
+
+s32 msf_get_file_info(const s8 *path, struct msf_file *file, u32 mode) {
+
+    struct stat f, target;
+
+    file->is_exist = false;
+
+    MSF_FILE_LOG(DBG_DEBUG, "Check path(%s) exist(%d).", 
+                        path, msf_chk_file_exist(path));
+    
+    /* Stat right resource */
+    if (lstat(path, &f) == -1) {
+        if (errno == EACCES) {
+            file->is_exist = true;
+        }
+        MSF_FILE_LOG(DBG_ERROR, "Lstat path(%s) failed.", path);
+        return -1;
+    }
+
+    file->is_exist = true;
+    file->is_file = true;
+    file->is_link = false;
+    file->is_dir = false;
+    file->exec_access = false;
+    file->read_access = false;
+
+    if (S_ISLNK(f.st_mode)) {
+        file->is_link = true;
+        file->is_file = false;
+        if (stat(path, &target) == -1) {
+            MSF_FILE_LOG(DBG_ERROR, "Stat path(%s) failed.", path);
+            return -1;
+        }
+    } else {
+        target = f;
+    }
+
+    file->size = target.st_size;
+    file->mtime = target.st_mtime;
+
+    if (S_ISDIR(target.st_mode)) {
+        file->is_dir  = true;
+        file->is_file = false;
+    }
+
+#ifndef _WIN32
+    gid_t EGID = getegid();
+    gid_t EUID = geteuid();
+
+    /* Check read access */
+    if (mode & MSF_FILE_READ) {
+        if (((target.st_mode & S_IRUSR) && target.st_uid == EUID) ||
+            ((target.st_mode & S_IRGRP) && target.st_gid == EGID) ||
+            (target.st_mode & S_IROTH)) {
+            file->read_access = true;
+        }
+    }
+
+    /* Checking execution */
+    if (mode & MSF_FILE_EXEC) {
+        if ((target.st_mode & S_IXUSR && target.st_uid == EUID) ||
+            (target.st_mode & S_IXGRP && target.st_gid == EGID) ||
+            (target.st_mode & S_IXOTH)) {
+            file->exec_access = true;
+        }
+    }
+#endif
+
+    /* Suggest open(2) flags */
+    file->flags_read_only = O_RDONLY | O_NONBLOCK;
+
+#if defined(__linux__)
+    /*
+     * If the user is the owner of the file or the user is root, it
+     * can set the O_NOATIME flag for open(2) operations to avoid
+     * inode updates about last accessed time
+     */
+    if (target.st_uid == EUID || EUID == 0) {
+        file->flags_read_only |=  O_NOATIME;
+    }
+#endif
+
+    return 0;
+}
+
+
+s32 msf_chk_file_exist(const s8 *file) {
+    return (access(file, R_OK | W_OK) >= 0) ? 0 : -1;
+}
+
+s32 msf_create_pidfile(const s8 *pid_file) {
+
+    u8 pid[MSF_INT64_LEN + 2];
+    s32 fd = msf_open_file(pid_file, MSF_FILE_RDWR,
+                            MSF_FILE_TRUNCATE, MSF_FILE_DEFAULT_ACCESS);
+
+    if (fd < 0) {
+        MSF_FILE_LOG(DBG_ERROR, "Could not create pid file.");
+        return -1;
+    }
+    sclose(fd);
+    return 0;
+}
+
+void msf_delete_pidfile(const s8 *pid_file) {
+
+    if (unlikely(!pid_file))
+        return;
+
+    if (msf_chk_file_exist(pid_file) == 0) {
+        if (msf_delete_file(pid_file) != 0) {
+            MSF_FILE_LOG(DBG_ERROR, "Could not remove the pid file %s", pid_file);
+        }
+    }
+}
+
+pid_t msf_read_pidfile(const s8 *pid_file) {
+
+    FILE *pid_fp = NULL;
+    pid_t pid = -1;
+    s32 i;
+
+    pid_fp = fopen(pid_file, "r");
+    if (pid_fp != NULL) {
+        pid = 0;
+        if (fscanf(pid_fp, "%d", &i) == 1)
+            pid = (pid_t) i;
+        sfclose(pid_fp);
+    } else {
+        if (errno != ENOENT) {
+            MSF_FILE_LOG(DBG_ERROR, "error: could not read pid file.");
+            MSF_FILE_LOG(DBG_ERROR, "%s: %s.", pid_file, strerror(errno));
+            exit(1);
+        }
+    }
+    return pid;
+}
+
+
+s32 msf_check_runningpid(const s8 *pid_file) {
+    pid_t pid;
+    pid = msf_read_pidfile(pid_file);
+    if (pid < 2)
+        return 0;
+    if (kill(pid, 0) < 0)
+        return 0;
+    MSF_FILE_LOG(DBG_ERROR, "nginx_master is already running!  process id %ld\n", (long int) pid);
+    return 1;
+}
+
+void msf_write_pidfile(const s8 *pid_file) {
+    FILE *fp = NULL;
+    fp = fopen(pid_file, "w+");
+    if (!fp) {
+        MSF_FILE_LOG(DBG_ERROR, "could not write pid file '%s': %s\n", pid_file, strerror(errno));
+        return;
+    }
+    fprintf(fp, "%d\n", msf_getpid());
+    sfclose(fp);
+}
 

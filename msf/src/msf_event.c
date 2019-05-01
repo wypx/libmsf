@@ -14,10 +14,11 @@
 #include <msf_event.h>
 #include <msf_miniheap.h>
 #include <msf_atomic.h>
+#include <msf_thread.h>
 
 #define MSF_MOD_EVENT "EVENT"
 #define MSF_EVENT_LOG(level, ...) \
-    log_write(level, MSF_MOD_EVENT, __func__, __FILE__, __LINE__, __VA_ARGS__)
+    log_write(level, MSF_MOD_EVENT, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 struct min_heap g_msf_min_heap;
 
@@ -224,26 +225,24 @@ static void signal_exit_handler()
     struct sigaction sa;
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = signal_exit_func;
-    sigaction(SIGINT, &sa, NULL);//µ±°´ÏÂctrl+cÊ±£¬ËüµÄĞ§¹û¾ÍÊÇ·¢ËÍSIGINTĞÅºÅ
+    sigaction(SIGINT, &sa, NULL);//å½“æŒ‰ä¸‹ctrl+cæ—¶ï¼Œå®ƒçš„æ•ˆæœå°±æ˜¯å‘é€SIGINTä¿¡å·
     sigaction(SIGTERM, &sa, NULL);//kill pid
-    sigaction(SIGQUIT, &sa, NULL);//ctrl+\´ú±íÍË³öSIGQUIT
+    sigaction(SIGQUIT, &sa, NULL);//ctrl+\ä»£è¡¨é€€å‡ºSIGQUIT
  
-    //SIGSTOPºÍSIGKILLĞÅºÅÊÇ²»¿É²¶»ñµÄ,ËùÒÔÏÂÃæÁ½¾ä»°Ğ´ÁËµÈÓÚÃ»ÓĞĞ´
+    //SIGSTOPå’ŒSIGKILLä¿¡å·æ˜¯ä¸å¯æ•è·çš„,æ‰€ä»¥ä¸‹é¢ä¸¤å¥è¯å†™äº†ç­‰äºæ²¡æœ‰å†™
     sigaction(SIGKILL, &sa, NULL);//kill -9 pid
-    sigaction(SIGSTOP, &sa, NULL);//ctrl+z´ú±íÍ£Ö¹
+    sigaction(SIGSTOP, &sa, NULL);//ctrl+zä»£è¡¨åœæ­¢
  
     //#define    SIGTERM        15
     //#define    SIGKILL        9
-    //killºÍkill -9£¬Á½¸öÃüÁîÔÚlinuxÖĞ¶¼ÓĞÉ±ËÀ½ø³ÌµÄĞ§¹û£¬È»¶øÁ½ÃüÁîµÄÖ´ĞĞ¹ı³ÌÈ´´óÓĞ²»Í¬£¬ÔÚ³ÌĞòÖĞÈç¹ûÓÃ´íÁË£¬¿ÉÄÜ»áÔì³ÉÄªÃûÆäÃîµÄÏÖÏó¡£
-    //Ö´ĞĞkill pidÃüÁî£¬ÏµÍ³»á·¢ËÍÒ»¸öSIGTERMĞÅºÅ¸ø¶ÔÓ¦µÄ³ÌĞò¡£
-    //Ö´ĞĞkill -9 pidÃüÁî£¬ÏµÍ³¸ø¶ÔÓ¦³ÌĞò·¢ËÍµÄĞÅºÅÊÇSIGKILL£¬¼´exit¡£exitĞÅºÅ²»»á±»ÏµÍ³×èÈû£¬ËùÒÔkill -9ÄÜË³ÀûÉ±µô½ø³Ì¡£
+    //killå’Œkill -9ï¼Œä¸¤ä¸ªå‘½ä»¤åœ¨linuxä¸­éƒ½æœ‰æ€æ­»è¿›ç¨‹çš„æ•ˆæœï¼Œç„¶è€Œä¸¤å‘½ä»¤çš„æ‰§è¡Œè¿‡ç¨‹å´å¤§æœ‰ä¸åŒï¼Œåœ¨ç¨‹åºä¸­å¦‚æœç”¨é”™äº†ï¼Œå¯èƒ½ä¼šé€ æˆè«åå…¶å¦™çš„ç°è±¡ã€‚
+    //æ‰§è¡Œkill pidå‘½ä»¤ï¼Œç³»ç»Ÿä¼šå‘é€ä¸€ä¸ªSIGTERMä¿¡å·ç»™å¯¹åº”çš„ç¨‹åºã€‚
+    //æ‰§è¡Œkill -9 pidå‘½ä»¤ï¼Œç³»ç»Ÿç»™å¯¹åº”ç¨‹åºå‘é€çš„ä¿¡å·æ˜¯SIGKILLï¼Œå³exitã€‚exitä¿¡å·ä¸ä¼šè¢«ç³»ç»Ÿé˜»å¡ï¼Œæ‰€ä»¥kill -9èƒ½é¡ºåˆ©æ€æ‰è¿›ç¨‹ã€‚}
 }
-
 static const struct msf_event_ops *eventops[] = {
     &epollops,
     NULL
 };
-
 
 struct msf_event *msf_event_new(s32 fd,
         void (*read_cbs)(void *),

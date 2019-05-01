@@ -1,3 +1,15 @@
+/**************************************************************************
+*
+* Copyright (c) 2017-2019, luotang.me <wypx520@gmail.com>, China.
+* All rights reserved.
+*
+* Distributed under the terms of the GNU General Public License v2.
+*
+* This software is provided 'as is' with no explicit or implied warranties
+* in respect of its properties, including, but not limited to, correctness
+* and/or fitness for purpose.
+*
+**************************************************************************/
 
 #include <msf_utils.h>
 
@@ -21,17 +33,17 @@ struct msf_file_mapping {
     size_t      size;
     void        *addr;
     s32         fd;
-}__attribute__((__packed__));
+} MSF_PACKED_MEMORY;
 
 
 struct msf_dir {
-	DIR             *dir;
-	struct dirent   *de;
-	struct stat     info;
+    DIR             *dir;
+    struct dirent   *de;
+    struct stat     info;
 
-	u32             type:8;
-	u32             valid_info:1;
-} __attribute__((__packed__));
+    u32             type:8;
+    u32             valid_info:1;
+} MSF_PACKED_MEMORY;
 
 
 struct msf_glob {
@@ -39,38 +51,45 @@ struct msf_glob {
     glob_t  pglob;
     u8      *pattern;
     u32     test;
-} __attribute__((__packed__));
+} MSF_PACKED_MEMORY;
+
+#define MSF_FILE_READ       0
+#define MSF_FILE_WRITE      1
+#define MSF_FILE_EXEC       2
 
 struct msf_file {
     s32     fd;
-    ino_t   uniq;//ÎÄ¼şinode½ÚµãºÅ Í¬Ò»¸öÉè±¸ÖĞµÄÃ¿¸öÎÄ¼ş£¬Õâ¸öÖµ¶¼ÊÇ²»Í¬µÄ
-    time_t  mtime; //ÎÄ¼ş×îºó±»ĞŞ¸ÄµÄÊ±¼ä
+    ino_t   uniq;//æ–‡ä»¶inodeèŠ‚ç‚¹å· åŒä¸€ä¸ªè®¾å¤‡ä¸­çš„æ¯ä¸ªæ–‡ä»¶,è¿™ä¸ªå€¼éƒ½æ˜¯ä¸åŒçš„
+    time_t  mtime; //æ–‡ä»¶æœ€åè¢«ä¿®æ”¹çš„æ—¶é—´,last modify time
     off_t   size;
     off_t   fs_size;
-	off_t   directio; //ÉúĞ§¼ûngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on }
-    size_t  read_ahead;  /* read_aheadÅäÖÃ£¬Ä¬ÈÏ0 */
+    off_t   directio; //ç”Ÿæ•ˆè§ngx_open_and_stat_file  if (of->directio <= ngx_file_size(&fi)) { ngx_directio_on }
+    size_t  read_ahead; /* read_aheadé…ç½®ï¼Œé»˜è®¤0 */
 
-	u32     is_dir:1;
+    /* Suggest flags to open this file */
+    u32     flags_read_only;
+
+    u32     is_exist;
+    u32     is_dir:1;
     u32     is_file:1;
     u32     is_link:1;
     u32     is_exec:1;
-	u32     is_directio:1; //µ±ÎÄ¼ş´óĞ¡´óÓÚdirectio xxx
-} __attribute__((__packed__));
+    u32     is_directio:1; //å½“æ–‡ä»¶å¤§å°å¤§äºdirectio xxx
+    u32     exec_access;
+    u32     read_access;
+} MSF_PACKED_MEMORY;
 
-
-
-#define msf_stdout               STDOUT_FILENO
-#define msf_stderr               STDERR_FILENO
-#define msf_set_stderr(fd)       dup2(fd, STDERR_FILENO) 
-
+#define MSF_STDOUT               STDOUT_FILENO
+#define MSF_STDERR               STDERR_FILENO
+#define MSF_SET_STDERR(fd)       dup2(fd, STDERR_FILENO) 
 
 /*
  * -rw-rw-r--
- * Ò»¹²ÓĞ10Î»Êı
- *¡¡¡¡ÆäÖĞ£º ×îÇ°ÃæÄÇ¸ö - ´ú±íµÄÊÇÀàĞÍ
- *¡¡¡¡ÖĞ¼äÄÇÈı¸ö rw- ´ú±íµÄÊÇËùÓĞÕß£¨user£©
- *¡¡¡¡È»ºóÄÇÈı¸ö rw- ´ú±íµÄÊÇ×éÈº£¨group£©
- *¡¡¡¡×îºóÄÇÈı¸ö r-- ´ú±íµÄÊÇÆäËûÈË£¨other£©*/
+ * ä¸€å…±æœ‰10ä½æ•°
+ *ã€€ã€€å…¶ä¸­ï¼š æœ€å‰é¢é‚£ä¸ª - ä»£è¡¨çš„æ˜¯ç±»å‹
+ *ã€€ã€€ä¸­é—´é‚£ä¸‰ä¸ª rw- ä»£è¡¨çš„æ˜¯æ‰€æœ‰è€…ï¼ˆuserï¼‰
+ *ã€€ã€€ç„¶åé‚£ä¸‰ä¸ª rw- ä»£è¡¨çš„æ˜¯ç»„ç¾¤ï¼ˆgroupï¼‰
+ *ã€€ã€€æœ€åé‚£ä¸‰ä¸ª r-- ä»£è¡¨çš„æ˜¯å…¶ä»–äººï¼ˆotherï¼‰*/
 
 #define MSF_FILE_DEFAULT_ACCESS 0644
 #define MSF_FILE_OWNER_ACCESS 	0600
@@ -84,16 +103,15 @@ struct msf_file {
 #define MSF_FILE_APPEND          (O_WRONLY|O_APPEND)
 #define MSF_FILE_NONBLOCK        O_NONBLOCK
 
-#define msf_open_file(name, mode, create, access)                            \
-    open((const char *) name, mode|create, access)
-
+#define msf_open_file(name, mode, create, access)       \
+            open((const s8 *) name, mode|create, access)
 
 #define msf_close_file           close
 
-/* unlink Ö»ÄÜÉ¾³ıÎÄ¼ş,²»ÄÜÉ¾³ıÄ¿Â¼ 
- * unlinkº¯ÊıÊ¹ÎÄ¼şÒıÓÃÊı¼õÒ»,µ±ÒıÓÃÊıÎªÁãÊ±,²Ù×÷ÏµÍ³¾ÍÉ¾³ıÎÄ¼ş.
- * µ«ÈôÓĞ½ø³ÌÒÑ¾­´ò¿ªÎÄ¼ş,ÔòÖ»ÓĞ×îºóÒ»¸öÒıÓÃ¸ÃÎÄ¼şµÄÎÄ¼şÃèÊö·û¹Ø±Õ,
- * ¸ÃÎÄ¼ş²Å»á±»É¾³ı */
+/* unlink åªèƒ½åˆ é™¤æ–‡ä»¶,ä¸èƒ½åˆ é™¤ç›®å½• 
+ * unlinkå‡½æ•°ä½¿æ–‡ä»¶å¼•ç”¨æ•°å‡ä¸€,å½“å¼•ç”¨æ•°ä¸ºé›¶æ—¶,æ“ä½œç³»ç»Ÿå°±åˆ é™¤æ–‡ä»¶.
+ * ä½†è‹¥æœ‰è¿›ç¨‹å·²ç»æ‰“å¼€æ–‡ä»¶,åˆ™åªæœ‰æœ€åä¸€ä¸ªå¼•ç”¨è¯¥æ–‡ä»¶çš„æ–‡ä»¶æè¿°ç¬¦å…³é—­,
+ * è¯¥æ–‡ä»¶æ‰ä¼šè¢«åˆ é™¤ */
 #define msf_delete_file(name)    unlink((const s8 *) name)
 
 s32 msf_open_tempfile(u8 *name, u32 persistent, u32 access);
@@ -101,21 +119,20 @@ ssize_t msf_read_file(s32 fd, u8 *buf, size_t size, off_t offset);
 ssize_t msf_write_file(s32 fd, u8 *buf, size_t size, off_t offset);
 
 
-/* renameº¯Êı¹¦ÄÜÊÇ¸øÒ»¸öÎÄ¼şÖØÃüÃû,ÓÃ¸Ãº¯Êı¿ÉÒÔÊµÏÖÎÄ¼şÒÆ¶¯¹¦ÄÜ
- * °ÑÒ»¸öÎÄ¼şµÄÍêÕûÂ·¾¶µÄÅÌ·û¸ÄÒ»ÏÂ¾ÍÊµÏÖÁËÕâ¸öÎÄ¼şµÄÒÆ¶¯ 
- * renameºÍmvÃüÁî²î²»¶à,Ö»ÊÇrenameÖ§³ÖÅúÁ¿ĞŞ¸Ä
- * mvÒ²ÄÜÓÃÓÚ¸ÄÃû,µ«²»ÄÜÊµÏÖÅúÁ¿´¦Àí(¸ÄÃûÊ±,²»Ö§³Ö*µÈ·ûºÅµÄ)¶ørename¿ÉÒÔ
- * renameºóÎÄ¼şµÄfdºÍstatĞÅÏ¢²»±äÊ¹ÓÃ RENAME,Ô­×ÓĞÔµØ¶ÔÁÙÊ±ÎÄ¼ş½øĞĞ¸ÄÃû
- * ¸²¸ÇÔ­À´µÄ RDB ÎÄ¼ş*/
+/* renameå‡½æ•°åŠŸèƒ½æ˜¯ç»™ä¸€ä¸ªæ–‡ä»¶é‡å‘½å,ç”¨è¯¥å‡½æ•°å¯ä»¥å®ç°æ–‡ä»¶ç§»åŠ¨åŠŸèƒ½
+ * æŠŠä¸€ä¸ªæ–‡ä»¶çš„å®Œæ•´è·¯å¾„çš„ç›˜ç¬¦æ”¹ä¸€ä¸‹å°±å®ç°äº†è¿™ä¸ªæ–‡ä»¶çš„ç§»åŠ¨ 
+ * renameå’Œmvå‘½ä»¤å·®ä¸å¤š,åªæ˜¯renameæ”¯æŒæ‰¹é‡ä¿®æ”¹
+ * mvä¹Ÿèƒ½ç”¨äºæ”¹å,ä½†ä¸èƒ½å®ç°æ‰¹é‡å¤„ç†(æ”¹åæ—¶,ä¸æ”¯æŒ*ç­‰ç¬¦å·çš„)è€Œrenameå¯ä»¥
+ * renameåæ–‡ä»¶çš„fdå’Œstatä¿¡æ¯ä¸å˜ä½¿ç”¨ RENAME,åŸå­æ€§åœ°å¯¹ä¸´æ—¶æ–‡ä»¶è¿›è¡Œæ”¹å
+ * è¦†ç›–åŸæ¥çš„ RDB æ–‡ä»¶*/
 
 #define msf_rename_file(o, n)    rename((const s8 *) o, (const s8 *) n)
 
 #define msf_change_file_access(n, a) chmod((const s8 *) n, a)
 
-/*  statÏµÍ³µ÷ÓÃÏµÁĞ°üÀ¨ÁËfstat,statºÍlstat
-
-
+/*  statç³»ç»Ÿè°ƒç”¨ç³»åˆ—åŒ…æ‹¬äº†fstat,statå’Œlstat
 */
+
 #define msf_file_info(file, sb)  stat((const s8 *) file, sb)
 
 #define msf_fd_info(fd, sb)      fstat(fd, sb)
@@ -132,7 +149,7 @@ ssize_t msf_write_file(s32 fd, u8 *buf, size_t size, off_t offset);
 #define msf_file_size(sb)        (sb)->st_size
 #define msf_file_fs_size(sb)     max((sb)->st_size, (sb)->st_blocks * 512)
 #define msf_file_mtime(sb)       (sb)->st_mtime
-/* inode number -inode½ÚµãºÅ, Í¬Ò»¸öÉè±¸ÖĞµÄÃ¿¸öÎÄ¼ş, Õâ¸öÖµ¶¼ÊÇ²»Í¬µÄ*/  
+/* inode number -inodeèŠ‚ç‚¹å·, åŒä¸€ä¸ªè®¾å¤‡ä¸­çš„æ¯ä¸ªæ–‡ä»¶, è¿™ä¸ªå€¼éƒ½æ˜¯ä¸åŒçš„*/ 
 #define msf_file_uniq(sb)        (sb)->st_ino  
 
 
@@ -140,12 +157,11 @@ s32 msf_set_file_time(u8 *name, s32 fd, time_t s);
 s32 msf_create_file_mapping(struct msf_file_mapping *fm);
 void msf_close_file_mapping(struct msf_file_mapping *fm);
 
-
-
 /************************** DIR FUNC *********************************/
 #define msf_realpath(p, r)       (u8 *) realpath((s8 *) p, (s8 *) r)
-/* getcwd()»á½«µ±Ç°¹¤×÷Ä¿Â¼µÄ¾ø¶ÔÂ·¾¶¸´ÖÆµ½²ÎÊıbufËùÖ¸µÄÄÚ´æ¿Õ¼äÖĞ,
- * ²ÎÊısizeÎªbufµÄ¿Õ¼ä´óĞ¡*/
+/* getcwd()ä¼šå°†å½“å‰å·¥ä½œç›®å½•çš„ç»å¯¹è·¯å¾„å¤åˆ¶åˆ°å‚æ•°bufæ‰€æŒ‡çš„å†…å­˜ç©ºé—´ä¸­,
+ * å‚æ•°sizeä¸ºbufçš„ç©ºé—´å¤§å°*/
+
 #define msf_getcwd(buf, size)    (getcwd((s8 *) buf, size) != NULL)
 #define msf_path_separator(c)    ((c) == '/')
 
@@ -155,7 +171,6 @@ void msf_close_file_mapping(struct msf_file_mapping *fm);
 
 s32 msf_open_dir(s8 *name, struct msf_dir *dir);
 s32 ngx_read_dir(struct msf_dir *dir);
-
 
 
 #define msf_create_dir(name, access) mkdir((const s8 *) name, access)
@@ -197,49 +212,46 @@ s32 msf_open_glob(struct msf_glob *gl);
 s32 msf_read_glob(struct msf_glob *gl, s8 *name);
 void msf_close_glob(struct msf_glob *gl);
 
-
 s32 msf_trylock_fd(s32 fd);
 s32 msf_lock_fd(s32 fd);
 s32 msf_unlock_fd(s32 fd);
 
 
 #if (MSF_HAVE_F_READAHEAD)
-
-#define ngx_read_ahead(fd, n)    fcntl(fd, F_READAHEAD, (int) n)
-
+#define msf_read_ahead(fd, n)    fcntl(fd, F_READAHEAD, (int) n)
 #elif (MSF_HAVE_POSIX_FADVISE)
-
-s32 ngx_read_ahead(s32 fd, size_t n);
-
+s32 msf_read_ahead(s32 fd, size_t n);
 #else
-
 #define ngx_read_ahead(fd, n)    0
-
 #endif
 
-
-
 #if (MSF_HAVE_O_DIRECT)
-
-s32 ngx_directio_on(s32 fd);
-s32 ngx_directio_off(s32 fd);
-
+s32 msf_directio_on(s32 fd);
+s32 msf_directio_off(s32 fd);
 #elif (MSF_HAVE_F_NOCACHE)
-
-#define ngx_directio_on(fd)      fcntl(fd, F_NOCACHE, 1)
-
+#define msf_directio_on(fd)      fcntl(fd, F_NOCACHE, 1)
 #elif (MSF_HAVE_DIRECTIO)
-
-#define ngx_directio_on(fd)      directio(fd, DIRECTIO_ON)
-
+#define msf_directio_on(fd)      directio(fd, DIRECTIO_ON)
 #else
-
 #define ngx_directio_on(fd)      0
-
 #endif
 
 
 size_t msf_fs_bsize(u8 *name);
 
 void msf_enable_coredump(void);
+
+s8 *config_read_file(const s8 *filename);
+
+s32 msf_chk_file_exist(const s8 *file);
+
+s32 msf_get_file_info(const s8 *path, struct msf_file *file, u32 mode);
+
+
+s32 msf_create_pidfile(const s8 *pid_file);
+void msf_delete_pidfile(const s8 *pid_file);
+pid_t msf_read_pidfile(const s8 *pid_file);
+s32 msf_check_runningpid(const s8 *pid_file);
+void msf_write_pidfile(const s8 *pid_file);
+
 

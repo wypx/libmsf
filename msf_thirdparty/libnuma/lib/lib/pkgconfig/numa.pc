@@ -1,0 +1,10 @@
+prefix=/media/psf/tomato/mod/libmsf/msf_thirdparty/libnuma/lib
+exec_prefix=/media/psf/tomato/mod/libmsf/msf_thirdparty/libnuma/lib
+libdir=/media/psf/tomato/mod/libmsf/msf_thirdparty/libnuma/lib/lib
+includedir=/media/psf/tomato/mod/libmsf/msf_thirdparty/libnuma/lib/include
+
+Name: numa
+Description: NUMA policy library
+Version: 2.0.12
+Cflags: -I${includedir}
+Libs: -L${libdir} -lnuma

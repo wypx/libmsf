@@ -12,27 +12,26 @@
 **************************************************************************/
 
 /*  Open Shared Object
-	RTLD_LAZY 	Ôİ»º¾ö¶¨,µÈÓĞĞèÒªÊ±ÔÙ½â³ö·ûºÅ 
-¡¡¡¡RTLD_NOW 	Á¢¼´¾ö¶¨,·µ»ØÇ°½â³ıËùÓĞÎ´¾ö¶¨µÄ·ûºÅ 
-¡¡¡¡RTLD_LOCAL  ÓëRTLD_GLOBAL×÷ÓÃÏà·´,
-				¶¯Ì¬¿âÖĞ¶¨ÒåµÄ·ûºÅ²»ÄÜ±»Æäºó´ò¿ªµÄÆäËü¿âÖØ¶¨Î»
-				Èç¹ûÃ»ÓĞÖ¸Ã÷ÊÇRTLD_GLOBAL»¹ÊÇRTLD_LOCAL,ÔòÈ±Ê¡ÎªRTLD_LOCAL.
-¡¡¡¡RTLD_GLOBAL ÔÊĞíµ¼³ö·ûºÅ  ¶¯Ì¬¿âÖĞ¶¨ÒåµÄ·ûºÅ¿É±»Æäºó´ò¿ªµÄÆäËü¿âÖØ¶¨Î»
-¡¡¡¡RTLD_GROUP 
-¡¡¡¡RTLD_WORLD 
-	RTLD_NODELETE:ÔÚdlclose()ÆÚ¼ä²»Ğ¶ÔØ¿â,
-				²¢ÇÒÔÚÒÔºóÊ¹ÓÃdlopen()ÖØĞÂ¼ÓÔØ¿âÊ±²»³õÊ¼»¯¿âÖĞµÄ¾²Ì¬±äÁ¿
-				Õâ¸öflag²»ÊÇPOSIX-2001±ê×¼¡£ 
-	RTLD_NOLOAD:²»¼ÓÔØ¿â
-				¿ÉÓÃÓÚ²âÊÔ¿âÊÇ·ñÒÑ¼ÓÔØ(dlopen()·µ»ØNULLËµÃ÷Î´¼ÓÔØ,
-				·ñÔòËµÃ÷ÒÑ¼ÓÔØ£©,Ò²¿ÉÓÃÓÚ¸Ä±äÒÑ¼ÓÔØ¿âµÄflag
-				Èç:ÏÈÇ°¼ÓÔØ¿âµÄflagÎªRTLD£ßLOCAL
-				ÓÃdlopen(RTLD_NOLOAD|RTLD_GLOBAL)ºóflag½«±ä³ÉRTLD_GLOBAL
-				Õâ¸öflag²»ÊÇPOSIX-2001±ê×¼
-	RTLD_DEEPBIND:ÔÚËÑË÷È«¾Ö·ûºÅÇ°ÏÈËÑË÷¿âÄÚµÄ·ûºÅ,±ÜÃâÍ¬Ãû·ûºÅµÄ³åÍ»
-				Õâ¸öflag²»ÊÇPOSIX-2001±ê×¼¡£		
+    RTLD_LAZY   æš‚ç¼“å†³å®š,ç­‰æœ‰éœ€è¦æ—¶å†è§£å‡ºç¬¦å· 
+ã€€ã€€RTLD_NOW  ç«‹å³å†³å®š,è¿”å›å‰è§£é™¤æ‰€æœ‰æœªå†³å®šçš„ç¬¦å· 
+ã€€ã€€RTLD_LOCAL  ä¸RTLD_GLOBALä½œç”¨ç›¸å,
+                åŠ¨æ€åº“ä¸­å®šä¹‰çš„ç¬¦å·ä¸èƒ½è¢«å…¶åæ‰“å¼€çš„å…¶å®ƒåº“é‡å®šä½
+                å¦‚æœæ²¡æœ‰æŒ‡æ˜æ˜¯RTLD_GLOBALè¿˜æ˜¯RTLD_LOCAL,åˆ™ç¼ºçœä¸ºRTLD_LOCAL.
+ã€€ã€€RTLD_GLOBAL å…è®¸å¯¼å‡ºç¬¦å·  åŠ¨æ€åº“ä¸­å®šä¹‰çš„ç¬¦å·å¯è¢«å…¶åæ‰“å¼€çš„å…¶å®ƒåº“é‡å®šä½
+ã€€ã€€RTLD_GROUP 
+ã€€ã€€RTLD_WORLD 
+    RTLD_NODELETE:åœ¨dlclose()æœŸé—´ä¸å¸è½½åº“,
+                å¹¶ä¸”åœ¨ä»¥åä½¿ç”¨dlopen()é‡æ–°åŠ è½½åº“æ—¶ä¸åˆå§‹åŒ–åº“ä¸­çš„é™æ€å˜é‡
+                è¿™ä¸ªflagä¸æ˜¯POSIX-2001æ ‡å‡†ã€‚ 
+    RTLD_NOLOAD:ä¸åŠ è½½åº“
+                å¯ç”¨äºæµ‹è¯•åº“æ˜¯å¦å·²åŠ è½½(dlopen()è¿”å›NULLè¯´æ˜æœªåŠ è½½,
+                å¦åˆ™è¯´æ˜å·²åŠ è½½ï¼‰,ä¹Ÿå¯ç”¨äºæ”¹å˜å·²åŠ è½½åº“çš„flag
+                å¦‚:å…ˆå‰åŠ è½½åº“çš„flagä¸ºRTLDï¼¿LOCAL
+                ç”¨dlopen(RTLD_NOLOAD|RTLD_GLOBAL)åflagå°†å˜æˆRTLD_GLOBAL
+                è¿™ä¸ªflagä¸æ˜¯POSIX-2001æ ‡å‡†
+    RTLD_DEEPBIND:åœ¨æœç´¢å…¨å±€ç¬¦å·å‰å…ˆæœç´¢åº“å†…çš„ç¬¦å·,é¿å…åŒåç¬¦å·çš„å†²çª
+                è¿™ä¸ªflagä¸æ˜¯POSIX-2001æ ‡å‡†ã€‚     
 */
-
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
@@ -46,7 +45,6 @@
 #include <ctype.h> /* uppper()*/
 #include <time.h>
 #include <limits.h>
-#include <dlfcn.h>
 #include <errno.h>
 #include <signal.h>
 #include <sys/prctl.h>
@@ -54,30 +52,29 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <semaphore.h>
-#include <pthread.h>
 
 #define true    1
 #define false   0
 
-typedef char                    s8;  
-typedef short int               s16;  
-typedef int                     s32;  
+typedef char                    s8;
+typedef short int               s16;
+typedef int                     s32;
 
 # if __WORDSIZE == 64  
-typedef long int                s64;  
-# else  
-__extension__  
-typedef long long int           s64;  
-# endif  
+typedef long int                s64;
+# else
+__extension__
+typedef long long int           s64;
+# endif
 
 
-/* Unsigned.  */  
-typedef unsigned char           u8;  
-typedef unsigned short int      u16;  
-typedef unsigned int            u32;  
+/* Unsigned.  */
+typedef unsigned char           u8;
+typedef unsigned short int      u16;
+typedef unsigned int            u32;
  
 #if __WORDSIZE == 64  
-typedef unsigned long int       u64;  
+typedef unsigned long int       u64;
 #else  
 __extension__  
 typedef unsigned long long int  u64;
@@ -91,7 +88,7 @@ typedef unsigned long long int  u64;
 #define MSF_INT32_LEN   (sizeof("-2147483648") - 1)
 #define MSF_INT64_LEN   (sizeof("-9223372036854775808") - 1)
 
-#define MSF_FUNC_LINE __FUNCTION__, __LINE__
+#define MSF_FUNC_FILE_LINE __func__, __FILE__, __LINE__
 
 /* If supported, give compiler hints for branch prediction. */
 #if !defined(__GNUC__) || (__GNUC__ == 2 && __GNUC_MINOR__ < 96)
@@ -114,27 +111,6 @@ typedef unsigned long long int  u64;
 #define NORETURN __attribute__ ((__noreturn__))
 #else
 #define NORETURN
-#endif
-
-
-#if (__FreeBSD__) && (__FreeBSD_version < 400017)
-
-#include <sys/param.h>          /* ALIGN() */
-
-/*
- * FreeBSD 3.x has no CMSG_SPACE() and CMSG_LEN() and has the broken CMSG_DATA
-()
- */
-
-#undef  CMSG_SPACE
-#define CMSG_SPACE(l)       (ALIGN(sizeof(struct cmsghdr)) + ALIGN(l))
-
-#undef  CMSG_LEN
-#define CMSG_LEN(l)         (ALIGN(sizeof(struct cmsghdr)) + (l))
-
-#undef  CMSG_DATA
-#define CMSG_DATA(cmsg)     ((u8*)(cmsg) + ALIGN(sizeof(struct cmsghdr)))
-
 #endif
 
 /* linux/kernel.h
@@ -208,7 +184,6 @@ typedef unsigned long long int  u64;
 #error "unknown endianess!"
 #endif
 
-
 #ifndef _ARRAY_SIZE
 #define _ARRAY_SIZE(x) (sizeof (x) / sizeof (x[0]))
 #endif
@@ -224,44 +199,6 @@ typedef unsigned long long int  u64;
 #else
 #define va_copy(x, y) (x) = (y)
 #endif
-#endif
-
-#define MSF_THREAD_NAME(name)  prctl(PR_SET_NAME, name) 
-
-/*
- * µ±Ç°½ø³ÌÈÔÈ»´¦ÓÚ¿ÉÖ´ĞĞ×´Ì¬,µ«ÔİÊ±"ÈÃ³ö"´¦ÀíÆ÷,
- * Ê¹µÃ´¦ÀíÆ÷ÓÅÏÈµ÷¶ÈÆäËû¿ÉÖ´ĞĞ×´Ì¬µÄ½ø³Ì,ÕâÑù,
- * ÔÚ½ø³Ì±»ÄÚºËÔÙ´Îµ÷¶ÈÊ±,ÔÚforÑ­»·´úÂëÖĞ¿ÉÒÔÆÚÍûÆäËû½ø³ÌÊÍ·ÅËø
- * ×¢Òâ,²»Í¬µÄÄÚºË°æ±¾¶ÔÓÚngx_sched_yieldÏµÍ³µ÷ÓÃµÄÊµÏÖ¿ÉÄÜÊÇ²»Í¬µÄ,
- * µ«ËüÃÇµÄÄ¿µÄ¶¼ÊÇÔİÊ±"ÈÃ³ö"´¦ÀíÆ÷*/
- 
-#if (MSF_HAVE_SCHED_YIELD)
-#define msf_sched_yield()  sched_yield()
-#else
-#define msf_sched_yield()  usleep(1)
-#endif
-
-/* see /usr/src/kernel/linux/jiffies.h */
-/* extern unsigned long volatile jiffies; */
-
-#define jiffies     ((long)times(NULL))
-
-
-/* Linux dl API*/
-#ifndef WIN32  
-#define MSF_DLHANDLE void*
-#define MSF_DLOPEN_L(name) dlopen((name), RTLD_LAZY | RTLD_GLOBAL)
-#define MSF_DLOPEN_N(name) dlopen((name), RTLD_NOW)
-
-
-#if defined(WIN32)
-#define MSF_DLSYM(handle, symbol)   GetProcAddress((handle), (symbol))
-#define MSF_DLCLOSE(handle)         FreeLibrary(handle)
-#else
-#define MSF_DLSYM(handle, symbol)   dlsym((handle), (symbol))
-#define MSF_DLCLOSE(handle)         dlclose(handle)
-#endif
-#define MSF_DLERROR() dlerror()
 #endif
 
 #define MSF_NEW(t,n)        ((t*) malloc(sizeof(t) * (n)))
@@ -300,10 +237,14 @@ typedef unsigned long long int  u64;
     static void f(void)__attribute__((destructor)); \
     static void f(void)
 
-static inline u64 msf_get_current_thread_id(void) {
-    return (u64)pthread_self();
-}
-
+/** when static library not been linked, 
+  * this check is needed.
+  */
+#ifndef ATTRI_CHECK
+#define MSF_ATTRIBUTE_WIKE  __attribute__((weak))
+#else
+#define MSF_ATTRIBUTE_WIKE
+#endif
 
 #define msf_tolower(c)      (u8) ((c >= 'A' && c <= 'Z') ? (c | 0x20) : c)
 #define msf_toupper(c)      (u8) ((c >= 'a' && c <= 'z') ? (c & ~0x20) : c)
@@ -337,8 +278,6 @@ static inline u64 msf_get_current_thread_id(void) {
 #define msf_align_ptr(p, a)  \
     (u8 *) (((u32) (p) + ((u32) a - 1)) & ~((u32) a - 1))
 
-
-
 #define msf_test_bits(mask, addr)   (((*addr) & (mask)) != 0)
 #define msf_clr_bits(mask, addr)    ((*addr) &= ~(mask))
 #define msf_set_bits(mask, addr)    ((*addr) |= (mask))
@@ -347,41 +286,12 @@ static inline u64 msf_get_current_thread_id(void) {
 #define msf_set_bit(nr, addr)   (*(addr) |=  (1ULL << (nr)))
 #define msf_clr_bit(nr, addr)   (*(addr) &=  ~(1ULL << (nr)))
 
-#define MSF_FILE_READ       0
-#define MSF_FILE_WRITE      1
-#define MSF_FILE_EXEC       2
-
-struct file_info {
-    u32     size;
-    time_t  last_modification;
-
-    /* Suggest flags to open this file */
-    u32     flags_read_only;
-
-    u32     exists;
-    u32     is_file;
-    u32     is_link;
-    u32     is_directory;
-    u32     exec_access;
-    u32     read_access;
-} __attribute__((__packed__));
-
 typedef void (*sighandler_t)(s32);
 
 s32 signal_handler(s32 sig, sighandler_t handler);
 s32 sem_wait_i(sem_t* psem, s32 mswait);
 
-s32 file_get_info(const s8 *path, struct file_info *f_info, u32 mode);
-
-s8 *config_read_file(const s8 *filename);
-
-void *plugin_load_dynamic(const s8 *path);
-
-void *plugin_load_symbol(void *handler, const s8 *symbol);
-
 s32 daemonize(s32 nochdir, s32 noclose);
-
-s32 check_file_exist(s8 *file);
 
 /*
  * Wrappers around strtoull/strtoll that are safer and easier to
@@ -397,19 +307,13 @@ u8 safe_strtoll(const s8 *str, s64 *out);
 u8 safe_strtoul(const s8 *str, u32 *out);
 u8 safe_strtol(const s8 *str, s32 *out);
 
-void save_pid(const s8 *pid_file);
-void remove_pidfile(const s8 *pid_file);
-
 u32 refcount_incr(u32 *refcount);
 u32 refcount_decr(u32 *refcount);
 
-
-s32 pthread_spawn(pthread_t *tid, void *(*func)(void *), void *arg);
-
 inline s32 get_value()
 {
-    //_sysnc_fetch_and_add
-    //¶àÏß³ÌÔ­×Ó²Ù×÷ ÎŞËù²Ù×÷
+ //_sysnc_fetch_and_add
+    //å¤šçº¿ç¨‹åŸå­æ“ä½œ æ— æ‰€æ“ä½œ
     //read_lock
     //_bittset test_bit
     //atuomoc_read
@@ -419,18 +323,18 @@ inline s32 get_value()
     //kmalloc vmalooc 
     //semphone
 
-    //ipref´ø¿í¶ª°ü¶¶¶¯ netpref qprefÊ±ÑÓ
+    //iprefå¸¦å®½ä¸¢åŒ…æŠ–åŠ¨ netpref qprefæ—¶å»¶
     //vnsatat
-    //sar¼à¿Ø
-    //mleakÄÚ´æ¼à¿Ø
-    //0¿½±´ ½ÚÊ¡ÓÃ»§Ì¬µ½ÄÚºËÌ¬µÄ¿½±´
-    //·Ö²¼Ê½´æ´¢½â¾ö·½°¸
-    //system/popenÃüÁî×¢Èë·çÏÕ execve´úÌæ
-    //ÓĞ= %#8x
-    //sparseg¹¤¾ß
+    //sarç›‘æ§
+    //mleakå†…å­˜ç›‘æ§
+    //0æ‹·è´ èŠ‚çœç”¨æˆ·æ€åˆ°å†…æ ¸æ€çš„æ‹·è´
+    //åˆ†å¸ƒå¼å­˜å‚¨è§£å†³æ–¹æ¡ˆ
+    //system/popenå‘½ä»¤æ³¨å…¥é£é™© execveä»£æ›¿
+    //æœ‰= %#8x
+    //sparsegå·¥å…·
     //_rcu
     //hping
-    //
+
     return 0;
 }
 

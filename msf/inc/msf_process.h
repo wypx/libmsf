@@ -1,7 +1,7 @@
-#include <msf_svc.h>
+#include <msf_utils.h>
 
-#define MSF_INVALID_PID  	-1
-#define MSF_MAX_PROCESSES 	64
+#define MSF_INVALID_PID     -1
+#define MSF_MAX_PROCESSES   64
 
 enum msf_process_type {
     MSF_PROCESS_MASTER = 0,
@@ -15,18 +15,6 @@ struct exec_conf {
     s8         *name;
     s8 *const  *argv;
     s8 *const  *envp;
-} MSF_PACKED_MEMORY;
-
-struct svcinst {
-    u32     svc_state;
-    s8      svc_name[32];
-    s8      svc_lib[32];
-
-    u32     svc_deplib_num;
-    s8      *svc_deplib[8];
-
-    MSF_DLHANDLE svc_handle;
-    struct svc *svc_cb;
 } MSF_PACKED_MEMORY;
 
 enum process_state {
@@ -97,5 +85,4 @@ struct process {
 
 s32 process_try_lock(const s8 *proc_name, u32 mode);
 s32 process_spwan(struct process_desc *proc_desc);
-s32 svcinst_init(struct svcinst *svc);
 

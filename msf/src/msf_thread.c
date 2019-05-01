@@ -1,62 +1,74 @@
+/**************************************************************************
+*
+* Copyright (c) 2017-2019, luotang.me <wypx520@gmail.com>, China.
+* All rights reserved.
+*
+* Distributed under the terms of the GNU General Public License v2.
+*
+* This software is provided 'as is' with no explicit or implied warranties
+* in respect of its properties, including, but not limited to, correctness
+* and/or fitness for purpose.
+*
+**************************************************************************/
 
+#include <msf_thread.h>
+#include <msf_log.h>
+
+#define MSF_MOD_THREAD "THREAD"
+#define MSF_THREAD_LOG(level, ...) \
+    log_write(level, MSF_MOD_THREAD, MSF_FUNC_FILE_LINE, __VA_ARGS__)
+
+/*
+    pthread_cond_waitå¿…é¡»æ”¾åœ¨pthread_mutex_lockå’Œpthread_mutex_unlockä¹‹é—´,
+    å› ä¸ºä»–è¦æ ¹æ®å…±äº«å˜é‡çš„çŠ¶æ€æ¥å†³å®šæ˜¯å¦è¦ç­‰å¾…ï¼Œè€Œä¸ºäº†ä¸æ°¸è¿œç­‰å¾…ä¸‹å»æ‰€ä»¥å¿…é¡»
+    è¦åœ¨lock/unlocké˜Ÿä¸­å…±äº«å˜é‡çš„çŠ¶æ€æ”¹å˜å¿…é¡»éµå®ˆlock/unlockçš„è§„åˆ™
+    pthread_cond_signalå³å¯ä»¥æ”¾åœ¨pthread_mutex_lockå’Œpthread_mutex_unlockä¹‹é—´,
+    ä¹Ÿå¯ä»¥æ”¾åœ¨pthread_mutex_lockå’Œpthread_mutex_unlockä¹‹åï¼Œä½†æ˜¯å„æœ‰å„ç¼ºç‚¹ã€‚
+
+    pthread_mutex_lock
+    xxxxxxx
+    pthread_cond_signal
+    pthread_mutex_unlock
+    ç¼ºç‚¹ï¼šåœ¨æŸäº›çº¿ç¨‹çš„å®ç°ä¸­,ä¼šé€ æˆç­‰å¾…çº¿ç¨‹ä»å†…æ ¸ä¸­å”¤é†’ï¼ˆç”±äºcond_signal)
+    ç„¶ååˆå›åˆ°å†…æ ¸ç©ºé—´ï¼ˆå› ä¸ºcond_waitè¿”å›åä¼šæœ‰åŸå­åŠ é”çš„è¡Œä¸ºï¼‰,æ‰€ä»¥ä¸€æ¥
+    ä¸€å›ä¼šæœ‰æ€§èƒ½çš„é—®é¢˜ã€‚ä½†æ˜¯åœ¨LinuxThreadsæˆ–è€…NPTLé‡Œé¢ï¼Œå°±ä¸ä¼šæœ‰è¿™ä¸ªé—®é¢˜,
+    å› ä¸ºåœ¨Linux çº¿ç¨‹ä¸­,æœ‰ä¸¤ä¸ªé˜Ÿåˆ—,åˆ†åˆ«æ˜¯cond_waité˜Ÿåˆ—å’Œmutex_locké˜Ÿåˆ—,
+    cond_signalåªæ˜¯è®©çº¿ç¨‹ä»cond_waité˜Ÿåˆ—ç§»åˆ°mutex_locké˜Ÿåˆ—,è€Œä¸ç”¨è¿”å›åˆ°ç”¨æˆ·ç©ºé—´,
+    ä¸ä¼šæœ‰æ€§èƒ½çš„æŸè€—.æ‰€ä»¥åœ¨Linuxä¸­æ¨èä½¿ç”¨è¿™ç§æ¨¡å¼.
+    pthread_mutex_lock
+    xxxxxxx
+    pthread_mutex_unlock
+    pthread_cond_signal
+    ä¼˜ç‚¹ï¼šä¸ä¼šå‡ºç°ä¹‹å‰è¯´çš„é‚£ä¸ªæ½œåœ¨çš„æ€§èƒ½æŸè€—ï¼Œå› ä¸ºåœ¨signalä¹‹å‰å°±å·²ç»é‡Šæ”¾é”äº†
+    ç¼ºç‚¹ï¼šå¦‚æœunlockå’Œsignalä¹‹å‰,æœ‰ä¸ªä½ä¼˜å…ˆçº§çš„çº¿ç¨‹æ­£åœ¨mutexä¸Šç­‰å¾…çš„è¯,
+    é‚£ä¹ˆè¿™ä¸ªä½ä¼˜å…ˆçº§çš„çº¿ç¨‹å°±ä¼šæŠ¢å é«˜ä¼˜å…ˆçº§çš„çº¿ç¨‹ï¼ˆcond_waitçš„çº¿ç¨‹),
+    è€Œè¿™åœ¨ä¸Šé¢çš„æ”¾ä¸­é—´çš„æ¨¡å¼ä¸‹æ˜¯ä¸ä¼šå‡ºç°çš„.
+    æ‰€ä»¥åœ¨Linuxä¸‹æœ€å¥½pthread_cond_signalæ”¾ä¸­é—´,ä½†ä»ç¼–ç¨‹è§„åˆ™ä¸Šè¯´,å…¶ä»–ä¸¤ç§éƒ½å¯ä»¥
+    */
 
 
 /*
-pthread_cond_wait±ØĞë·ÅÔÚpthread_mutex_lockºÍpthread_mutex_unlockÖ®¼ä£¬ÒòÎªËûÒª¸ù¾İ¹²Ïí±äÁ¿µÄ×´Ì¬À´¾ö¶¨ÊÇ·ñÒªµÈ´ı£¬¶øÎªÁË²»ÓÀ
-Ô¶µÈ´ıÏÂÈ¥ËùÒÔ±ØĞëÒªÔÚlock/unlock¶ÓÖĞ
-
-¹²Ïí±äÁ¿µÄ×´Ì¬¸Ä±ä±ØĞë×ñÊØlock/unlockµÄ¹æÔò
-pthread_cond_signal¼´¿ÉÒÔ·ÅÔÚpthread_mutex_lockºÍpthread_mutex_unlockÖ®¼ä£¬Ò²¿ÉÒÔ·ÅÔÚpthread_mutex_lockºÍpthread_mutex_unlockÖ®ºó£¬µ«ÊÇ¸÷ÓĞ¸÷È±µã¡£
-
-   
-
-
-Ö®¼ä
-
-pthread_mutex_lock
-xxxxxxx
-pthread_cond_signal
-pthread_mutex_unlock
-
-È±µã£ºÔÚÄ³Ğ©Ïß³ÌµÄÊµÏÖÖĞ£¬»áÔì³ÉµÈ´ıÏß³Ì´ÓÄÚºËÖĞ»½ĞÑ£¨ÓÉÓÚcond_signal)È»ºóÓÖ»Øµ½ÄÚºË¿Õ¼ä£¨ÒòÎªcond_wait·µ»Øºó»áÓĞÔ­×Ó¼ÓËøµÄĞĞÎª£©£¬ËùÒÔÒ»À´
-Ò»»Ø»áÓĞĞÔÄÜµÄÎÊÌâ¡£µ«ÊÇÔÚLinuxThreads»òÕßNPTLÀïÃæ£¬¾Í²»»áÓĞÕâ¸öÎÊÌâ£¬ÒòÎªÔÚLinux Ïß³ÌÖĞ£¬ÓĞÁ½¸ö¶ÓÁĞ£¬·Ö±ğÊÇcond_wait¶ÓÁĞºÍmutex_lock¶ÓÁĞ£¬ 
-cond_signalÖ»ÊÇÈÃÏß³Ì´Ócond_wait¶ÓÁĞÒÆµ½mutex_lock¶ÓÁĞ£¬¶ø²»ÓÃ·µ»Øµ½ÓÃ»§¿Õ¼ä£¬²»»áÓĞĞÔÄÜµÄËğºÄ¡£
-ËùÒÔÔÚLinuxÖĞÍÆ¼öÊ¹ÓÃÕâÖÖÄ£Ê½¡£
-
-
-Ö®ºó
-
-pthread_mutex_lock
-xxxxxxx
-pthread_mutex_unlock
-pthread_cond_signal
-
-ÓÅµã£º²»»á³öÏÖÖ®Ç°ËµµÄÄÇ¸öÇ±ÔÚµÄĞÔÄÜËğºÄ£¬ÒòÎªÔÚsignalÖ®Ç°¾ÍÒÑ¾­ÊÍ·ÅËøÁË
-
-È±µã£ºÈç¹ûunlockºÍsignalÖ®Ç°£¬ÓĞ¸öµÍÓÅÏÈ¼¶µÄÏß³ÌÕıÔÚmutexÉÏµÈ´ıµÄ»°£¬ÄÇÃ´Õâ¸öµÍÓÅÏÈ¼¶µÄÏß³Ì¾Í»áÇÀÕ¼¸ßÓÅÏÈ¼¶µÄÏß³Ì£¨cond_waitµÄÏß³Ì)£¬
-¶øÕâÔÚÉÏÃæµÄ·ÅÖĞ¼äµÄÄ£Ê½ÏÂÊÇ²»»á³öÏÖµÄ¡£
-
-ËùÒÔ£¬ÔÚLinuxÏÂ×îºÃpthread_cond_signal·ÅÖĞ¼ä£¬µ«´Ó±à³Ì¹æÔòÉÏËµ£¬ÆäËûÁ½ÖÖ¶¼¿ÉÒÔ
+    pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t*mutex)å‡½æ•°ä¼ å…¥çš„å‚æ•°
+    mutexç”¨äºä¿æŠ¤æ¡ä»¶ï¼Œå› ä¸ºæˆ‘ä»¬åœ¨è°ƒç”¨pthread_cond_waitæ—¶,å¦‚æœæ¡ä»¶ä¸æˆç«‹æˆ‘ä»¬å°±è¿›å…¥é˜»å¡,
+    ä½†æ˜¯è¿›å…¥é˜»å¡è¿™ä¸ªæœŸé—´,å¦‚æœæ¡ä»¶å˜é‡æ”¹å˜äº†çš„è¯,é‚£æˆ‘ä»¬å°±æ¼æ‰äº†è¿™ä¸ªæ¡ä»¶.
+    å› ä¸ºè¿™ä¸ªçº¿ç¨‹è¿˜æ²¡æœ‰æ”¾åˆ°ç­‰å¾…é˜Ÿåˆ—ä¸Š,æ‰€ä»¥è°ƒç”¨pthread_cond_waitå‰è¦å…ˆé”äº’æ–¥é‡,
+    å³è°ƒç”¨pthread_mutex_lock(),pthread_cond_waitåœ¨æŠŠçº¿ç¨‹æ”¾è¿›é˜»å¡é˜Ÿåˆ—å,
+    è‡ªåŠ¨å¯¹mutexè¿›è¡Œè§£é”,ä½¿å¾—å…¶å®ƒçº¿ç¨‹å¯ä»¥è·å¾—åŠ é”çš„æƒåˆ©.
+    è¿™æ ·å…¶å®ƒçº¿ç¨‹æ‰èƒ½å¯¹ä¸´ç•Œèµ„æºè¿›è¡Œè®¿é—®å¹¶åœ¨é€‚å½“çš„æ—¶å€™å”¤é†’è¿™ä¸ªé˜»å¡çš„è¿›ç¨‹.
+    å½“pthread_cond_waitè¿”å›çš„æ—¶å€™åˆè‡ªåŠ¨ç»™mutexåŠ é”.
+    å®é™…ä¸Šè¾¹ä»£ç çš„åŠ è§£é”è¿‡ç¨‹å¦‚ä¸‹ï¼š
+    / ***********pthread_cond_wait()çš„ä½¿ç”¨æ–¹æ³•********** /
+    pthread_mutex_lock(&qlock); / *lock* /
+    pthread_cond_wait(&qready, &qlock); / *block-->unlock-->wait() return-->lock* /
+    pthread_mutex_unlock(&qlock); / *unlock* /
+    pthread_cond_waitå†…éƒ¨æ‰§è¡Œæµç¨‹æ˜¯:è¿›å…¥é˜»å¡--è§£é”--è¿›å…¥çº¿ç¨‹ç­‰å¾…é˜Ÿåˆ—,
+    æ·»åŠ æ»¡è¶³(å…¶ä»–çº¿ç¨‹ngx_thread_cond_signal)åï¼Œå†æ¬¡åŠ é”ï¼Œç„¶åè¿”å›
+    ä¸ºä»€ä¹ˆåœ¨è°ƒç”¨è¯¥å‡½æ•°çš„æ—¶å€™å¤–å±‚è¦å…ˆåŠ é”,
+    åŸå› æ˜¯åœ¨pthread_cond_waitå†…éƒ¨è¿›å…¥é˜»å¡çŠ¶æ€æœ‰ä¸ªè¿‡ç¨‹,
+    è¿™ä¸ªè¿‡ç¨‹ä¸­å…¶ä»–çº¿ç¨‹cond signalï¼Œæœ¬çº¿ç¨‹æ£€æµ‹ä¸åˆ°è¯¥ä¿¡å·signal,
+    æ‰€ä»¥å¤–å±‚åŠ é”å°±æ˜¯è®©æœ¬çº¿ç¨‹è¿›å…¥waitçº¿ç¨‹ç­‰å¾…é˜Ÿåˆ—å,
+    æ‰å…è®¸å…¶ä»–çº¿ç¨‹cond signalå”¤é†’æœ¬çº¿ç¨‹ï¼Œå°±å¯ä»¥é¿å…æ¼æ‰ä¿¡å·
 */
-
-
-/*
-    pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t*mutex)º¯Êı´«ÈëµÄ²ÎÊımutexÓÃÓÚ±£»¤Ìõ¼ş£¬ÒòÎªÎÒÃÇÔÚµ÷ÓÃpthread_cond_waitÊ±£¬
-Èç¹ûÌõ¼ş²»³ÉÁ¢ÎÒÃÇ¾Í½øÈë×èÈû£¬µ«ÊÇ½øÈë×èÈûÕâ¸öÆÚ¼ä£¬Èç¹ûÌõ¼ş±äÁ¿¸Ä±äÁËµÄ»°£¬ÄÇÎÒÃÇ¾ÍÂ©µôÁËÕâ¸öÌõ¼ş¡£ÒòÎªÕâ¸öÏß³Ì»¹Ã»ÓĞ·Åµ½µÈ´ı¶ÓÁĞÉÏ£¬
-ËùÒÔµ÷ÓÃpthread_cond_waitÇ°ÒªÏÈËø»¥³âÁ¿£¬¼´µ÷ÓÃpthread_mutex_lock()£¬pthread_cond_waitÔÚ°ÑÏß³Ì·Å½ø×èÈû¶ÓÁĞºó£¬×Ô¶¯¶Ômutex½øĞĞ½âËø£¬
-Ê¹µÃÆäËüÏß³Ì¿ÉÒÔ»ñµÃ¼ÓËøµÄÈ¨Àû¡£ÕâÑùÆäËüÏß³Ì²ÅÄÜ¶ÔÁÙ½ç×ÊÔ´½øĞĞ·ÃÎÊ²¢ÔÚÊÊµ±µÄÊ±ºò»½ĞÑÕâ¸ö×èÈûµÄ½ø³Ì¡£µ±pthread_cond_wait·µ»ØµÄÊ±ºò
-ÓÖ×Ô¶¯¸ømutex¼ÓËø¡£
-Êµ¼ÊÉÏ±ß´úÂëµÄ¼Ó½âËø¹ı³ÌÈçÏÂ£º
-/ ***********pthread_cond_wait()µÄÊ¹ÓÃ·½·¨********** /
-pthread_mutex_lock(&qlock); / *lock* /
-pthread_cond_wait(&qready, &qlock); / *block-->unlock-->wait() return-->lock* /
-pthread_mutex_unlock(&qlock); / *unlock* /
-
-*/
-//pthread_cond_waitÄÚ²¿Ö´ĞĞÁ÷³ÌÊÇ:½øÈë×èÈû--½âËø--½øÈëÏß³ÌµÈ´ı¶ÓÁĞ£¬Ìí¼ÓÂú×ã(ÆäËûÏß³Ìngx_thread_cond_signal)ºó£¬ÔÙ´Î¼ÓËø£¬È»ºó·µ»Ø£¬
-//ÎªÊ²Ã´ÔÚµ÷ÓÃ¸Ãº¯ÊıµÄÊ±ºòÍâ²ãÒªÏÈ¼ÓËø£¬Ô­ÒòÊÇÔÚpthread_cond_waitÄÚ²¿½øÈë×èÈû×´Ì¬ÓĞ¸ö¹ı³Ì£¬Õâ¸ö¹ı³ÌÖĞÆäËûÏß³Ìcond signal£¬±¾Ïß³Ì
-//¼ì²â²»µ½¸ÃĞÅºÅsignal£¬ËùÒÔÍâ²ã¼ÓËø¾ÍÊÇÈÃ±¾Ïß³Ì½øÈëwaitÏß³ÌµÈ´ı¶ÓÁĞºó£¬²ÅÔÊĞíÆäËûÏß³Ìcond signal»½ĞÑ±¾Ïß³Ì£¬¾Í¿ÉÒÔ±ÜÃâÂ©µôĞÅºÅ
-
 
 #if 0
 ngx_int_t
@@ -73,8 +85,8 @@ ngx_thread_mutex_create(ngx_thread_mutex_t *mtx, ngx_log_t *log)
     }
 
     /*
-    Èç¹ûmutexÀàĞÍÊÇ PTHREAD_MUTEX_ERRORCHECK£¬ÄÇÃ´½«½øĞĞ´íÎó¼ì²é¡£Èç¹ûÒ»¸öÏß³ÌÆóÍ¼¶ÔÒ»¸öÒÑ¾­Ëø×¡µÄmutex½øĞĞrelock£¬½«·µ»ØÒ»
-    ¸ö´íÎó¡£Èç¹ûÒ»¸öÏß³Ì¶ÔÎ´¼ÓËøµÄ»òÒÑ¾­unlockµÄmutex¶ÔÏó½øĞĞunlock²Ù×÷£¬½«·µ»ØÒ»¸ö´íÎó¡£ 
+    å¦‚æœmutexç±»å‹æ˜¯ PTHREAD_MUTEX_ERRORCHECKï¼Œé‚£ä¹ˆå°†è¿›è¡Œé”™è¯¯æ£€æŸ¥ã€‚å¦‚æœä¸€ä¸ªçº¿ç¨‹ä¼å›¾å¯¹ä¸€ä¸ªå·²ç»é”ä½çš„mutexè¿›è¡Œrelockï¼Œå°†è¿”å›ä¸€
+    ä¸ªé”™è¯¯ã€‚å¦‚æœä¸€ä¸ªçº¿ç¨‹å¯¹æœªåŠ é”çš„æˆ–å·²ç»unlockçš„mutexå¯¹è±¡è¿›è¡Œunlockæ“ä½œï¼Œå°†è¿”å›ä¸€ä¸ªé”™è¯¯ã€‚ 
      */
     err = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK);
     if (err != 0) {
@@ -161,8 +173,31 @@ ngx_thread_mutex_unlock(ngx_thread_mutex_t *mtx, ngx_log_t *log)
 
     return NGX_ERROR;
 }
-
-
-
-
 #endif
+
+
+
+s32 pthread_spawn(pthread_t *tid, void* (*func)(void *), void *arg) {
+    s32 rc;
+    pthread_attr_t thread_attr;
+
+#ifndef WIN32
+    sigset_t signal_mask;
+    sigemptyset (&signal_mask);
+    sigaddset (&signal_mask, SIGPIPE);
+    rc = pthread_sigmask (SIG_BLOCK, &signal_mask, NULL);
+    if (rc != 0) {
+        MSF_THREAD_LOG(DBG_ERROR, "block sigpipe error\n");
+    } 
+#endif
+
+    pthread_attr_init(&thread_attr);
+    pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_JOINABLE);
+    if (pthread_create(tid, &thread_attr, (void *)func, arg) < 0) {
+        MSF_THREAD_LOG(DBG_ERROR, "pthread_create");
+        return -1;
+    }
+
+    return 0;
+}
+

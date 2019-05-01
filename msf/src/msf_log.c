@@ -5,11 +5,12 @@
 #include <stdarg.h>
 #include <fcntl.h>
 #include <msf_log.h>
+#include <msf_thread.h>
 
 #define MSF_MOD_LOGGER "MSF_LOG"
 
 #define MSF_LOG(level, ...) \
-    log_write(level, MSF_MOD_LOGGER, __func__, __FILE__, __LINE__, __VA_ARGS__)
+    log_write(level, MSF_MOD_LOGGER, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 
 #define LOG_FILE_PATH       "/home/luotang.me/log/rapberry.log"
@@ -357,13 +358,6 @@ s32 log_init(const s8 *log_path) {
             return -1;
         }
     }
-#ifdef GLOG_SUPPORT
-    if(lplog->bglogfile) {
-        log_generate_name(log_name, sizeof(log_name));
-        lplog->lgzlog = gzlog_open(log_name);
-    }
-#endif
-
 
     lplog->logstat  = L_OPEN;
 
@@ -396,8 +390,6 @@ s32 log_zip(void) {
 
     return 0;
 }
-
-#define log_format_default "[%s][%s][%s][%s:%d] %s"
 
 s32 log_write(s32 level, s8 *mod, const s8 *func, const s8 *file, s32 line, s8 *fmt, ... ) {
 
@@ -443,15 +435,16 @@ s32 log_write(s32 level, s8 *mod, const s8 *func, const s8 *file, s32 line, s8 *
             fmt);
     } else {
         snprintf(newfmt, sizeof(newfmt) - 1,
-            "[%s][%s][%s][%s %s:%d] %s",
+            "[%s][%s][%s][%s %s:%d] %s[pid:%d][tid:%lu]",
             tmfmt,
             mod,
             loglevel[level],
             func,
             file,
             line,
-            fmt);
-
+            fmt,
+            msf_getpid(),
+            msf_gettid());
     }
 
     data = log_dupvprintf(newfmt, ap);

@@ -25,20 +25,14 @@
 #define MSF_HAVE_F_NOCACHE      0
 #define MSF_HAVE_DIRECTIO       0
 
-
 #define MSF_HAVE_STATFS         1
 #define MSF_HAVE_STATVFS        1
 
-
 #define MSF_HAVE_FILE_AIO       1
-
 #define MSF_HAVE_MSGHDR_MSG_CONTROL 1
-
 #define MSF_HAVE_SCHED_SETAFFINITY  1
 
 #define MSF_HAVE_LINUX_TIMER        1
-
 #define HAVE_GCC_ATOMICS            1
-
 #define MSF_HAVE_EVENTFD            1
 #define MSF_HAVE_SYS_EVENTFD_H      1

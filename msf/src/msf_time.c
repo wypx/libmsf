@@ -21,14 +21,14 @@ static s8  *months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
                            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 static msf_atomic_t  msf_time_lock;
-volatile u32   msf_current_msec; //¸ñÁÖÍşÖÎÊ±¼ä1970Äê1ÔÂ1ÈÕÁè³¿0µã0·Ö0Ãëµ½µ±Ç°Ê±¼äµÄºÁÃëÊı
+volatile u32   msf_current_msec; //æ ¼æ—å¨æ²»æ—¶é—´1970å¹´1æœˆ1æ—¥å‡Œæ™¨0ç‚¹0åˆ†0ç§’åˆ°å½“å‰æ—¶é—´çš„æ¯«ç§’æ•°
 
 
 void msf_time_update(void) {
 
     time_t           sec;
     u32              msec;
-    struct timeval	 tv;
+    struct timeval   tv;
 
     if (!msf_trylock(&msf_time_lock)) {
         return;
@@ -41,9 +41,9 @@ void msf_time_update(void) {
     msf_current_msec = (u32) sec * 1000 + msec;
 
 
-    /* ½ûÖ¹±àÒëÆ÷¶ÔºóÃæµÄÓï¾äÓÅ»¯,Èç¹ûÃ»ÓĞÕâ¸öÏŞÖÆ,
-     * ±àÒëÆ÷¿ÉÄÜ½«Ç°ºóÁ½²¿·Ö´úÂëºÏ²¢,¿ÉÄÜµ¼ÖÂÕâ6¸öÊ±¼ä¸üĞÂ³öÏÖ¼ä¸ô
-     * ÆÚ¼äÈô±»¶ÁÈ¡»á³öÏÖÊ±¼ä²»Ò»ÖÂµÄÇé¿ö*/
+    /* ç¦æ­¢ç¼–è¯‘å™¨å¯¹åé¢çš„è¯­å¥ä¼˜åŒ–,å¦‚æœæ²¡æœ‰è¿™ä¸ªé™åˆ¶,
+     * ç¼–è¯‘å™¨å¯èƒ½å°†å‰åä¸¤éƒ¨åˆ†ä»£ç åˆå¹¶,å¯èƒ½å¯¼è‡´è¿™6ä¸ªæ—¶é—´æ›´æ–°å‡ºç°é—´éš”
+     * æœŸé—´è‹¥è¢«è¯»å–ä¼šå‡ºç°æ—¶é—´ä¸ä¸€è‡´çš„æƒ…å†µ*/
     msf_memory_barrier();
 
 
@@ -51,7 +51,7 @@ void msf_time_update(void) {
 }
 
 static u32 msf_monotonic_time(time_t sec, u32 msec) {
-#if (NGX_HAVE_CLOCK_MONOTONIC)
+#if (MSF_HAVE_CLOCK_MONOTONIC)
     struct timespec  ts;
 
 #if defined(CLOCK_MONOTONIC_FAST)

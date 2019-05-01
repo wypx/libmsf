@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (c) 2017-2018, luotang.me <wypx520@gmail.com>, China.
+* Copyright (c) 2017-2019, luotang.me <wypx520@gmail.com>, China.
 * All rights reserved.
 *
 * Distributed under the terms of the GNU General Public License v2.
@@ -12,9 +12,7 @@
 **************************************************************************/
 #include <time.h>
 #include <sys/time.h>
-
 #include <msf_utils.h>
-
 
 /*
 #include <linux/types.h>
@@ -23,11 +21,11 @@
 */
 
 /*
- *	These inlines deal with timer wrapping correctly. You are
- *	strongly encouraged to use them
- *	1. Because people otherwise forget
- *	2. Because if the timer wrap changes in future you won't have to
- *	   alter your driver code.
+ *  These inlines deal with timer wrapping correctly. You are
+ *  strongly encouraged to use them
+ *  1. Because people otherwise forget
+ *  2. Because if the timer wrap changes in future you won't have to
+ *     alter your driver code.
  *
  * time_after(a,b) returns true if the time a is after time b.
  *
@@ -35,13 +33,13 @@
  * good compiler would generate better code (and a really good compiler
  * wouldn't care). Gcc is currently neither.
  */
-#define time_after(a,b)		\
+#define time_after(a,b)     \
      ((long)((b) - (a)) < 0)
-#define time_before(a,b)	time_after(b,a)
+#define time_before(a,b)    time_after(b,a)
 
-#define time_after_eq(a,b)	\
+#define time_after_eq(a,b)  \
      ((long)((a) - (b)) >= 0)
-#define time_before_eq(a,b)	time_after_eq(b,a)
+#define time_before_eq(a,b) time_after_eq(b,a)
 
 /*
  * Calculate whether a is in the range of [b, c].
@@ -71,7 +69,6 @@
 #define time_in_range64(a, b, c) \
     (time_after_eq64(a, b) && \
      time_before_eq64(a, c))
-
 
 #define msf_tm_sec            tm_sec
 #define msf_tm_min            tm_min
@@ -118,9 +115,8 @@ void msf_libc_gmtime(time_t s, struct tm *t);
         }                                                   \
     } while (0)
 
-#define MSF_TIMERCLEAR(tvp)	(tvp)->tv_sec = (tvp)->tv_usec = 0
-#define MSF_TIMERISSET(tvp)	((tvp)->tv_sec || (tvp)->tv_usec)
-
+#define MSF_TIMERCLEAR(tvp) (tvp)->tv_sec = (tvp)->tv_usec = 0
+#define MSF_TIMERISSET(tvp) ((tvp)->tv_sec || (tvp)->tv_usec)
 #endif
 
 /** Return true iff the tvp is related to uvp according to the relational
@@ -130,4 +126,8 @@ void msf_libc_gmtime(time_t s, struct tm *t);
      ((tvp)->tv_usec cmp (uvp)->tv_usec) :  \
      ((tvp)->tv_sec cmp (uvp)->tv_sec))
 
+     /* see /usr/src/kernel/linux/jiffies.h */
+     /* extern unsigned long volatile jiffies; */
+     
+#define jiffies     ((long)times(NULL))
 

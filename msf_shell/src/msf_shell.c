@@ -206,7 +206,7 @@ s32 logger_init(void) {
 s32 service_init(void) {
 
     u32 svc_idx;
-    struct svc *svc_cb;
+    struct msf_svc *svc_cb;
 
     for (svc_idx = 0; svc_idx < g_proc->proc_svc_num; svc_idx++) {
         MSF_SHELL_LOG(DBG_ERROR, "Start to load svc %d.", svc_idx);

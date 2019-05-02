@@ -15,7 +15,7 @@
  *    CPU利用率 = 100*(user+nice+system)/(user+nice+system+idle)
  *    第一行: cpu 711 56 2092 7010 104 0 20 0 0 0
  *    上面共有10个值 (单位:jiffies)前面8个值分别为:
- *	                      
+ *                        
  *    User time, 711(用户时间)             Nice time, 56 (Nice时间)
  *    System time, 2092(系统时间)          Idle time, 7010(空闲时间)
  *    Waiting time, 104(等待时间)          Hard Irq time, 0(硬中断处理时间)

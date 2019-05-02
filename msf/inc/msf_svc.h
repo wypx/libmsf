@@ -55,7 +55,7 @@ typedef s32 (*svc_func)(void *data, u32 len);
 
 typedef struct svc plugin;
 
-struct svc {
+struct msf_svc {
     svc_func init;
     svc_func deinit;
     svc_func start;
@@ -74,7 +74,7 @@ struct svcinst {
     s8  *svc_deplib[8];
 
     MSF_DLHANDLE svc_handle;
-    struct svc *svc_cb;
+    struct msf_svc *svc_cb;
 } MSF_PACKED_MEMORY;
 
 s32 msf_svc_stub(const s8 *func, ...);

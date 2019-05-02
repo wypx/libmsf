@@ -47,11 +47,9 @@
 #include <msf_log.h>
 
 #define invalid_socket      -1
-
 #define max_epoll_event     256
 
-
-#define	PREFIX_UNIX_PATH    "/var/" /* +5 for pid = 14 chars */
+#define PREFIX_UNIX_PATH    "/var/" /* +5 for pid = 14 chars */
 
 #define MSF_RPC_UNIX_SERVER "/var/msf_rpc_srv.sock"
 #define MSF_RPC_UNIX_DLNA   "/var/msf_rpc_dlna.sock"

@@ -187,14 +187,14 @@ s32 pthread_spawn(pthread_t *tid, void* (*func)(void *), void *arg) {
     sigaddset (&signal_mask, SIGPIPE);
     rc = pthread_sigmask (SIG_BLOCK, &signal_mask, NULL);
     if (rc != 0) {
-        MSF_THREAD_LOG(DBG_ERROR, "block sigpipe error\n");
+        MSF_THREAD_LOG(DBG_ERROR, "Block sigpipe error.");
     } 
 #endif
 
     pthread_attr_init(&thread_attr);
     pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_JOINABLE);
     if (pthread_create(tid, &thread_attr, (void *)func, arg) < 0) {
-        MSF_THREAD_LOG(DBG_ERROR, "pthread_create");
+        MSF_THREAD_LOG(DBG_ERROR, "pthread_create errno(%d).", errno);
         return -1;
     }
 

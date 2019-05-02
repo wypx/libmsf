@@ -1,6 +1,20 @@
+/**************************************************************************
+*
+* Copyright (c) 2017-2018, luotang.me <wypx520@gmail.com>, China.
+* All rights reserved.
+*
+* Distributed under the terms of the GNU General Public License v2.
+*
+* This software is provided 'as is' with no explicit or implied warranties
+* in respect of its properties, including, but not limited to, correctness
+* and/or fitness for purpose.
+*
+**************************************************************************/
 
 #include <msf_utils.h>
 
+#ifndef __MSF_LOG_H__
+#define __MSF_LOG_H__
 // colors
 #define NONE                 "\e[0m"
 #define BLACK                "\e[0;30m"
@@ -71,4 +85,4 @@ enum log_type_t {
 s32 log_write(s32 level, s8 *mod, const s8 *func, const s8 *file, s32 line, s8 *fmt, ...);
 s32 log_init(const s8 *log_path);
 void log_free(void);
-
+#endif

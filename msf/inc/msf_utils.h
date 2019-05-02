@@ -32,8 +32,8 @@
     RTLD_DEEPBIND:在搜索全局符号前先搜索库内的符号,避免同名符号的冲突
                 这个flag不是POSIX-2001标准。     
 */
-#ifndef _UTILS_H_
-#define _UTILS_H_
+#ifndef _MSF_UTILS_H_
+#define _MSF_UTILS_H_
 
 #include <msf_config.h>
 
@@ -227,15 +227,23 @@ typedef unsigned long long int  u64;
         (fp) = NULL;} \
     } while(0)
 
+/* 这个表示一个方法的返回值只由参数决定, 如果参数不变的话,
+ *  就不再调用此函数，直接返回值.经过我的尝试发现还是调用了,
+ *  后又经查资料发现要给gcc加一个-O的参数才可以.
+ *  是对函数调用的一种优化*/
+#define MSF_CONST_CALL __attribute__((const))
+/* 表示函数的返回值必须被检查或使用,否则会警告*/
+#define MSF_UNUSED_CHECK __attribute__((unused))
 #define MSF_PACKED_MEMORY  __attribute__((__packed__))
+/* Force compiler to use inline*/
 #define MSF_ALWAYS_INLINE inline __attribute__((always_inline))
-#define MSF_LIBRARY_INITIALIZER(f) \
-    static void f(void)__attribute__((constructor)); \
-    static void f(void)
+#define MSF_LIBRARY_INITIALIZER(func, level) \
+    static void func(void)__attribute__((constructor(level))); \
+    static void func(void)
 
-#define MSF_LIBRARY_FINALIZER(f) \
-    static void f(void)__attribute__((destructor)); \
-    static void f(void)
+#define MSF_LIBRARY_FINALIZER(func) \
+    static void func(void)__attribute__((destructor)); \
+    static void func(void)
 
 /** when static library not been linked, 
   * this check is needed.

@@ -31,8 +31,7 @@ extern s32 get_cpu_mhz(s32 cpu);
             (ptr) = NULL;} \
         } while(0) 
 
-
-static inline long msf_get_page_size(void) {
+static MSF_ALWAYS_INLINE long msf_get_page_size(void) {
 
     static long page_size;
 

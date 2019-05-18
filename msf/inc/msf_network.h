@@ -1,6 +1,6 @@
 /**************************************************************************
 *
-* Copyright (c) 2017-2018, luotang.me <wypx520@gmail.com>, China.
+* Copyright (c) 2017-2019, luotang.me <wypx520@gmail.com>, China.
 * All rights reserved.
 *
 * Distributed under the terms of the GNU General Public License v2.
@@ -10,8 +10,8 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-#ifndef _NETWORK_H_
-#define _NETWORK_H_
+#ifndef _MSF_NETWORK_H_
+#define _MSF_NETWORK_H_
 
 #include <stdio.h>
 #include <fcntl.h>
@@ -51,9 +51,9 @@
 
 #define PREFIX_UNIX_PATH    "/var/" /* +5 for pid = 14 chars */
 
-#define MSF_RPC_UNIX_SERVER "/var/msf_rpc_srv.sock"
-#define MSF_RPC_UNIX_DLNA   "/var/msf_rpc_dlna.sock"
-#define MSF_RPC_UNIX_UPNP   "/var/msf_rpc_upnp.sock"
+#define MSF_RPC_UNIX_SERVER "/var/msf_agent.sock"
+#define MSF_RPC_UNIX_DLNA   "/var/msf_dlna.sock"
+#define MSF_RPC_UNIX_UPNP   "/var/msf_upnp.sock"
 
 #define LOCAL_HOST_V4       "127.0.0.1"
 #define LOCAL_HOST_V6       "[::1]"
@@ -64,8 +64,7 @@
 #define IF_INET6_FILE       "/proc/net/if_inet6"
 #define IPV6_ROUTE_FILE     "/proc/net/ipv6_route"
 #define DOMAIN_ADDR_LEN     64 
-
-/* IP地址合法性判断宏定义,只针对IPv4地址 */
+#define MAX_IPADDR_LEN      64
 #define NET_SWAP_32(x)                      ((((x)&0xff000000) >> 24)\
                                             | (((x)&0x00ff0000) >> 8)\
                                             | (((x)&0x0000ff00) << 8)\
@@ -103,9 +102,11 @@ static inline s32 msf_socket_non_blocking(s32 domain, s32 type, s32 protocol) {
 /* NOTE: we aren't using static inline function here; because accept4 requires
  * defining _GNU_SOURCE and we don't want users to be forced to define it in
  * their application */
-#define msf_accept_non_blocking(sockfd, addr, addrlen) \
+#define msf_accept4(sockfd, addr, addrlen) \
         accept4(sockfd, addr, addrlen, SOCK_NONBLOCK)
-    
+
+#define msf_accept(sockfd, addr, addrlen)  accept(sockfd, addr, addrlen) 
+
 static inline s32 msf_timerfd_create(void) {
     return timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
 }
@@ -176,10 +177,10 @@ enum net_protocol {
 #endif
 
 struct denied_address {
-    s32     family;     /**< AF family (AF_INET or AF_INET6) */
-    s8      addr[16];   /**< IPv4 or IPv6 address */
-    s8      mask[16];   /**< Network mask of the address */
-    s32     port;       /**< Network port of the address  */
+    s32     family;                 /**< AF family (AF_INET or AF_INET6) */
+    s8      addr[MAX_IPADDR_LEN];   /**< IPv4 or IPv6 address */
+    s8      mask[MAX_IPADDR_LEN];   /**< Network mask of the address */
+    s32     port;                   /**< Network port of the address  */
     struct denied_address* next;    /**< For list management */
 } __attribute__((__packed__));
 
@@ -258,9 +259,17 @@ s32 getsyshwaddr(s8 *buf, s32 len);
 s32 get_remote_mac(struct in_addr ip_addr, u8 *mac);
 void reload_ifaces(s32 notify);
 
-s32 get_ipaddr(s8 *iface, s8 *ip, s32 len);
-s32 get_ifaddr(s8 *iface, s8 *ip, s32 len);
+s32 msf_get_dns(s8 *primary_dns, s8 *second_dns);
+s32 msf_get_ipaddr(s8 *iface, s8 *ip, s32 len);
+s32 msf_get_ifaddr(s8 *iface, s8 *ip, s32 len);
 
+s32 get_ipaddr_by_intf(s8* iface, s8* ipaddr, s32 len);
+
+s32 msf_get_hostname(s8 *host, s32 len);
+s32 msf_get_sockaddr_by_host(const s8 *host, struct sockaddr *addr);
+s32 msf_get_ipaddr_by_host(const s8 *host, s8 *ip, s32 len);
+
+s32 msf_ping(const s8 *host);
 
 s32 OpenAndConfMonitorSocket();
 void ProcessMonitorEvent(s32 s);

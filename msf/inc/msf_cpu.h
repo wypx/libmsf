@@ -1,35 +1,34 @@
 #include <msf_utils.h>
-
 #include <sched.h>
 #include <numa.h>
 
-/* CPUĞÅÏ¢ÃèÊö
- * (user, nice, system,idle, iowait, irq, softirq, stealstolen, guest)µÄ9Ôª×é
+/* CPUä¿¡æ¯æè¿°
+ * (user, nice, system,idle, iowait, irq, softirq, stealstolen, guest)çš„9å…ƒç»„
  *
- * ÏµÍ³ÃüÁî : topÃüÁî²é¿´ÈÎÎñ¹ÜÀíÆ÷ÊµÊ±ÏµÍ³ĞÅÏ¢
- * 1. CPUÊ¹ÓÃÂÊ: cat /proc/stat 
- *    ÓÃ»§Ä£Ê½(user)
- *    µÍÓÅÏÈ¼¶µÄÓÃ»§Ä£Ê½(nice)
- *    ÄÚºËÄ£Ê½(system)
- *    ¿ÕÏĞµÄ´¦ÀíÆ÷Ê±¼ä(idle)
- *    CPUÀûÓÃÂÊ = 100*(user+nice+system)/(user+nice+system+idle)
- *    µÚÒ»ĞĞ: cpu 711 56 2092 7010 104 0 20 0 0 0
- *    ÉÏÃæ¹²ÓĞ10¸öÖµ (µ¥Î»:jiffies)Ç°Ãæ8¸öÖµ·Ö±ğÎª:
+ * ç³»ç»Ÿå‘½ä»¤ : topå‘½ä»¤æŸ¥çœ‹ä»»åŠ¡ç®¡ç†å™¨å®æ—¶ç³»ç»Ÿä¿¡æ¯
+ * 1. CPUä½¿ç”¨ç‡: cat /proc/stat 
+ *    ç”¨æˆ·æ¨¡å¼(user)
+ *    ä½ä¼˜å…ˆçº§çš„ç”¨æˆ·æ¨¡å¼(nice)
+ *    å†…æ ¸æ¨¡å¼(system)
+ *    ç©ºé—²çš„å¤„ç†å™¨æ—¶é—´(idle)
+ *    CPUåˆ©ç”¨ç‡ = 100*(user+nice+system)/(user+nice+system+idle)
+ *    ç¬¬ä¸€è¡Œ: cpu 711 56 2092 7010 104 0 20 0 0 0
+ *    ä¸Šé¢å…±æœ‰10ä¸ªå€¼ (å•ä½:jiffies)å‰é¢8ä¸ªå€¼åˆ†åˆ«ä¸º:
  *                        
- *    User time, 711(ÓÃ»§Ê±¼ä)             Nice time, 56 (NiceÊ±¼ä)
- *    System time, 2092(ÏµÍ³Ê±¼ä)          Idle time, 7010(¿ÕÏĞÊ±¼ä)
- *    Waiting time, 104(µÈ´ıÊ±¼ä)          Hard Irq time, 0(Ó²ÖĞ¶Ï´¦ÀíÊ±¼ä)
- *    SoftIRQ time, 20(ÈíÖĞ¶Ï´¦ÀíÊ±¼ä)     Steal time, 0(¶ªÊ§Ê±¼ä)
+ *    User time, 711(ç”¨æˆ·æ—¶é—´)             Nice time, 56 (Niceæ—¶é—´)
+ *    System time, 2092(ç³»ç»Ÿæ—¶é—´)          Idle time, 7010(ç©ºé—²æ—¶é—´)
+ *    Waiting time, 104(ç­‰å¾…æ—¶é—´)          Hard Irq time, 0(ç¡¬ä¸­æ–­å¤„ç†æ—¶é—´)
+ *    SoftIRQ time, 20(è½¯ä¸­æ–­å¤„ç†æ—¶é—´)     Steal time, 0(ä¸¢å¤±æ—¶é—´)
  *
- *    CPUÊ±¼ä=user+system+nice+idle+iowait+irq+softirq+Stl
+ *    CPUæ—¶é—´=user+system+nice+idle+iowait+irq+softirq+Stl
  *
  *
- * 2. ÄÚ´æÊ¹ÓÃ : cat /proc/meminfo
- *    µ±Ç°ÄÚ´æµÄÊ¹ÓÃÁ¿(cmem)ÒÔ¼°ÄÚ´æ×ÜÁ¿(amem)
- *    ÄÚ´æÊ¹ÓÃ°Ù·Ö±È = 100 * (cmem / umem) 
- * 3. ÍøÂç¸ºÔØ : cat /proc/net/dev
- *    ´Ó±¾»úÊä³öµÄÊı¾İ°üÊı,Á÷Èë±¾»úµÄÊı¾İ°üÊı
- *    Æ½¾ùÍøÂç¸ºÔØ = (Êä³öµÄÊı¾İ°ü+Á÷ÈëµÄÊı¾İ°ü)/2
+ * 2. å†…å­˜ä½¿ç”¨ : cat /proc/meminfo
+ *    å½“å‰å†…å­˜çš„ä½¿ç”¨é‡(cmem)ä»¥åŠå†…å­˜æ€»é‡(amem)
+ *    å†…å­˜ä½¿ç”¨ç™¾åˆ†æ¯” = 100 * (cmem / umem) 
+ * 3. ç½‘ç»œè´Ÿè½½ : cat /proc/net/dev
+ *    ä»æœ¬æœºè¾“å‡ºçš„æ•°æ®åŒ…æ•°,æµå…¥æœ¬æœºçš„æ•°æ®åŒ…æ•°
+ *    å¹³å‡ç½‘ç»œè´Ÿè½½ = (è¾“å‡ºçš„æ•°æ®åŒ…+æµå…¥çš„æ•°æ®åŒ…)/2
  */
 
 #define CPU_KEY_LEN     16

@@ -12,13 +12,13 @@
 **************************************************************************/
 
 /*
-Êµ¼ÊÉÏ£¬ÉÏÊöÎÊÌâµÄ½â¾öÀë²»¿ªNginxµÄpostÊÂ¼þ´¦Àí»úÖÆ¡£Õâ¸öpostÊÂ¼þÊÇÊ²Ã´ÒâË¼ÄØ£¿Ëü±íÊ¾ÔÊÐíÊÂ¼þÑÓºóÖ´ÐÐ¡£NginxÉè¼ÆÁËÁ½¸öpost¶ÓÁÐ£¬Ò»
-¸öÊÇÓÉ±»´¥·¢µÄ¼àÌýÁ¬½ÓµÄ¶ÁÊÂ¼þ¹¹³ÉµÄngx_posted_accept_events¶ÓÁÐ£¬ÁíÒ»¸öÊÇÓÉÆÕÍ¨¶Á£¯Ð´ÊÂ¼þ¹¹³ÉµÄngx_posted_events¶ÓÁÐ¡£ÕâÑùµÄpostÊÂ
-¼þ¿ÉÒÔÈÃÓÃ»§Íê³ÉÊ²Ã´ÑùµÄ¹¦ÄÜÄØ£¿
-½«epoll_wait²úÉúµÄÒ»ÅúÊÂ¼þ£¬·Öµ½ÕâÁ½¸ö¶ÓÁÐÖÐ,ÈÃ´æ·Å×ÅÐÂÁ¬½ÓÊÂ¼þµÄngx_posted_accept_events¶ÓÁÐÓÅÏÈÖ´ÐÐ£¬´æ·ÅÆÕÍ¨ÊÂ¼þµÄngx_posted_events¶Ó
-ÁÐ×îºóÖ´ÐÐ£¬ÕâÊÇ½â¾ö¡°¾ªÈº¡±ºÍ¸ºÔØ¾ùºâÁ½¸öÎÊÌâµÄ¹Ø¼ü.
-Èç¹ûÔÚ´¦ÀíÒ»¸öÊÂ¼þµÄ¹ý³ÌÖÐ²úÉúÁËÁíÒ»¸öÊÂ¼þ,¶øÎÒÃÇÏ£ÍûÕâ¸öÊÂ¼þËæºóÖ´ÐÐ£¨²»ÊÇÁ¢¿ÌÖ´ÐÐ£©£¬
-¾Í¿ÉÒÔ°ÑËü·Åµ½post¶ÓÁÐÖÐ¡£
+å®žé™…ä¸Šï¼Œä¸Šè¿°é—®é¢˜çš„è§£å†³ç¦»ä¸å¼€Nginxçš„postäº‹ä»¶å¤„ç†æœºåˆ¶ã€‚è¿™ä¸ªpostäº‹ä»¶æ˜¯ä»€ä¹ˆæ„æ€å‘¢ï¼Ÿå®ƒè¡¨ç¤ºå…è®¸äº‹ä»¶å»¶åŽæ‰§è¡Œã€‚Nginxè®¾è®¡äº†ä¸¤ä¸ªposté˜Ÿåˆ—ï¼Œä¸€
+ä¸ªæ˜¯ç”±è¢«è§¦å‘çš„ç›‘å¬è¿žæŽ¥çš„è¯»äº‹ä»¶æž„æˆçš„ngx_posted_accept_eventsé˜Ÿåˆ—ï¼Œå¦ä¸€ä¸ªæ˜¯ç”±æ™®é€šè¯»ï¼å†™äº‹ä»¶æž„æˆçš„ngx_posted_eventsé˜Ÿåˆ—ã€‚è¿™æ ·çš„postäº‹
+ä»¶å¯ä»¥è®©ç”¨æˆ·å®Œæˆä»€ä¹ˆæ ·çš„åŠŸèƒ½å‘¢ï¼Ÿ
+å°†epoll_waitäº§ç”Ÿçš„ä¸€æ‰¹äº‹ä»¶ï¼Œåˆ†åˆ°è¿™ä¸¤ä¸ªé˜Ÿåˆ—ä¸­,è®©å­˜æ”¾ç€æ–°è¿žæŽ¥äº‹ä»¶çš„ngx_posted_accept_eventsé˜Ÿåˆ—ä¼˜å…ˆæ‰§è¡Œï¼Œå­˜æ”¾æ™®é€šäº‹ä»¶çš„ngx_posted_eventsé˜Ÿ
+åˆ—æœ€åŽæ‰§è¡Œï¼Œè¿™æ˜¯è§£å†³â€œæƒŠç¾¤â€å’Œè´Ÿè½½å‡è¡¡ä¸¤ä¸ªé—®é¢˜çš„å…³é”®.
+å¦‚æžœåœ¨å¤„ç†ä¸€ä¸ªäº‹ä»¶çš„è¿‡ç¨‹ä¸­äº§ç”Ÿäº†å¦ä¸€ä¸ªäº‹ä»¶,è€Œæˆ‘ä»¬å¸Œæœ›è¿™ä¸ªäº‹ä»¶éšåŽæ‰§è¡Œï¼ˆä¸æ˜¯ç«‹åˆ»æ‰§è¡Œï¼‰ï¼Œ
+å°±å¯ä»¥æŠŠå®ƒæ”¾åˆ°posté˜Ÿåˆ—ä¸­ã€‚
 */
 
 
@@ -27,8 +27,8 @@
 #include <msf_network.h>
 
 #define EPOLLEVENTS 100
-#define LIMIT_TIMER 1 /* ÓÐÏÞ´ÎÊý¶¨Ê±Æ÷ */
-#define CYCLE_TIMER 2 /* Ñ­»·¶¨Ê±Æ÷ */
+#define LIMIT_TIMER 1 /* æœ‰é™æ¬¡æ•°å®šæ—¶å™¨ */
+#define CYCLE_TIMER 2 /* å¾ªçŽ¯å®šæ—¶å™¨ */
 
 enum msf_event_flags {
     MSF_EVENT_TIMEOUT  = 1<<0,

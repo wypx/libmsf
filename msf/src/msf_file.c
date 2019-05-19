@@ -5,7 +5,7 @@
 
 #define MSF_MOD_FILE "FILE"
 #define MSF_FILE_LOG(level, ...) \
-    log_write(level, MSF_MOD_FILE, MSF_FUNC_FILE_LINE, __VA_ARGS__)
+    msf_log_write(level, MSF_MOD_FILE, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 s32 msf_open_tempfile(u8 *name, u32 persistent, u32 access)
 {
@@ -468,11 +468,11 @@ void msf_enable_coredump(void) {
     if (getrlimit(RLIMIT_CORE, &rlim) == 0) {
         rlim.rlim_cur = rlim.rlim_max;
         if (setrlimit(RLIMIT_CORE, &rlim) == 0) {
-            MSF_FILE_LOG(DBG_DEBUG, "Enable Core Dumps OK!\n");
+            MSF_FILE_LOG(DBG_DEBUG, "Enable Core Dumps OK!.");
             return;
         }
     }
-    MSF_FILE_LOG(DBG_ERROR,  "Enable Core Dump failed: %s\n",strerror(errno));
+    MSF_FILE_LOG(DBG_ERROR,  "Enable Core Dump failed: %s.",strerror(errno));
 }
 
 

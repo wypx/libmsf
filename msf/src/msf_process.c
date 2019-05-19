@@ -86,7 +86,7 @@ s32 process_try_lock(const s8 *proc_name, u32 mode) {
     所有访问文件的进程都必须要配合，即在执行文件IO之前先放置一把锁。
     */
     fd = open(proc_file, O_RDWR | O_CREAT | O_CLOEXEC, 
-    				S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+                S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if (fd < 0) {
         printf("Open prcoess lock file(%s) failed, errno(%d)\n", proc_name, errno);
         return true;

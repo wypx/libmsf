@@ -51,9 +51,10 @@
 
 #define PREFIX_UNIX_PATH    "/var/" /* +5 for pid = 14 chars */
 
-#define MSF_RPC_UNIX_SERVER "/var/msf_agent.sock"
-#define MSF_RPC_UNIX_DLNA   "/var/msf_dlna.sock"
-#define MSF_RPC_UNIX_UPNP   "/var/msf_upnp.sock"
+#define MSF_RPC_UNIX_SERVER     "/var/msf_agent.sock"
+#define MSF_RPC_UNIX_DLNA       "/var/msf_dlna.sock"
+#define MSF_RPC_UNIX_UPNP       "/var/msf_upnp.sock"
+#define MSF_RPC_UNIX_FORMAT     "/var/msf_%s.sock"
 
 #define LOCAL_HOST_V4       "127.0.0.1"
 #define LOCAL_HOST_V6       "[::1]"

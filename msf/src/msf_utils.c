@@ -22,7 +22,7 @@
 
 #define MSF_MOD_UTILS "UTILS"
 #define MSF_UTILS_LOG(level, ...) \
-    log_write(level, MSF_MOD_UTILS, MSF_FUNC_FILE_LINE, __VA_ARGS__)
+    msf_log_write(level, MSF_MOD_UTILS, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 void msf_touppercase(s8 *s) {
     while (*s) {

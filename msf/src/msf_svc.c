@@ -16,7 +16,7 @@
 
 #define MSF_MOD_SVC "SVC"
 #define MSF_SVC_LOG(level, ...) \
-    log_write(level, MSF_MOD_SVC, MSF_FUNC_FILE_LINE, __VA_ARGS__)
+    msf_log_write(level, MSF_MOD_SVC, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 /*
 这里有一个函数名字是 foo.当我们同时使用test1.o和test2.o,

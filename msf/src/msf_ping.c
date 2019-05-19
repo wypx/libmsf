@@ -16,7 +16,7 @@
 
 #define MSF_MOD_PING "PING"
 #define MSF_PING_LOG(level, ...) \
-    log_write(level, MSF_MOD_PING, MSF_FUNC_FILE_LINE, __VA_ARGS__)
+    msf_log_write(level, MSF_MOD_PING, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 /* 
   Ping Function:

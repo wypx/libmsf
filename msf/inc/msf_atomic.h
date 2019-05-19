@@ -10,14 +10,12 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-#include <msf_config.h>
+#include <msf_utils.h>
 
 #if (MSF_HAVE_GCC_ATOMIC)
 /* GCC 4.1 builtin atomic operations */
 
-typedef long               msf_atomic_int_t;
-typedef unsigned long               msf_atomic_uint_t;
-typedef volatile msf_atomic_uint_t  msf_atomic_t;
+typedef volatile u32  msf_atomic_t;
 
 #define msf_atomic_cmp_set(lock, old, set)  \
     __sync_bool_compare_and_swap(lock, old, set)
@@ -50,7 +48,8 @@ typedef volatile msf_atomic_uint_t  msf_atomic_t;
 
 #define MSF_SMP_LOCK  "lock;"
 
-/* é˜²æ­¢è¯»æ··ä¹±,å‘Šè¯‰ç¼–è¯‘å™¨ä¸è¦å¯¹åé¢çš„è¯­å¥è¿›è¡Œä¼˜åŒ–,ä¸è¦æ‰“ä¹±æ‰§è¡Œé¡ºåº             */
+/* ËüµÄ×÷ÓÃÊµ¼ÊÉÏ»¹ÊÇºÍ·ÀÖ¹¶Á²Ù×÷»ìÂÒÓĞ¹Ø
+ * Ëü¸æËß±àÒëÆ÷²»Òª½«ÆäºóÃæµÄÓï¾ä½øĞĞÓÅ»¯,²»Òª´òÂÒÆäÖ´ĞĞË³Ğò*/
 #define msf_memory_barrier()    __asm__ volatile ("" ::: "memory")
 
 #define msf_cpu_pause()         __asm__ ("pause")
@@ -80,7 +79,7 @@ typedef volatile msf_atomic_uint_t  msf_atomic_t;
 
 static inline msf_atomic_uint_t
 msf_atomic_cmp_set(msf_atomic_t *lock, msf_atomic_uint_t old,
-    msf_atomic_uint_t set)
+    msfatomic_uint_t set)
 {
     u8  res;
 

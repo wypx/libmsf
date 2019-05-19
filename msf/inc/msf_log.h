@@ -82,7 +82,7 @@ enum log_type_t {
     LOG_MAX_OUTPUT = 255
 } ;
 
-s32 log_write(s32 level, s8 *mod, const s8 *func, const s8 *file, s32 line, s8 *fmt, ...);
-s32 log_init(const s8 *log_path);
-void log_free(void);
+s32 msf_log_write(s32 level, s8 *mod, const s8 *func, const s8 *file, s32 line, s8 *fmt, ...);
+s32 msf_log_init(const s8 *log_path);
+void msf_log_free(void);
 #endif

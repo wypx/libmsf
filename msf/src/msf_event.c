@@ -18,7 +18,7 @@
 
 #define MSF_MOD_EVENT "EVENT"
 #define MSF_EVENT_LOG(level, ...) \
-    log_write(level, MSF_MOD_EVENT, MSF_FUNC_FILE_LINE, __VA_ARGS__)
+    msf_log_write(level, MSF_MOD_EVENT, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 struct min_heap g_msf_min_heap;
 
@@ -200,7 +200,7 @@ void* msf_timer_loop(void *param) {
         }
         else
         {
-            MSF_EVENT_LOG(DBG_ERROR, "timer_wait:%ld.", tvp->tv_sec*1000 + tvp->tv_usec/1000);//ms
+            MSF_EVENT_LOG(DBG_INFO, "timer_wait:%ld.", tvp->tv_sec*1000 + tvp->tv_usec/1000);//ms
             rc = epoll_wait(epfd, events, EPOLLEVENTS, tvp->tv_sec*1000 + tvp->tv_usec/1000);//ms
         }
  

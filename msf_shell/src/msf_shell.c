@@ -17,7 +17,7 @@
 
 #define MSF_MOD_SHELL "PROCESS"
 #define MSF_SHELL_LOG(level, ...) \
-    log_write(level, MSF_MOD_SHELL, MSF_FUNC_FILE_LINE, __VA_ARGS__)
+    msf_log_write(level, MSF_MOD_SHELL, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 
 #define DEF_PROC_KEY_NAME       "proc_name"
@@ -380,7 +380,7 @@ s32 main(s32 argc, s8 *argv[]) {
 
     snprintf(log_path, sizeof(log_path)-1, "logger/%s.log", "AGENT");
 
-    if (log_init(log_path) < 0) {
+    if (msf_log_init(log_path) < 0) {
         return -1;
     }
 

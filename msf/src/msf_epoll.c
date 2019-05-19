@@ -16,7 +16,7 @@
 
 #define MSF_MOD_EPOLL "MSF_EPOLL"
 #define MSF_EPOLL_LOG(level, ...) \
-    log_write(level, MSF_MOD_EPOLL, MSF_FUNC_FILE_LINE, __VA_ARGS__)
+    msf_log_write(level, MSF_MOD_EPOLL, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 
 #define MAX_SECONDS_IN_MSEC_LONG 200

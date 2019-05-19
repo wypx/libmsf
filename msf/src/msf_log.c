@@ -10,7 +10,7 @@
 #define MSF_MOD_LOGGER "MSF_LOG"
 
 #define MSF_LOG(level, ...) \
-    log_write(level, MSF_MOD_LOGGER, MSF_FUNC_FILE_LINE, __VA_ARGS__)
+    msf_log_write(level, MSF_MOD_LOGGER, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 
 #define LOG_FILE_PATH       "/home/luotang.me/log/rapberry.log"
@@ -314,7 +314,7 @@ static s32 log_write_file(struct log_param* ctx, const s8 *info, s32 len)
 }
 
 
-s32 log_init(const s8 *log_path) {
+s32 msf_log_init(const s8 *log_path) {
 
     s8 log_name[128];
 
@@ -365,7 +365,7 @@ s32 log_init(const s8 *log_path) {
 }
 
 
-void log_free(void) {
+void msf_log_free(void) {
     lplog->logstat = L_CLOSED;
     sclose(lplog->logfd);
 
@@ -391,7 +391,7 @@ s32 log_zip(void) {
     return 0;
 }
 
-s32 log_write(s32 level, s8 *mod, const s8 *func, const s8 *file, s32 line, s8 *fmt, ... ) {
+s32 msf_log_write(s32 level, s8 *mod, const s8 *func, const s8 *file, s32 line, s8 *fmt, ... ) {
 
     pthread_mutex_lock( &(lplog->log_mutex));
 
@@ -435,7 +435,7 @@ s32 log_write(s32 level, s8 *mod, const s8 *func, const s8 *file, s32 line, s8 *
             fmt);
     } else {
         snprintf(newfmt, sizeof(newfmt) - 1,
-            "[%s][%s][%s][%s %s:%d] %s[pid:%d][tid:%lu]",
+            "[%s][%s][%s][%s %s:%d] %s[pid:%d,tid:%lu]",
             tmfmt,
             mod,
             loglevel[level],

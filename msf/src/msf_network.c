@@ -105,15 +105,13 @@
 
 #define MSF_MOD_NETWORK "NETWORK"
 #define MSF_NETWORK_LOG(level, ...) \
-    log_write(level, MSF_MOD_NETWORK, MSF_FUNC_FILE_LINE, __VA_ARGS__)
-
+    msf_log_write(level, MSF_MOD_NETWORK, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 static s32 kernel_features = 1;
 static s32 portreuse = 1;
 
 const struct in6_addr g_any6addr = IN6ADDR_ANY_INIT; 
 static u32 old_gateway = 0;
-
 
 /*
 * Checks validity of an IP address string based on the version
@@ -816,7 +814,7 @@ void msf_socket_debug(s32 fd) {
     if (cliaddr.ss_family == AF_UNIX) { 
         
         cun = SINU(&cliaddr);
-        MSF_NETWORK_LOG(DBG_DEBUG, "Unix local[%s] clifd[%d].", cun->sun_path, fd);
+        MSF_NETWORK_LOG(DBG_DEBUG, "Unix local(%s) clifd(%d).", cun->sun_path, fd);
 
     } else if (cliaddr.ss_family == AF_INET) {
 
@@ -824,13 +822,13 @@ void msf_socket_debug(s32 fd) {
 
         /* inet_ntoa(sin->sin_addr) */
         inet_ntop(cliaddr.ss_family, &sin->sin_addr, ip, sizeof(ip));
-        MSF_NETWORK_LOG(DBG_DEBUG, "Network ipv4 local[%s] port[%d].", ip, ntohs(sin->sin_port));
+        MSF_NETWORK_LOG(DBG_DEBUG, "Network ipv4 local(%s) port(%d).", ip, ntohs(sin->sin_port));
 
     } else if (cliaddr.ss_family == AF_INET6) {
 
         sin6 = SIN6(&cliaddr);
         inet_ntop(cliaddr.ss_family, &sin6->sin6_addr, ip, sizeof(ip));
-        MSF_NETWORK_LOG(DBG_DEBUG, "Network ipv6 local[%s] port[%d].", ip, ntohs(sin6->sin6_port));
+        MSF_NETWORK_LOG(DBG_DEBUG, "Network ipv6 local(%s) port(%d).", ip, ntohs(sin6->sin6_port));
     }
 
     memset(ip, 0, sizeof(ip));
@@ -3407,9 +3405,9 @@ s32 netlink_sendo(s32 fd, s8 *data, u32 len) {
 
     memset(&daddr, 0, sizeof(daddr));
     daddr.nl_family = AF_NETLINK;
-    daddr.nl_pad = 0;			/*always set to zero*/	
-    daddr.nl_pid = 0;			/*kernel's pid is zero*/  
-    daddr.nl_groups = 0;		/*multicast groups mask, if unicast set to zero*/  
+    daddr.nl_pad = 0;           /*always set to zero*/
+    daddr.nl_pid = 0;           /*kernel's pid is zero*/  
+    daddr.nl_groups = 0;        /*multicast groups mask, if unicast set to zero*/  
 
 
     struct nlmsghdr *nlh = (struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PLOAD));

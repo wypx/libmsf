@@ -5,7 +5,7 @@
 
 #define MSF_MOD_OS "OS"
 #define MSF_OS_LOG(level, ...) \
-    log_write(level, MSF_MOD_OS, MSF_FUNC_FILE_LINE, __VA_ARGS__)
+    msf_log_write(level, MSF_MOD_OS, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 
 s32  msf_max_sockets;//每个进程能打开的最多文件数

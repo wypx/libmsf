@@ -16,7 +16,7 @@
 
 #define MSF_MOD_THREAD "THREAD"
 #define MSF_THREAD_LOG(level, ...) \
-    log_write(level, MSF_MOD_THREAD, MSF_FUNC_FILE_LINE, __VA_ARGS__)
+    msf_log_write(level, MSF_MOD_THREAD, MSF_FUNC_FILE_LINE, __VA_ARGS__)
 
 /*
     pthread_cond_wait必须放在pthread_mutex_lock和pthread_mutex_unlock之间,

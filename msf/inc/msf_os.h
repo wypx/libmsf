@@ -1,3 +1,17 @@
+/**************************************************************************
+*
+* Copyright (c) 2017-2019, luotang.me <wypx520@gmail.com>, China.
+* All rights reserved.
+*
+* Distributed under the terms of the GNU General Public License v2.
+*
+* This software is provided 'as is' with no explicit or implied warranties
+* in respect of its properties, including, but not limited to, correctness
+* and/or fitness for purpose.
+*
+**************************************************************************/
+#ifndef __MSF_OS_H__
+#define __MSF_OS_H__
 
 #include <msf_file.h>
 #include <msf_process.h>
@@ -17,7 +31,7 @@ struct msf_meminfo {
     s8      name2[20];
     double  free;
     double  used_rate;
-} MSF_PACKED_MEMORY;
+};
 
 /** Memory information structure */
 struct msf_mem {
@@ -28,7 +42,7 @@ struct msf_mem {
     u32 max_used;   /** maximum used size since server start? */
     u32 min_frag;   /** minimum number of fragmentations? */
     u32 total_frags; /** number of total memory fragments */
-} MSF_PACKED_MEMORY;
+};
 
 struct msf_hdd {
     double total;
@@ -44,7 +58,14 @@ struct msf_os {
     u8      domainname[_UTSNAME_DOMAIN_LENGTH];
     
     u32     cacheline_size;
+    /* 返回一个分页的大小,单位为字节(Byte).
+     * 该值为系统的分页大小,不一定会和硬件分页大小相同*/
     u32     pagesize;
+    /* pagesize为4M, pagesize_shift应该为12 
+     * pagesize进行移位的次数, 见for (n = ngx_pagesize; 
+     * n >>= 1; ngx_pagesize_shift++) {  }
+     */
+    u32     pagesize_shift;
     u32     pagenum_all;
     u32     pagenum_ava;
     u64     memsize;
@@ -56,10 +77,10 @@ struct msf_os {
     u32     maxhostname;
     u32     maxloginname;
 
+    struct msf_meminfo meminfo;
     struct msf_mem  mem;
     struct msf_hdd  hdd;
-} MSF_PACKED_MEMORY;
-
+};
 
 s32 msf_get_meminfo(struct msf_meminfo *mem);
 s32 msf_get_hdinfo(struct msf_hdd *hd);
@@ -68,3 +89,4 @@ void msf_cpuinfo(void);
 s32 msf_set_user(struct process *proc);
 s32 msf_os_init(void);
 
+#endif

@@ -1004,6 +1004,31 @@ s32 msf_connect_host(const s8 *host, const s8 *port)
      return -1;
  }
 
+ s32 udp_sendn(const s32 fd, const void * const buf_, 
+                 u32 count, const u32 timeout)
+  {
+     struct sockaddr_in sa;
+     sa.sin_family = AF_INET;
+     sa.sin_addr.s_addr = inet_addr("192.168.0.110");
+     sa.sin_port = htons(9999);
+     int ret = sendto(fd, buf_, count, 0, (struct sockaddr*)&sa, sizeof(sa));
+#if 0
+ bytes_sent = sendto(to->fd, data, len, 0,
+     SOCK_PADDR(to), to->addr_len);
+#endif
+     return ret;
+ }
+
+s32 msf_sendto(s32 fd, void* const buf, u32 len,
+                struct sockaddr* addr, socklen_t addr_len) {
+    return sendto(fd, buf, (size_t)len, 0, 
+        (struct sockaddr* )addr, addr_len);
+}
+s32 msf_recvfrom(s32 fd, void* const buf, u32 len, 
+            struct sockaddr* addr, socklen_t *addr_len) {
+    return recvfrom(fd, buf, (size_t)len, 0, 
+            (struct sockaddr* )addr, addr_len);
+}
 
 s32 msf_sendmsg(s32 clifd, struct msghdr *msg) {
 
@@ -1021,20 +1046,6 @@ s32 msf_recvmsg(s32 clifd, struct msghdr *msg) {
     return rc;
 }
 
- s32 udp_sendn(const s32 fd, const void * const buf_, 
-                 u32 count, const u32 timeout)
-  {
-     struct sockaddr_in sa;
-     sa.sin_family = AF_INET;
-     sa.sin_addr.s_addr = inet_addr("192.168.0.110");
-     sa.sin_port = htons(9999);
-     int ret = sendto(fd, buf_, count, 0, (struct sockaddr*)&sa, sizeof(sa));
-#if 0
- bytes_sent = sendto(to->fd, data, len, 0,
-     SOCK_PADDR(to), to->addr_len);
-#endif
-     return ret;
- }
  
 /* Sets the DSCP value of socket 'fd' to 'dscp', which must be 63 or less.
 * 'family' must indicate the socket's address family (AF_INET or AF_INET6, to
@@ -1642,8 +1653,9 @@ s32 msf_server_socket(s8 *interf, s32 protocol, s32 port, s32 backlog) {
     s32 error = -1;
     struct addrinfo *ai;
     struct addrinfo *next;
-    struct addrinfo hints = { .ai_flags = AI_PASSIVE,
-    				   .ai_family = AF_UNSPEC };
+    struct addrinfo hints = { 
+        .ai_flags = AI_PASSIVE,
+        .ai_family = AF_UNSPEC };
     s8 port_buf[NI_MAXSERV];
 
     hints.ai_socktype = IS_UDP(protocol) ? SOCK_DGRAM : SOCK_STREAM;
@@ -1756,6 +1768,83 @@ err:
     return -1;
 }
 
+#define MUTICAST_ADDR "224.1.2.3"
+
+s32 msf_server_muticast_socket(s8 *interf, s32 protocol,
+            s32 port, s32 backlog) {
+
+    s32 srv_fd = -1 ;
+    struct sockaddr_in mcast_addr;
+
+    srv_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (srv_fd < 0) {
+        MSF_NETWORK_LOG(DBG_ERROR, "Socket udp socket failed.");
+        return -1;
+    }
+
+    msf_memzero(&mcast_addr, sizeof(mcast_addr));
+    mcast_addr.sin_family = AF_INET;
+    mcast_addr.sin_addr.s_addr = inet_addr(MUTICAST_ADDR);
+    mcast_addr.sin_port = htons(6666);
+ 
+    return srv_fd;
+}
+
+s32 msf_muticast_connect() {
+
+    s32 srv_fd = -1 ;
+    struct sockaddr_in local_addr;
+
+    srv_fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (srv_fd < 0) {
+        return -1;
+    }
+   
+    msf_memzero( &local_addr, sizeof( local_addr ));
+    local_addr.sin_family = AF_INET;
+    local_addr.sin_addr.s_addr = htonl( INADDR_ANY );
+    local_addr.sin_port = htons(6666);
+
+    const s32 ttl = 10;
+    if( -1 == setsockopt(srv_fd, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof(ttl))) {
+        MSF_NETWORK_LOG(DBG_ERROR, "Setsockopt Error:IP_MULTICAST_TTL.");
+        return -1;
+    }
+
+    s32 loop = 1;
+    if( -1 == setsockopt(srv_fd, IPPROTO_IP, IP_MULTICAST_LOOP, &loop,  sizeof(loop))) {
+        MSF_NETWORK_LOG(DBG_ERROR, "Setsockopt Error:IP_MULTICAST_LOOP." );
+        return -1;
+    }
+
+    struct ip_mreq mreq;  
+    mreq.imr_multiaddr.s_addr = inet_addr(MUTICAST_ADDR);
+    mreq.imr_interface.s_addr = htonl( INADDR_ANY );
+    if ( -1 == setsockopt(srv_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof( mreq ))) {
+        MSF_NETWORK_LOG(DBG_ERROR, "Setsockopt Error:IP_ADD_MEMBERSHIP.");
+        return -1;
+    }
+
+    s32 times = 0;
+    socklen_t addr_len = 0;
+    s8 buff[256] = { 0 };
+    while(1) {
+
+        addr_len = sizeof(local_addr);
+        msf_memzero(buff, 256);
+        if( -1 == recvfrom(srv_fd, buff, 256, 0, (struct sockaddr*)&local_addr, &addr_len)) {
+            MSF_NETWORK_LOG(DBG_ERROR, "Recvfrom msg error" );
+        }
+
+        MSF_NETWORK_LOG(DBG_DEBUG, "Recv %d message from server:%s.", times, buff );
+    }
+    if( -1 == setsockopt(srv_fd, IPPROTO_IP,  IP_DROP_MEMBERSHIP, &mreq, sizeof(mreq))) {
+        MSF_NETWORK_LOG(DBG_ERROR, "Setsockopt Error : IP_DROP_MEMBERSHIP." );
+    }
+
+    sclose(srv_fd);
+    return 0;
+}
 
 //http://www.cnblogs.com/Anker/archive/2013/08/17/3263780.html
 /* http://blog.csdn.net/yusiguyuan/article/details/15027821
@@ -2333,9 +2422,9 @@ int set_netmask(char* if_name, char* p_netmask)
     return 0;
 }
 
-int get_broadcast_addr(char* if_name, char *p_broadcast, int len)
+s32 get_broadcast_addr(s8* if_name, s8 *p_broadcast, s32 len)
 {
-    int s = -1;
+    s32 s = -1;
     struct ifreq ifr;
     struct sockaddr_in* ptr = NULL;
     struct in_addr addr_temp;
@@ -2375,9 +2464,9 @@ int get_broadcast_addr(char* if_name, char *p_broadcast, int len)
     return 0;
 }
  
-int set_broadcast_addr(char* if_name, char* p_broadcast)
+s32 set_broadcast_addr(s8* if_name, s8* p_broadcast)
 {
-    int s = -1;
+    s32 s = -1;
     struct ifreq ifr;
     struct sockaddr_in broadcast_addr;
 

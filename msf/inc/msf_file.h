@@ -10,6 +10,8 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
+#ifndef __MSF_FILE_H__
+#define __MSF_FILE_H__
 
 #include <msf_utils.h>
 
@@ -253,5 +255,4 @@ void msf_delete_pidfile(const s8 *pid_file);
 pid_t msf_read_pidfile(const s8 *pid_file);
 s32 msf_check_runningpid(const s8 *pid_file);
 void msf_write_pidfile(const s8 *pid_file);
-
-
+#endif

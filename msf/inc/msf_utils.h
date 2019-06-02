@@ -80,6 +80,8 @@ __extension__
 typedef unsigned long long int  u64;
 #endif
 
+#define MB (1024 * 1024)
+
 #define MSF_NO_WAIT             0
 #define MSF_WAIT_FOREVER       -1
 

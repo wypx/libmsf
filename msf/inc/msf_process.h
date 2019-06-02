@@ -56,10 +56,10 @@ struct process {
     u32 coredump;
     s8  *core_file;
     s8  *lock_file;
-    //ÐÞ¸Ä¹¤×÷½ø³ÌµÄ´ò¿ªÎÄ¼þÊýµÄ×î´óÖµÏÞÖÆ(RLIMIT_NOFILE),ÓÃÓÚÔÚ²»ÖØÆôÖ÷½ø³ÌµÄÇé¿öÏÂÔö´ó¸ÃÏÞÖÆ¡£
-    s32 rlimit_nofile; 
-    //ÐÞ¸Ä¹¤×÷½ø³ÌµÄcoreÎÄ¼þ³ß´çµÄ×î´óÖµÏÞÖÆ(RLIMIT_CORE),ÓÃÓÚÔÚ²»ÖØÆôÖ÷½ø³ÌµÄÇé¿öÏÂÔö´ó¸ÃÏÞÖÆ¡£
-    off_t rlimit_core;//worker_rlimit_core 1024k;  coredumpÎÄ¼þ´óÐ¡
+    //ä¿®æ”¹å·¥ä½œè¿›ç¨‹çš„æ‰“å¼€æ–‡ä»¶æ•°çš„æœ€å¤§å€¼é™åˆ¶(RLIMIT_NOFILE),ç”¨äºŽåœ¨ä¸é‡å¯ä¸»è¿›ç¨‹çš„æƒ…å†µä¸‹å¢žå¤§è¯¥é™åˆ¶ã€‚
+    s32 rlimit_nofile;
+    //ä¿®æ”¹å·¥ä½œè¿›ç¨‹çš„coreæ–‡ä»¶å°ºå¯¸çš„æœ€å¤§å€¼é™åˆ¶(RLIMIT_CORE),ç”¨äºŽåœ¨ä¸é‡å¯ä¸»è¿›ç¨‹çš„æƒ…å†µä¸‹å¢žå¤§è¯¥é™åˆ¶ã€‚
+    s32 rlimit_core;
 
     s8  proc_name[32];
     s8  proc_author[32];

@@ -141,4 +141,112 @@ s32 msf_ping(const s8 *host) {
     return rc;
 }
 
+#include <netinet/in.h>
+#include <netinet/if_ether.h>
+#include <net/if.h>
+#include <net/if_arp.h>
+#include <arpa/inet.h>
+
+enum {
+    ARP_MSG_SIZE = 0x2a
+};
+
+#define MAC_BCAST_ADDR      (u8*) "/xff/xff/xff/xff/xff/xff"
+#define ETH_INTERFACE       "eth0"
+
+struct arpMsg {  
+    struct ethhdr ethhdr;   /* Ethernet header u_char h_dest[6] h_source[6]  h_proto     */  
+    u16 htype;              /* hardware type (must be ARPHRD_ETHER) */  
+    u16 ptype;              /* protocol type (must be ETH_P_IP) */  
+    u8  hlen;               /* hardware address length (must be 6) */  
+    u8  plen;               /* protocol address length (must be 4) */  
+    u16 operation;          /* ARP packet */  
+    u8  sHaddr[6];          /* sender's hardware address */  
+    u8  sInaddr[4];         /* sender's IP address */  
+    u8  tHaddr[6];          /* target's hardware address */  
+    u8  tInaddr[4];         /* target's IP address */  
+    u8  pad[18];            /* pad for min. Ethernet payload (60 bytes) */  
+};  
+
+u32 server = 0;
+s32 ifindex = -1 ; 
+u8  arp[6] = { 0 }; 
+u16 conflict_time = 0;
+
+s32 msf_arpping(u32 yiaddr, u32 ip, u8 *mac, s8 *interface)
+{  
+    s32 timeout = 2;
+    s32 optval = 1;
+    s32 s = -1;                 /* socket */  
+    s32 rv = 1;                 /* return value */  
+    struct sockaddr addr;       /* for interface name */  
+    struct arpMsg arp;
+    fd_set fdset;
+    struct timeval tm;
+    time_t prevTime;
+
+    if ( -1 == ( s = socket ( PF_PACKET, SOCK_PACKET, htons(ETH_P_ARP)))) {
+        MSF_PING_LOG(DBG_ERROR, "Could not create raw socket." );
+        return -1;
+    }
+
+    if (-1 == setsockopt(s, SOL_SOCKET, SO_BROADCAST, &optval, sizeof(optval))) 
+    {
+        MSF_PING_LOG(DBG_ERROR, "Could not setsocketopt on raw socket.");
+        sclose(s);
+        return -1;
+    }  
+  
+    /*http://blog.csdn.net/wanxiao009/archive/2010/05/21/5613581.aspx */
+    memset(&arp, 0, sizeof( arp ));  
+    memcpy(arp.ethhdr.h_dest, MAC_BCAST_ADDR, 6);   /* MAC DA */
+    memcpy(arp.ethhdr.h_source, mac, 6);            /* MAC SA */
+    arp.ethhdr.h_proto = htons(ETH_P_ARP);          /* protocol type (Ethernet) */  
+    arp.htype = htons( ARPHRD_ETHER );              /* hardware type */
+    arp.ptype = htons( ETH_P_IP);                   /* protocol type (ARP message) */  
+    arp.hlen = 6;                                   /* hardware address length */  
+    arp.plen = 4;                                   /* protocol address length */  
+    arp.operation = htons(ARPOP_REQUEST);           /* ARP op code */
+    *((u32 *)arp.sInaddr) = ip;                     /* source IP address */
+    memcpy(arp.sHaddr, mac, 6);                     /* source hardware address */  
+    *((u32 *) arp.tInaddr) = yiaddr;                /* target IP address */
+  
+    memset(&addr, 0, sizeof( addr ));
+    strcpy(addr.sa_data, interface);
+    if (sendto(s, &arp, sizeof(arp), 0, &addr, (socklen_t)sizeof(addr)) < 0)
+        rv = 0;
+
+    tm.tv_usec = 0;
+    time( &prevTime );
+    while ( timeout > 0 )
+    {
+        FD_ZERO( &fdset );
+        FD_SET( s, &fdset );
+        tm.tv_sec = timeout;
+        if ( select( s + 1, &fdset, ( fd_set * ) NULL, ( fd_set * ) NULL, &tm) < 0 )
+        {
+            MSF_PING_LOG(DBG_ERROR, "Error on ARPING request: %s.", strerror( errno ));  
+            if ( errno != EINTR ) 
+                rv = 0;
+        } 
+        else if ( FD_ISSET( s, &fdset ))
+        {
+            if ( recv( s, &arp, sizeof( arp ), 0 ) < 0 )   
+                rv = 0;  
+            if ( arp.operation == htons( ARPOP_REPLY )
+                &&  0 == bcmp(arp.tHaddr, mac, 6)
+                &&  yiaddr == *(( u32 * )arp.sInaddr))
+            {  
+                MSF_PING_LOG(DBG_ERROR, "Valid arp reply receved for this address.");
+                rv = 0;
+                break;
+            }  
+        }  
+        timeout -= time( NULL) - prevTime;
+        time( &prevTime );
+    }
+    sclose(s);
+    return rv;
+}  
+
 

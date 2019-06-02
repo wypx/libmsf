@@ -478,7 +478,7 @@ static s32 msf_intf_main(s32 argc, s8 *argv[])
         }
         intf_cpusmask_str(cpusmask, cpusnum, cpus_str);
 
-        printf("%-10s %-16s %-30s %-5d 0x%-8lx %-4s[%d] - %s\n",
+        printf("%-10s %-16s %-30s %-5d 0x%-8llx %-4s[%d] - %s\n",
                ifa->ifa_name, host, flags, numa_node, cpusmask,
                "cpus",  cpusnum, cpus_str);
     }

@@ -126,7 +126,7 @@ s32 msf_read_channel(s32 fd, struct msf_channel *ch, size_t size) {
     }
 
     if ((size_t) n < sizeof(struct msf_channel)) {
-        printf("Recvmsg return not enough data: %ld\n", n);
+        printf("Recvmsg return not enough data: %zd.", n);
         return -1;
     }
 

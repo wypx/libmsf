@@ -1,10 +1,10 @@
 #!/bin/sh
-#################################
+########################################################
 # Makefile for libmsf.so
 #  by luotang
 #  2018.1.7
-#  project github: 
-#################################
+#  project github: https://github.com/wypx/libmsf
+########################################################
 ROOTDIR = ../../..
 include $(ROOTDIR)/Rules.make
 

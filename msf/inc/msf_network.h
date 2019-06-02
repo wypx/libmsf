@@ -26,10 +26,9 @@
 #include <ifaddrs.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
-
+#include <sys/types.h>
 #include <arpa/inet.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <sys/un.h>
 #include <sys/socket.h>
 #include <sys/poll.h>
@@ -231,6 +230,11 @@ s32 msf_socket_bind(s32 fd, const struct sockaddr *addr,
 s32 udp_recvn(s32 fd, void* const buf_, u32 n);
 s32 udp_sendn(const s32 fd, const void * const buf_, 
                 u32 count, const u32 timeout);
+
+s32 msf_sendto(s32 fd, void* const buf, u32 len,
+                struct sockaddr* addr, socklen_t addr_len);
+s32 msf_recvfrom(s32 fd, void* const buf, u32 len, 
+            struct sockaddr* addr, socklen_t *addr_len);
 
 s32 msf_sendmsg(s32 clifd, struct msghdr *msg);
 s32 msf_recvmsg(s32 clifd, struct msghdr *msg);

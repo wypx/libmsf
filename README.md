@@ -13,16 +13,18 @@ MSF (Mircro Service Framework) acting as mircro service process framework, provi
 ### 一. 开发环境准备
 1. 安装Ubuntu，Debian等Linux,ARM环境
 
-测试环境（Linux KaliCI 4.19.0-kali3-amd64）：gcc version 8.2.0 (Debian 8.2.0-14)
-测试环境（Linux raspberrypi 4.14.52-v7+）：gcc version 6.4.1 20171012 (Linaro GCC 6.4-2017.11) 
+测试环境（Linux KaliCI 4.19.0-kali3-amd64）：gcc version 8.2.0 (Debian 8.2.0-14) <br/>
+测试环境（Linux raspberrypi 4.14.52-v7+）：gcc version 6.4.1 20171012 (Linaro GCC 6.4-2017.11) <br/>
 
 ### 二. 编译样例程序
 1. ***下载该开源程序***
+
 将下载到的压缩包在Linux上解压缩
 
 2. ***进入编译目录目录***
-运行如下命令:
-下载libmsf微服务框架：
+
+运行如下命令: <br/>
+下载libmsf微服务框架：<br/>
 git clone https://github.com/wypx/libmsf/ <br/>
 root@KaliCI:/media/psf/tomato/mod/libmsf make <br/>
 Make Subdirs msf <br/>
@@ -30,8 +32,7 @@ make[1]: Entering directory '/media/psf/tomato/mod/libmsf/msf <br/>
 arm-linux-gnueabihf-gcc lib/src/msf_log.o<br />
 ................. <br/>
 make[1]: Leaving directory '/media/psf/tomato/mod/libmsf/msf_daemon <br/>
-
-下载微服务通信框架：
+下载微服务通信框架：<br/>
 git clone https://github.com/wypx/librpc/ <br/>
 root@KaliCI:/media/psf/tomato/mod/librpc/server make <br/>
 arm-linux-gnueabihf-gcc bin/src/conn.o <br/>

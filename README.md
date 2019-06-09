@@ -15,7 +15,7 @@ MSF (Mircro Service Framework) acting as mircro service process framework, provi
  * 提供各个微服务进程的`内存监控`等亚健康状态监控，达到实时告警通知
  * 提供微服务配置动态解析，热切换微服务进程，实现平滑升级过度
 
-![fastjson](logo.jpg "fastjson")
+![libmsf](http://luotang.me/wp-content/uploads/2018/02/cpluff_architecture.png "libmsf")
 
 ## __快速开始__
 ### 安装环境

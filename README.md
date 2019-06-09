@@ -89,34 +89,66 @@ libipc.so 提供给各个微服务进程的基础设施库
 
 ### API使用解析
 ```
-参考demo程序：
+微服务API使用：
 https://github.com/wypx/libmsf/blob/master/msf/src/msf_svc.c
 https://github.com/wypx/libmsf/blob/master/msf_shell/src/msf_shell.c
 
 s32 service_init(void) {
-
     u32 svc_idx;
     struct msf_svc *svc_cb;
-
     for (svc_idx = 0; svc_idx < g_proc->proc_svc_num; svc_idx++) {
-        MSF_SHELL_LOG(DBG_ERROR, "Start to load svc %d.", svc_idx);
         if (msf_svcinst_init(&(g_proc->proc_svcs[svc_idx])) < 0) {
-            MSF_SHELL_LOG(DBG_ERROR, "Failed to load svc %d.", svc_idx);
-            //return -1;
+            return -1;
         };
     }
 
     for (svc_idx = 0; svc_idx < g_proc->proc_svc_num; svc_idx++) {
         svc_cb = g_proc->proc_svcs[svc_idx].svc_cb;
         if (svc_cb->init(NULL, 0) < 0) {
-            MSF_SHELL_LOG(DBG_ERROR, "Failed to init svc %d.", svc_idx);
             return -1;
         }
     }
     return 0;
 }
 ```
+```
+事件Event API使用：
+https://github.com/wypx/librpc/blob/master/client/src/thread.c
 
+static void tx_thread_callback(void *arg) {
+    //do send something
+}
+
+void * tx_thread_worker(void *lparam) {
+    struct client *rpc = (struct client*)lparam;
+    while (!rpc->stop_flag) {
+        msf_event_base_dispatch(rpc->tx_evt_base);
+    }
+    return NULL;
+}
+
+s32 thread_init(void) {
+    s32 rc = -1;
+    rpc->tx_evt_base = msf_event_base_new();
+    if (!rpc->tx_evt_base) {
+        return -1;
+    }
+    
+    rpc->tx_evt = msf_event_new(rpc->evt_conn.fd, tx_thread_callback,
+                    NULL, NULL, &rpc->evt_conn);
+    if (!rpc->tx_evt) {
+        return -1;
+    }
+
+    msf_event_add(rpc->tx_evt_base, rpc->tx_evt);
+
+    rc = pthread_spawn(&rpc->tx_tid, (void*)tx_thread_worker, rpc);
+    if (rc < 0) {
+        MSF_RPC_LOG(DBG_ERROR, "TX thread create failed, ret(%d), errno(%d).", rc, errno);
+        return -1;
+    }
+}
+```
 ### 硬件平台适配
 ``` groovy
 根据开发者目标平台以的不同，需要进行相应的适配

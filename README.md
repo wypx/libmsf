@@ -89,7 +89,7 @@ libipc.so 提供给各个微服务进程的基础设施库
 
 ### API使用解析
 ```
-微服务API使用：
+微服务API使用：(动态加载SO的方式, 一个服务就是一个独立的SO)
 https://github.com/wypx/libmsf/blob/master/msf/src/msf_svc.c
 https://github.com/wypx/libmsf/blob/master/msf_shell/src/msf_shell.c
 
@@ -110,7 +110,68 @@ s32 service_init(void) {
     }
     return 0;
 }
+
+使用配置文件：
+配置文件名字：msf_agent_svc.json
+配置文件内容：
+{
+    "proc_name": "msf_agent",
+    "proc_author": "http://luotang.me",
+    "proc_version": "beta v1.0",
+    "proc_desc": "Micro agent service config file",
+    "proc_svcs":
+    [
+        {
+          "svc_name": "msf_agent1",
+          "svc_libs": "libmsf_agent1.so"
+        },
+        {
+          "svc_name": "msf_agent2",
+          "svc_libs": "libmsf_agent2.so"
+        }
+    ]
+}
+配置特点：
+支持一个壳子进程拉起多个微服务
+支持配置微服务进程的名称，作者，版本，描述，微服务实例信息
+
+使用壳子进程拉起微服务SO：
+./msf_shell -c msf_agent_svc.json
 ```
+
+```
+微服务API使用：(进程内静态微服务模块, 类似Nginx的模块加载)
+https://github.com/wypx/mobile/blob/master/src/at_mod.c
+https://github.com/wypx/mobile/blob/master/src/mobile.c
+
+extern struct msf_svc  mobile_usb;
+extern struct msf_svc  mobile_dial;
+extern struct msf_svc  mobile_sms;
+extern struct msf_svc* mobile_module[];
+
+struct msf_svc* mobile_module[] = {
+    &mobile_usb,
+    &mobile_dial,
+    &mobile_sms,
+    NULL,
+};
+
+struct usb_info usb;
+struct dial_info dial;
+ 
+rc = mobile_module[MOBILE_MOD_USB]->init(NULL, 0);
+mobile_module[MOBILE_MOD_USB]->get_param(&usb, sizeof(usb));
+if (rc < 0) {
+    return -1;
+}
+rc = mobile_module[MOBILE_MOD_USB]->start(NULL, 0);
+mobile_module[MOBILE_MOD_USB]->get_param(&usb, sizeof(usb));
+
+mobile_module[MOBILE_MOD_DIAL]->init(&usb, sizeof(usb));
+mobile_module[MOBILE_MOD_DIAL]->start(NULL, 0);
+mobile_module[MOBILE_MOD_DIAL]->get_param(&dial, sizeof(dial));
+```
+
 ```
 事件Event API使用：
 https://github.com/wypx/librpc/blob/master/client/src/thread.c

@@ -17,14 +17,14 @@ MSF (Mircro Service Framework) acting as mircro service process framework, provi
 
 ![fastjson](logo.jpg "fastjson")
 
-### __快速开始__
-### 一. 开发环境准备
-1. 安装Ubuntu，Debian等Linux,ARM环境
-
-测试环境（Linux KaliCI 4.19.0-kali3-amd64）：gcc version 8.2.0 (Debian 8.2.0-14) <br/>
-测试环境（Linux raspberrypi 4.14.52-v7+）：gcc version 6.4.1 20171012 (Linaro GCC 6.4-2017.11) <br/>
-
-## 下载开源库
+## __快速开始__
+### 安装环境
+```xml
+安装Ubuntu, Debian等Linux, ARM环境
+测试环境（Linux KaliCI 4.19.0-kali3-amd64）: gcc version 8.2.0 (Debian 8.2.0-14)
+测试环境（Linux raspberrypi 4.14.52-v7+）：gcc version 6.4.1 20171012 (Linaro GCC 6.4-2017.11)
+```
+### 下载开源库
 
 - [微服务框架库][1]
 ``` groovy
@@ -42,7 +42,7 @@ Please see this [Wiki Download Page][Wiki] for more repository infos.
 
 [Wiki]: https://github.com/wypx/libmsf
 
-## 编译开源库
+### 编译开源库
 ```xml
 root@KaliCI:/media/psf/tomato/mod/libmsf make
 Make Subdirs msf
@@ -77,58 +77,17 @@ libipc.so 提供给各个微服务进程的基础设施库
           包括：网络 管道 Epoll等事件驱动 日志 共享内存 内存池 
           串口通信 线程 进程 CPU工具 文件 加密 微服务框架 定时器
 ```
-### 二. 编译样例程序
-1. ***下载该开源程序***
-
-
-将下载到的压缩包在Linux上解压缩
-
-2. ***进入编译目录目录***
-
-运行如下命令: <br/>
-下载libmsf微服务框架：<br/>
-git clone https://github.com/wypx/libmsf/ <br/>
-root@KaliCI:/media/psf/tomato/mod/libmsf make <br/>
-Make Subdirs msf <br/>
-make[1]: Entering directory '/media/psf/tomato/mod/libmsf/msf <br/>
-arm-linux-gnueabihf-gcc lib/src/msf_log.o<br />
-................. <br/>
-make[1]: Leaving directory '/media/psf/tomato/mod/libmsf/msf_daemon <br/>
-下载微服务通信框架：<br/>
-git clone https://github.com/wypx/librpc/ <br/>
-root@KaliCI:/media/psf/tomato/mod/librpc/server make <br/>
-arm-linux-gnueabihf-gcc bin/src/conn.o <br/>
-arm-linux-gnueabihf-gcc bin/src/config.o <br/>
-....... <br/>
-
-3. ___检查生成的样例程序___
-编译产生:
-msf_agent  各个服务进程之间的通信代理服务端程序
-msf_dlna   测试程序 - 独立微服务进程客户端DLNA
-msf_upnp   测试程序 - 独立微服务进程客户端UPNP
-msf_daemon 用于守护监控代理进程msf_agent
-msf_shell  壳子程序，用于记载配置文件中的插件
-
-libipc.so 提供给各个微服务进程连接的通信代理客户端库
-libipc.so 提供给各个微服务进程的基础设施库
-          包括：网络 管道 Epoll等事件驱动 日志 共享内存 内存池 
-          串口通信 线程 进程 CPU工具 文件 加密 微服务框架 定时器
-
-root@KaliCI:/media/psf/tomato/mod/librpc/client# ls ../../../packet/binary/<br />
-msf_agent  msf_daemon  msf_dlna  msf_shell  msf_upnp<br />
-
-root@KaliCI:/media/psf/tomato/mod/librpc/client# ls ../../../packet/library/<br />
-libipc.so  libmsf.so<br />
-
-### 四. ___运行样例程序___
+### 运行开源库
+```xml
 1. 执行样例程序
-$ ./msf_agent &
-$ ./msf_upnp &
-$ ./msf_dlna &
+   $ ./msf_agent &
+   $ ./msf_upnp &
+   $ ./msf_dlna &
 2. 查看运行日志
-3. API和使用方式
-demo.c程序中提供了该API的使用方式
+   。。。
+```
 
+### API使用解析
 ```
 参考demo程序：
 https://github.com/wypx/libmsf/blob/master/msf/src/msf_svc.c
@@ -158,12 +117,13 @@ s32 service_init(void) {
 }
 ```
 
-4. ___硬件平台适配___
-根据开发者目标平台以的不同，需要进行相应的适配。
-
+### ___硬件平台适配___
+``` groovy
+根据开发者目标平台以的不同，需要进行相应的适配
+```
 
 ## 参考文章
-- [MSF架构设计](https://www.cnblogs.com/duanxz/p/3514895.html)
+- [LIBMSF架构设计](https://www.cnblogs.com/duanxz/p/3514895.html)
 - [微服务架构的六种模式](https://www.cnblogs.com/duanxz/p/3514895.html)
 - [微服务架构设计](https://www.cnblogs.com/SUNSHINEC/p/8628661.html)
 

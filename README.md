@@ -80,11 +80,11 @@ libipc.so 提供给各个微服务进程的基础设施库
 ### 运行开源库
 ```xml
 1. 执行样例程序
-   $ ./msf_agent &
-   $ ./msf_upnp &
-   $ ./msf_dlna &
+   $ ./msf_agent
+   $ ./msf_upnp
+   $ ./msf_dlna
 2. 查看运行日志
-   。。。
+   运行结果
 ```
 
 ### API使用解析
@@ -117,12 +117,12 @@ s32 service_init(void) {
 }
 ```
 
-### ___硬件平台适配___
+### 硬件平台适配
 ``` groovy
 根据开发者目标平台以的不同，需要进行相应的适配
 ```
 
-## 参考文章
+### ___参考文章___
 - [LIBMSF架构设计](https://www.cnblogs.com/duanxz/p/3514895.html)
 - [微服务架构的六种模式](https://www.cnblogs.com/duanxz/p/3514895.html)
 - [微服务架构设计](https://www.cnblogs.com/SUNSHINEC/p/8628661.html)

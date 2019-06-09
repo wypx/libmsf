@@ -216,7 +216,7 @@ s32 thread_init(void) {
 ```
 
 ### ___参考文章___
-- [LIBMSF架构设计](https://www.cnblogs.com/duanxz/p/3514895.html)
+- [LIBMSF架构设计](http://luotang.me/light_msf.html)
 - [微服务架构的六种模式](https://www.cnblogs.com/duanxz/p/3514895.html)
 - [微服务架构设计](https://www.cnblogs.com/SUNSHINEC/p/8628661.html)
 

@@ -88,7 +88,7 @@ libipc.so 提供给各个微服务进程的基础设施库
 ```
 
 ### API使用解析
-```
+```c
 微服务API使用：(动态加载SO的方式, 一个服务就是一个独立的SO)
 https://github.com/wypx/libmsf/blob/master/msf/src/msf_svc.c
 https://github.com/wypx/libmsf/blob/master/msf_shell/src/msf_shell.c
@@ -139,7 +139,7 @@ s32 service_init(void) {
 ./msf_shell -c msf_agent_svc.json
 ```
 
-```
+```c
 微服务API使用：(进程内静态微服务模块, 类似Nginx的模块加载)
 https://github.com/wypx/mobile/blob/master/src/at_mod.c
 https://github.com/wypx/mobile/blob/master/src/mobile.c
@@ -172,7 +172,7 @@ mobile_module[MOBILE_MOD_DIAL]->start(NULL, 0);
 mobile_module[MOBILE_MOD_DIAL]->get_param(&dial, sizeof(dial));
 ```
 
-```
+```c
 事件Event API使用：
 https://github.com/wypx/librpc/blob/master/client/src/thread.c
 

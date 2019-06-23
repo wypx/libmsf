@@ -10,6 +10,9 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
+#ifndef __MSF_MEMPOLL_H__
+#define __MSF_MEMPOLL_H__
+
 #include <msf_mem.h>
 
 //#define DEBUG_MEMPOOL_MT    0
@@ -157,4 +160,4 @@ s32 msf_mempool_alloc(struct msf_mempool *p, size_t length,
 
 void msf_mempool_free(struct msf_reg_mem *reg_mem);
 
-
+#endif

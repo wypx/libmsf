@@ -147,12 +147,97 @@ s32 msf_get_hdinfo(struct msf_hdd *hd) {
         dev_used += c;
     }
 
-    hd->total = dev_total / (1024*1024);
+    hd->total = dev_total / MB;
     hd->used_rate = dev_used/ dev_total * 100;
 
     pclose(fp);
 
     return 0;
+}
+
+s32 msf_system_init() {
+
+    u32 n;
+
+    struct rlimit   rlmt;
+    struct utsname  u;
+
+    if (uname(&u) == -1) {
+        MSF_OS_LOG(DBG_ERROR, "Uname failed, errno(%d).", errno);
+        return -1;
+    }
+
+    memcpy(g_os->sysname, (u8 *) u.sysname,
+          min(sizeof(g_os->sysname), strlen(u.sysname)));
+    memcpy(g_os->nodename, (u8 *) u.nodename,
+          min(sizeof(g_os->nodename), strlen(u.nodename)));
+    memcpy(g_os->release, (u8 *) u.release,
+          min(sizeof(g_os->release), strlen(u.release)));
+    memcpy(g_os->version, (u8 *) u.version,
+          min(sizeof(g_os->version), strlen(u.version)));
+    memcpy(g_os->machine, (u8 *) u.machine,
+          min(sizeof(g_os->machine), strlen(u.machine)));
+    memcpy(g_os->domainname, (u8 *) u.domainname,
+          min(sizeof(g_os->domainname), strlen(u.domainname)));
+
+#ifdef WIN32
+    SYSTEM_INFO info; 
+    GetSystemInfo(&info); 
+    g_os->cpuonline = info.dwNumberOfProcessors;
+#endif
+
+    /* GNU fuction 
+    * getpagesize(); numa_pagesize()
+    * get_nprocs_conf();
+    * get_nprocs();
+    */
+    g_os->pagesize = sysconf(_SC_PAGESIZE);
+    g_os->pagenum_all = sysconf(_SC_PHYS_PAGES);
+    g_os->pagenum_ava = sysconf(_SC_AVPHYS_PAGES);
+    g_os->memsize = g_os->pagesize * g_os->pagenum_all / MB;
+    g_os->cpuconf = sysconf(_SC_NPROCESSORS_CONF);
+    g_os->cpuonline = sysconf(_SC_NPROCESSORS_ONLN);
+    g_os->maxfileopen = sysconf(_SC_OPEN_MAX);
+    g_os->tickspersec = sysconf(_SC_CLK_TCK);
+    g_os->maxhostname = sysconf(_SC_HOST_NAME_MAX);
+    g_os->maxloginname = sysconf(_SC_LOGIN_NAME_MAX);
+
+    if (getrlimit(RLIMIT_NOFILE, &rlmt) == -1) {
+        MSF_OS_LOG(DBG_ERROR, "Getrlimit failed, errno(%d).", errno);
+        return -1;
+    }
+
+    g_os->maxsocket = (s32) rlmt.rlim_cur;
+
+    return 0;
+}
+
+/* Numa Info*/
+void msf_vnode_init(void) {
+
+    s32 rc;
+
+    g_os->en_numa = numa_available();
+    if (g_os->en_numa < 0) {
+        MSF_OS_LOG(DBG_ERROR, "Your system does not support NUMA API.");
+        return;
+    }
+
+    g_os->numacnt = numa_max_node();
+
+    MSF_OS_LOG(DBG_DEBUG, "System numa en(%d).", g_os->en_numa);
+    MSF_OS_LOG(DBG_DEBUG, "System numa num(%d).", g_os->numacnt);
+
+    s32 nd;
+    char *man = numa_alloc(1000);
+    *man = 1;
+    if (get_mempolicy(&nd, NULL, 0, man, MPOL_F_NODE|MPOL_F_ADDR) < 0)
+        perror("get_mempolicy");
+    else
+        MSF_OS_LOG(DBG_DEBUG, "my node %d.", nd);
+
+    msf_numa_free(man, 1000);
+
 }
 
 void msf_os_debug(void) {
@@ -188,57 +273,9 @@ void msf_os_debug(void) {
 
 s32 msf_os_init(void) {
 
-    u32  n;
+    msf_system_init();
 
-    struct rlimit   rlmt;
-    struct utsname  u;
-    
-    if (uname(&u) == -1) {
-        MSF_OS_LOG(DBG_ERROR, "Uname failed, errno(%d).", errno);
-        return -1;
-    }
-
-    memcpy(g_os->sysname, (u8 *) u.sysname,
-          min(sizeof(g_os->sysname), strlen(u.sysname)));
-    memcpy(g_os->nodename, (u8 *) u.nodename,
-          min(sizeof(g_os->nodename), strlen(u.nodename)));
-    memcpy(g_os->release, (u8 *) u.release,
-          min(sizeof(g_os->release), strlen(u.release)));
-    memcpy(g_os->version, (u8 *) u.version,
-          min(sizeof(g_os->version), strlen(u.version)));
-    memcpy(g_os->machine, (u8 *) u.machine,
-          min(sizeof(g_os->machine), strlen(u.machine)));
-    memcpy(g_os->domainname, (u8 *) u.domainname,
-          min(sizeof(g_os->domainname), strlen(u.domainname)));
-
-#ifdef WIN32
-    SYSTEM_INFO info; 
-    GetSystemInfo(&info); 
-    g_os->cpuonline = info.dwNumberOfProcessors;
-#endif
-
-    /* GNU fuction 
-    * getpagesize();
-    * get_nprocs_conf();
-    * get_nprocs();
-    */
-    g_os->pagesize = sysconf(_SC_PAGESIZE);
-    g_os->pagenum_all = sysconf(_SC_PHYS_PAGES);
-    g_os->pagenum_ava = sysconf(_SC_AVPHYS_PAGES);
-    g_os->memsize = g_os->pagesize * g_os->pagenum_all / MB;
-    g_os->cpuconf = sysconf(_SC_NPROCESSORS_CONF);
-    g_os->cpuonline = sysconf(_SC_NPROCESSORS_ONLN);
-    g_os->maxfileopen = sysconf(_SC_OPEN_MAX);
-    g_os->tickspersec = sysconf(_SC_CLK_TCK);
-    g_os->maxhostname = sysconf(_SC_HOST_NAME_MAX);
-    g_os->maxloginname = sysconf(_SC_LOGIN_NAME_MAX);
-
-    if (getrlimit(RLIMIT_NOFILE, &rlmt) == -1) {
-        MSF_OS_LOG(DBG_ERROR, "Getrlimit failed, errno(%d).", errno);
-        return -1;
-    }
-
-    g_os->maxsocket = (s32) rlmt.rlim_cur;
+    msf_vnode_init();
 
     msf_get_meminfo(&g_os->meminfo);
 

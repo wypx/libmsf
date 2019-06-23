@@ -105,6 +105,7 @@ struct msf_file {
 #define MSF_FILE_APPEND          (O_WRONLY|O_APPEND)
 #define MSF_FILE_NONBLOCK        O_NONBLOCK
 
+#define msf_access               access
 #define msf_open_file(name, mode, create, access)       \
             open((const s8 *) name, mode|create, access)
 

@@ -164,7 +164,7 @@ static int msf_mem_slab_free(struct msf_mem_slab *slab)
         list_for_each_entry_safe(r, tmp_r, &slab->mem_regions_list,
                      mem_region_entry) {
             list_del(&r->mem_region_entry);
-            if (msf_test_bits(MSF_MEMPOOL_FLAG_REG_MR,
+            if (MSF_TEST_BITS(MSF_MEMPOOL_FLAG_REG_MR,
                       &slab->pool->flags)) {
                 struct msf_reg_mem   reg_mem;
 
@@ -172,13 +172,13 @@ static int msf_mem_slab_free(struct msf_mem_slab *slab)
                 msf_mem_dereg(&reg_mem);
             }
 
-            if (msf_test_bits(MSF_MEMPOOL_FLAG_HUGE_PAGES_ALLOC,
+            if (MSF_TEST_BITS(MSF_MEMPOOL_FLAG_HUGE_PAGES_ALLOC,
                        &slab->pool->flags))
                 msf_free_huge_pages(r->buf);
-            else if (msf_test_bits(MSF_MEMPOOL_FLAG_NUMA_ALLOC,
+            else if (MSF_TEST_BITS(MSF_MEMPOOL_FLAG_NUMA_ALLOC,
                        &slab->pool->flags))
                 msf_numa_free_ptr(r->buf);
-            else if (msf_test_bits(MSF_MEMPOOL_FLAG_REGULAR_PAGES_ALLOC,
+            else if (MSF_TEST_BITS(MSF_MEMPOOL_FLAG_REGULAR_PAGES_ALLOC,
                        &slab->pool->flags))
                 sfree(r->buf);
             sfree(r);
@@ -233,17 +233,17 @@ static struct msf_mem_block *msf_mem_slab_resize(struct msf_mem_slab *slab,
     block = (struct msf_mem_block *)buf;
 
     /* region data */
-    aligned_sz = msf_align(slab->mb_size, slab->align);
+    aligned_sz = MSF_ALIGN(slab->mb_size, slab->align);
     data_alloc_sz = nr_blocks * aligned_sz;
 
     /* allocate the buffers and register them */
-    if (msf_test_bits(MSF_MEMPOOL_FLAG_HUGE_PAGES_ALLOC,
+    if (MSF_TEST_BITS(MSF_MEMPOOL_FLAG_HUGE_PAGES_ALLOC,
               &slab->pool->flags))
         region->buf = msf_malloc_huge_pages(data_alloc_sz);
-    else if (msf_test_bits(MSF_MEMPOOL_FLAG_NUMA_ALLOC,
+    else if (MSF_TEST_BITS(MSF_MEMPOOL_FLAG_NUMA_ALLOC,
                &slab->pool->flags))
-        region->buf = msf_numa_alloc(data_alloc_sz, slab->pool->nodeid);
-    else if (msf_test_bits(MSF_MEMPOOL_FLAG_REGULAR_PAGES_ALLOC,
+        region->buf = msf_numa_alloc_page(data_alloc_sz, slab->pool->nodeid);
+    else if (MSF_TEST_BITS(MSF_MEMPOOL_FLAG_REGULAR_PAGES_ALLOC,
                &slab->pool->flags)) {
         if(msf_memalign(&region->buf, slab->align, data_alloc_sz) !=0)
             region->buf = NULL;
@@ -254,19 +254,19 @@ static struct msf_mem_block *msf_mem_slab_resize(struct msf_mem_slab *slab,
         return NULL;
     }
 
-    if (msf_test_bits(MSF_MEMPOOL_FLAG_REG_MR, &slab->pool->flags)) {
+    if (MSF_TEST_BITS(MSF_MEMPOOL_FLAG_REG_MR, &slab->pool->flags)) {
         struct msf_reg_mem reg_mem;
 
         msf_mem_register(region->buf, data_alloc_sz, &reg_mem);
         region->omr = reg_mem.mr;
         if (!region->omr) {
-            if (msf_test_bits(MSF_MEMPOOL_FLAG_HUGE_PAGES_ALLOC,
+            if (MSF_TEST_BITS(MSF_MEMPOOL_FLAG_HUGE_PAGES_ALLOC,
                       &slab->pool->flags))
                 msf_free_huge_pages(region->buf);
-            else if (msf_test_bits(MSF_MEMPOOL_FLAG_NUMA_ALLOC,
+            else if (MSF_TEST_BITS(MSF_MEMPOOL_FLAG_NUMA_ALLOC,
                            &slab->pool->flags))
                 msf_numa_free_ptr(region->buf);
-            else if (msf_test_bits(MSF_MEMPOOL_FLAG_REGULAR_PAGES_ALLOC,
+            else if (MSF_TEST_BITS(MSF_MEMPOOL_FLAG_REGULAR_PAGES_ALLOC,
                        &slab->pool->flags))
                 sfree(region->buf);
 
@@ -369,19 +369,19 @@ struct msf_mempool *msf_mempool_create(s32 nodeid, u32 flags)
 {
     struct msf_mempool *p;
 
-    if (msf_test_bits(MSF_MEMPOOL_FLAG_HUGE_PAGES_ALLOC, &flags)) {
-        msf_clr_bits(MSF_MEMPOOL_FLAG_REGULAR_PAGES_ALLOC, &flags);
-        msf_clr_bits(MSF_MEMPOOL_FLAG_NUMA_ALLOC, &flags);
+    if (MSF_TEST_BITS(MSF_MEMPOOL_FLAG_HUGE_PAGES_ALLOC, &flags)) {
+        MSF_CLR_BITS(MSF_MEMPOOL_FLAG_REGULAR_PAGES_ALLOC, &flags);
+        MSF_CLR_BITS(MSF_MEMPOOL_FLAG_NUMA_ALLOC, &flags);
         printf("mempool: using huge pages allocator\n");
-    } else if (msf_test_bits(MSF_MEMPOOL_FLAG_NUMA_ALLOC, &flags)) {
-        msf_clr_bits(MSF_MEMPOOL_FLAG_REGULAR_PAGES_ALLOC, &flags);
+    } else if (MSF_TEST_BITS(MSF_MEMPOOL_FLAG_NUMA_ALLOC, &flags)) {
+        MSF_CLR_BITS(MSF_MEMPOOL_FLAG_REGULAR_PAGES_ALLOC, &flags);
         printf("mempool: using numa allocator\n");
     } else {
-        msf_set_bits(MSF_MEMPOOL_FLAG_REGULAR_PAGES_ALLOC, &flags);
+        MSF_SET_BITS(MSF_MEMPOOL_FLAG_REGULAR_PAGES_ALLOC, &flags);
         printf("mempool: using regular allocator\n");
     }
 
-    if (msf_test_bits(MSF_MEMPOOL_FLAG_NUMA_ALLOC, &flags)) {
+    if (MSF_TEST_BITS(MSF_MEMPOOL_FLAG_NUMA_ALLOC, &flags)) {
         s32 ret;
 
         if (nodeid == -1) {
@@ -505,7 +505,7 @@ retry:
             block = msf_mem_slab_resize(slab, 1);
             if (!block) {
                 if (++index == (int)p->slabs_nr ||
-                    msf_test_bits(
+                    MSF_TEST_BITS(
                     MSF_MEMPOOL_FLAG_USE_SMALLEST_SLAB,
                     &p->flags))
                     index  = -1;
@@ -693,9 +693,9 @@ s32 msf_mem_dereg(struct msf_reg_mem *reg_mem)
 s32 msf_mem_alloc(size_t length, struct msf_reg_mem *reg_mem) {
     size_t  real_size;
     s32 alloced = 0;
-    long page_size = msf_get_page_size();
+    long page_size = g_os->pagesize;
 
-    real_size = msf_align(length, page_size);
+    real_size = MSF_ALIGN(length, page_size);
     if (msf_memalign(&reg_mem->addr, page_size, real_size) != 0) {
         printf("xio_memalign failed. sz:%zd\n", real_size);
         reg_mem->addr = NULL;

@@ -204,14 +204,14 @@ s32 msf_arpping(u32 yiaddr, u32 ip, u8 *mac, s8 *interface)
     arp.ethhdr.h_proto = htons(ETH_P_ARP);          /* protocol type (Ethernet) */  
     arp.htype = htons( ARPHRD_ETHER );              /* hardware type */
     arp.ptype = htons( ETH_P_IP);                   /* protocol type (ARP message) */  
-    arp.hlen = 6;                                   /* hardware address length */  
-    arp.plen = 4;                                   /* protocol address length */  
+    arp.hlen = 6;                                   /* hardware address length */
+    arp.plen = 4;                                   /* protocol address length */
     arp.operation = htons(ARPOP_REQUEST);           /* ARP op code */
-    *((u32 *)arp.sInaddr) = ip;                     /* source IP address */
-    memcpy(arp.sHaddr, mac, 6);                     /* source hardware address */  
-    *((u32 *) arp.tInaddr) = yiaddr;                /* target IP address */
+    memcpy(arp.sInaddr, (u8*)&ip, 4);               /* source IP address */
+    memcpy(arp.sHaddr, mac, 6);                     /* source hardware address */
+    memcpy(arp.tInaddr, (u8*)&yiaddr, 4);           /* target IP address */
   
-    memset(&addr, 0, sizeof( addr ));
+    memset(&addr, 0, sizeof(addr));
     strcpy(addr.sa_data, interface);
     if (sendto(s, &arp, sizeof(arp), 0, &addr, (socklen_t)sizeof(addr)) < 0)
         rv = 0;
@@ -223,19 +223,19 @@ s32 msf_arpping(u32 yiaddr, u32 ip, u8 *mac, s8 *interface)
         FD_ZERO( &fdset );
         FD_SET( s, &fdset );
         tm.tv_sec = timeout;
-        if ( select( s + 1, &fdset, ( fd_set * ) NULL, ( fd_set * ) NULL, &tm) < 0 )
+        if (select( s + 1, &fdset, ( fd_set * ) NULL, ( fd_set * ) NULL, &tm) < 0)
         {
             MSF_PING_LOG(DBG_ERROR, "Error on ARPING request: %s.", strerror( errno ));  
             if ( errno != EINTR ) 
                 rv = 0;
         } 
-        else if ( FD_ISSET( s, &fdset ))
+        else if (FD_ISSET( s, &fdset))
         {
             if ( recv( s, &arp, sizeof( arp ), 0 ) < 0 )   
                 rv = 0;  
-            if ( arp.operation == htons( ARPOP_REPLY )
-                &&  0 == bcmp(arp.tHaddr, mac, 6)
-                &&  yiaddr == *(( u32 * )arp.sInaddr))
+            if ((arp.operation == htons(ARPOP_REPLY))
+                &&  (0 == bcmp(arp.tHaddr, mac, 6))
+                &&  (0 == bcmp(arp.sInaddr, (u8*)&yiaddr, 4)))
             {  
                 MSF_PING_LOG(DBG_ERROR, "Valid arp reply receved for this address.");
                 rv = 0;

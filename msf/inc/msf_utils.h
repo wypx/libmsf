@@ -80,8 +80,6 @@ __extension__
 typedef unsigned long long int  u64;
 #endif
 
-#define MB (1024 * 1024)
-
 #define MSF_NO_WAIT             0
 #define MSF_WAIT_FOREVER       -1
 
@@ -146,7 +144,7 @@ typedef unsigned long long int  u64;
 #define MSF_LOWORD(a)       (WORD)(a)
 #define MSF_HIWORD(a)       (WORD)((a)>>16)
 #define MSF_MAKEWORD(a,b)   (WORD)(((a)&0xff)|((b)<<8))
-#define MSF_MAKELONG(a,b) 	(DWORD)(((a)&0xffff)|((b)<<16))
+#define MSF_MAKELONG(a,b)   (DWORD)(((a)&0xffff)|((b)<<16))
 
 #ifndef BIT_SET
 #define BIT_SET(v,f)        (v) |= (f)
@@ -283,18 +281,17 @@ typedef unsigned long long int  u64;
 #define offsetof(type, field) ((off_t)(&((type *)0)->field))
 #endif
 
-#define msf_align(d, a)         (((d) + (a - 1)) & ~(a - 1))
-
-#define msf_align_ptr(p, a)  \
+#define MSF_ALIGN(d, a)         (((d) + (a - 1)) & ~(a - 1))
+#define MSF_ALIGN_PTR(p, a)  \
     (u8 *) (((u32) (p) + ((u32) a - 1)) & ~((u32) a - 1))
 
-#define msf_test_bits(mask, addr)   (((*addr) & (mask)) != 0)
-#define msf_clr_bits(mask, addr)    ((*addr) &= ~(mask))
-#define msf_set_bits(mask, addr)    ((*addr) |= (mask))
+#define MSF_TEST_BITS(mask, addr)   (((*addr) & (mask)) != 0)
+#define MSF_CLR_BITS(mask, addr)    ((*addr) &= ~(mask))
+#define MSF_SET_BITS(mask, addr)    ((*addr) |= (mask))
 
-#define msf_test_bit(nr, addr)  (*(addr) & (1ULL << (nr)))
-#define msf_set_bit(nr, addr)   (*(addr) |=  (1ULL << (nr)))
-#define msf_clr_bit(nr, addr)   (*(addr) &=  ~(1ULL << (nr)))
+#define MSF_TEST_BIT(nr, addr)  (*(addr) & (1ULL << (nr)))
+#define MSF_CLR_BIT(nr, addr)   (*(addr) &=  ~(1ULL << (nr)))
+#define MSF_SET_BIT(nr, addr)   (*(addr) |=  (1ULL << (nr)))
 
 typedef void (*sighandler_t)(s32);
 

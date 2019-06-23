@@ -23,7 +23,11 @@
 #include <sys/resource.h>
 #include <sys/utsname.h>
 
+#include <msf_mem.h>
+
 extern u32 msf_cacheline_size;
+
+#define MB  (1024*1024)
 
 struct msf_meminfo {
     s8      name1[20];
@@ -47,7 +51,7 @@ struct msf_mem {
 struct msf_hdd {
     double total;
     double used_rate;
-} MSF_PACKED_MEMORY;
+};
 
 struct msf_os {
     u8      sysname[64];
@@ -80,6 +84,8 @@ struct msf_os {
     struct msf_meminfo meminfo;
     struct msf_mem  mem;
     struct msf_hdd  hdd;
+    s32     en_numa;
+    u32     numacnt;
 };
 
 s32 msf_get_meminfo(struct msf_meminfo *mem);
@@ -88,5 +94,7 @@ s32 msf_get_hdinfo(struct msf_hdd *hd);
 void msf_cpuinfo(void);
 s32 msf_set_user(struct process *proc);
 s32 msf_os_init(void);
+
+extern struct msf_os *g_os;
 
 #endif

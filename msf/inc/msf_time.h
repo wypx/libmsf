@@ -131,3 +131,7 @@ void msf_libc_gmtime(time_t s, struct tm *t);
      
 #define jiffies     ((long)times(NULL))
 
+static inline int msf_clock_gettime(struct timespec *ts) {
+    return clock_gettime(CLOCK_MONOTONIC, ts);
+}
+

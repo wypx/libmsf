@@ -287,7 +287,7 @@ s32 options_parse(s32 argc, s8 *argv[]) {
                 show_usage();
                 break;
             case 'd':
-                g_proc->proc_daemon = true;
+                g_proc->proc_daemon = MSF_TRUE;
                 break;
             case 'c':
                 g_proc->confile = strdup(optarg);
@@ -395,7 +395,7 @@ s32 main(s32 argc, s8 *argv[]) {
     MSF_SHELL_LOG(DBG_DEBUG, "Msf shell init pid(%d) argv(%s).", getpid(), argv[2]);
 
     if (config_init(argv[2]) < 0) {
-        return -1;
+        return MSF_ERR;
     }
 
     MSF_SHELL_LOG(DBG_DEBUG, "Msf config init sucessful.");

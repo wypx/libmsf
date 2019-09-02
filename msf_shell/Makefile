@@ -14,7 +14,20 @@ OBJS	= $(SRCS:%.c=$(TMP_PATH)/%.o)
 cJSON_SRCS = ../msf_thirdparty/cJSON/cJSON.c
 cJSON_OBJS = $(TMP_PATH)/src/cJSON.o
 
-IFLAGS 		= -I./inc -I $(ROOTDIR)/inc -I../msf_thirdparty/cJSON -I../msf/inc 
+IFLAGS      += -I./inc -I $(ROOTDIR)/inc
+IFLAGS	    += -I ../msf_thirdparty/cJSON
+IFLAGS	    += -I ../msf/inc
+IFLAGS	    += -I ../msf/inc/base
+IFLAGS	    += -I ../msf/inc/log
+IFLAGS	    += -I ../msf/inc/system 
+IFLAGS	    += -I ../msf/inc/timer 
+IFLAGS	    += -I ../msf/inc/event 
+IFLAGS	    += -I ../msf/inc/mem 
+IFLAGS	    += -I ../msf/inc/io  
+IFLAGS	    += -I ../msf/inc/thread  
+IFLAGS	    += -I ../msf/inc/encrypt  
+IFLAGS	    += -I ../msf/inc/svc  
+IFLAGS	    += -I ../msf/inc/network
 CFLAGS 		= -Wall -W -O2 -Wswitch-default -Wpointer-arith -Wno-unused -g
 DFLAGS 		= -D_GNU_SOURCE 
 LD_FLAGS 	= -ldl -lpthread -lnuma -L$(LIBPATH) -lmsf

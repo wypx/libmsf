@@ -1,0 +1,10 @@
+
+o Update the kernel AIO interfaces to properly set the remaining time
+  on the timeout to io_getevents() or update aio_suspend() and
+  aio_reap() to use gettimeofday().  The former is preferred.
+
+o When the kernel handles signalling for io completion, add sigevent
+  processing to the aiocb->iocb conversion.
+
+o Change aior_getevents() to use the kernel's new wait-many semantics
+  for aio_reap()

@@ -1,0 +1,31 @@
+ 
+	This is a library for accessing the new AIO system calls for the
+Linux kernel.  This library is a thin, state-keeping wrapper.  It
+attempts to conform to the Single Unix Specification of the aio_read,
+aio_write, aio_error, aio_return, and aio_suspend functions.  It also
+implements lio_listio and aio_reap for batch processing.
+	This library requires a kernel patched with Ben LaHaise's
+latest AIO code.  In addition, it requires the libaio library from
+Red Hat.
+	To build this library, run "make".  The resulting
+build should create the library libaio-oracle.so as well as two
+test programs.  The first program, lio_test, is used to test lio_listio
+submission and aio_reap collection of requests.  The second test,
+oratest, writes 1.8GB files with write(), aio_write(),
+and lio_listio().  This is intended to cover the gamut of sync, aio,
+and batched aio.
+	This package contains extensive debugging code.  If the kernel
+supports it, it will query the file /proc/debug/aio.  This is initially
+zero, but can be set to the values 1 (debug the library), 2 (debug the
+kernel), or 3 (debug both).  If the kernel does not support
+/proc/debug/aio, library debugging can still be turned on by setting the
+initial value of debug_aio to 1 in the libaio-oracle.c file.
+	Debugging output is placed in the directory /tmp/aio-$pid.
+There is a trace file, and there are dump files for each I/O request.
+	To use this library, all that is needed is the object file
+libaio-oracle.so and the header libaio-oracle.h.
+
+Joel Becker
+<joel.becker@oracle.com>
+
+

@@ -1,0 +1,3249 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "MONGOC_API" "3" "May 23, 2017" "1.6.3" "MongoDB C Driver"
+.SH NAME
+mongoc_api \- API Reference
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.SH INITIALIZATION AND CLEANUP
+.SS Synopsis
+.sp
+Initialize the MongoDB C Driver by calling \fBmongoc_init\fP exactly once at the beginning of your program. It is responsible for initializing global state such as process counters, SSL, and threading primitives.
+.sp
+Call \fBmongoc_cleanup\fP exactly once at the end of your program to release all memory and other resources allocated by the driver. You must not call any other MongoDB C Driver functions after \fBmongoc_cleanup\fP\&. Note that \fBmongoc_init\fP does \fBnot\fP reinitialize the driver after \fBmongoc_cleanup\fP\&.
+.SS Deprecated feature: automatic initialization and cleanup
+.sp
+On some platforms the driver can automatically call \fBmongoc_init\fP before \fBmain\fP, and call \fBmongoc_cleanup\fP as the process exits. This is problematic in situations where related libraries also execute cleanup code on shutdown, and it creates inconsistent rules across platforms. Therefore the automatic initialization and cleanup feature is deprecated, and will be dropped in version 2.0. Meanwhile, for backward compatibility, the feature is \fIenabled\fP by default on platforms where it is available.
+.sp
+For portable, future\-proof code, always call \fBmongoc_init\fP and \fBmongoc_cleanup\fP yourself, and configure the driver like:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+\&./configure \-\-disable\-automatic\-init\-and\-cleanup
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Or with CMake:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+cmake \-DENABLE_AUTOMATIC_INIT_AND_CLEANUP=NO
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH LOGGING
+.sp
+MongoDB C driver Logging Abstraction
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef enum {
+   MONGOC_LOG_LEVEL_ERROR,
+   MONGOC_LOG_LEVEL_CRITICAL,
+   MONGOC_LOG_LEVEL_WARNING,
+   MONGOC_LOG_LEVEL_MESSAGE,
+   MONGOC_LOG_LEVEL_INFO,
+   MONGOC_LOG_LEVEL_DEBUG,
+   MONGOC_LOG_LEVEL_TRACE,
+} mongoc_log_level_t;
+
+#define MONGOC_ERROR(...)
+#define MONGOC_CRITICAL(...)
+#define MONGOC_WARNING(...)
+#define MONGOC_MESSAGE(...)
+#define MONGOC_INFO(...)
+#define MONGOC_DEBUG(...)
+
+typedef void (*mongoc_log_func_t) (mongoc_log_level_t log_level,
+                                   const char *log_domain,
+                                   const char *message,
+                                   void *user_data);
+
+void
+mongoc_log_set_handler (mongoc_log_func_t log_func, void *user_data);
+void
+mongoc_log (mongoc_log_level_t log_level,
+            const char *log_domain,
+            const char *format,
+            ...) BSON_GNUC_PRINTF (3, 4);
+const char *
+mongoc_log_level_str (mongoc_log_level_t log_level);
+void
+mongoc_log_default_handler (mongoc_log_level_t log_level,
+                            const char *log_domain,
+                            const char *message,
+                            void *user_data);
+void
+mongoc_log_trace_enable (void);
+void
+mongoc_log_trace_disable (void);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The MongoDB C driver comes with an abstraction for logging that you can use in your application, or integrate with an existing logging system.
+.SS Macros
+.sp
+To make logging a little less painful, various helper macros are provided. See the following example.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#undef MONGOC_LOG_DOMAIN
+#define MONGOC_LOG_DOMAIN "my\-custom\-domain"
+
+MONGOC_WARNING ("An error occurred: %s", strerror (errno));
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Custom Log Handlers
+.INDENT 0.0
+.TP
+.B The default log handler prints a timestamp and the log message to \fBstdout\fP, or to \fBstderr\fP for warnings, critical messages, and errors.
+You can override the handler with \fBmongoc_log_set_handler()\fP\&.
+Your handler function is called in a mutex for thread safety.
+.UNINDENT
+.sp
+For example, you could register a custom handler to suppress messages at INFO level and below:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+void
+my_logger (mongoc_log_level_t log_level,
+           const char *log_domain,
+           const char *message,
+           void *user_data)
+{
+   /* smaller values are more important */
+   if (log_level < MONGOC_LOG_LEVEL_INFO) {
+      mongoc_log_default_handler (log_level, log_domain, message, user_data);
+   }
+}
+
+int
+main (int argc, char *argv[])
+{
+   mongoc_init ();
+   mongoc_log_set_handler (my_logger, NULL);
+
+   /* ... your code ...  */
+
+   mongoc_cleanup ();
+   return 0;
+}
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+To restore the default handler:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+mongoc_log_set_handler (mongoc_log_default_handler, NULL);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Disable logging
+.sp
+To disable all logging, including warnings, critical messages and errors, provide an empty log handler:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+mongoc_log_set_handler (NULL, NULL);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Tracing
+.sp
+If compiling your own copy of the MongoDB C driver, consider configuring with \fB\-\-enable\-tracing\fP to enable function tracing and hex dumps of network packets to \fBSTDERR\fP and \fBSTDOUT\fP during development and debugging.
+.sp
+This is especially useful when debugging what may be going on internally in the driver.
+.sp
+Trace messages can be enabled and disabled by calling \fBmongoc_log_trace_enable()\fP and \fBmongoc_log_trace_disable()\fP
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+Compiling the driver with \fB\-\-enable\-tracing\fP will affect its performance. Disabling tracing with \fBmongoc_log_trace_disable()\fP significantly reduces the overhead, but cannot remove it completely.
+.UNINDENT
+.UNINDENT
+« index
+.SH ERROR REPORTING
+.SS Description
+.sp
+Many C Driver functions report errors by returning \fBfalse\fP or \-1 and filling out a \fI\%bson_error_t\fP structure with an error domain, error code, and message. Use \fBdomain\fP to determine which subsystem generated the error, and \fBcode\fP for the specific error. \fBmessage\fP is a human\-readable error description.
+.sp
+See also: \fI\%Handling Errors in libbson\fP\&.
+.TS
+center;
+|l|l|l|.
+_
+T{
+Domain
+T}	T{
+Code
+T}	T{
+Description
+T}
+_
+T{
+\fBMONGOC_ERROR_CLIENT\fP
+T}	T{
+\fBMONGOC_ERROR_CLIENT_TOO_BIG\fP
+T}	T{
+You tried to send a message larger than the server\(aqs max message size.
+T}
+_
+T{
+T}	T{
+\fBMONGOC_ERROR_CLIENT_AUTHENTICATE\fP
+T}	T{
+Wrong credentials, or failure sending or receiving authentication messages.
+T}
+_
+T{
+T}	T{
+\fBMONGOC_ERROR_CLIENT_NO_ACCEPTABLE_PEER\fP
+T}	T{
+You tried an SSL connection but the driver was not built with SSL.
+T}
+_
+T{
+T}	T{
+\fBMONGOC_ERROR_CLIENT_IN_EXHAUST\fP
+T}	T{
+You began iterating an exhaust cursor, then tried to begin another operation with the same \fBmongoc_client_t\fP\&.
+T}
+_
+T{
+\fBMONGOC_ERROR_STREAM\fP
+T}	T{
+\fBMONGOC_ERROR_STREAM_NAME_RESOLUTION\fP
+T}	T{
+DNS failure.
+T}
+_
+T{
+T}	T{
+\fBMONGOC_ERROR_STREAM_SOCKET\fP
+T}	T{
+Timeout communicating with server, or connection closed.
+T}
+_
+T{
+T}	T{
+\fBMONGOC_ERROR_STREAM_CONNECT\fP
+T}	T{
+Failed to connect to server.
+T}
+_
+T{
+\fBMONGOC_ERROR_PROTOCOL\fP
+T}	T{
+\fBMONGOC_ERROR_PROTOCOL_INVALID_REPLY\fP
+T}	T{
+Corrupt response from server.
+T}
+_
+T{
+T}	T{
+\fBMONGOC_ERROR_PROTOCOL_BAD_WIRE_VERSION\fP
+T}	T{
+The server version is too old or too new to communicate with the driver.
+T}
+_
+T{
+\fBMONGOC_ERROR_CURSOR\fP
+T}	T{
+\fBMONGOC_ERROR_CURSOR_INVALID_CURSOR\fP
+T}	T{
+You passed bad arguments to \fBmongoc_collection_find_with_opts\fP, or you called \fBmongoc_cursor_next\fP on a completed or failed cursor, or the cursor timed out on the server.
+T}
+_
+T{
+\fBMONGOC_ERROR_QUERY\fP
+T}	T{
+\fBMONGOC_ERROR_QUERY_FAILURE\fP
+T}	T{
+\fI\%Error API Version 1\fP: Server error from command or query. The server error message is in \fBmessage\fP\&.
+T}
+_
+T{
+\fBMONGOC_ERROR_SERVER\fP
+T}	T{
+\fBMONGOC_ERROR_QUERY_FAILURE\fP
+T}	T{
+\fI\%Error API Version 2\fP: Server error from command or query. The server error message is in \fBmessage\fP\&.
+T}
+_
+T{
+\fBMONGOC_ERROR_SASL\fP
+T}	T{
+A SASL error code.
+T}	T{
+\fBman sasl_errors\fP for a list of codes.
+T}
+_
+T{
+\fBMONGOC_ERROR_BSON\fP
+T}	T{
+\fBMONGOC_ERROR_BSON_INVALID\fP
+T}	T{
+You passed an invalid or oversized BSON document as a parameter, or called \fBmongoc_collection_create_index\fP with invalid keys, or the server reply was corrupt.
+T}
+_
+T{
+\fBMONGOC_ERROR_NAMESPACE\fP
+T}	T{
+\fBMONGOC_ERROR_NAMESPACE_INVALID\fP
+T}	T{
+You tried to create a collection with an invalid name.
+T}
+_
+T{
+\fBMONGOC_ERROR_COMMAND\fP
+T}	T{
+\fBMONGOC_ERROR_COMMAND_INVALID_ARG\fP
+T}	T{
+Many functions set this error code when passed bad parameters. Print the error message for details.
+T}
+_
+T{
+T}	T{
+\fBMONGOC_ERROR_PROTOCOL_BAD_WIRE_VERSION\fP
+T}	T{
+You tried to use a command option the server does not support.
+T}
+_
+T{
+T}	T{
+\fBMONGOC_ERROR_DUPLICATE_KEY\fP
+T}	T{
+An insert or update failed because because of a duplicate \fB_id\fP or other unique\-index violation.
+T}
+_
+T{
+\fBMONGOC_ERROR_COMMAND\fP
+T}	T{
+\fI\%Error code from server\fP\&.
+T}	T{
+\fI\%Error API Version 1\fP: Server error from a command. The server error message is in \fBmessage\fP\&.
+T}
+_
+T{
+\fBMONGOC_ERROR_SERVER\fP
+T}	T{
+\fI\%Error code from server\fP\&.
+T}	T{
+\fI\%Error API Version 2\fP: Server error from a command. The server error message is in \fBmessage\fP\&.
+T}
+_
+T{
+\fBMONGOC_ERROR_COLLECTION\fP
+T}	T{
+\fBMONGOC_ERROR_COLLECTION_INSERT_FAILED\fP, \fBMONGOC_ERROR_COLLECTION_UPDATE_FAILED\fP, \fBMONGOC_ERROR_COLLECTION_DELETE_FAILED\fP\&.
+T}	T{
+Invalid or empty input to \fBmongoc_collection_insert\fP, \fBmongoc_collection_insert_bulk\fP, \fBmongoc_collection_update\fP, or \fBmongoc_collection_remove\fP\&.
+T}
+_
+T{
+\fBMONGOC_ERROR_COLLECTION\fP
+T}	T{
+\fI\%Error code from server\fP\&.
+T}	T{
+\fI\%Error API Version 1\fP: Server error from \fBmongoc_collection_insert\fP, \fBmongoc_collection_insert_bulk\fP, \fBmongoc_collection_update\fP, or \fBmongoc_collection_remove\fP\&.
+T}
+_
+T{
+\fBMONGOC_ERROR_SERVER\fP
+T}	T{
+\fI\%Error code from server\fP\&.
+T}	T{
+\fI\%Error API Version 2\fP: Server error from \fBmongoc_collection_insert\fP, \fBmongoc_collection_insert_bulk\fP, \fBmongoc_collection_update\fP, or \fBmongoc_collection_remove\fP\&.
+T}
+_
+T{
+\fBMONGOC_ERROR_GRIDFS\fP
+T}	T{
+\fBMONGOC_ERROR_GRIDFS_CHUNK_MISSING\fP
+T}	T{
+The GridFS file is missing a document in its \fBchunks\fP collection.
+T}
+_
+T{
+T}	T{
+\fBMONGOC_ERROR_GRIDFS_INVALID_FILENAME\fP
+T}	T{
+You passed a NULL filename to \fBmongoc_gridfs_remove_by_filename\fP\&.
+T}
+_
+T{
+T}	T{
+\fBMONGOC_ERROR_GRIDFS_PROTOCOL_ERROR\fP
+T}	T{
+You called \fBmongoc_gridfs_file_set_id\fP after \fBmongoc_gridfs_file_save\fP\&.
+T}
+_
+T{
+\fBMONGOC_ERROR_SCRAM\fP
+T}	T{
+\fBMONGOC_ERROR_SCRAM_PROTOCOL_ERROR\fP
+T}	T{
+Failure in SCRAM\-SHA\-1 authentication.
+T}
+_
+T{
+\fBMONGOC_ERROR_SERVER_SELECTION\fP
+T}	T{
+\fBMONGOC_ERROR_SERVER_SELECTION_FAILURE\fP
+T}	T{
+No replica set member or mongos is available, or none matches your read preference, or you supplied an invalid \fBmongoc_read_prefs_t\fP\&.
+T}
+_
+T{
+\fBMONGOC_ERROR_WRITE_CONCERN\fP
+T}	T{
+\fI\%Error code from server\fP\&.
+T}	T{
+There was a write concern error or timeout from the server.
+T}
+_
+.TE
+.SS Setting the Error API Version
+.sp
+The driver\(aqs error reporting began with a design flaw: when the error \fIdomain\fP is \fBMONGOC_ERROR_COLLECTION\fP, \fBMONGOC_ERROR_QUERY\fP, or \fBMONGOC_ERROR_COMMAND\fP, the error \fIcode\fP might originate from the server or the driver. An application cannot always know where an error originated, and therefore cannot tell what the code means.
+.sp
+For example, if \fBmongoc_collection_update\fP sets the error\(aqs domain to \fBMONGOC_ERROR_COLLECTION\fP and its code to 24, the application cannot know whether 24 is the generic driver error code \fBMONGOC_ERROR_COLLECTION_UPDATE_FAILED\fP or the specific server error code "LockTimeout".
+.sp
+To fix this flaw while preserving backward compatibility, the C Driver 1.4 introduces "Error API Versions". Version 1, the default Error API Version, maintains the flawed behavior. Version 2 adds a new error domain, \fBMONGOC_ERROR_SERVER\fP\&. In Version 2, error codes originating on the server always have error domain \fBMONGOC_ERROR_SERVER\fP or \fBMONGOC_ERROR_WRITE_CONCERN\fP\&. When the driver uses Version 2 the application can always determine the origin and meaning of error codes. New applications should use Version 2, and existing applications should be updated to use Version 2 as well.
+.TS
+center;
+|l|l|l|.
+_
+T{
+Error Source
+T}	T{
+API Version 1
+T}	T{
+API Version 2
+T}
+_
+T{
+\fBmongoc_cursor_error\fP
+T}	T{
+\fBMONGOC_ERROR_QUERY\fP
+T}	T{
+\fBMONGOC_ERROR_SERVER\fP
+T}
+_
+T{
+\fBmongoc_client_command\fP,
+\fBmongoc_database_command\fP, and
+other command functions
+T}	T{
+\fBMONGOC_ERROR_QUERY\fP
+T}	T{
+\fBMONGOC_ERROR_SERVER\fP
+T}
+_
+T{
+\fBmongoc_collection_count_with_opts\fP,
+\fBmongoc_client_get_database_names\fP,
+and other command helper functions
+T}	T{
+\fBMONGOC_ERROR_QUERY\fP
+T}	T{
+\fBMONGOC_ERROR_SERVER\fP
+T}
+_
+T{
+\fBmongoc_collection_insert\fP
+\fBmongoc_collection_insert_bulk\fP
+\fBmongoc_collection_update\fP
+\fBmongoc_collection_remove\fP
+T}	T{
+\fBMONGOC_ERROR_COMMAND\fP
+T}	T{
+\fBMONGOC_ERROR_SERVER\fP
+T}
+_
+T{
+\fBmongoc_bulk_operation_execute\fP
+T}	T{
+\fBMONGOC_ERROR_COMMAND\fP
+T}	T{
+\fBMONGOC_ERROR_SERVER\fP
+T}
+_
+T{
+Write\-concern timeout
+T}	T{
+\fBMONGOC_ERROR_WRITE_CONCERN\fP
+T}	T{
+\fBMONGOC_ERROR_WRITE_CONCERN\fP
+T}
+_
+.TE
+.sp
+The Error API Versions are defined with \fBMONGOC_ERROR_API_VERSION_LEGACY\fP and \fBMONGOC_ERROR_API_VERSION_2\fP\&. Set the version with \fBmongoc_client_set_error_api\fP or \fBmongoc_client_pool_set_error_api\fP\&.
+.SS See Also
+.sp
+\fI\%MongoDB Server Error Codes\fP
+.SH VERSION CHECKS
+.sp
+Conditional compilation based on mongoc version
+.SS Description
+.sp
+The following preprocessor macros can be used to perform various checks based on the version of the library you are compiling against.
+This may be useful if you only want to enable a feature on a certain version of the library.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <mongoc.h>
+
+#define MONGOC_MAJOR_VERSION (1)
+#define MONGOC_MINOR_VERSION (6)
+#define MONGOC_MICRO_VERSION (3)
+#define MONGOC_VERSION_S     "1.6.3"
+#define MONGOC_VERSION_HEX   ((1 << 24) | (0 << 16) | (0 << 8) | 0)
+#define MONGOC_CHECK_VERSION(major, minor, micro)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Only compile a block on MongoDB C Driver 1.1.0 and newer.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#if MONGOC_CHECK_VERSION(1, 1, 0)
+static void
+do_something (void)
+{
+}
+#endif
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH MONGOC_BULK_OPERATION_T
+.sp
+Bulk Write Operations
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct _mongoc_bulk_operation_t mongoc_bulk_operation_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The opaque type \fBmongoc_bulk_operation_t\fP provides an abstraction for submitting multiple write operations as a single batch.
+.sp
+After adding all of the write operations to the \fBmongoc_bulk_operation_t\fP, call \fBmongoc_bulk_operation_execute()\fP to execute the operation.
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+It is only valid to call \fBmongoc_bulk_operation_execute()\fP once. The \fBmongoc_bulk_operation_t\fP must be destroyed afterwards.
+.UNINDENT
+.UNINDENT
+.SS See Also
+.sp
+\fBBulk Write Operations\fP
+.SH MONGOC_CLIENT_POOL_T
+.sp
+Connection pooling abstraction
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct _mongoc_client_pool_t mongoc_client_pool_t
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBmongoc_client_pool_t\fP is the basis for multi\-threading in the MongoDB C driver. Since \fBmongoc_client_t\fP structures are not thread\-safe, this structure is used to retrieve a new \fBmongoc_client_t\fP for a given thread. This structure \fIis thread\-safe\fP\&.
+.SS Example
+example\-pool.c.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+/* gcc example\-pool.c \-o example\-pool $(pkg\-config \-\-cflags \-\-libs
+ * libmongoc\-1.0) */
+
+/* ./example\-pool [CONNECTION_STRING] */
+
+#include <mongoc.h>
+#include <pthread.h>
+#include <stdio.h>
+
+static pthread_mutex_t mutex;
+static bool in_shutdown = false;
+
+static void *
+worker (void *data)
+{
+   mongoc_client_pool_t *pool = data;
+   mongoc_client_t *client;
+   bson_t ping = BSON_INITIALIZER;
+   bson_error_t error;
+   bool r;
+
+   BSON_APPEND_INT32 (&ping, "ping", 1);
+
+   while (true) {
+      client = mongoc_client_pool_pop (pool);
+      /* Do something with client. If you are writing an HTTP server, you
+       * probably only want to hold onto the client for the portion of the
+       * request performing database queries.
+       */
+      r = mongoc_client_command_simple (
+         client, "admin", &ping, NULL, NULL, &error);
+
+      if (!r) {
+         fprintf (stderr, "%s\en", error.message);
+      }
+
+      mongoc_client_pool_push (pool, client);
+
+      pthread_mutex_lock (&mutex);
+      if (in_shutdown || !r) {
+         pthread_mutex_unlock (&mutex);
+         break;
+      }
+
+      pthread_mutex_unlock (&mutex);
+   }
+
+   bson_destroy (&ping);
+   return NULL;
+}
+
+int
+main (int argc, char *argv[])
+{
+   const char *uristr = "mongodb://127.0.0.1/?appname=pool\-example";
+   mongoc_uri_t *uri;
+   mongoc_client_pool_t *pool;
+   pthread_t threads[10];
+   unsigned i;
+   void *ret;
+
+   pthread_mutex_init (&mutex, NULL);
+   mongoc_init ();
+
+   if (argc > 1) {
+      uristr = argv[1];
+   }
+
+   uri = mongoc_uri_new (uristr);
+   if (!uri) {
+      fprintf (stderr, "Failed to parse URI: \e"%s\e".\en", uristr);
+      return EXIT_FAILURE;
+   }
+
+   pool = mongoc_client_pool_new (uri);
+   mongoc_client_pool_set_error_api (pool, 2);
+
+   for (i = 0; i < 10; i++) {
+      pthread_create (&threads[i], NULL, worker, pool);
+   }
+
+   sleep (10);
+   pthread_mutex_lock (&mutex);
+   in_shutdown = true;
+   pthread_mutex_unlock (&mutex);
+
+   for (i = 0; i < 10; i++) {
+      pthread_join (threads[i], &ret);
+   }
+
+   mongoc_client_pool_destroy (pool);
+   mongoc_uri_destroy (uri);
+
+   mongoc_cleanup ();
+
+   return 0;
+}
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH MONGOC_CLIENT_T
+.sp
+MongoDB Connection Abstraction
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct _mongoc_client_t mongoc_client_t;
+
+typedef mongoc_stream_t *(*mongoc_stream_initiator_t) (
+   const mongoc_uri_t *uri,
+   const mongoc_host_list_t *host,
+   void *user_data,
+   bson_error_t *error);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBmongoc_client_t\fP is an opaque type that provides access to a MongoDB node,
+replica\-set, or sharded\-cluster. It maintains management of underlying sockets
+and routing to individual nodes based on \fBmongoc_read_prefs_t\fP or \fBmongoc_write_concern_t\fP\&.
+.SS Streams
+.sp
+The underlying transport for a given client can be customized, wrapped or replaced by any implementation that fulfills \fBmongoc_stream_t\fP\&. A custom transport can be set with \fBmongoc_client_set_stream_initiator()\fP\&.
+.SS Thread Safety
+.sp
+\fBmongoc_client_t\fP is \fINOT\fP thread\-safe and should only be used from one thread at a time. When used in multi\-threaded scenarios, it is recommended that you use the thread\-safe \fBmongoc_client_pool_t\fP to retrieve a \fBmongoc_client_t\fP for your thread.
+.SS Lifecycle
+.sp
+It is an error to call \fBmongoc_client_destroy\fP on a client that has operations pending. It is required that you release \fBmongoc_collection_t\fP and \fBmongoc_database_t\fP structures before calling \fBmongoc_client_destroy\fP\&.
+.SS Example
+example\-client.c.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+/* gcc example\-client.c \-o example\-client $(pkg\-config \-\-cflags \-\-libs
+ * libmongoc\-1.0) */
+
+/* ./example\-client [CONNECTION_STRING [COLLECTION_NAME]] */
+
+#include <mongoc.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main (int argc, char *argv[])
+{
+   mongoc_client_t *client;
+   mongoc_collection_t *collection;
+   mongoc_cursor_t *cursor;
+   bson_error_t error;
+   const bson_t *doc;
+   const char *uristr = "mongodb://127.0.0.1/?appname=client\-example";
+   const char *collection_name = "test";
+   bson_t query;
+   char *str;
+
+   mongoc_init ();
+
+   if (argc > 1) {
+      uristr = argv[1];
+   }
+
+   if (argc > 2) {
+      collection_name = argv[2];
+   }
+
+   client = mongoc_client_new (uristr);
+
+   if (!client) {
+      fprintf (stderr, "Failed to parse URI.\en");
+      return EXIT_FAILURE;
+   }
+
+   mongoc_client_set_error_api (client, 2);
+
+   bson_init (&query);
+
+#if 0
+   bson_append_utf8 (&query, "hello", \-1, "world", \-1);
+#endif
+
+   collection = mongoc_client_get_collection (client, "test", collection_name);
+   cursor = mongoc_collection_find_with_opts (
+      collection,
+      &query,
+      NULL,  /* additional options */
+      NULL); /* read prefs, NULL for default */
+
+   while (mongoc_cursor_next (cursor, &doc)) {
+      str = bson_as_json (doc, NULL);
+      fprintf (stdout, "%s\en", str);
+      bson_free (str);
+   }
+
+   if (mongoc_cursor_error (cursor, &error)) {
+      fprintf (stderr, "Cursor Failure: %s\en", error.message);
+      return EXIT_FAILURE;
+   }
+
+   bson_destroy (&query);
+   mongoc_cursor_destroy (cursor);
+   mongoc_collection_destroy (collection);
+   mongoc_client_destroy (client);
+
+   mongoc_cleanup ();
+
+   return EXIT_SUCCESS;
+}
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH MONGOC_COLLECTION_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <mongoc.h>
+
+typedef struct _mongoc_collection_t mongoc_collection_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBmongoc_collection_t\fP provides access to a MongoDB collection.  This handle is useful for actions for most CRUD operations, I.e. insert, update, delete, find, etc.
+.SS Read Preferences and Write Concerns
+.sp
+Read preferences and write concerns are inherited from the parent client. They can be overridden by set_* commands if so desired.
+.SS Lifecycle
+.sp
+It is an error to call \fBmongoc_collection_destroy()\fP on a collection that has operations pending. It is required that you release \fBmongoc_cursor_t\fP structures before calling \fBmongoc_collection_destroy()\fP\&.
+.SH MONGOC_CURSOR_T
+.sp
+Client\-side cursor abtraction
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct _mongoc_cursor_t mongoc_cursor_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBmongoc_cursor_t\fP provides access to a MongoDB query cursor.
+It wraps up the wire protocol negotiation required to initiate a query and retrieve an unknown number of documents.
+.sp
+Cursors are lazy, meaning that no network traffic occurs until the first call to \fBmongoc_cursor_next()\fP\&.
+.sp
+At that point we can:
+.INDENT 0.0
+.IP \(bu 2
+Determine which host we\(aqve connected to with \fBmongoc_cursor_get_host()\fP\&.
+.IP \(bu 2
+Retrieve more records with repeated calls to \fBmongoc_cursor_next()\fP\&.
+.IP \(bu 2
+Clone a query to repeat execution at a later point with \fBmongoc_cursor_clone()\fP\&.
+.IP \(bu 2
+Test for errors with \fBmongoc_cursor_error()\fP\&.
+.UNINDENT
+.SS Thread Safety
+.sp
+\fBmongoc_cursor_t\fP is \fINOT\fP thread safe. It may only be used from the thread it was created from.
+.SS Example
+Query MongoDB and iterate results.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+/* gcc example\-client.c \-o example\-client $(pkg\-config \-\-cflags \-\-libs
+ * libmongoc\-1.0) */
+
+/* ./example\-client [CONNECTION_STRING [COLLECTION_NAME]] */
+
+#include <mongoc.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main (int argc, char *argv[])
+{
+   mongoc_client_t *client;
+   mongoc_collection_t *collection;
+   mongoc_cursor_t *cursor;
+   bson_error_t error;
+   const bson_t *doc;
+   const char *uristr = "mongodb://127.0.0.1/?appname=client\-example";
+   const char *collection_name = "test";
+   bson_t query;
+   char *str;
+
+   mongoc_init ();
+
+   if (argc > 1) {
+      uristr = argv[1];
+   }
+
+   if (argc > 2) {
+      collection_name = argv[2];
+   }
+
+   client = mongoc_client_new (uristr);
+
+   if (!client) {
+      fprintf (stderr, "Failed to parse URI.\en");
+      return EXIT_FAILURE;
+   }
+
+   mongoc_client_set_error_api (client, 2);
+
+   bson_init (&query);
+
+#if 0
+   bson_append_utf8 (&query, "hello", \-1, "world", \-1);
+#endif
+
+   collection = mongoc_client_get_collection (client, "test", collection_name);
+   cursor = mongoc_collection_find_with_opts (
+      collection,
+      &query,
+      NULL,  /* additional options */
+      NULL); /* read prefs, NULL for default */
+
+   while (mongoc_cursor_next (cursor, &doc)) {
+      str = bson_as_json (doc, NULL);
+      fprintf (stdout, "%s\en", str);
+      bson_free (str);
+   }
+
+   if (mongoc_cursor_error (cursor, &error)) {
+      fprintf (stderr, "Cursor Failure: %s\en", error.message);
+      return EXIT_FAILURE;
+   }
+
+   bson_destroy (&query);
+   mongoc_cursor_destroy (cursor);
+   mongoc_collection_destroy (collection);
+   mongoc_client_destroy (client);
+
+   mongoc_cleanup ();
+
+   return EXIT_SUCCESS;
+}
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH MONGOC_DATABASE_T
+.sp
+MongoDB Database Abstraction
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct _mongoc_database_t mongoc_database_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBmongoc_database_t\fP provides access to a MongoDB database. This handle is useful for actions a particular database object. It \fIis not\fP a container for \fBmongoc_collection_t\fP structures.
+.sp
+Read preferences and write concerns are inherited from the parent client. They can be overridden with \fBmongoc_database_set_read_prefs()\fP and \fBmongoc_database_set_write_concern()\fP\&.
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+It is an error to call \fBmongoc_database_destroy()\fP on a database that has operations pending. It is required that you release \fBmongoc_cursor_t\fP structures before calling \fBmongoc_database_destroy\fP\&.
+.UNINDENT
+.UNINDENT
+.SS Examples
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <mongoc.h>
+
+int
+main (int argc, char *argv[])
+{
+   mongoc_database_t *database;
+   mongoc_client_t *client;
+
+   mongoc_init ();
+
+   client = mongoc_client_new ("mongodb://localhost/");
+   database = mongoc_client_get_database (client, "test");
+
+   mongoc_database_destroy (database);
+   mongoc_client_destroy (client);
+
+   mongoc_cleanup ();
+
+   return 0;
+}
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH MONGOC_DELETE_FLAGS_T
+.sp
+Flags for deletion operations
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef enum {
+   MONGOC_DELETE_NONE = 0,
+   MONGOC_DELETE_SINGLE_REMOVE = 1 << 0,
+} mongoc_delete_flags_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Deprecated
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+These flags are deprecated and should not be used in new code.
+.UNINDENT
+.UNINDENT
+.sp
+Please use \fBmongoc_remove_flags_t\fP with \fBmongoc_collection_remove()\fP instead.
+.SH MONGOC_FIND_AND_MODIFY_OPTS_T
+.sp
+find_and_modify abstraction
+.SS Synopsis
+.sp
+\fBmongoc_find_and_modify_opts_t\fP is a builder interface to construct a \fI\%find_and_modify\fP command.
+.sp
+It was created to be able to accommodate new arguments to the MongoDB find_and_modify command.
+.sp
+As of MongoDB 3.2, the \fBmongoc_write_concern_t\fP specified on the \fBmongoc_collection_t\fP will be used, if any.
+.SS Example
+flags.c.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+
+void
+fam_flags (mongoc_collection_t *collection)
+{
+   mongoc_find_and_modify_opts_t *opts;
+   bson_t reply;
+   bson_error_t error;
+   bson_t query = BSON_INITIALIZER;
+   bson_t *update;
+   bool success;
+
+
+   /* Find Zlatan Ibrahimovic, the striker */
+   BSON_APPEND_UTF8 (&query, "firstname", "Zlatan");
+   BSON_APPEND_UTF8 (&query, "lastname", "Ibrahimovic");
+   BSON_APPEND_UTF8 (&query, "profession", "Football player");
+   BSON_APPEND_INT32 (&query, "age", 34);
+   BSON_APPEND_INT32 (
+      &query, "goals", (16 + 35 + 23 + 57 + 16 + 14 + 28 + 84) + (1 + 6 + 62));
+
+   /* Add his football position */
+   update = BCON_NEW ("$set", "{", "position", BCON_UTF8 ("striker"), "}");
+
+   opts = mongoc_find_and_modify_opts_new ();
+
+   mongoc_find_and_modify_opts_set_update (opts, update);
+
+   /* Create the document if it didn\(aqt exist, and return the updated document */
+   mongoc_find_and_modify_opts_set_flags (
+      opts, MONGOC_FIND_AND_MODIFY_UPSERT | MONGOC_FIND_AND_MODIFY_RETURN_NEW);
+
+   success = mongoc_collection_find_and_modify_with_opts (
+      collection, &query, opts, &reply, &error);
+
+   if (success) {
+      char *str;
+
+      str = bson_as_json (&reply, NULL);
+      printf ("%s\en", str);
+      bson_free (str);
+   } else {
+      fprintf (
+         stderr, "Got error: \e"%s\e" on line %d\en", error.message, __LINE__);
+   }
+
+   bson_destroy (&reply);
+   bson_destroy (update);
+   bson_destroy (&query);
+   mongoc_find_and_modify_opts_destroy (opts);
+}
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+bypass.c.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+
+void
+fam_bypass (mongoc_collection_t *collection)
+{
+   mongoc_find_and_modify_opts_t *opts;
+   bson_t reply;
+   bson_t *update;
+   bson_error_t error;
+   bson_t query = BSON_INITIALIZER;
+   bool success;
+
+
+   /* Find Zlatan Ibrahimovic, the striker */
+   BSON_APPEND_UTF8 (&query, "firstname", "Zlatan");
+   BSON_APPEND_UTF8 (&query, "lastname", "Ibrahimovic");
+   BSON_APPEND_UTF8 (&query, "profession", "Football player");
+
+   /* Bump his age */
+   update = BCON_NEW ("$inc", "{", "age", BCON_INT32 (1), "}");
+
+   opts = mongoc_find_and_modify_opts_new ();
+   mongoc_find_and_modify_opts_set_update (opts, update);
+   /* He can still play, even though he is pretty old. */
+   mongoc_find_and_modify_opts_set_bypass_document_validation (opts, true);
+
+   success = mongoc_collection_find_and_modify_with_opts (
+      collection, &query, opts, &reply, &error);
+
+   if (success) {
+      char *str;
+
+      str = bson_as_json (&reply, NULL);
+      printf ("%s\en", str);
+      bson_free (str);
+   } else {
+      fprintf (
+         stderr, "Got error: \e"%s\e" on line %d\en", error.message, __LINE__);
+   }
+
+   bson_destroy (&reply);
+   bson_destroy (update);
+   bson_destroy (&query);
+   mongoc_find_and_modify_opts_destroy (opts);
+}
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+update.c.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+
+void
+fam_update (mongoc_collection_t *collection)
+{
+   mongoc_find_and_modify_opts_t *opts;
+   bson_t *update;
+   bson_t reply;
+   bson_error_t error;
+   bson_t query = BSON_INITIALIZER;
+   bool success;
+
+
+   /* Find Zlatan Ibrahimovic */
+   BSON_APPEND_UTF8 (&query, "firstname", "Zlatan");
+   BSON_APPEND_UTF8 (&query, "lastname", "Ibrahimovic");
+
+   /* Make him a book author */
+   update = BCON_NEW ("$set", "{", "author", BCON_BOOL (true), "}");
+
+   opts = mongoc_find_and_modify_opts_new ();
+   /* Note that the document returned is the _previous_ version of the document
+    * To fetch the modified new version, use
+    * mongoc_find_and_modify_opts_set_flags (opts,
+    * MONGOC_FIND_AND_MODIFY_RETURN_NEW);
+    */
+   mongoc_find_and_modify_opts_set_update (opts, update);
+
+   success = mongoc_collection_find_and_modify_with_opts (
+      collection, &query, opts, &reply, &error);
+
+   if (success) {
+      char *str;
+
+      str = bson_as_json (&reply, NULL);
+      printf ("%s\en", str);
+      bson_free (str);
+   } else {
+      fprintf (
+         stderr, "Got error: \e"%s\e" on line %d\en", error.message, __LINE__);
+   }
+
+   bson_destroy (&reply);
+   bson_destroy (update);
+   bson_destroy (&query);
+   mongoc_find_and_modify_opts_destroy (opts);
+}
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+fields.c.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+
+void
+fam_fields (mongoc_collection_t *collection)
+{
+   mongoc_find_and_modify_opts_t *opts;
+   bson_t fields = BSON_INITIALIZER;
+   bson_t *update;
+   bson_t reply;
+   bson_error_t error;
+   bson_t query = BSON_INITIALIZER;
+   bool success;
+
+
+   /* Find Zlatan Ibrahimovic */
+   BSON_APPEND_UTF8 (&query, "lastname", "Ibrahimovic");
+   BSON_APPEND_UTF8 (&query, "firstname", "Zlatan");
+
+   /* Return his goal tally */
+   BSON_APPEND_INT32 (&fields, "goals", 1);
+
+   /* Bump his goal tally */
+   update = BCON_NEW ("$inc", "{", "goals", BCON_INT32 (1), "}");
+
+   opts = mongoc_find_and_modify_opts_new ();
+   mongoc_find_and_modify_opts_set_update (opts, update);
+   mongoc_find_and_modify_opts_set_fields (opts, &fields);
+   /* Return the new tally */
+   mongoc_find_and_modify_opts_set_flags (opts,
+                                          MONGOC_FIND_AND_MODIFY_RETURN_NEW);
+
+   success = mongoc_collection_find_and_modify_with_opts (
+      collection, &query, opts, &reply, &error);
+
+   if (success) {
+      char *str;
+
+      str = bson_as_json (&reply, NULL);
+      printf ("%s\en", str);
+      bson_free (str);
+   } else {
+      fprintf (
+         stderr, "Got error: \e"%s\e" on line %d\en", error.message, __LINE__);
+   }
+
+   bson_destroy (&reply);
+   bson_destroy (update);
+   bson_destroy (&fields);
+   bson_destroy (&query);
+   mongoc_find_and_modify_opts_destroy (opts);
+}
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+sort.c.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+
+void
+fam_sort (mongoc_collection_t *collection)
+{
+   mongoc_find_and_modify_opts_t *opts;
+   bson_t *update;
+   bson_t sort = BSON_INITIALIZER;
+   bson_t reply;
+   bson_error_t error;
+   bson_t query = BSON_INITIALIZER;
+   bool success;
+
+
+   /* Find all users with the lastname Ibrahimovic */
+   BSON_APPEND_UTF8 (&query, "lastname", "Ibrahimovic");
+
+   /* Sort by age (descending) */
+   BSON_APPEND_INT32 (&sort, "age", \-1);
+
+   /* Bump his goal tally */
+   update = BCON_NEW ("$set", "{", "oldest", BCON_BOOL (true), "}");
+
+   opts = mongoc_find_and_modify_opts_new ();
+   mongoc_find_and_modify_opts_set_update (opts, update);
+   mongoc_find_and_modify_opts_set_sort (opts, &sort);
+
+   success = mongoc_collection_find_and_modify_with_opts (
+      collection, &query, opts, &reply, &error);
+
+   if (success) {
+      char *str;
+
+      str = bson_as_json (&reply, NULL);
+      printf ("%s\en", str);
+      bson_free (str);
+   } else {
+      fprintf (
+         stderr, "Got error: \e"%s\e" on line %d\en", error.message, __LINE__);
+   }
+
+   bson_destroy (&reply);
+   bson_destroy (update);
+   bson_destroy (&sort);
+   bson_destroy (&query);
+   mongoc_find_and_modify_opts_destroy (opts);
+}
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+opts.c.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+
+void
+fam_opts (mongoc_collection_t *collection)
+{
+   mongoc_find_and_modify_opts_t *opts;
+   bson_t reply;
+   bson_t *update;
+   bson_error_t error;
+   bson_t query = BSON_INITIALIZER;
+   bson_t extra = BSON_INITIALIZER;
+   bool success;
+
+
+   /* Find Zlatan Ibrahimovic, the striker */
+   BSON_APPEND_UTF8 (&query, "firstname", "Zlatan");
+   BSON_APPEND_UTF8 (&query, "lastname", "Ibrahimovic");
+   BSON_APPEND_UTF8 (&query, "profession", "Football player");
+
+   /* Bump his age */
+   update = BCON_NEW ("$inc", "{", "age", BCON_INT32 (1), "}");
+
+   opts = mongoc_find_and_modify_opts_new ();
+   mongoc_find_and_modify_opts_set_update (opts, update);
+
+   /* Abort if the operation takes too long. */
+   mongoc_find_and_modify_opts_set_max_time_ms (opts, 100);
+
+   /* Some future findAndModify option the driver doesn\(aqt support conveniently
+    */
+   BSON_APPEND_INT32 (&extra, "futureOption", 42);
+   mongoc_find_and_modify_opts_append (opts, &extra);
+
+   success = mongoc_collection_find_and_modify_with_opts (
+      collection, &query, opts, &reply, &error);
+
+   if (success) {
+      char *str;
+
+      str = bson_as_json (&reply, NULL);
+      printf ("%s\en", str);
+      bson_free (str);
+   } else {
+      fprintf (
+         stderr, "Got error: \e"%s\e" on line %d\en", error.message, __LINE__);
+   }
+
+   bson_destroy (&reply);
+   bson_destroy (&extra);
+   bson_destroy (update);
+   bson_destroy (&query);
+   mongoc_find_and_modify_opts_destroy (opts);
+}
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+fam.c.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+
+#include <bcon.h>
+#include <mongoc.h>
+
+#include "flags.c"
+#include "bypass.c"
+#include "update.c"
+#include "fields.c"
+#include "opts.c"
+#include "sort.c"
+
+int
+main (void)
+{
+   mongoc_collection_t *collection;
+   mongoc_database_t *database;
+   mongoc_client_t *client;
+   bson_error_t error;
+   bson_t *options;
+
+   mongoc_init ();
+   client = mongoc_client_new (
+      "mongodb://localhost:27017/admin?appname=find\-and\-modify\-opts\-example");
+   mongoc_client_set_error_api (client, 2);
+   database = mongoc_client_get_database (client, "databaseName");
+
+   options = BCON_NEW ("validator",
+                       "{",
+                       "age",
+                       "{",
+                       "$lte",
+                       BCON_INT32 (34),
+                       "}",
+                       "}",
+                       "validationAction",
+                       BCON_UTF8 ("error"),
+                       "validationLevel",
+                       BCON_UTF8 ("moderate"));
+
+   collection = mongoc_database_create_collection (
+      database, "collectionName", options, &error);
+   if (!collection) {
+      fprintf (
+         stderr, "Got error: \e"%s\e" on line %d\en", error.message, __LINE__);
+      return 1;
+   }
+
+   fam_flags (collection);
+   fam_bypass (collection);
+   fam_update (collection);
+   fam_fields (collection);
+   fam_opts (collection);
+   fam_sort (collection);
+
+   mongoc_collection_drop (collection, NULL);
+   bson_destroy (options);
+   mongoc_database_destroy (database);
+   mongoc_collection_destroy (collection);
+   mongoc_client_destroy (client);
+
+   mongoc_cleanup ();
+   return 0;
+}
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Outputs:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+{
+    "lastErrorObject": {
+        "updatedExisting": false,
+        "n": 1,
+        "upserted": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        }
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "age": 34,
+        "firstname": "Zlatan",
+        "goals": 342,
+        "lastname": "Ibrahimovic",
+        "profession": "Football player",
+        "position": "striker"
+    },
+    "ok": 1
+}
+{
+    "lastErrorObject": {
+        "updatedExisting": true,
+        "n": 1
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "age": 34,
+        "firstname": "Zlatan",
+        "goals": 342,
+        "lastname": "Ibrahimovic",
+        "profession": "Football player",
+        "position": "striker"
+    },
+    "ok": 1
+}
+{
+    "lastErrorObject": {
+        "updatedExisting": true,
+        "n": 1
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "age": 35,
+        "firstname": "Zlatan",
+        "goals": 342,
+        "lastname": "Ibrahimovic",
+        "profession": "Football player",
+        "position": "striker"
+    },
+    "ok": 1
+}
+{
+    "lastErrorObject": {
+        "updatedExisting": true,
+        "n": 1
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "goals": 343
+    },
+    "ok": 1
+}
+{
+    "lastErrorObject": {
+        "updatedExisting": true,
+        "n": 1
+    },
+    "value": {
+        "_id": {
+            "$oid": "56562a99d13e6d86239c7b00"
+        },
+        "age": 35,
+        "firstname": "Zlatan",
+        "goals": 343,
+        "lastname": "Ibrahimovic",
+        "profession": "Football player",
+        "position": "striker",
+        "author": true
+    },
+    "ok": 1
+}
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH MONGOC_GRIDFS_FILE_LIST_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <mongoc.h>
+
+typedef struct _mongoc_gridfs_file_list_t mongoc_gridfs_file_list_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+\fBmongoc_gridfs_file_list_t\fP provides a gridfs file list abstraction.  It provides iteration and basic marshalling on top of a regular \fBmongoc_collection_find_with_opts()\fP style query. In interface, it\(aqs styled after \fBmongoc_cursor_t\fP\&.
+.SS Example
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+mongoc_gridfs_file_list_t *list;
+mongoc_gridfs_file_t *file;
+
+list = mongoc_gridfs_find (gridfs, query);
+
+while ((file = mongoc_gridfs_file_list_next (list))) {
+   do_something (file);
+
+   mongoc_gridfs_file_destroy (file);
+}
+
+mongoc_gridfs_file_list_destroy (list);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH MONGOC_GRIDFS_FILE_OPT_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct {
+   const char *md5;
+   const char *filename;
+   const char *content_type;
+   const bson_t *aliases;
+   const bson_t *metadata;
+   uint32_t chunk_size;
+} mongoc_gridfs_file_opt_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+This structure contains options that can be set on a \fBmongoc_gridfs_file_t\fP\&. It can be used by various functions when creating a new gridfs file.
+.SH MONGOC_GRIDFS_FILE_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct _mongoc_gridfs_file_t mongoc_gridfs_file_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+This structure provides a MongoDB GridFS file abstraction. It provides several APIs.
+.INDENT 0.0
+.IP \(bu 2
+readv, writev, seek, and tell.
+.IP \(bu 2
+General file metadata such as filename and length.
+.IP \(bu 2
+GridFS metadata such as md5, filename, content_type, aliases, metadata, chunk_size, and upload_date.
+.UNINDENT
+.SS Thread Safety
+.sp
+This structure is NOT thread\-safe and should only be used from one thread at a time.
+.SS Related
+.INDENT 0.0
+.IP \(bu 2
+\fBmongoc_client_t\fP
+.IP \(bu 2
+\fBmongoc_gridfs_t\fP
+.IP \(bu 2
+\fBmongoc_gridfs_file_list_t\fP
+.IP \(bu 2
+\fBmongoc_gridfs_file_opt_t\fP
+.UNINDENT
+.SH MONGOC_GRIDFS_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <mongoc.h>
+
+typedef struct _mongoc_gridfs_t mongoc_gridfs_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+\fBmongoc_gridfs_t\fP provides a MongoDB gridfs implementation. The system as a whole is made up of \fBgridfs\fP objects, which contain \fBgridfs_files\fP and \fBgridfs_file_lists\fP\&.  Essentially, a basic file system API.
+.sp
+There are extensive caveats about the kind of use cases gridfs is practical for. In particular, any writing after initial file creation is likely to both break any concurrent readers and be quite expensive. That said, this implementation does allow for arbitrary writes to existing gridfs object, just use them with caution.
+.sp
+mongoc_gridfs also integrates tightly with the \fBmongoc_stream_t\fP abstraction, which provides some convenient wrapping for file creation and reading/writing.  It can be used without, but its worth looking to see if your problem can fit that model.
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+\fBmongoc_gridfs_t\fP does not support read preferences. In a replica set, GridFS queries are always routed to the primary.
+.UNINDENT
+.UNINDENT
+.SS Thread Safety
+.sp
+\fBmongoc_gridfs_t\fP is NOT thread\-safe and should only be used in the same thread as the owning \fBmongoc_client_t\fP\&.
+.SS Lifecycle
+.sp
+It is an error to free a \fBmongoc_gridfs_t\fP before freeing all related instances of \fBmongoc_gridfs_file_t\fP and \fBmongoc_gridfs_file_list_t\fP\&.
+.SS Example
+example\-gridfs.c.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <mongoc.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+
+int
+main (int argc, char *argv[])
+{
+   mongoc_gridfs_t *gridfs;
+   mongoc_gridfs_file_t *file;
+   mongoc_gridfs_file_list_t *list;
+   mongoc_gridfs_file_opt_t opt = {0};
+   mongoc_client_t *client;
+   mongoc_stream_t *stream;
+   bson_t filter;
+   bson_t opts;
+   bson_t child;
+   bson_error_t error;
+   ssize_t r;
+   char buf[4096];
+   mongoc_iovec_t iov;
+   const char *filename;
+   const char *command;
+   bson_value_t id;
+
+   if (argc < 2) {
+      fprintf (stderr, "usage \- %s command ...\en", argv[0]);
+      return 1;
+   }
+
+   mongoc_init ();
+
+   iov.iov_base = (void *) buf;
+   iov.iov_len = sizeof buf;
+
+   /* connect to localhost client */
+   client =
+      mongoc_client_new ("mongodb://127.0.0.1:27017?appname=gridfs\-example");
+   assert (client);
+   mongoc_client_set_error_api (client, 2);
+
+   /* grab a gridfs handle in test prefixed by fs */
+   gridfs = mongoc_client_get_gridfs (client, "test", "fs", &error);
+   assert (gridfs);
+
+   command = argv[1];
+   filename = argv[2];
+
+   if (strcmp (command, "read") == 0) {
+      if (argc != 3) {
+         fprintf (stderr, "usage \- %s read filename\en", argv[0]);
+         return 1;
+      }
+      file = mongoc_gridfs_find_one_by_filename (gridfs, filename, &error);
+      assert (file);
+
+      stream = mongoc_stream_gridfs_new (file);
+      assert (stream);
+
+      for (;;) {
+         r = mongoc_stream_readv (stream, &iov, 1, \-1, 0);
+
+         assert (r >= 0);
+
+         if (r == 0) {
+            break;
+         }
+
+         if (fwrite (iov.iov_base, 1, r, stdout) != r) {
+            MONGOC_ERROR ("Failed to write to stdout. Exiting.\en");
+            exit (1);
+         }
+      }
+
+      mongoc_stream_destroy (stream);
+      mongoc_gridfs_file_destroy (file);
+   } else if (strcmp (command, "list") == 0) {
+      bson_init (&filter);
+
+      bson_init (&opts);
+      bson_append_document_begin (&opts, "sort", \-1, &child);
+      BSON_APPEND_INT32 (&child, "filename", 1);
+      bson_append_document_end (&opts, &child);
+
+      list = mongoc_gridfs_find_with_opts (gridfs, &filter, &opts);
+
+      bson_destroy (&filter);
+      bson_destroy (&opts);
+
+      while ((file = mongoc_gridfs_file_list_next (list))) {
+         const char *name = mongoc_gridfs_file_get_filename (file);
+         printf ("%s\en", name ? name : "?");
+
+         mongoc_gridfs_file_destroy (file);
+      }
+
+      mongoc_gridfs_file_list_destroy (list);
+   } else if (strcmp (command, "write") == 0) {
+      if (argc != 4) {
+         fprintf (stderr, "usage \- %s write filename input_file\en", argv[0]);
+         return 1;
+      }
+
+      stream = mongoc_stream_file_new_for_path (argv[3], O_RDONLY, 0);
+      assert (stream);
+
+      opt.filename = filename;
+
+      /* the driver generates a file_id for you */
+      file = mongoc_gridfs_create_file_from_stream (gridfs, stream, &opt);
+      assert (file);
+
+      id.value_type = BSON_TYPE_INT32;
+      id.value.v_int32 = 1;
+
+      /* optional: the following method specifies a file_id of any
+         BSON type */
+      if (!mongoc_gridfs_file_set_id (file, &id, &error)) {
+         fprintf (stderr, "%s\en", error.message);
+         return 1;
+      }
+
+      mongoc_gridfs_file_save (file);
+      mongoc_gridfs_file_destroy (file);
+   } else {
+      fprintf (stderr, "Unknown command");
+      return 1;
+   }
+
+   mongoc_gridfs_destroy (gridfs);
+   mongoc_client_destroy (client);
+
+   mongoc_cleanup ();
+
+   return 0;
+}
+
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH MONGOC_HOST_LIST_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct {
+   mongoc_host_list_t *next;
+   char host[BSON_HOST_NAME_MAX + 1];
+   char host_and_port[BSON_HOST_NAME_MAX + 7];
+   uint16_t port;
+   int family;
+   void *padding[4];
+} mongoc_host_list_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+The host and port of a MongoDB server. Can be part of a linked list: for example the return value of \fBmongoc_uri_get_hosts\fP when multiple hosts are provided in the MongoDB URI.
+.SS See Also
+.sp
+\fBmongoc_uri_get_hosts\fP and \fBmongoc_cursor_get_host\fP\&.
+.SH MONGOC_INDEX_OPT_GEO_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <mongoc.h>
+
+typedef struct {
+   uint8_t twod_sphere_version;
+   uint8_t twod_bits_precision;
+   double twod_location_min;
+   double twod_location_max;
+   double haystack_bucket_size;
+   uint8_t *padding[32];
+} mongoc_index_opt_geo_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+This structure contains the options that may be used for tuning a GEO index.
+.SS See Also
+.sp
+mongoc_index_opt_t
+.sp
+mongoc_index_opt_wt_t
+.SH MONGOC_INDEX_OPT_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <mongoc.h>
+
+typedef struct {
+   bool is_initialized;
+   bool background;
+   bool unique;
+   const char *name;
+   bool drop_dups;
+   bool sparse;
+   int32_t expire_after_seconds;
+   int32_t v;
+   const bson_t *weights;
+   const char *default_language;
+   const char *language_override;
+   mongoc_index_opt_geo_t *geo_options;
+   mongoc_index_opt_storage_t *storage_options;
+   const bson_t *partial_filter_expression;
+   const bson_t *collation;
+   void *padding[4];
+} mongoc_index_opt_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+This structure contains the options that may be used for tuning a specific index.
+.sp
+See the \fI\%createIndexes documentations\fP in the MongoDB manual for descriptions of individual options.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+dropDups is deprecated as of MongoDB version 3.0.0.  This option is silently ignored by the server and unique index builds using this option will fail if a duplicate value is detected.
+.UNINDENT
+.UNINDENT
+.SS Example
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+{
+   bson_t keys;
+   bson_error_t error;
+   mongoc_index_opt_t opt;
+   mongoc_index_opt_geo_t geo_opt;
+
+   mongoc_index_opt_init (&opt);
+   mongoc_index_opt_geo_init (&geo_opt);
+
+   bson_init (&keys);
+   BSON_APPEND_UTF8 (&keys, "location", "2d");
+
+   geo_opt.twod_location_min = \-123;
+   geo_opt.twod_location_max = +123;
+   geo_opt.twod_bits_precision = 30;
+   opt.geo_options = &geo_opt;
+
+   collection = mongoc_client_get_collection (client, "test", "geo_test");
+   if (mongoc_collection_create_index (collection, &keys, &opt, &error)) {
+      /* Successfully created the geo index */
+   }
+   bson_destroy (&keys);
+   mongoc_collection_destroy (&collection);
+}
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS See Also
+.sp
+mongoc_index_opt_geo_t
+.sp
+mongoc_index_opt_wt_t
+.SH MONGOC_INDEX_OPT_WT_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <mongoc.h>
+
+typedef struct {
+   mongoc_index_opt_storage_t base;
+   const char *config_str;
+   void *padding[8];
+} mongoc_index_opt_wt_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+This structure contains the options that may be used for tuning a WiredTiger specific index.
+.SS See Also
+.sp
+mongoc_index_opt_t
+.sp
+mongoc_index_opt_geo_t
+.SH MONGOC_INSERT_FLAGS_T
+.sp
+Flags for insert operations
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef enum {
+   MONGOC_INSERT_NONE = 0,
+   MONGOC_INSERT_CONTINUE_ON_ERROR = 1 << 0,
+} mongoc_insert_flags_t;
+
+#define MONGOC_INSERT_NO_VALIDATE (1U << 31)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+These flags correspond to the MongoDB wire protocol. They may be bitwise or\(aqd together. They may modify how an insert happens on the MongoDB server.
+.SS Flag Values
+.TS
+center;
+|l|l|.
+_
+T{
+MONGOC_INSERT_NONE
+T}	T{
+Specify no insert flags.
+T}
+_
+T{
+MONGOC_INSERT_CONTINUE_ON_ERROR
+T}	T{
+Continue inserting documents from the insertion set even if one insert fails.
+T}
+_
+T{
+MONGOC_INSERT_NO_VALIDATE
+T}	T{
+Do not validate insertion documents before performing an insert. Validation can be expensive, so this can save some time if you know your documents are already valid.
+T}
+_
+.TE
+.SH MONGOC_IOVEC_T
+.SS Synopsis
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <mongoc.h>
+
+#ifdef _WIN32
+typedef struct {
+   u_long iov_len;
+   char *iov_base;
+} mongoc_iovec_t;
+#else
+typedef struct iovec mongoc_iovec_t;
+#endif
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The \fBmongoc_iovec_t\fP structure is a portability abstraction for consumers of the \fBmongoc_stream_t\fP interfaces. It allows for scatter/gather I/O through the socket subsystem.
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+When writing portable code, beware of the ordering of \fBiov_len\fP and \fBiov_base\fP as they are different on various platforms. Therefore, you should not use C initializers for initialization.
+.UNINDENT
+.UNINDENT
+.SH MONGOC_MATCHER_T
+.sp
+Client\-side document matching abstraction
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct _mongoc_matcher_t mongoc_matcher_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBmongoc_matcher_t\fP provides a reduced\-interface for client\-side matching of BSON documents.
+.sp
+It can perform the basics such as $in, $nin, $eq, $neq, $gt, $gte, $lt, and $lte.
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+\fBmongoc_matcher_t\fP does not currently support the full spectrum of query operations that the MongoDB server supports.
+.UNINDENT
+.UNINDENT
+.SS Deprecated
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+\fBmongoc_matcher_t\fP is deprecated and will be removed in version 2.0.
+.UNINDENT
+.UNINDENT
+.SS Example
+Filter a sequence of BSON documents from STDIN based on a query.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <bcon.h>
+#include <bson.h>
+#include <mongoc.h>
+#include <stdio.h>
+
+int
+main (int argc, char *argv[])
+{
+   mongoc_matcher_t *matcher;
+   bson_reader_t *reader;
+   const bson_t *bson;
+   bson_t *spec;
+   char *str;
+   int fd;
+
+   mongoc_init ();
+
+#ifdef _WIN32
+   fd = fileno (stdin);
+#else
+   fd = STDIN_FILENO;
+#endif
+
+   reader = bson_reader_new_from_fd (fd, false);
+
+   spec = BCON_NEW ("hello", "world");
+   matcher = mongoc_matcher_new (spec, NULL);
+
+   while ((bson = bson_reader_read (reader, NULL))) {
+      if (mongoc_matcher_match (matcher, bson)) {
+         str = bson_as_json (bson, NULL);
+         printf ("%s\en", str);
+         bson_free (str);
+      }
+   }
+
+   bson_reader_destroy (reader);
+   bson_destroy (spec);
+
+   mongoc_cleanup ();
+
+   return 0;
+}
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH MONGOC_QUERY_FLAGS_T
+.sp
+Flags for query operations
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef enum {
+   MONGOC_QUERY_NONE = 0,
+   MONGOC_QUERY_TAILABLE_CURSOR = 1 << 1,
+   MONGOC_QUERY_SLAVE_OK = 1 << 2,
+   MONGOC_QUERY_OPLOG_REPLAY = 1 << 3,
+   MONGOC_QUERY_NO_CURSOR_TIMEOUT = 1 << 4,
+   MONGOC_QUERY_AWAIT_DATA = 1 << 5,
+   MONGOC_QUERY_EXHAUST = 1 << 6,
+   MONGOC_QUERY_PARTIAL = 1 << 7,
+} mongoc_query_flags_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+These flags correspond to the MongoDB wire protocol. They may be bitwise or\(aqd together. They may modify how a query is performed in the MongoDB server.
+.SS Flag Values
+.TS
+center;
+|l|l|.
+_
+T{
+MONGOC_QUERY_NONE
+T}	T{
+Specify no query flags.
+T}
+_
+T{
+MONGOC_QUERY_TAILABLE_CURSOR
+T}	T{
+Cursor will not be closed when the last data is retrieved. You can resume this cursor later.
+T}
+_
+T{
+MONGOC_QUERY_SLAVE_OK
+T}	T{
+Allow query of replica set secondaries.
+T}
+_
+T{
+MONGOC_QUERY_OPLOG_REPLAY
+T}	T{
+Used internally by MongoDB.
+T}
+_
+T{
+MONGOC_QUERY_NO_CURSOR_TIMEOUT
+T}	T{
+The server normally times out an idle cursor after an inactivity period (10 minutes). This prevents that.
+T}
+_
+T{
+MONGOC_QUERY_AWAIT_DATA
+T}	T{
+Use with MONGOC_QUERY_TAILABLE_CURSOR. Block rather than returning no data. After a period, time out.
+T}
+_
+T{
+MONGOC_QUERY_EXHAUST
+T}	T{
+Stream the data down full blast in multiple "reply" packets. Faster when you are pulling down a lot of data and you know you want to retrieve it all.
+T}
+_
+T{
+MONGOC_QUERY_PARTIAL
+T}	T{
+Get partial results from mongos if some shards are down (instead of throwing an error).
+T}
+_
+.TE
+.SH MONGOC_RAND
+.sp
+MongoDB Random Number Generator
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+void
+mongoc_rand_add (const void *buf, int num, doubel entropy);
+
+void
+mongoc_rand_seed (const void *buf, int num);
+
+int
+mongoc_rand_status (void);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+The \fBmongoc_rand\fP family of functions provide access to the low level randomness primitives used by the MongoDB C Driver.  In particular, they control the creation of cryptographically strong pseudo\-random bytes required by some security mechanisms.
+.sp
+While we can usually pull enough entropy from the environment, you may be required to seed the PRNG manually depending on your OS, hardware and other entropy consumers running on the same system.
+.SS Entropy
+.sp
+\fBmongoc_rand_add\fP and \fBmongoc_rand_seed\fP allow the user to directly provide entropy.  They differ insofar as \fBmongoc_rand_seed\fP requires that each bit provided is fully random.  \fBmongoc_rand_add\fP allows the user to specify the degree of randomness in the provided bytes as well.
+.SS Status
+.sp
+The \fBmongoc_rand_status\fP function allows the user to check the status of the mongoc PRNG.  This can be used to guarantee sufficient entropy at program startup, rather than waiting for runtime errors to occur.
+.SH MONGOC_READ_CONCERN_T
+.sp
+Read Concern abstraction
+.SS Synopsis
+.sp
+New in MongoDB 3.2.
+.sp
+The \fBmongoc_read_concern_t\fP allows clients to choose a level of isolation for their reads. The default, MONGOC_READ_CONCERN_LEVEL_LOCAL, is right for the great majority of applications.
+.sp
+You can specify a read concern on connection objects, database objects, or collection objects.
+.sp
+See \fI\%readConcern\fP on the MongoDB website for more information.
+.sp
+Read Concern is only sent to MongoDB when it has explicitly been set by \fBmongoc_read_concern_set_level\fP to anything other then empty string.
+.SS Read Concern Levels
+.TS
+center;
+|l|l|.
+_
+T{
+MONGOC_READ_CONCERN_LEVEL_LOCAL
+T}	T{
+Default. Uses read concern level "local".
+T}
+_
+T{
+MONGOC_READ_CONCERN_LEVEL_MAJORITY
+T}	T{
+Uses read concern level "majority".
+T}
+_
+T{
+MONGOC_READ_CONCERN_LEVEL_LINEARIZABLE
+T}	T{
+Uses read concern level "linearizable".
+T}
+_
+.TE
+.sp
+See \fI\%Read Concern Levels\fP in the MongoDB manual for more information about the individual read concern levels.
+.SH MONGOC_READ_MODE_T
+.sp
+Read Preference Modes
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef enum {
+   MONGOC_READ_PRIMARY = (1 << 0),
+   MONGOC_READ_SECONDARY = (1 << 1),
+   MONGOC_READ_PRIMARY_PREFERRED = (1 << 2) | MONGOC_READ_PRIMARY,
+   MONGOC_READ_SECONDARY_PREFERRED = (1 << 2) | MONGOC_READ_SECONDARY,
+   MONGOC_READ_NEAREST = (1 << 3) | MONGOC_READ_SECONDARY,
+} mongoc_read_mode_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+This enum describes how reads should be dispatched. The default is MONGOC_READ_PRIMARY.
+.sp
+Please see the MongoDB website for a description of \fI\%Read Preferences\fP\&.
+.SH MONGOC_READ_PREFS_T
+.sp
+A read preference abstraction
+.SS Synopsis
+.sp
+\fBmongoc_read_prefs_t\fP provides an abstraction on top of the MongoDB connection read prefences. It allows for hinting to the driver which nodes in a replica set should be accessed first.
+.sp
+You can specify a read preference mode on connection objects, database objects, collection objects, or per\-operation.  Generally, it makes the most sense to stick with the global default, \fBMONGOC_READ_PRIMARY\fP\&.  All of the other modes come with caveats that won\(aqt be covered in great detail here.
+.SS Read Modes
+.TS
+center;
+|l|l|.
+_
+T{
+MONGOC_READ_PRIMARY
+T}	T{
+Default mode. All operations read from the current replica set primary.
+T}
+_
+T{
+MONGOC_READ_SECONDARY
+T}	T{
+All operations read from among the nearest secondary members of the replica set.
+T}
+_
+T{
+MONGOC_READ_PRIMARY_PREFERRED
+T}	T{
+In most situations, operations read from the primary but if it is unavailable, operations read from secondary members.
+T}
+_
+T{
+MONGOC_READ_SECONDARY_PREFERRED
+T}	T{
+In most situations, operations read from among the nearest secondary members, but if no secondaries are available, operations read from the primary.
+T}
+_
+T{
+MONGOC_READ_NEAREST
+T}	T{
+Operations read from among the nearest members of the replica set, irrespective of the member\(aqs type.
+T}
+_
+.TE
+.SS Tag Sets
+.sp
+Tag sets allow you to specify custom read preferences and write concerns so that your application can target operations to specific members.
+.sp
+Custom read preferences and write concerns evaluate tags sets in different ways: read preferences consider the value of a tag when selecting a member to read from. while write concerns ignore the value of a tag to when selecting a member except to consider whether or not the value is unique.
+.sp
+You can specify tag sets with the following read preference modes:
+.INDENT 0.0
+.IP \(bu 2
+primaryPreferred
+.IP \(bu 2
+secondary
+.IP \(bu 2
+secondaryPreferred
+.IP \(bu 2
+nearest
+.UNINDENT
+.sp
+Tags are not compatible with \fBMONGOC_READ_PRIMARY\fP and, in general, only apply when selecting a secondary member of a set for a read operation. However, the nearest read mode, when combined with a tag set will select the nearest member that matches the specified tag set, which may be a primary or secondary.
+.sp
+All interfaces use the same member selection logic to choose the member to which to direct read operations, basing the choice on read preference mode and tag sets.
+.SS Max Staleness
+.sp
+When connected to replica set running MongoDB 3.4 or later, the driver estimates the staleness of each secondary based on lastWriteDate values provided in server isMaster responses.
+.sp
+Max Staleness is the maximum replication lag in seconds (wall clock time) that a secondary can suffer and still be eligible for reads. The default is \fBMONGOC_NO_MAX_STALENESS\fP, which disables staleness checks. Otherwise, it must be a positive integer at least \fBMONGOC_SMALLEST_MAX_STALENESS_SECONDS\fP (90 seconds).
+.sp
+Max Staleness is also supported by sharded clusters of replica sets if all servers run MongoDB 3.4 or later.
+.SH MONGOC_REMOVE_FLAGS_T
+.sp
+Flags for deletion operations
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef enum {
+   MONGOC_REMOVE_NONE = 0,
+   MONGOC_REMOVE_SINGLE_REMOVE = 1 << 0,
+} mongoc_remove_flags_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+These flags correspond to the MongoDB wire protocol. They may be bitwise or\(aqd together. They may change the number of documents that are removed during a remove command.
+.SS Flag Values
+.TS
+center;
+|l|l|.
+_
+T{
+MONGOC_REMOVE_NONE
+T}	T{
+Specify no removal flags. All matching documents will be removed.
+T}
+_
+T{
+MONGOC_REMOVE_SINGLE_REMOVE
+T}	T{
+Only remove the first matching document from the selector.
+T}
+_
+.TE
+.SH MONGOC_REPLY_FLAGS_T
+.sp
+Flags from server replies
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef enum {
+   MONGOC_REPLY_NONE = 0,
+   MONGOC_REPLY_CURSOR_NOT_FOUND = 1 << 0,
+   MONGOC_REPLY_QUERY_FAILURE = 1 << 1,
+   MONGOC_REPLY_SHARD_CONFIG_STALE = 1 << 2,
+   MONGOC_REPLY_AWAIT_CAPABLE = 1 << 3,
+} mongoc_reply_flags_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+These flags correspond to the wire protocol. They may be bitwise or\(aqd together.
+.SS Flag Values
+.TS
+center;
+|l|l|.
+_
+T{
+MONGOC_REPLY_NONE
+T}	T{
+No flags set.
+T}
+_
+T{
+MONGOC_REPLY_CURSOR_NOT_FOUND
+T}	T{
+No matching cursor was found on the server.
+T}
+_
+T{
+MONGOC_REPLY_QUERY_FAILURE
+T}	T{
+The query failed or was invalid. Error document has been provided.
+T}
+_
+T{
+MONGOC_REPLY_SHARD_CONFIG_STALE
+T}	T{
+Shard config is stale.
+T}
+_
+T{
+MONGOC_REPLY_AWAIT_CAPABLE
+T}	T{
+If the returned cursor is capable of MONGOC_QUERY_AWAIT_DATA.
+T}
+_
+.TE
+.SH MONGOC_SERVER_DESCRIPTION_T
+.sp
+Server description
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <mongoc.h>
+typedef struct _mongoc_server_description_t mongoc_server_description_t
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBmongoc_server_description_t\fP holds information about a mongod or mongos the driver is connected to.
+.sp
+See also \fBmongoc_client_get_server_descriptions()\fP\&.
+.SS Lifecycle
+.sp
+Clean up with \fBmongoc_server_description_destroy()\fP\&.
+.SH MONGOC_SOCKET_T
+.sp
+Portable socket abstraction
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <mongoc.h>
+
+typedef struct _mongoc_socket_t mongoc_socket_t
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Synopsis
+.sp
+This structure provides a socket abstraction that is friendlier for portability than BSD sockets directly. Inconsistencies between Linux, various BSDs, Solaris, and Windows are handled here.
+.SH MONGOC_SSL_OPT_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct {
+   const char *pem_file;
+   const char *pem_pwd;
+   const char *ca_file;
+   const char *ca_dir;
+   const char *crl_file;
+   bool weak_cert_validation;
+   bool allow_invalid_hostname;
+   void *padding[7];
+} mongoc_ssl_opt_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+This structure is used to set the SSL options for a \fBmongoc_client_t\fP or \fBmongoc_client_pool_t\fP\&.
+.sp
+Beginning in version 1.2.0, once a pool or client has any SSL options set, all connections use SSL, even if \fBssl=true\fP is omitted from the MongoDB URI. Before, SSL options were ignored unless \fBssl=true\fP was included in the URI.
+.sp
+As of 1.4.0, the \fBmongoc_client_pool_set_ssl_opts\fP and \fBmongoc_client_set_ssl_opts\fP will not only shallow copy the struct, but will also copy the \fBconst char*\fP\&. It is therefore no longer needed to make sure the values remain valid after setting them.
+.SS Client Authentication
+.sp
+When MongoDB is started with SSL enabled, it will by default require the client o provide a client certificate issued by a certificate authority specified by \fB\-\-sslCAFile\fP, or an authority trusted by the native certificate store in use on the server.
+.sp
+To provide the client certificate, the user must configure the \fBpem_file\fP to point at a PEM armored certificate.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+mongoc_ssl_opt_t ssl_opts = {0};
+
+ssl_opts.pem_file = "/path/to/client\-certificate.pem"
+
+   /* Then set the client ssl_opts, when using a single client mongoc_client_t
+      */
+   mongoc_client_pool_set_ssl_opts (pool, &ssl_opts);
+/* or, set the pool ssl_opts, when using a the thread safe mongoc_client_pool_t
+ */
+mongoc_client_set_ssl_opts (client, &ssl_opts);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Server Certificate Verification
+.sp
+The MongoDB C Driver will automatically verify the validity of the server certificate, such as issued by configured Certificate Authority, hostname validation, and expiration.
+.sp
+To overwrite this behaviour, it is possible to disable hostname validation, and/or allow otherwise invalid certificates. This behaviour is controlled using the \fBallow_invalid_hostname\fP and \fBweak_cert_validation\fP fields. By default, both are set to \fBfalse\fP\&. It is not recommended to change these defaults as it exposes the client to \fIMan In The Middle\fP attacks (when \fBallow_invalid_hostname\fP is set) and otherwise invalid certificates when \fBweak_cert_validation\fP is set to \fBtrue\fP\&.
+.SS Native TLS Support on Linux (OpenSSL)
+.sp
+The MongoDB C Driver supports the dominating TLS library (OpenSSL) and crypto libraries (OpenSSL\(aqs libcrypto) on Linux and Unix platforms.
+.sp
+Support for OpenSSL 1.1 and later was added in 1.4.0.
+.sp
+When compiled against OpenSSL, the driver will attempt to load the system default certificate store, as configured by the distribution, if the \fBca_file\fP and \fBca_dir\fP are not set.
+.SS Native TLS Support on Windows (Secure Channel)
+.sp
+The MongoDB C Driver supports the Windows native TLS library (Secure Channel, or SChannel), and its native crypto library (Cryptography API: Next Generation, or CNG).
+.sp
+When compiled against the Windows native libraries, the \fBca_dir\fP option is not supported, and will issue an error if used.
+.sp
+Encrypted PEM files (e.g., requiring \fBpem_pwd\fP) are also not supported, and will result in error when attempting to load them.
+.sp
+When \fBca_file\fP is provided, the driver will only allow server certificates issued by the authority (or authorities) provided. When no \fBca_file\fP is provided, the driver will look up the Certificate Authority using the \fBSystem Local Machine Root\fP certificate store to confirm the provided certificate.
+.sp
+When \fBcrl_file\fP is provided, the driver will import the revocation list to the \fBSystem Local Machine Root\fP certificate store.
+.SS Native TLS Support on Mac OS X / Darwin (Secure Transport)
+.sp
+The MongoDB C Driver supports the Darwin (OS X, macOS, iOS, etc.) native TLS library (Secure Transport), and its native crypto library (Common Crypto, or CC).
+.sp
+When compiled against Secure Transport, the \fBca_dir\fP option is not supported, and will issue an error if used.
+.sp
+When \fBca_file\fP is provided, the driver will only allow server certificates issued by the authority (or authorities) provided. When no \fBca_file\fP is provided, the driver will use the Certificate Authorities in the currently unlocked keychains.
+.SS See Also
+.INDENT 0.0
+.IP \(bu 2
+mongoc_client_set_ssl_opts
+.IP \(bu 2
+mongoc_client_pool_set_ssl_opts
+.UNINDENT
+.SH MONGOC_STREAM_BUFFERED_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct _mongoc_stream_buffered_t mongoc_stream_buffered_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+\fBmongoc_stream_buffered_t\fP should be considered a subclass of \fBmongoc_stream_t\fP\&. It performs buffering on an underlying stream.
+.SS See Also
+.sp
+mongoc_stream_buffered_new()
+.sp
+mongoc_stream_destroy()
+.SH MONGOC_STREAM_FILE_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct _mongoc_stream_file_t mongoc_stream_file_t
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBmongoc_stream_file_t\fP is a \fBmongoc_stream_t\fP subclass for working with standard UNIX style file\-descriptors.
+.SH MONGOC_STREAM_GRIDFS_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct _mongoc_stream_gridfs_t mongoc_stream_gridfs_t
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The \fBmongoc_stream_gridfs_t\fP class is an implementation of \fBmongoc_stream_t\fP for files stored in GridFS. It allows for transparently streaming GridFS files from a MongoDB server.
+.SH MONGOC_STREAM_SOCKET_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct _mongoc_stream_socket_t mongoc_stream_socket_t
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBmongoc_stream_socket_t\fP should be considered a subclass of \fBmongoc_stream_t\fP that works upon socket streams.
+.SH MONGOC_STREAM_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct _mongoc_stream_t mongoc_stream_t
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBmongoc_stream_t\fP provides a generic streaming IO abstraction based on a struct of pointers interface. The idea is to allow wrappers, perhaps other language drivers, to easily shim their IO system on top of \fBmongoc_stream_t\fP\&.
+.sp
+The API for the stream abstraction is currently private and non\-extensible.
+.SS Stream Types
+.sp
+There are a number of built in stream types that come with mongoc. The default configuration is a buffered unix stream.  If SSL is in use, that in turn is wrapped in a tls stream.
+.SS See Also
+.sp
+mongoc_stream_buffered_t
+.sp
+mongoc_stream_file_t
+.sp
+mongoc_stream_socket_t
+.sp
+mongoc_stream_tls_t
+.sp
+mongoc_stream_gridfs_t
+.SH MONGOC_STREAM_TLS_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct _mongoc_stream_tls_t mongoc_stream_tls_t
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBmongoc_stream_tls_t\fP is a \fBmongoc_stream_t\fP subclass for working with OpenSSL TLS streams.
+.SH MONGOC_TOPOLOGY_DESCRIPTION_T
+.sp
+Status of MongoDB Servers
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct _mongoc_topology_description_t mongoc_topology_description_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBmongoc_topology_description_t\fP is an opaque type representing the driver\(aqs knowledge of the MongoDB server or servers it is connected to.
+Its API conforms to the \fI\%SDAM Monitoring Specification\fP\&.
+.sp
+Applications receive a temporary reference to a \fBmongoc_topology_description_t\fP as a parameter to an SDAM Monitoring callback. See Introduction to Application Performance Monitoring\&.
+.SH MONGOC_UPDATE_FLAGS_T
+.sp
+Flags for update operations
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef enum {
+   MONGOC_UPDATE_NONE = 0,
+   MONGOC_UPDATE_UPSERT = 1 << 0,
+   MONGOC_UPDATE_MULTI_UPDATE = 1 << 1,
+} mongoc_update_flags_t;
+
+#define MONGOC_UPDATE_NO_VALIDATE (1U << 31)
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+These flags correspond to the MongoDB wire protocol. They may be bitwise or\(aqd together. The allow for modifying the way an update is performed in the MongoDB server.
+.SS Flag Values
+.TS
+center;
+|l|l|.
+_
+T{
+MONGOC_UPDATE_NONE
+T}	T{
+No update flags set.
+T}
+_
+T{
+MONGOC_UPDATE_UPSERT
+T}	T{
+If an upsert should be performed.
+T}
+_
+T{
+MONGOC_UPDATE_MULTI_UPDATE
+T}	T{
+If more than a single matching document should be updated. By default only the first document is updated.
+T}
+_
+T{
+MONGOC_UPDATE_NO_VALIDATE
+T}	T{
+Do not perform client side BSON validations when performing an update. This is useful if you already know your BSON documents are valid.
+T}
+_
+.TE
+.SH MONGOC_URI_T
+.SS Synopsis
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+typedef struct _mongoc_uri_t mongoc_uri_t;
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Description
+.sp
+\fBmongoc_uri_t\fP provides an abstraction on top of the MongoDB connection URI format. It provides standardized parsing as well as convenience methods for extracting useful information such as replica hosts or authorization information.
+.sp
+See \fI\%Connection String URI Reference\fP on the MongoDB website for more information.
+.SS Format
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+mongodb://                                   <1>
+   [username:password@]                      <2>
+   host1                                     <3>
+   [:port1]                                  <4>
+   [,host2[:port2],...[,hostN[:portN]]]      <5>
+   [/[database]                              <6>
+   [?options]]                               <7>
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.IP 1. 3
+mongodb is the specifier of the MongoDB protocol.
+.IP 2. 3
+An optional username and password.
+.IP 3. 3
+The only required part of the uri.  This specifies either a hostname, IP address or UNIX domain socket.
+.IP 4. 3
+An optional port number.  Defaults to :27017.
+.IP 5. 3
+Extra optional hosts and ports.  You would specify multiple hosts, for example, for connections to replica sets.
+.IP 6. 3
+The name of the database to authenticate if the connection string includes authentication credentials.  If /database is not specified and the connection string includes credentials, defaults to the \(aqadmin\(aq database.
+.IP 7. 3
+Connection specific options.
+.UNINDENT
+.SS Replica Set Example
+.sp
+To describe a connection to a replica set named \(aqtest\(aq with the following mongod hosts:
+.INDENT 0.0
+.IP \(bu 2
+\fBdb1.example.com\fP on port \fB27017\fP
+.IP \(bu 2
+\fBdb2.example.com\fP on port \fB2500\fP
+.UNINDENT
+.sp
+You would use the connection string that resembles the following.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+mongodb://db1.example.com,db2.example.com:2500/?replicaSet=test
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SS Connection Options
+.TS
+center;
+|l|l|.
+_
+T{
+ssl
+T}	T{
+{true|false}, indicating if SSL must be used. (See also \fBmongoc_client_set_ssl_opts\fP and \fBmongoc_client_pool_set_ssl_opts\fP\&.)
+T}
+_
+T{
+connectTimeoutMS
+T}	T{
+A timeout in milliseconds to attempt a connection before timing out. This setting applies to server discovery and monitoring connections as well as to connections for application operations. The default is 10 seconds.
+T}
+_
+T{
+socketTimeoutMS
+T}	T{
+The time in milliseconds to attempt to send or receive on a socket before the attempt times out. The default is 5 minutes.
+T}
+_
+.TE
+.sp
+Setting any of the *TimeoutMS options above to \fB0\fP will be interpreted as "use the default value".
+.SS Server Discovery, Monitoring, and Selection Options
+.sp
+Clients in a \fBmongoc_client_pool_t\fP share a topology scanner that runs on a background thread. The thread wakes every \fBheartbeatFrequencyMS\fP (default 10 seconds) to scan all MongoDB servers in parallel. Whenever an application operation requires a server that is not known\-\-for example, if there is no known primary and your application attempts an insert\-\-the thread rescans all servers every half\-second. In this situation the pooled client waits up to \fBserverSelectionTimeoutMS\fP (default 30 seconds) for the thread to find a server suitable for the operation, then returns an error with domain \fBMONGOC_ERROR_SERVER_SELECTION\fP\&.
+.sp
+Technically, the total time an operation may wait while a pooled client scans the topology is controlled both by \fBserverSelectionTimeoutMS\fP and \fBconnectTimeoutMS\fP\&. The longest wait occurs if the last scan begins just at the end of the selection timeout, and a slow or down server requires the full connection timeout before the client gives up.
+.sp
+A non\-pooled client is single\-threaded. Every \fBheartbeatFrequencyMS\fP, it blocks the next application operation while it does a parallel scan. This scan takes as long as needed to check the slowest server: roughly \fBconnectTimeoutMS\fP\&. Therefore the default \fBheartbeatFrequencyMS\fP for single\-threaded clients is greater than for pooled clients: 60 seconds.
+.sp
+By default, single\-threaded (non\-pooled) clients scan only once when an operation requires a server that is not known. If you attempt an insert and there is no known primary, the client checks all servers once trying to find it, then succeeds or returns an error with domain \fBMONGOC_ERROR_SERVER_SELECTION\fP\&. But if you set \fBserverSelectionTryOnce\fP to "false", the single\-threaded client loops, checking all servers every half\-second, until \fBserverSelectionTimeoutMS\fP\&.
+.sp
+The total time an operation may wait for a single\-threaded client to scan the topology is determined by \fBconnectTimeoutMS\fP in the try\-once case, or \fBserverSelectionTimeoutMS\fP and \fBconnectTimeoutMS\fP if \fBserverSelectionTryOnce\fP is set "false".
+.TS
+center;
+|l|l|.
+_
+T{
+heartbeatFrequencyMS
+T}	T{
+The interval between server monitoring checks. Defaults to 10 seconds in pooled (multi\-threaded) mode, 60 seconds in non\-pooled mode (single\-threaded).
+T}
+_
+T{
+serverSelectionTimeoutMS
+T}	T{
+A timeout in milliseconds to block for server selection before throwing an exception. The default is 30 seconds.
+T}
+_
+T{
+serverSelectionTryOnce
+T}	T{
+If "true", the driver scans the topology exactly once after server selection fails, then either selects a server or returns an error. If it is false, then the driver repeatedly searches for a suitable server for up to \fBserverSelectionTimeoutMS\fP milliseconds (pausing a half second between attempts). The default for \fBserverSelectionTryOnce\fP is "false" for pooled clients, otherwise "true".
+.sp
+Pooled clients ignore serverSelectionTryOnce; they signal the thread to rescan the topology every half\-second until serverSelectionTimeoutMS expires.
+T}
+_
+T{
+socketCheckIntervalMS
+T}	T{
+Only applies to single threaded clients. If a socket has not been used within this time, its connection is checked with a quick "isMaster" call before it is used again. Defaults to 5 seconds.
+T}
+_
+.TE
+.sp
+Setting any of the *TimeoutMS options above to \fB0\fP will be interpreted as "use the default value".
+.SS Connection Pool Options
+.sp
+These options govern the behavior of a \fBmongoc_client_pool_t\fP\&. They are ignored by a non\-pooled \fBmongoc_client_t\fP\&.
+.TS
+center;
+|l|l|.
+_
+T{
+maxPoolSize
+T}	T{
+The maximum number of clients created by a \fBmongoc_client_pool_t\fP total (both in the pool and checked out). The default value is 100. Once it is reached, \fBmongoc_client_pool_pop\fP blocks until another thread pushes a client.
+T}
+_
+T{
+minPoolSize
+T}	T{
+The number of clients to keep in the pool; once it is reached, \fBmongoc_client_pool_push\fP destroys clients instead of pushing them. The default value, 0, means "no minimum": a client pushed into the pool is always stored, not destroyed.
+T}
+_
+T{
+maxIdleTimeMS
+T}	T{
+Not implemented.
+T}
+_
+T{
+waitQueueMultiple
+T}	T{
+Not implemented.
+T}
+_
+T{
+waitQueueTimeoutMS
+T}	T{
+Not implemented.
+T}
+_
+.TE
+.SS Write Concern Options
+.TS
+center;
+|l|l|l|.
+_
+T{
+w
+T}	T{
+0
+T}	T{
+The driver will not acknowledge write operations but will pass or handle any network and socket errors that it receives to the client. If you disable write concern but enable the getLastError command’s w option, w overrides the w option.
+T}
+_
+T{
+T}	T{
+1
+T}	T{
+Provides basic acknowledgment of write operations. By specifying 1, you require that a standalone mongod instance, or the primary for replica sets, acknowledge all write operations. For drivers released after the default write concern change, this is the default write concern setting.
+T}
+_
+T{
+T}	T{
+majority
+T}	T{
+For replica sets, if you specify the special majority value to w option, write operations will only return successfully after a majority of the configured replica set members have acknowledged the write operation.
+T}
+_
+T{
+T}	T{
+n
+T}	T{
+For replica sets, if you specify a number n greater than 1, operations with this write concern return only after n members of the set have acknowledged the write. If you set n to a number that is greater than the number of available set members or members that hold data, MongoDB will wait, potentially indefinitely, for these members to become available.
+T}
+_
+T{
+T}	T{
+tags
+T}	T{
+For replica sets, you can specify a tag set to require that all members of the set that have these tags configured return confirmation of the write operation.
+T}
+_
+T{
+wtimeoutMS
+T}	T{
+T}	T{
+The time in milliseconds to wait for replication to succeed, as specified in the w option, before timing out. When wtimeoutMS is 0, write operations will never time out.
+T}
+_
+T{
+journal
+T}	T{
+T}	T{
+Controls whether write operations will wait until the mongod acknowledges the write operations and commits the data to the on disk journal.
+T}
+_
+T{
+T}	T{
+true
+T}	T{
+Enables journal commit acknowledgment write concern. Equivalent to specifying the getLastError command with the j option enabled.
+T}
+_
+T{
+T}	T{
+false
+T}	T{
+Does not require that mongod commit write operations to the journal before acknowledging the write operation. This is the default option for the journal parameter.
+T}
+_
+.TE
+.SS Read Concern Options
+.TS
+center;
+|l|l|.
+_
+T{
+readConcernLevel
+T}	T{
+The level of isolation for read operations. If the level is left unspecified, the server default will be used. See \fI\%readConcern in the MongoDB Manual\fP for details.
+T}
+_
+.TE
+.SS Read Preference Options
+.sp
+When connected to a replica set, the driver chooses which member to query using the read preference:
+.INDENT 0.0
+.IP 1. 3
+Choose members whose type matches "readPreference".
+.IP 2. 3
+From these, if there are any tags sets configured, choose members matching the first tag set. If there are none, fall back to the next tag set and so on, until some members are chosen or the tag sets are exhausted.
+.IP 3. 3
+From the chosen servers, distribute queries randomly among the server with the fastest round\-trip times. These include the server with the fastest time and any whose round\-trip time is no more than "localThresholdMS" slower.
+.UNINDENT
+.TS
+center;
+|l|l|.
+_
+T{
+readPreference
+T}	T{
+Specifies the replica set read preference for this connection. This setting overrides any slaveOk value. The read preference values are the following:
+.INDENT 0.0
+.IP \(bu 2
+primary (default)
+.IP \(bu 2
+primaryPreferred
+.IP \(bu 2
+secondary
+.IP \(bu 2
+secondaryPreferred
+.IP \(bu 2
+nearest
+.UNINDENT
+T}
+_
+T{
+readPreferenceTags
+T}	T{
+Specifies a tag set as a comma\-separated list of colon\-separated key\-value pairs.
+.sp
+Cannot be combined with preference "primary".
+T}
+_
+T{
+localThresholdMS
+T}	T{
+How far to distribute queries, beyond the server with the fastest round\-trip time. By default, only servers within 15ms of the fastest round\-trip time receive queries.
+T}
+_
+.TE
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+"localThresholdMS" is ignored when talking to replica sets through a mongos. The equivalent is \fI\%mongos\(aqs localThreshold command line option\fP\&.
+.UNINDENT
+.UNINDENT
+.SH MONGOC_WRITE_CONCERN_T
+.sp
+Write Concern abstraction
+.SS Synopsis
+.sp
+\fBmongoc_write_concern_t\fP tells the driver what level of acknowledgment to await from the server. The default, MONGOC_WRITE_CONCERN_W_DEFAULT, is right for the great majority of applications.
+.sp
+You can specify a write concern on connection objects, database objects, collection objects, or per\-operation. Data\-modifying operations typically use the write concern of the object they operate on, and check the server response for a write concern error or write concern timeout. For example, \fBmongoc_collection_drop_index\fP uses the collection\(aqs write concern, and a write concern error or timeout in the response is considered a failure.
+.sp
+Exceptions to this principle are the generic command functions:
+.INDENT 0.0
+.IP \(bu 2
+\fBmongoc_client_command\fP
+.IP \(bu 2
+\fBmongoc_client_command_simple\fP
+.IP \(bu 2
+\fBmongoc_database_command\fP
+.IP \(bu 2
+\fBmongoc_database_command_simple\fP
+.IP \(bu 2
+\fBmongoc_collection_command\fP
+.IP \(bu 2
+\fBmongoc_collection_command_simple\fP
+.UNINDENT
+.sp
+These generic command functions do not automatically apply a write concern, and they do not check the server response for a write concern error or write concern timeout.
+.sp
+See \fI\%Write Concern\fP on the MongoDB website for more information.
+.SS Write Concern Levels
+.sp
+Set the write concern level with \fBmongoc_write_concern_set_w\fP\&.
+.TS
+center;
+|l|l|.
+_
+T{
+MONGOC_WRITE_CONCERN_W_DEFAULT (1)
+T}	T{
+By default, writes block awaiting acknowledgment from MongoDB. Acknowledged write concern allows clients to catch network, duplicate key, and other errors.
+T}
+_
+T{
+MONGOC_WRITE_CONCERN_W_UNACKNOWLEDGED (0)
+T}	T{
+With this write concern, MongoDB does not acknowledge the receipt of write operation. Unacknowledged is similar to errors ignored; however, mongoc attempts to receive and handle network errors when possible.
+T}
+_
+T{
+MONGOC_WRITE_CONCERN_W_MAJORITY (majority)
+T}	T{
+Block until a write has been propagated to a majority of the nodes in the replica set.
+T}
+_
+T{
+n
+T}	T{
+Block until a write has been propagated to at least \fBn\fP nodes in the replica set.
+T}
+_
+.TE
+.SS Deprecations
+.sp
+The write concern \fBMONGOC_WRITE_CONCERN_W_ERRORS_IGNORED\fP (value \-1) is a deprecated synonym for \fBMONGOC_WRITE_CONCERN_W_UNACKNOWLEDGED\fP (value 0), and will be removed in the next major release.
+.sp
+\fBmongoc_write_concern_set_fsync\fP is deprecated.
+.SH AUTHOR
+MongoDB, Inc
+.SH COPYRIGHT
+2017, MongoDB, Inc
+.\" Generated by docutils manpage writer.
+.

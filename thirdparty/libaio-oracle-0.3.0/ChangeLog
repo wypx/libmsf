@@ -1,0 +1,54 @@
+
+2004-08-18	Joel Becker <joel.becker@oracle.com>
+
+	* Released 0.3.0
+
+2003-06-30	Joel Becker <joel.becker@oracle.com>
+
+	* configure.in: Bumped to 0.3.0.
+	* lio_test.c:  Added O_DIRECT support.
+
+2003-06-19	Joel Becker <joel.becker@oracle.com>
+
+	* libaio-oracle.h: Added aio_poll64()
+	* libaio-oracle.c: Added aio_poll64().
+	* poll_test.c: Added poll_test.c to test aio_poll().
+	* Makefile.am: Added poll_test.
+
+2003-06-19	Joel Becker <joel.becker@oracle.com>
+
+	* lio_test.c: Added block and raw device handling.
+
+2003-06-19	Joel Becker <joel.becker@oracle.com>
+
+	* libaio-oracle.c: Handle LIO_NOP from lio_listio().
+
+2003-06-19	Joel Becker <joel.becker@oracle.com>
+
+	* lio_test.c: Fixed counting bug.
+
+2003-06-18	Joel Becker <joel.becker@oracle.com>
+
+	* libaio-oracle.c: First cut at aio_cancel().
+
+2003-06-17	Joel Becker <joel.becker@oracle.com>
+
+	* libaio-oracle.c: Fixed aio_read64() and aio_write64() to
+		conform to POSIX.  They now ignore aio_lio_opcode.
+
+2003-05-14	Joel Becker <joel.becker@oracle.com>
+
+	* libaio-oracle.c: iocb.aio_data
+	* configure.in: detection of aio_data
+
+2003-05-14	Joel Becker <joel.becker@oracle.com>
+
+	* libaio-oracle.c: Proper prototype for aio_return64()
+
+2003-05-13	Joel Becker <joel.becker@oracle.com>
+
+	* Makefile.am: Oops, noinst_PROGRAMS
+
+2003-05-13	Joel Becker <joel.becker@oracle.com>
+
+	* Makefile.am: Moved to auto*

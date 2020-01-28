@@ -1,0 +1,223 @@
+.\" Man page generated from reStructuredText.
+.
+.TH "MONGOC_ADVANCED_CONNECTIONS" "3" "May 23, 2017" "1.6.3" "MongoDB C Driver"
+.SH NAME
+mongoc_advanced_connections \- Advanced Connections
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.sp
+The following guide contains information specific to certain types of MongoDB configurations.
+.sp
+For an example of connecting to a simple standalone server, see the Tutorial\&. To establish a connection with authentication options enabled, see the Authentication page.
+.SH CONNECTING TO A REPLICA SET
+.sp
+Connecting to a \fI\%replica set\fP is much like connecting to a standalone MongoDB server. Simply specify the replica set name using the \fB?replicaSet=myreplset\fP URI option.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <bson.h>
+#include <mongoc.h>
+
+int
+main (int argc, char *argv[])
+{
+   mongoc_client_t *client;
+
+   mongoc_init ();
+
+   /* Create our MongoDB Client */
+   client = mongoc_client_new (
+      "mongodb://host01:27017,host02:27017,host03:27017/?replicaSet=myreplset");
+
+   /* Do some work */
+   /* TODO */
+
+   /* Clean up */
+   mongoc_client_destroy (client);
+   mongoc_cleanup ();
+
+   return 0;
+}
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+\fBTIP:\fP
+.INDENT 0.0
+.INDENT 3.5
+Multiple hostnames can be specified in the MongoDB connection string URI, with a comma separating hosts in the seed list.
+.sp
+It is recommended to use a seed list of members of the replica set to allow the driver to connect to any node.
+.UNINDENT
+.UNINDENT
+.SH CONNECTING TO A SHARDED CLUSTER
+.sp
+To connect to a \fI\%sharded cluster\fP, specify the \fBmongos\fP nodes the client should connect to. The C Driver will automatically detect that it has connected to a \fBmongos\fP sharding server.
+.sp
+If more than one hostname is specified, a seed list will be created to attempt failover between the \fBmongos\fP instances.
+.sp
+\fBWARNING:\fP
+.INDENT 0.0
+.INDENT 3.5
+Specifying the \fBreplicaSet\fP parameter when connecting to a \fBmongos\fP sharding server is invalid.
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <bson.h>
+#include <mongoc.h>
+
+int
+main (int argc, char *argv[])
+{
+   mongoc_client_t *client;
+
+   mongoc_init ();
+
+   /* Create our MongoDB Client */
+   client = mongoc_client_new ("mongodb://myshard01:27017/");
+
+   /* Do something with client ... */
+
+   /* Free the client */
+   mongoc_client_destroy (client);
+
+   mongoc_cleanup ();
+
+   return 0;
+}
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH CONNECTING TO AN IPV6 ADDRESS
+.sp
+The MongoDB C Driver will automatically resolve IPv6 addresses from host names. However, to specify an IPv6 address directly, wrap the address in \fB[]\fP\&.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+mongoc_uri_t *uri = mongoc_uri_new ("mongodb://[::1]:27017");
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH CONNECTING TO A UNIX DOMAIN SOCKET
+.sp
+On UNIX\-like systems, the C Driver can connect directly to a MongoDB server using a UNIX domain socket. Pass the URL\-encoded path to the socket, which \fImust\fP be suffixed with \fB\&.sock\fP\&. For example, to connect to a domain socket at \fB/tmp/mongodb\-27017.sock\fP:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+mongoc_uri_t *uri = mongoc_uri_new ("mongodb://%2Ftmp%2Fmongodb\-27017.sock");
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Include username and password like so:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+mongoc_uri_t *uri = mongoc_uri_new ("mongodb://user:pass@%2Ftmp%2Fmongodb\-27017.sock");
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH CONNECTING TO A SERVER OVER SSL
+.sp
+These are instructions for configuring TLS/SSL connections.
+.sp
+To run a server locally (on port 27017, for example):
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+$ mongod \-\-port 27017 \-\-sslMode requireSSL \-\-sslPEMKeyFile server.pem \-\-sslCAFile ca.pem
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Add \fB/?ssl=true\fP to the end of a client URI.
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+mongoc_client_t *client = NULL;
+client = mongoc_client_new ("mongodb://localhost:27017/?ssl=true");
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+MongoDB requires client certificates by default, unless the \fB\-\-sslAllowConnectionsWithoutCertificates\fP is provided. The C Driver can be configured to present a client certificate using a \fBmongoc_ssl_opt_t\fP:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+const mongoc_ssl_opt_t *ssl_default = mongoc_ssl_opt_get_default ();
+mongoc_ssl_opt_t ssl_opts = { 0 };
+
+/* optionally copy in a custom trust directory or file; otherwise the default is used. */
+memcpy (&ssl_opts, ssl_default, sizeof ssl_opts);
+ssl_opts.pem_file = "client.pem"
+
+mongoc_client_set_ssl_opts (client, &ssl_opts);
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+The client certificate provided by \fBpem_file\fP must be issued by one of the server trusted Certificate Authorities listed in \fB\-\-sslCAFile\fP, or issued by a CA in the native certificate store on the server when omitted.
+.sp
+To verify the server certificate against a specific CA, provide a PEM armored file with a CA certificate, or contatinated list of CA certificates using the \fBca_file\fP option, or \fBc_rehash\fP directory structure of CAs, pointed to using the \fBca_dir\fP option. When no \fBca_file\fP or \fBca_dir\fP is provided, the driver will use CAs provided by the native platform certificate store.
+.sp
+See mongoc_ssl_opt_t for more information on the various SSL related options.
+.SH ADDITIONAL CONNECTION OPTIONS
+.sp
+A variety of connection options for the MongoDB URI can be found \fI\%here\fP\&.
+.SH AUTHOR
+MongoDB, Inc
+.SH COPYRIGHT
+2017, MongoDB, Inc
+.\" Generated by docutils manpage writer.
+.

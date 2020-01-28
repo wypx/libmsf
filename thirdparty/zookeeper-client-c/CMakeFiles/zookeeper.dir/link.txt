@@ -1,0 +1,2 @@
+/usr/bin/ar qc libzookeeper.a  CMakeFiles/zookeeper.dir/src/zookeeper.c.o CMakeFiles/zookeeper.dir/src/recordio.c.o CMakeFiles/zookeeper.dir/generated/zookeeper.jute.c.o CMakeFiles/zookeeper.dir/src/zk_log.c.o CMakeFiles/zookeeper.dir/src/zk_hashtable.c.o CMakeFiles/zookeeper.dir/src/addrvec.c.o CMakeFiles/zookeeper.dir/src/mt_adaptor.c.o
+/usr/bin/ranlib libzookeeper.a

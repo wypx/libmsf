@@ -114,19 +114,24 @@ public:
     void setCid(const uint32_t cid) { cid_ = cid; }
     const uint32_t cid() const { return cid_; }
 
-  protected:
+  public:
     Event             event_;
 
     std::string       name_;
-    /*key is used to find conn by cid*/
-    std::string       key_;
-    /* unique identifier given by agent server when login */
-    uint32_t          cid_;
+    std::string       key_;     /*key is used to find conn by cid*/
+    uint32_t          cid_;     /* unique identifier given by agent server when login */
     int               fd_;
     uint32_t          state_;
 
     uint64_t          lastActiveTime_;
-    // AgentBhs          bhs_;
+
+    struct iovec      rxIov_[1]; /* RX direction only support recv one head or one body */
+    uint32_t          rxWanted_; /* One len of head or body */
+    uint32_t          rxRecved_; /* One len of head or body has recv*/
+
+    struct iovec      txIov_[2]; /* TX direction support send one head and one body */
+    uint32_t          txWanted_; /* Total len of head and body */
+    uint32_t          txSended_; /* Total len of head and body has send */
     void updateActiveTime();
 };
 

@@ -173,7 +173,7 @@ int CreateSigalFd(void);
 /************************* NETLINK SOCKET FEATURES ******************************/
 
 
-void DrianData(const uint32_t n);
+void DrianData(const int fd, const uint32_t size);
 
 uint64_t GetMaxOpenFd();
 bool SetMaxOpenFd(uint64_t maxfds);

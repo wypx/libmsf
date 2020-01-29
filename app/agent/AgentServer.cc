@@ -138,7 +138,7 @@ void AgentServer::succConn(ConnectionPtr c) {
   MSF_INFO << "Succ conn for fd: " << c->fd();
 }
 
-static inline void debugBhs(struct AgentBhs *bhs)
+static inline void debugAgentBhs(struct AgentBhs *bhs)
 {
     MSF_DEBUG << "###################################";
     MSF_DEBUG << "bhs:";
@@ -157,28 +157,110 @@ static inline void debugBhs(struct AgentBhs *bhs)
     MSF_DEBUG << "###################################";
 }
 
+bool AgentServer::handleRxIORet(ConnectionPtr c, const int ret)
+{
+    if (unlikely(ret == 0)) {
+        c->close();
+        return false;
+    } else if (ret < 0 && 
+            errno != EWOULDBLOCK &&
+            errno != EAGAIN &&
+            errno != EINTR) {
+        c->close();
+        return false;
+    } else if (ret > 0) {
+      c->rxRecved_ += ret;
+      if (likely(c->rxRecved_ == c->rxWanted_)) {
+        c->rxRecved_ = 0;
+        c->rxWanted_ = 0;
+        return true;
+      }
+      c->rxIov_[0].iov_base = static_cast<char*>(c->rxIov_[0].iov_base) + c->rxRecved_;
+      c->rxIov_[0].iov_len = c->rxWanted_ - c->rxRecved_;
+      return false;
+    } else {
+      //EAGAIN
+      return false;
+    }
+}
+
+bool AgentServer::handleTxIORet(ConnectionPtr c, const int ret)
+{
+  if (unlikely(ret == 0)) {
+      c->close();
+      return false;
+  } else if (ret < 0 && 
+          errno != EWOULDBLOCK &&
+          errno != EAGAIN &&
+          errno != EINTR) {
+      c->close();
+      return false;
+  } else if (ret > 0) {
+    c->txSended_ += ret;
+    if (likely(c->txSended_ == c->txWanted_)) {
+      c->txSended_ = 0;
+      c->txWanted_ = 0;
+      return true;
+    }
+    return false;
+  } else {
+    //EAGAIN
+    return false;
+  }
+}
+
+void AgentServer::handleAgentBhs(ConnectionPtr c)
+{
+  AgentBhs *bhs = static_cast<AgentBhs*>(c->rxIov_[0].iov_base);
+  debugAgentBhs(bhs);
+
+  switch (bhs->cmd)
+  {
+  case RPC_LOGIN:
+    {
+      AgentLogin login = {0};
+      struct iovec iov;
+      iov.iov_base = &login;
+      iov.iov_len = sizeof(AgentLogin);
+      RecvMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
+      MSF_INFO << "Login: "
+              << "name: " << login.name;
+
+      bhs->opcode = RPC_ACK;
+      bhs->errcode = RPC_EXEC_SUCC;
+      iov.iov_base = bhs;
+      iov.iov_len = sizeof(AgentBhs);
+      SendMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
+    }
+    break;
+  
+  default:
+    break;
+  }
+}
+
 void AgentServer::readConn(ConnectionPtr c) {
   if (unlikely(c->fd() <= 0)) {
     return;
   }
-  AgentBhs bhs = {0};
+
   MSF_INFO << "Read conn for fd: " << c->fd();
-  struct iovec iov = {&bhs, sizeof(AgentBhs)};
-  RecvMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
+  if (c->rxWanted_ == 0) {
+    c->rxWanted_ = sizeof(AgentBhs);
+    AgentBhs *bhs = static_cast<AgentBhs*>(mpool_->alloc(c->rxWanted_));
+    if (!bhs) {
+      DrianData(c->fd(), 2048);
+      return;
+    }
+    c->rxIov_[0].iov_base = bhs;
+    c->rxIov_[0].iov_len = c->rxWanted_;
+  }
+  
+  if (!handleRxIORet(c, RecvMsg(c->fd(), c->rxIov_, 1, MSG_NOSIGNAL | MSG_WAITALL))) {
+    return;
+  }
 
-  debugBhs(&bhs);
-  AgentLogin login = {0};
-  iov.iov_base = &login;
-  iov.iov_len = sizeof(AgentLogin);
-  RecvMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
-  MSF_INFO << "Bhs: "
-           << "version: " << login.name;
-
-  bhs.opcode = RPC_ACK;
-  bhs.errcode = RPC_EXEC_SUCC;
-  iov.iov_base = &bhs;
-  iov.iov_len = sizeof(AgentBhs);
-  SendMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
+  handleAgentBhs(c);
 }
 
 void AgentServer::writeConn(ConnectionPtr c) {
@@ -268,6 +350,7 @@ void AgentServer::init() {
 
   mpool_ = new MemPool();
   assert(mpool_);
+  assert(mpool_->init());
 
   stack_ = new EventStack();
   assert(stack_);

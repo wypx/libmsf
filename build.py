@@ -53,15 +53,14 @@ def MakeBuildProto(buildPath):
     os.chdir(buildPath)
     os.system("protoc -I=./ --cpp_out=./ *.proto")
     
-def MakeBuildClean(build_path):
-    #os.removedirs(build_path)
+def MakeBuildClean(buildPath):
+    #os.removedirs(buildPath)
     os.system("cd ..")
     os.system("rm -rvf build")
 
 if __name__ == '__main__':
     DisplayGithub()
     # DisplayLogo()
-    print("\n")
     print("\n******************* Micro Service Framework Build Starting **************************\n")
     BuildRoot = os.getcwd()
     MakeBuildDir("build/lib")

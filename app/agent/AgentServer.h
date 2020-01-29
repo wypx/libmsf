@@ -149,6 +149,11 @@ class AgentServer : public Noncopyable {
   std::string confFile_;
   std::string logFile_;
 
+  bool handleRxIORet(ConnectionPtr c, const int ret);
+  bool handleTxIORet(ConnectionPtr c, const int ret);
+
+  void handleAgentBhs(ConnectionPtr c);
+
   void succConn(ConnectionPtr c);
   void readConn(ConnectionPtr c);
   void writeConn(ConnectionPtr c);

@@ -1,4 +1,0 @@
-server.1=127.0.0.1:2888:3888:participant
-server.2=127.0.0.1:2889:3889:participant
-server.3=127.0.0.1:2890:3890:participant
-version=100000000

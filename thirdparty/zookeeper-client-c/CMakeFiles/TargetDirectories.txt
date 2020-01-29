@@ -1,8 +1,0 @@
-/media/psf/tomato/Ucloud/echoproject/zookeeper/zookeeper-client-c/CMakeFiles/rebuild_cache.dir
-/media/psf/tomato/Ucloud/echoproject/zookeeper/zookeeper-client-c/CMakeFiles/edit_cache.dir
-/media/psf/tomato/Ucloud/echoproject/zookeeper/zookeeper-client-c/CMakeFiles/cli.dir
-/media/psf/tomato/Ucloud/echoproject/zookeeper/zookeeper-client-c/CMakeFiles/load_gen.dir
-/media/psf/tomato/Ucloud/echoproject/zookeeper/zookeeper-client-c/CMakeFiles/zookeeper.dir
-/media/psf/tomato/Ucloud/echoproject/zookeeper/zookeeper-client-c/CMakeFiles/hashtable.dir
-/media/psf/tomato/Ucloud/echoproject/zookeeper/zookeeper-client-c/CMakeFiles/zktest.dir
-/media/psf/tomato/Ucloud/echoproject/zookeeper/zookeeper-client-c/CMakeFiles/test.dir

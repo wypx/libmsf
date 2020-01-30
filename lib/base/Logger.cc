@@ -18,6 +18,7 @@
 
 #include <fcntl.h>
 #include <sys/types.h> /* gettid */
+#include <cassert>
 #include <thread>
 #include <unistd.h>
 #include <iomanip>
@@ -133,7 +134,7 @@ void Logger::setLogLevel(enum LogLevel level)
     iLogLevel = level;
 }
 
-int Logger::openLogFile(const std::string & filename)
+bool Logger::openLogFile(const std::string & filename)
 {
     iState = LOG_OPENING;
     if (bLogFile) {
@@ -144,6 +145,7 @@ int Logger::openLogFile(const std::string & filename)
                 iLogFd = STDERR_FILENO;
             }
             iState  = LOG_CLOSED;
+            return false;
         } else {
             iState  = LOG_OPENED;
 
@@ -153,7 +155,7 @@ int Logger::openLogFile(const std::string & filename)
             MSF_DEBUG << "Open \"" << pLogPath << "\" sucessfully.";
         }
     }
-    return MSF_OK;
+    return true;
 }
 
 bool Logger::init(const std::string & logPath) 
@@ -162,11 +164,11 @@ bool Logger::init(const std::string & logPath)
     bLogFile = true;
     iLogLevel = LEVEL_DEBUG;
 
-    stLogLock = std::unique_lock<std::mutex>(stLogMutex, std::defer_lock);
-
+    // stLogLock = std::unique_lock<std::mutex>(stLogMutex, std::defer_lock);
+    std::lock_guard<std::mutex> lock(mutex_);
     pLogPath = logPath;
     
-    openLogFile(logPath);
+    assert(openLogFile(logPath));
 
     return true;
 }

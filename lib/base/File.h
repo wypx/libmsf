@@ -40,79 +40,29 @@
 
 #include <signal.h>
 
+#ifdef WIN32 
+#include <direct.h> 
+#include <io.h>
+#endif
+
 using namespace MSF::IO;
 
 namespace MSF {
 namespace IO {
 
+std::string GetRealPath(const std::string & path);
+
+std::string GetCurrentWorkDir();
+
+bool CreateDir(const std::string & path, const int access);
+bool CreateFullDir(const std::string & path, const mode_t mode = 0755);
+
+bool isFileExist(const std::string & file);
+bool isDirsExist(const std::string & dir);
+
+
 class MSF_DIR {
     public:
-        /* realpath是用来将参数path所指的相对路径转换成绝对路径
-         * 如果resolved_path为NULL，则该函数调用malloc分配一块大小为PATH_MAX的内存
-         * 来存放解析出来的绝对路径，并返回指向这块区域的指针, 主动free这块内存 */
-        char * getReadPath(const char * path)
-        {
-            return realpath(path, NULL);
-        }
-
-        void getReadPath(const char * path, char *out)
-        {
-            realpath(path, out);
-        }
-
-        /* 如果 size太小无法保存该地址，返回 NULL 并设置 errno 为 ERANGE */
-        char * getCurrWorkDir()
-        {
-            char *tmp = getcwd(NULL, 0);
-            if (!tmp && errno == ERANGE) {
-                MSF_ERROR << "Get current working directory failed";
-            }
-            return tmp;
-        }
-
-        char * getCurrWorkDir(char *buf, int len)
-        {
-            char *tmp = getcwd(buf, len);
-            if (!tmp && errno == ERANGE) {
-                MSF_ERROR << "Get current working directory failed";
-            }
-            return tmp;
-        }
-
-        int CreateFullDir(char *path, const int access)
-        {
-            char *p, ch;
-            int   err = 0;
-    
-            #if (WIN32)
-                p = path + 3;
-            #else
-                p = path + 1;
-            #endif
-                for ( /* void */ ; *p; p++) {
-                    ch = *p;
-                    if (ch != '/') {
-                        continue;
-                    }
-
-                    *p = '\0';
-
-                    if (CreateDir(path, access) == -1) {
-                        err = errno;
-                        switch (err) {
-                            case EEXIST:
-                                err = 0;
-                            case EACCES:
-                                break;
-                            default:
-                                return err;
-                        }
-                    }
-                    *p = '/';
-                }
-
-            return err;
-        }
 
         int CreateDir(const std::string & path, const int access)
         {
@@ -317,11 +267,6 @@ class File {
         void lock_shared();
         bool try_lock_shared();
         void unlock_shared();
-
-        static bool isFileExist(const std::string& filename) 
-        {
-            return (access(filename.c_str(), R_OK | W_OK) >= 0);
-        }
 
         int OpenFile(const std::string& filename, const int mode, 
                     const int create, const int access)
@@ -707,101 +652,9 @@ class MSF_GLOB {
 
 
 
-pid_t ReadPidFile(const std::string &pid_file) 
-{
-    FILE *pid_fp = NULL;
-    pid_t pid = -1;
-    int i;
-
-    pid_fp = fopen(pid_file.c_str(), "r");
-    if (pid_fp != NULL) {
-        pid = 0;
-        if (fscanf(pid_fp, "%d", &i) == 1)
-            pid = (pid_t) i;
-        sfclose(pid_fp);
-    } else {
-        if (errno != ENOENT) {
-            MSF_ERROR << "error: could not read pid file, " 
-                        << pid_file << ":" << strerror(errno);
-            exit(1);
-        }
-    }
-    return pid;
-}
 
 
-int CheckRunningPid(const std::string &pid_file)
-{
-    pid_t pid;
-    pid = ReadPidFile(pid_file);
-    if (pid < 2)
-        return 0;
-    if (kill(pid, 0) < 0)
-        return 0;
-    MSF_DEBUG << "process is already running!  process id: " << (long int) pid;
-    return 1;
-}
 
-void WritePidFile(const std::string &pid_file)
-{
-    FILE *fp = NULL;
-    fp = fopen(pid_file.c_str(), "w+");
-    if (!fp) {
-        MSF_ERROR << "could not write pid file =>" << pid_file << strerror(errno);
-        return;
-    }
-    fprintf(fp, "%d\n", getpid());
-    fclose(fp);
-}
-
-char *config_read_file(const char *filename) 
-{
-    FILE *file = NULL;
-    int64_t length = 0;
-    char *content = NULL;
-    size_t read_chars = 0;
-
-    /* open in read binary mode */
-    file = fopen(filename, "rb");
-    if (!file) {
-        goto cleanup;
-    }
-
-    /* get the length */
-    if (fseek(file, 0, SEEK_END) != 0) {
-        goto cleanup;
-    }
-
-    length = ftell(file);
-    if (length < 0) {
-        goto cleanup;
-    }
-
-    if (fseek(file, 0, SEEK_SET) != 0) {
-        goto cleanup;
-    }
-
-    /* allocate content buffer */
-    content = (char*)malloc((size_t)length + 1);
-    if (!content) {
-        goto cleanup;
-    }
-
-    memset(content, 0, (size_t)length + 1);
-
-    /* read the file into memory */
-    read_chars = fread(content, sizeof(char), (size_t)length, file);
-    if ((long)read_chars != length) {
-        free(content);
-        goto cleanup;
-    }
-
-    content[read_chars] = '\0';
-
-cleanup:
-    fclose(file);
-    return content;
-}
 
 } /**************************** end namespace BASE ****************************/
 } /**************************** end namespace MSF  ****************************/

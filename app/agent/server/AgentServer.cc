@@ -10,16 +10,17 @@
  * and/or fitness for purposc->
  *
  **************************************************************************/
-#include "AgentServer.h"
-
-#include <agent/Protocol.h>
 #include <assert.h>
 #include <base/IniFile.h>
 #include <base/Logger.h>
 #include <base/Mem.h>
+#include <base/File.h>
 #include <base/Utils.h>
 #include <sock/Socket.h>
 #include <sys/epoll.h>
+
+#include <proto/Protocol.h>
+#include "AgentServer.h"
 
 using namespace MSF::AGENT;
 
@@ -48,7 +49,7 @@ AgentServer::AgentServer() {
   srvConf_.tcpPort_ = 8888;
 
   if (confFile_.empty()) {
-    confFile_ = "/home/share/tomato/mod/libmsf/app/agent/AgentServer.conf";
+    confFile_ = "//home/luotang.me/conf/AgentServer.conf";
   }
   if (logFile_.empty()) {
     logFile_ = "/home/luotang.me/log/AgentServer.log";
@@ -343,6 +344,14 @@ bool AgentServer::initListen() {
 }
 
 void AgentServer::init() {
+
+  if (!isFileExist(logFile_)) {
+      std::string logDIR = GetRealPath(logFile_);
+      if (!isDirsExist(logDIR)) {
+          MSF_INFO << "Logger dir " << logDIR << " not exist";
+          assert(CreateFullDir(logDIR));
+      }
+  }
 
   assert(Logger::getLogger().init(logFile_.c_str()));
 

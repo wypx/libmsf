@@ -1,15 +1,15 @@
 # 设置debug版本信息 进程生成名字
 if(${CMAKE_BUILD_TYPE} MATCHES "debug")
     if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-        set(EXECUTABLE_NAME "Guard_Debug_MacOS")
+        set(EXECUTABLE_NAME "AgentServer_Debug_MacOS")
     elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-        set(EXECUTABLE_NAME "Guard_Debug_Linux")
+        set(EXECUTABLE_NAME "AgentServer_Debug_Linux")
     endif()
 else()
     if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-        set(EXECUTABLE_NAME "Guard_Release_MaxOS")
+        set(EXECUTABLE_NAME "AgentServer_Release_MaxOS")
     elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-        set(EXECUTABLE_NAME "Guard_Release_Linux")
+        set(EXECUTABLE_NAME "AgentServer_Release_Linux")
     endif()
 endif()
 
@@ -19,6 +19,7 @@ link_directories(
     /home/share/tomato/mod/libmsf/build/lib/msf_sock/
     /home/share/tomato/mod/libmsf/build/lib/msf_event/
     /home/share/tomato/mod/libmsf/build/app/msf_agent/
+    /home/share/tomato/mod/libmsf/build/lib/
 )
 include (${PROJECT_SOURCE_DIR}/../cmake/utils.cmake)
 #include (${PROJECT_SOURCE_DIR}/cmake/FindNUMA.cmake)
@@ -40,5 +41,7 @@ target_link_libraries(${EXECUTABLE_NAME} ${COMMLIBS})
 set(CMAKE_INSTALL_PREFIX /home/luotang.me)           # 安装路径前缀 $ENV{HOME}/usr: /home/xxx/usr
 install(TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION bin)    # 二进制安装到 /home/luotang.me/bin
 
+set(AGENT_SERVER_CONF ${PROJECT_SOURCE_DIR}/agent/conf/AgentServer.conf)
+install(FILES ${AGENT_SERVER_CONF} DESTINATION conf)
 #install (FILES * DESTINATION include/msf/base/)          # 安装到 usr/include/msf/base
 #INSTALL(DIRECTORY doc/ DESTINATION share/msf)            # 安装项目文档

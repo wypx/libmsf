@@ -56,10 +56,8 @@ add_subdirectory (base msf_base)
 add_subdirectory (encrypt msf_encrypt)
 add_subdirectory (sock msf_sock)
 add_subdirectory (event msf_event)
-add_subdirectory (agent msf_agent)
-
-aux_source_directory (. DIR_SRCS)
-add_library (msf SHARED ${DIR_SRCS})
+# aux_source_directory (. DIR_SRCS)
+# add_library (msf SHARED ${DIR_SRCS})
 
 SET(CMAKE_INSTALL_PREFIX $ENV{HOME}/usr)                        # 安装路径前缀 /home/xxx/usr
 #INSTALL(DIRECTORY doc/ DESTINATION share/msf)                  # 安装项目文档

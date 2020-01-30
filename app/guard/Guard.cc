@@ -35,7 +35,7 @@ extern int optind;
 extern int opterr;
 extern int optopt;
 
-#define DEF_MSF_DAEMON_NAME "msf_guard"
+#define DEF_MSF_DAEMON_NAME "Guard"
 #define DEF_MSF_DAEMON_CONFIG_PATH "/home/msf_guard_conf.json"
 
 #define DEF_MSF_KEY_AUTHOR      "msf_author"
@@ -71,7 +71,6 @@ void ShowUsage(void)
 void ShowVersion(void)
 {
     uint32_t proc_idx;
-    struct svcinst *svc = NULL;
     struct process_desc *proc_desc = NULL;
 
     printf("### Micro service framework debug info ###\n\n");

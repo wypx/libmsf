@@ -30,7 +30,7 @@
 #include <base/MemPool.h>
 #include <sock/Connector.h>
 #include <event/EventLoop.h>
-#include "Protocol.h"
+#include <proto/Protocol.h>
 
 using namespace MSF::BASE;
 using namespace MSF::SOCK;

@@ -1,15 +1,15 @@
 # 设置debug版本信息 进程生成名字
 if(${CMAKE_BUILD_TYPE} MATCHES "debug")
     if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-        set(EXECUTABLE_NAME "msf_debug_macox_guard")
+        set(EXECUTABLE_NAME "Shell_Debug_MacOS")
     elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-        set(EXECUTABLE_NAME "msf_debug_linux_guard")
+        set(EXECUTABLE_NAME "Shell_Debug_Linux")
     endif()
 else()
     if (CMAKE_SYSTEM_NAME MATCHES "Darwin")
-        set(EXECUTABLE_NAME "msf_release_macox_guard")
+        set(EXECUTABLE_NAME "Shell_Release_MaxOS")
     elseif (CMAKE_SYSTEM_NAME MATCHES "Linux")
-        set(EXECUTABLE_NAME "msf_release_linux_guard")
+        set(EXECUTABLE_NAME "Shell_Release_Linux")
     endif()
 endif()
 
@@ -18,8 +18,7 @@ link_directories(
     /home/share/tomato/mod/libmsf/build/lib/msf_base/
     /home/share/tomato/mod/libmsf/build/lib/msf_sock/
     /home/share/tomato/mod/libmsf/build/lib/msf_event/
-    /home/share/tomato/mod/libmsf/build/lib/msf_agent/
-    /home/share/tomato/mod/libmsf/build/lib/
+    /home/share/tomato/mod/libmsf/build/app/msf_agent/
 )
 include (${PROJECT_SOURCE_DIR}/../cmake/utils.cmake)
 #include (${PROJECT_SOURCE_DIR}/cmake/FindNUMA.cmake)
@@ -32,10 +31,14 @@ set(COMMLIBS msf_agent msf_event msf_sock msf_base numa pthread dl)
 
 # 设置源代码路径
 aux_source_directory (. DIR_SRCS)
-add_executable(msf_shell ${DIR_SRCS})
+add_executable(${EXECUTABLE_NAME} ${DIR_SRCS})
 add_definitions(-Wno-builtin-macro-redefined)
-msf_redefine_file(msf_shell)
-target_link_libraries(msf_shell ${COMMLIBS})
+msf_redefine_file(${EXECUTABLE_NAME})
+target_link_libraries(${EXECUTABLE_NAME} ${COMMLIBS})
 
-#install (TARGETS lib LIBRARY DESTINATION lib)            # 安装到 usr/lib
+# https://blog.csdn.net/qq_38410730/article/details/102837401
+set(CMAKE_INSTALL_PREFIX /home/luotang.me)           # 安装路径前缀 $ENV{HOME}/usr: /home/xxx/usr
+install(TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION bin)    # 二进制安装到 /home/luotang.me/bin
+
 #install (FILES * DESTINATION include/msf/base/)          # 安装到 usr/include/msf/base
+#INSTALL(DIRECTORY doc/ DESTINATION share/msf)            # 安装项目文档

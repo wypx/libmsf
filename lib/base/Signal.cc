@@ -37,7 +37,7 @@ void SignalHandler(int signo)
             MSF_ERROR<< "Got sigill: " << signo;
             break;
     }
-    os.writeStackTrace("trace.log");
+    os.writeStackTrace("/home/luotang.me/trace/trace.log");
     exit(1);
 }
 

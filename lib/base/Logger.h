@@ -150,10 +150,11 @@ class Logger : public Noncopyable {
 
         std::mutex  stLogMutex;
         std::unique_lock<std::mutex> stLogLock;
+        std::mutex      mutex_;
         
         Logger() = default;
 
-        int openLogFile(const std::string & filename);
+        bool openLogFile(const std::string & filename);
         int compressFile(void);
 };
 

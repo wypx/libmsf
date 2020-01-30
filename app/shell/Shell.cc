@@ -5,7 +5,7 @@
 #include <base/Time.h>
 #include <base/Signal.h>
 #include <event/Timer.h>
-#include <agent/AgentClient.h>
+#include <client/AgentClient.h>
 
 using namespace MSF::EVENT;
 

@@ -9,6 +9,7 @@
 
 using namespace MSF;
 using namespace MSF::BASE;
+using namespace MSF::IO;
 
 namespace MSF {
 
@@ -91,7 +92,7 @@ bool PluginManager::load(const std::string& pluginPath)
     std::string plugName = getPluginName(pluginPath);
     std::string realPath = resolvePathExtension(pluginPath);
 
-    int iRet = MSF::IO::File::isFileExist(pluginPath);
+    int iRet = isFileExist(pluginPath);
     if (iRet < 0) {
         MSF_ERROR << "Specified plugin not existing: " << pluginPath;
         return false;

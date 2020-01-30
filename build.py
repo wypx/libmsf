@@ -41,13 +41,13 @@ def MakeBuildLib(buildPath):
     os.chdir(buildPath)
     os.system("cmake ../../lib")
     os.system("make -j8")
-    #os.system("make install")
+    os.system("make install")
 
 def MakeBuildApp(buildPath):
     os.chdir(buildPath)
     os.system("cmake ../../app")
     os.system("make -j8")
-    #os.system("make install")
+    os.system("make install")
 
 def MakeBuildProto(buildPath):
     os.chdir(buildPath)

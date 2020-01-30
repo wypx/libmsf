@@ -14,6 +14,9 @@
 #include <base/GccAttr.h>
 #include <base/Logger.h>
 
+#include <cstdio>
+#include <queue>
+
 using namespace MSF::BASE;
 using namespace MSF::IO;
 
@@ -42,15 +45,47 @@ std::string GetCurrentWorkDir()
     return std::string(workPath);
 }
 
-bool CreateDir(const std::string & path, const int access)
+bool CreateDir(const std::string & path, const mode_t mode)
 {
     #ifdef WIN32
-    return _mkdir(path.c_str(), access);
+    return _mkdir(path.c_str(), mode) == 0;
     #else
-    return mkdir(path.c_str(), access);
+    return mkdir(path.c_str(), mode) == 0;
     #endif
 }
 
+bool DeleteDir(const std::string &path)
+{
+    return rmdir(path.c_str()) == 0;
+}
+
+
+bool CreateDirWithUid(const std::string & path, const mode_t mode, uid_t user)
+{
+    if (mkdir(path.c_str(), mode) < 0) {
+        MSF_ERROR << "Fail to create dir: " << path;
+        return false;
+    }
+    struct stat  fi;
+    if (stat(path.c_str(), &fi) == -1) {
+        return false;
+    }
+
+    if (fi.st_uid != user) {
+        if (chown(path.c_str(), user, -1) == -1) {
+            return false;
+        }
+    }
+
+    if ((fi.st_mode & (S_IRUSR|S_IWUSR|S_IXUSR)) != (S_IRUSR|S_IWUSR|S_IXUSR)) {
+        
+        fi.st_mode |= (S_IRUSR|S_IWUSR|S_IXUSR);
+        if (chmod(path.c_str(), fi.st_mode) == -1) {
+            return false;
+        }
+    }
+    return true;
+}
 // void CreateFileDir(const std::string & path)
 // {
 //     path.replace('/', '\\');
@@ -82,14 +117,14 @@ bool CreateFullDir(const std::string & path, const mode_t mode)
             return false;
         }
     }
-    if (isDirsExist(path)) {
+    if (IsDirsExist(path)) {
         return true;
     } else {
         return false;
     }
 }
 
-bool isFileExist(const std::string & file)
+bool IsFileExist(const std::string & file)
 {
     #ifdef WIN32
     return (_access(file.c_str(), R_OK | W_OK) >= 0);
@@ -98,10 +133,45 @@ bool isFileExist(const std::string & file)
     #endif
 }
 
-bool isDirsExist(const std::string & dir)
+bool IsDir(const struct stat st)
+{
+    return S_ISDIR(st.st_mode);
+}
+
+bool IsFile(const struct stat st)
+{ 
+    return S_ISREG(st.st_mode);
+}
+bool IsLink(const struct stat st) 
+{
+    return S_ISLNK(st.st_mode); 
+}
+
+int DirAccess(const struct stat st)
+{
+    return st.st_mode & 0777; 
+}
+
+int DirSize(const struct stat st) 
+{ 
+    return st.st_size; 
+}
+int DirFsSize(const struct stat st) 
+{
+    return std::max(st.st_size, st.st_blocks * 512); 
+}
+/* time of last modification */
+time_t DirMtime(const struct stat st) 
+{ 
+    return st.st_mtime; 
+}
+
+bool IsDirsExist(const std::string & dir)
 {
     //https://www.cnblogs.com/Anker/p/3349672.html
     struct stat fi;
+
+    //lstat
     if (stat(dir.c_str(), &fi) == -1) {
         if (errno == ENOENT) {
             // MSF_ERROR << "Dir not exist:" << dir;
@@ -110,6 +180,127 @@ bool isDirsExist(const std::string & dir)
     }
     return true;
 }
+
+
+void ListFiles(std::list<std::string>& list, const std::string& folder, 
+                const std::string& extension, bool recursive)
+{
+    DIR* dir;
+    DIR* subDir;
+    struct dirent *ent;
+    // try to open top folder
+    dir = opendir(folder.c_str());
+    if (dir == NULL) {
+        // could not open directory
+      MSF_ERROR << "Could not open \"" << folder << "\" directory.";
+      return;
+    }else{
+        // close, we'll process it next
+        closedir(dir);
+    }
+    // enqueue top folder
+    std::queue<std::string> folders;
+    folders.push(folder);
+
+    // run while has queued folders
+    while (!folders.empty()){
+        std::string currFolder = folders.front();
+        folders.pop();
+        dir = opendir(currFolder.c_str());
+        if (dir == NULL) continue;
+        // iterate through all the files and directories
+        while ((ent = readdir (dir)) != NULL) {
+            std::string name(ent->d_name);
+
+            // int dirFd = dirfd(dir);
+            // int type = de->d_type;
+            // if (strstr(de->d_name, "xxxx") != nullptr) {
+            //     MSF_INFO << "delete /dev/shm/" << de->d_name;
+            //     unlinkat(dirFd, de->d_name, 0);
+            // }
+            // ignore "." and ".." directories
+            if ( name.compare(".") == 0 || name.compare("..") == 0) continue;
+            // add path to the file name
+            std::string path = currFolder;
+            path.append("/");
+            path.append(name);
+            // check if it's a folder by trying to open it
+            subDir = opendir(path.c_str());
+            if (subDir != NULL){
+                // it's a folder: close, we can process it later
+                closedir(subDir);
+                if (recursive) folders.push(path);
+            }else{
+                // it's a file
+                if (extension.empty()){
+                    list.push_back(path);
+                }else{
+                    // check file extension
+                    size_t lastDot = name.find_last_of('.');
+                    std::string ext = name.substr(lastDot+1);
+                    if (ext.compare(extension) == 0){
+                        // match
+                        list.push_back(path);
+                    }
+                } // endif (extension test)
+            } // endif (folder test)
+        } // endwhile (nextFile)
+        closedir(dir);
+    } // endwhile (queued folders)
+
+} // end listFiles
+
+#ifndef HAVE_LINK
+#ifdef WIN32
+int link(const char *path1, const char *path2)
+{
+    if (CreateHardLink(path2, path1, NULL) == 0)
+    {
+        /* It is not documented which errors CreateHardLink() can produce.
+         * The following conversions are based on tests on a Windows XP SP2
+         * system. */
+        DWORD err = GetLastError();
+        switch (err)
+        {
+            case ERROR_ACCESS_DENIED:
+                errno = EACCES;
+                break;
+
+            case ERROR_INVALID_FUNCTION:        /* fs does not support hard links */
+                errno = EPERM;
+                break;
+
+            case ERROR_NOT_SAME_DEVICE:
+                errno = EXDEV;
+                break;
+
+            case ERROR_PATH_NOT_FOUND:
+            case ERROR_FILE_NOT_FOUND:
+                errno = ENOENT;
+                break;
+
+            case ERROR_INVALID_PARAMETER:
+                errno = ENAMETOOLONG;
+                break;
+
+            case ERROR_TOO_MANY_LINKS:
+                errno = EMLINK;
+                break;
+
+            case ERROR_ALREADY_EXISTS:
+                errno = EEXIST;
+                break;
+
+            default:
+                errno = EIO;
+        }
+        return -1;
+    }
+
+    return 0;
+}
+#endif
+#endif
 
 std::string GetFileName(const std::string & path)
 {

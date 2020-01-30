@@ -39,6 +39,7 @@
 #include <sys/time.h>   /* for utimes */
 
 #include <signal.h>
+#include <list>
 
 #ifdef WIN32 
 #include <direct.h> 
@@ -54,140 +55,23 @@ std::string GetRealPath(const std::string & path);
 
 std::string GetCurrentWorkDir();
 
-bool CreateDir(const std::string & path, const int access);
+bool IsFileExist(const std::string & file);
+bool IsDirsExist(const std::string & dir);
+
+bool CreateDir(const std::string & path, const mode_t mode = 0755);
+bool DeleteDir(const std::string & path);
+bool CreateDirWithUid(const std::string & path, const mode_t mode, uid_t user);
 bool CreateFullDir(const std::string & path, const mode_t mode = 0755);
 
-bool isFileExist(const std::string & file);
-bool isDirsExist(const std::string & dir);
+void ListFiles(std::list<std::string>& list, const std::string& folder, 
+                const std::string& extension, bool recursive);
 
-
-class MSF_DIR {
-    public:
-
-        int CreateDir(const std::string & path, const int access)
-        {
-            return mkdir(path.c_str(), access);
-        }
-
-        int CreateDirWithUid(const std::string & path, const int access, uid_t user)
-        {
-            int iRet;
-
-            iRet = CreateDir(path, access);
-            if (iRet < 0) {
-                return -1;
-            }
-            struct stat  fi;
-
-            if (stat(path.c_str(), &fi) == -1) {
-                return -1;
-            }
-
-            if (fi.st_uid != user) {
-                if (chown(path.c_str(), user, -1) == -1) {
-                    return -1;
-                }
-            }
-
-            if ((fi.st_mode & (S_IRUSR|S_IWUSR|S_IXUSR)) != (S_IRUSR|S_IWUSR|S_IXUSR)) {
-                
-                fi.st_mode |= (S_IRUSR|S_IWUSR|S_IXUSR);
-                if (chmod(path.c_str(), fi.st_mode) == -1) {
-                    return -1;
-                }
-            }
-            return 0;
-        }
-
-        bool OpenDir(std::string & name)
-        {
-            dir = ::opendir(name.c_str());
-            if (dir == nullptr) {
-                return false;
-            }
-            valid_info = true;
-            return true;
-        }
-
-        void CloseDir()
-        {
-            closedir(dir);
-        }
-
-        int DeleteDir(const std::string &path)
-        {
-            return rmdir(path.c_str());
-        }
-
-        int getDirAccess(int access) const 
-        {
-            return (access | (access & 0444) >> 2);
-        }
-
-        char *getDeName()
-        {
-            return de->d_name;
-        }
-
-        int getDeNameLen()
-        {
-            #if (MSF_HAVE_D_NAMLEN)
-            return de->d_namlen;
-            #else
-            return strlen(de->d_name);
-            #endif
-        }
-
-        inline int getDeInfo(const std::string &name)
-        {
-            type = 0;
-            return stat(name.c_str(), &st);
-        }
-        inline int getDeLinkInfo(const std::string &name)
-        {
-            type = 0;
-            return lstat(name.c_str(), &st);
-        }
-
-        inline bool is_dir() const { return S_ISDIR(st.st_mode); }
-        inline bool is_file() const { return S_ISREG(st.st_mode); }
-        inline bool is_link() const { return S_ISLNK(st.st_mode); }
-        inline int de_access() const { return st.st_mode & 0777; }
-
-        inline int de_size() const { return st.st_size; }
-        inline int de_fs_size() const { return std::max(st.st_size, st.st_blocks * 512); }
-        /* time of last modification */
-        inline time_t de_mtime() const { return st.st_mtime; }
-
-        bool ReadDir(std::string &dirName)
-        {
-            int dir_fd;
-            dir = opendir(dirName.c_str());
-            if (!dir) {
-                MSF_ERROR << dirName + "not exists";
-                return false;
-            }
-            dir_fd = dirfd(dir);
-            de = readdir(dir);
-            while (de != NULL) {
-                type = de->d_type;
-                if (strstr(de->d_name, "xxxx") != NULL) {
-                    MSF_INFO << "delete /dev/shm/" << de->d_name;
-                    unlinkat(dir_fd, de->d_name, 0);
-                }
-                de = readdir(dir);
-            }
-            closedir(dir);
-            return false;
-        }
-
-    private:
-        DIR             *dir;
-        struct dirent   *de;
-        struct stat     st;
-        int             type:8;
-        bool            valid_info:1;
-};
+/*
+ * link() - only for systems that lack it
+ */
+#ifndef HAVE_LINK
+int link(const char *path1, const char *path2);
+#endif
 
 class File {
     public:

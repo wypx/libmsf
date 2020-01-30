@@ -3,5 +3,5 @@ add_library(msf_sock STATIC ${DIR_SRCS})
 msf_redefine_file(msf_sock)
 add_definitions(-Wno-builtin-macro-redefined)
 
-#install(TARGETS lib LIBRARY DESTINATION lib)            # 安装到 usr/lib
-#install(FILES * DESTINATION include/msf/net/)          # 安装到 usr/include/msf/base
+install(TARGETS msf_sock LIBRARY DESTINATION lib)
+#install(FILES * DESTINATION include/msf/base/)

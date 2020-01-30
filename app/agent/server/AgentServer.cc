@@ -345,9 +345,9 @@ bool AgentServer::initListen() {
 
 void AgentServer::init() {
 
-  if (!isFileExist(logFile_)) {
+  if (!IsFileExist(logFile_)) {
       std::string logDIR = GetRealPath(logFile_);
-      if (!isDirsExist(logDIR)) {
+      if (!IsDirsExist(logDIR)) {
           MSF_INFO << "Logger dir " << logDIR << " not exist";
           assert(CreateFullDir(logDIR));
       }

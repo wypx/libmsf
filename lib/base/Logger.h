@@ -61,6 +61,9 @@ extern "C" {
 #define COLOR_CLEAR                "\e[2J"
 #define COLOR_CLRLINE              "\r\e[K" /* or "\e[1K\r" */
 
+
+//https://blog.csdn.net/mathgeophysics/article/details/9622761
+// #define MSF_FUNC_FILE_LINE   __func__, __FILE__, __LINE__
 #define MSF_FUNC_FILE_LINE  __FUNCTION__, __FILE__, __LINE__
 
 enum LogLevel { LEVEL_DEBUG, LEVEL_INFO, LEVEL_WARN, LEVEL_ERROR, LEVEL_FATAL};

@@ -15,6 +15,8 @@
 #include <sock/Socket.h>
 
 #include <unistd.h>
+#include <time.h>
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -33,6 +35,8 @@
 #include <asm/types.h>
 #include <linux/socket.h>
 #include <linux/netlink.h>
+#include <netinet/ip.h>
+
 
 namespace MSF {
 namespace SOCK {
@@ -61,6 +65,30 @@ namespace SOCK {
 */
 
 static uint32_t g_oldGateway = 0;
+
+bool SocketInit()
+{
+    char *errstr;
+    #ifdef WIN32
+    WORD wVersionRequested;
+    WSADATA wsaData;
+    int error_code;
+
+    wVersionRequested = MAKEWORD(2, 0);
+    if ((error_code = WSAStartup(wVersionRequested, &wsaData)) != 0)
+    {
+        *errstr = xasprintf("%s", wsa_strerror(error_code));
+        return false;
+    }
+    else
+    {
+        return false;
+    }
+    #else /* noone else needs this... */
+    (void)errstr;
+    return true;
+    #endif
+}
 
 int CreateSocket(const int domain, const int type, const int protocol)
 {
@@ -119,7 +147,11 @@ int MakePipe(int fd[2], bool is_blocking)
 void CloseSocket(const int fd)
 {
     if (fd > 0) {
+        #ifdef WIN32
+        (void)closesocket(fd);
+        #else
         close(fd);
+        #endif
     }
 }
 
@@ -252,22 +284,35 @@ bool SetReusePort(const int fd, bool on)
  * number of milliseconds, or disable it if the 'ms' argument is zero. */
 bool SetTimeout(const int fd, const int timeoutMs)
 {
+    if (timeoutMs <= 0) {
+        return true;
+    }
+
+    #ifdef WIN32
+    DWORD milliseconds = timeoutMs * 1000;
+    if (setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &milliseconds, sizeof(int)) < 0) {
+        return false;
+    }
+    if (setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, &milliseconds, sizeof(int)) < 0) {
+        return false;
+    }
+    return true;
+    #else /* Linux or DJGPP */
     struct timeval tv;
     tv.tv_sec = timeoutMs/1000;
     tv.tv_usec = (timeoutMs%1000)*1000;
 
-    if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv) < 0 )) {
+    if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv) < 0)) {
         MSF_ERROR << "Fail to set send timeout for socket: " << fd;
         return false;
     }
-    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv) < 0 )) {
+    if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv) < 0)) {
         MSF_ERROR << "Fail to set recv timeout for socket: " << fd;
         return false;
     }
     return true;
+    #endif
 }
-
-
 /* ioctl(FIONBIO) sets a non-blocking mode with the single syscall
  * while fcntl(F_SETFL, O_NONBLOCK) needs to learn the current state
  * using fcntl(F_GETFL).
@@ -278,7 +323,7 @@ bool SetTimeout(const int fd, const int timeoutMs)
  * ioctl() in Linux 2.4 and 2.6 uses BKL, however, fcntl(F_SETFL) uses it too.*/
 bool SetNonBlock(const int fd, bool on)
 {
-    #ifdef _WIN32
+    #ifdef WIN32
     int nonblocking = on;
     if (ioctlsocket(fd, FIONBIO, &nonblocking) == -1) {
         MSF_ERROR << "Fail to set nonblocking for socket: " << fd;
@@ -387,7 +432,7 @@ bool SetDcsp(const int fd, const uint32_t family, const uint32_t dscp)
     int retval;
     int val;
 
-    #ifdef _WIN32
+    #ifdef WIN32
     /* XXX: Consider using QoS2 APIs for Windows to set dscp. */
     return 0;
     #endif
@@ -543,7 +588,7 @@ bool GetTcpInfoString(const int fd, char* buf, int len)
 //not support in windows
 int SetTcpMss(const int fd, int size)
 {
-    #ifdef _WIN32_
+    #ifdef WIN32
     return 0;
     #else
     return setsockopt(fd, IPPROTO_TCP, TCP_MAXSEG, &size, sizeof(size));
@@ -552,14 +597,14 @@ int SetTcpMss(const int fd, int size)
 
 int GetTcpMss(const int fd, int* size)
 {
-#ifdef _WIN32_
+    #ifdef WIN32
     return 0;
-#else
-    if (size == NULL)
+    #else
+    if (size == nullptr)
         return -1;
     socklen_t len = sizeof(int);
     return getsockopt(fd, IPPROTO_TCP, TCP_MAXSEG, (void*)size, &len);
-#endif
+    #endif
 }
 
 /* 参考https://blog.csdn.net/c_cyoxi/article/details/8673645
@@ -834,7 +879,7 @@ int CreateTcpServer(const std::string &host,
                 const uint32_t proto,
                 const uint32_t backlog)
 {
-    #ifdef _WIN32
+    #ifdef WIN32
     WSADATA wsa_data;
     WSAStartup(0x0201, &wsa_data);
     #endif
@@ -954,11 +999,76 @@ int CreateTcpServer(const std::string &host,
     return fd;
 }
 
+#if 0
+bool Connect(const int fd, const struct sockaddr *srvAddr,
+            socklen_t addrLen, const int timeout)
+{
+    #ifdef WIN32
+    /* TODO: I don't know how to do this on Win32. Please send a patch. */
+    return (connect(fd, srvAddr, addrLen) == 0);
+    #else /* LINUX or DJGPP */
+    struct timeval tv;
+    fd_set rset;
+    fd_set wset;
+    int err;
+    socklen_t optlen;
+
+    if (timeout <= 0) {
+        return (connect(fd, srvAddr, addrLen) == 0);
+    } else {
+        /* make socket non-blocking */
+        if (!SetNonBlock(fd, true)) {
+            return false;
+        }
+
+        /* start connect */
+        if (connect(fd, srvAddr, addrLen) < 0) {
+            if (errno != EINPROGRESS) {
+                return false;
+            }
+
+            tv.tv_sec = timeout;
+            tv.tv_usec = 0;
+            FD_ZERO(&rset);
+            FD_ZERO(&wset);
+            FD_SET(fd, &rset);
+            FD_SET(fd, &wset);
+
+            /* wait for connect() to finish */
+            if ((err = select(fd + 1, &rset, &wset, NULL, &tv)) <= 0) {
+                /* errno is already set if err < 0 */
+                if (err == 0) {
+                    errno = ETIMEDOUT;
+                }
+                return false;
+            }
+
+            /* test for success, set errno */
+            optlen = sizeof(int);
+            if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &optlen) < 0) {
+                return false;
+            }
+            if (err != 0) {
+                errno = err;
+                return false;
+            }
+        }
+
+        /* restore blocking mode */
+        if (!SetNonBlock(fd, false)) {
+            return false;
+        }
+        return true;
+    }
+    #endif /* UNIX */
+}
+#endif
+
 int ConnectTcpServer(const std::string &host,
                 const uint16_t port,
                 const uint32_t proto)
 {
-    #ifdef _WIN32
+    #ifdef WIN32
     WSADATA wsa_data;
     WSAStartup(0x0201, &wsa_data);
     #endif
@@ -1035,6 +1145,15 @@ int ConnectTcpServer(const std::string &host,
             if (errno == EINPROGRESS) {
                 break;
             } else {
+                #ifdef WIN32
+                if (WSAGetLastError() != WSAENETUNREACH) {
+                    MSF_ERROR << "Network is unreachable";
+                }
+                #else
+                if (errno != ENETUNREACH || errno != ENETDOWN) {
+                    MSF_ERROR << "Network is unreachable";
+                }
+                #endif
                 MSF_ERROR << "Connect errno:" << strerror(errno);
                 close(fd);
                 continue;

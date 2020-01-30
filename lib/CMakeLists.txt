@@ -59,6 +59,7 @@ add_subdirectory (event msf_event)
 # aux_source_directory (. DIR_SRCS)
 # add_library (msf SHARED ${DIR_SRCS})
 
-SET(CMAKE_INSTALL_PREFIX $ENV{HOME}/usr)                        # 安装路径前缀 /home/xxx/usr
+# $ENV{HOME}/usr
+SET(CMAKE_INSTALL_PREFIX /home/luotang.me)                      # 安装路径前缀 /home/xxx/usr
 #INSTALL(DIRECTORY doc/ DESTINATION share/msf)                  # 安装项目文档
 #INSTALL(TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION lib)    # 二进制安装到 usr/bin

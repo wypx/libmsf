@@ -29,7 +29,7 @@ using namespace MSF::SOCK;
 namespace MSF {
 namespace SOCK {
 
-#ifdef _WIN32_
+#ifdef WIN32
 #include <winsock2.h>
 #define SOCKET_ERRNO(error) WSA##error
 #define socket_close closesocket
@@ -88,12 +88,13 @@ bool SetIpv6Only(const int fd, bool on);
 #endif
 #endif
 
-
 int CreateTcpServer(const std::string &host, 
                 const uint16_t port,
                 const uint32_t proto,
                 const uint32_t backlog);
 
+bool Connect(const int fd, const struct sockaddr *srvAddr,
+            socklen_t addrLen, const int timeout);
 int ConnectTcpServer(const std::string &host, 
                 const uint16_t port,
                 const uint32_t proto);

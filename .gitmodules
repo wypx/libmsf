@@ -1,0 +1,3 @@
+[submodule "app/mobile"]
+	path = app/mobile
+	url = https://github.com/wypx/mobile

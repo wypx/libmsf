@@ -11,6 +11,7 @@
 *
 **************************************************************************/
 #include <base/Serial.h>
+#include <sys/ioctl.h>
 
 using namespace MSF::BASE;
 
@@ -34,6 +35,21 @@ int setSerialRawMode(const int fd)
     opt.c_iflag &= ~(IXON|IXOFF|ICRNL|INLCR|IGNCR);
     opt.c_oflag &= ~OPOST;      /* output */
     return tcsetattr(fd,TCSANOW,&opt);
+}
+
+//https://blog.csdn.net/yasi_xi/article/details/8246446
+/* PeekFd - return amount of data ready to read */
+int PeekFd(const int fd)
+{
+    int count;
+    /*
+    * Anticipate a series of system-dependent code fragments.
+    */
+    #ifndef WIN32
+    return (ioctl(fd, FIONREAD, (char *) &count) < 0 ? -1 : count);
+    #else
+    return (ioctlsocket(fd, FIONREAD, (unsigned long *) &count) < 0 ? -1 : count);
+    #endif
 }
 
 

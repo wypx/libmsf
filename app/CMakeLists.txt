@@ -10,6 +10,15 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/../app/agent
 )
 
+# 设置链接库搜索目录
+link_directories(
+    ${PROJECT_SOURCE_DIR}/../build/lib/msf_base/
+    ${PROJECT_SOURCE_DIR}/../build/lib/msf_sock/
+    ${PROJECT_SOURCE_DIR}/../build/lib/msf_event/
+    ${PROJECT_SOURCE_DIR}/../build/app/msf_agent/
+    ${PROJECT_SOURCE_DIR}/../build/lib/
+)
+
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../cmake)
 include (${CMAKE_MODULE_PATH}/FindNUMA.cmake)
 include (${CMAKE_MODULE_PATH}/utils.cmake)

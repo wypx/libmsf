@@ -43,23 +43,21 @@ include_directories(
 # 在执行cmake时增加参数即可，例如cmake -DDEBUG_mode=ON
 
 option(DEBUG_mode "ON for debug or OFF for release" ON)
-IF(DEBUG_mode)
+if(DEBUG_mode)
     message(STATUS "Current project compile in debug mode.") 
     add_definitions(-DDEBUG)
     SET(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -fPIC -O0 -Wall -g -ggdb")
-ELSE()
+else()
     message(STATUS "Current project compile in release mode.") 
     SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -fPIC -O3 -Wall")
-ENDIF()
+endif()
 
 add_subdirectory (base msf_base)
 add_subdirectory (encrypt msf_encrypt)
 add_subdirectory (sock msf_sock)
 add_subdirectory (event msf_event)
-# aux_source_directory (. DIR_SRCS)
-# add_library (msf SHARED ${DIR_SRCS})
 
 # $ENV{HOME}/usr
-SET(CMAKE_INSTALL_PREFIX /home/luotang.me)                      # 安装路径前缀 /home/xxx/usr
+set(CMAKE_INSTALL_PREFIX /home/luotang.me)                      # 安装路径前缀 /home/xxx/usr
 #INSTALL(DIRECTORY doc/ DESTINATION share/msf)                  # 安装项目文档
 #INSTALL(TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION lib)    # 二进制安装到 usr/bin

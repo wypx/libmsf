@@ -21,8 +21,11 @@ MSF (Mircro Service Framework) acting as mircro service process framework, provi
 ### 安装环境
 ```xml
 安装Ubuntu, Debian等Linux, ARM环境
-测试环境（Linux KaliCI 4.19.0-kali3-amd64）: gcc version 8.2.0 (Debian 8.2.0-14)
-测试环境（Linux raspberrypi 4.14.52-v7+）：gcc version 6.4.1 20171012 (Linaro GCC 6.4-2017.11)
+要求gcc版本(测试gcc版本):
+
+gcc version 9.2.1 20191109 (Debian 9.2.1-19)
+
+gcc version 9.2.1 20200123 (Debian 9.2.1-25) 
 ```
 ### 下载开源库
 

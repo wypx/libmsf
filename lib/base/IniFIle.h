@@ -34,7 +34,7 @@
 #include <vector>
 #include <algorithm>
 #include <string>
-#include <string.h>
+#include <string>
 
 using std::string;
 using std::vector;

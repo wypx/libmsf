@@ -10,12 +10,12 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-#include <base/FileUtils.h>
-#include <base/FileDetails.h>
-#include <base/Uio.h>
+#include "FileUtils.h"
+#include "FileDetails.h"
+#include "Uio.h"
 
 #include <unistd.h>
-#include<sys/file.h>
+#include <sys/file.h>
 
 using namespace MSF::IO;
 

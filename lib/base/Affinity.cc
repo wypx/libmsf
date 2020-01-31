@@ -10,7 +10,7 @@
 * and/or fitness for purpose.
 *
 **************************************************************************/
-#include <base/OS.h>
+#include <base/Os.h>
 #include <base/Logger.h>
 
 #include <algorithm>

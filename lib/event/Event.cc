@@ -13,7 +13,7 @@
 #include <base/GccAttr.h>
 #include <base/Logger.h>
 #include <event/Event.h>
-#include <event/Eventloop.h>
+#include <event/EventLoop.h>
 #include <sstream>
 #include <sys/epoll.h>
 

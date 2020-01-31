@@ -26,6 +26,10 @@ MSF (Mircro Service Framework) acting as mircro service process framework, provi
 gcc version 9.2.1 20191109 (Debian 9.2.1-19)
 
 gcc version 9.2.1 20200123 (Debian 9.2.1-25) 
+
+更新gcc方法:
+https://www.cnblogs.com/whuanle/p/10546634.html
+
 ```
 ### 下载开源库
 

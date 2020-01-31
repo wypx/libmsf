@@ -21,13 +21,13 @@ MSF (Mircro Service Framework) acting as mircro service process framework, provi
 ### 安装环境
 ```xml
 安装Ubuntu, Debian等Linux, ARM环境
-要求gcc版本(测试gcc版本):
 
-gcc version 9.2.1 20191109 (Debian 9.2.1-19)
+要求gcc版本(测试gcc版本): gcc version 9.2.1 20200123 (Debian 9.2.1-25) 
 
-gcc version 9.2.1 20200123 (Debian 9.2.1-25) 
+安装numactrl： https://github.com/numactl/numactl
 
 更新gcc方法:
+
 https://www.cnblogs.com/whuanle/p/10546634.html
 
 ```

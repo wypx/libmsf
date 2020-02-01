@@ -278,7 +278,7 @@ void msf_numa_tonode_memory(void *mem, size_t size, int node)
     numa_tonode_memory(mem, size, node);
 }
 
-long msf_numa_node_size(int node, long long * freep)
+long long msf_numa_node_size(int node, long long * freep)
 {
     return numa_node_size(node, freep);
 }

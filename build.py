@@ -37,20 +37,20 @@ def MakeBuildDir(buildPath):
     else:
         print("-- Dir \'" + buildPath + '\' has already exist now.')
 
-def MakeBuildLib(buildPath):
-    os.chdir(buildPath)
+def MakeBuildLib(BuildRoot):
+    os.chdir(BuildRoot + "/build/lib")
     os.system("cmake ../../lib")
     os.system("make -j8")
     os.system("make install")
 
-def MakeBuildApp(buildPath):
-    os.chdir(buildPath)
+def MakeBuildApp(BuildRoot):
+    os.chdir(BuildRoot + "/build/app")
     os.system("cmake ../../app")
     os.system("make -j8")
     os.system("make install")
 
-def MakeBuildProto(buildPath):
-    os.chdir(buildPath)
+def MakeBuildProto(BuildRoot):
+    os.chdir(BuildRoot + "/app/agent/proto")
     os.system("protoc -I=./ --cpp_out=./ *.proto")
     
 def MakeBuildClean(buildPath):
@@ -65,8 +65,9 @@ if __name__ == '__main__':
     BuildRoot = os.getcwd()
     MakeBuildDir("build/lib")
     MakeBuildDir("build/app")
-    MakeBuildLib(BuildRoot + "/build/lib")
-    MakeBuildApp(BuildRoot + "/build/app")
+    # MakeBuildProto(BuildRoot)
+    MakeBuildLib(BuildRoot)
+    MakeBuildApp(BuildRoot)
     # MakeBuildClean("build")
     print("\n******************* Micro Service Framework Build Ending ****************************\n")
 

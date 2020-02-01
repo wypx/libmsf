@@ -242,7 +242,8 @@ void AgentServer::handleAgentBhs(ConnectionPtr c) {
         struct iovec iov[2];
         iov[0].iov_base = bhs;
         iov[0].iov_len = sizeof(AgentBhs);
-        SendMsg(peer->fd(), iov, 2, MSG_NOSIGNAL | MSG_WAITALL);
+        //runinloop到这个loop中去
+        SendMsg(peer->fd(), iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
       } else {
         struct iovec iov;
         bhs->restLen_ = 0;

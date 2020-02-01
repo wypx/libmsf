@@ -15,15 +15,13 @@
 
 #include <base/Noncopyable.h>
 #include <iostream>
-#include <netinet/in.h>
 #include <sys/un.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <linux/in6.h>
-#include <sys/socket.h>
 #include <netdb.h>
 #include <net/ethernet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
 // #include <stddef.h>
 
 using namespace MSF::BASE;
@@ -73,8 +71,8 @@ struct ipv6_mreq {
 #define DEFAULT_IPANY   "0.0.0.0"
 #define DEFAULT_PORT    8888
 
-#define DEFAULT_SRVAGENT_UNIXPATH "/vat/tmp/srv_agent.sock"
-#define DEFAULT_CLIAGENT_UNIXPATH "/vat/tmp/cli_agent.sock"
+#define DEFAULT_SRVAGENT_UNIXPATH "/var/tmp/AgentServer.sock"
+#define DEFAULT_CLIAGENT_UNIXPATH "/var/tmp/AgentClient.sock"
 
 class InetAddress : public Copyable
 {

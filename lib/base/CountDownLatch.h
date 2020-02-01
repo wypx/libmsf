@@ -39,7 +39,9 @@ class CountDownLatch : public Noncopyable
   public:
     explicit CountDownLatch(int count);
     ~CountDownLatch() = default;
+    void setCount(const int count) { _count = count; }
     void wait();
+    bool waitFor(const uint32_t ts);
     void countDown();
     int getCount() const;
 

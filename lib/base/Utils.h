@@ -34,7 +34,9 @@ using namespace MSF::BASE;
 
 namespace MSF {
 namespace BASE {
-    
+  
+//https://blog.csdn.net/ccmmfit/article/details/45440537
+//https://www.cnblogs.com/didiaodidiao/p/9398361.html
 /* Notice: var pointer is need */
 #define MSF_SWAP(a, b) {        \
     *a = *a ^ *b;               \

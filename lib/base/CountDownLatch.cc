@@ -31,9 +31,23 @@ void CountDownLatch::wait()
    * https://zh.cppreference.com/w/cpp/thread/condition_variable
    * //https://blog.csdn.net/business122/article/details/80881925
    * */
-  _condition.wait(lock, [this](){ return (_count == 0);} );
+  _condition.wait(lock, [this](){ return (_count == 0);});
   
   lock.unlock();
+}
+
+//http://www.voidcn.com/article/p-wonhtnlp-bsz.html
+//https://blog.csdn.net/fengbingchun/article/details/73695596
+//https://www.cnblogs.com/haippy/p/3252041.html
+//wait_for: std::cv_status::timeout
+bool CountDownLatch::waitFor(const uint32_t ts)
+{
+  std::unique_lock <std::mutex> lock(_mutex);
+  if (_condition.wait_for(lock, std::chrono::microseconds(ts),
+     [this](){ return (_count == 0);}) == false) {
+    return false;
+  }
+  return true;
 }
  
 void CountDownLatch::countDown()

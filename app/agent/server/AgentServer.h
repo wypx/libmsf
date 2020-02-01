@@ -20,6 +20,7 @@
 #include <event/Event.h>
 #include <event/EventLoop.h>
 #include <event/EventStack.h>
+#include <proto/Protocol.h>
 #include <sock/Acceptor.h>
 #include <sock/Connector.h>
 
@@ -27,6 +28,7 @@ using namespace MSF::BASE;
 using namespace MSF::SOCK;
 using namespace MSF::PLUGIN;
 using namespace MSF::EVENT;
+using namespace MSF::AGENT;
 
 namespace MSF {
 namespace AGENT {
@@ -115,7 +117,7 @@ class AgentServer : public Noncopyable {
 
   std::mutex mutex_;
   /* Mutiple connections supported, such as tcp, udp, unix, event fd and etc*/
-  std::map<uint32_t, ConnectionPtr> activeConns_; /* Current connections */
+  std::map<enum AgentAppId, ConnectionPtr> activeConns_;
   std::list<ConnectionPtr> freeConns_;
   uint32_t connPerAlloc_;
   std::atomic_uint64_t connId_; /* increment connection id for server register*/

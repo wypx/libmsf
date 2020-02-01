@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <iostream>
 #include <fcntl.h>
+
 #include <netinet/tcp.h>
 
 using namespace MSF::BASE;
@@ -133,8 +134,6 @@ int CreateMuticastFd();
 /************************* MUTICAST SOCKET FEATURES ******************************/
 
 /************************* UNIX SOCKET FEATURES ******************************/
-#define DEFAULT_SRVAGENT_UNIXPATH "/vat/tmp/srv_agent.sock"
-#define DEFAULT_CLIAGENT_UNIXPATH "/vat/tmp/cli_agent.sock"
 int CreateUnixServer(const std::string & srvPath, const uint32_t backlog, const uint32_t access_mask);
 int ConnectUnixServer(const std::string & srvPath, const std::string & cliPath);
 /************************* UNIX SOCKET FEATURES ******************************/

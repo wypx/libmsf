@@ -11,13 +11,16 @@
 *
 **************************************************************************/
 #include <base/Version.h>
-#include <base/Process.h>
 #include <base/Logger.h>
 #include <base/Signal.h>
+#include <base/MemPool.h>
+#include <event/EventLoop.h>
+#include <event/EventStack.h>
+#include <client/AgentClient.h>
+#include <base/Process.h>
 
 using namespace MSF;
-using namespace MSF::BASE;
-// using namespace MSF::NET;
+using namespace MSF::AGENT;
 
 /**
  * 1是用来保存选项的参数的
@@ -125,29 +128,34 @@ int OptionParser(int argc, char* argv[])
     return 0;
 }
 
-int ProcessesInit()
-{
-    
-    return 0;
-}
-
-
-int main(int argc, char* argv[]) 
+int main(int argc, char* argv[])
 {
     MSF_BUILD_STATISTIC();
 
     OptionParser(argc, argv);
 
-    ProcessesInit();
+    EventStack *stack = new EventStack();
+    if (stack == nullptr) {
+        MSF_FATAL << "Fail to alloc event stack for mobile.";
+        return -1;
+    }
+
+    AgentClient *agent = new AgentClient("Guard", APP_GUARD);
+    agent->init(stack->getBaseLoop());
+    AgentPdu pdu;
+    pdu.payLoad_ = nullptr;
+    pdu.payLen_ = 0;
+    pdu.restLoad_ = nullptr;
+    pdu.restLen_ = 0;
+    pdu.cmd_ = AGENT_DEBUG_ON_REQUEST;
+    pdu.dstId_ = APP_MOBILE;
+    pdu.timeOut_ = 5000;
+    agent->sendPdu(&pdu);
 
     // SignalReplace();
      /*设置创建文件的mask值，这里只有运行用户的rw权限生效*/
-	umask(0177);
-
-    for ( ;; ) {
-        //process_wait_child_termination();
-        sleep(1);
-    }
+    umask(0177);
+    stack->start();
 
     return 0;
 }

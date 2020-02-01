@@ -10,17 +10,17 @@
  * and/or fitness for purposc->
  *
  **************************************************************************/
+#include "AgentServer.h"
+
 #include <assert.h>
+#include <base/File.h>
 #include <base/IniFile.h>
 #include <base/Logger.h>
 #include <base/Mem.h>
-#include <base/File.h>
 #include <base/Utils.h>
+#include <proto/Protocol.h>
 #include <sock/Socket.h>
 #include <sys/epoll.h>
-
-#include <proto/Protocol.h>
-#include "AgentServer.h"
 
 using namespace MSF::AGENT;
 
@@ -41,6 +41,23 @@ static const struct {
     {CONFIG_UNXIMASK, "unixMask"}, {CONFIG_AUTHCHAP, "authChap"},
     {CONFIG_PACKTYPE, "packType"},
 };
+
+static inline void debugAgentBhs(struct AgentBhs *bhs) {
+  MSF_DEBUG << "###################################";
+  MSF_DEBUG << "bhs:";
+  MSF_DEBUG << "bhs version: " << bhs->version_;
+  MSF_DEBUG << "bhs magic:  " << bhs->magic_;
+  MSF_DEBUG << "bhs srcid: " << bhs->srcId_;
+  MSF_DEBUG << "bhs dstid: " << bhs->dstId_;
+  MSF_DEBUG << "bhs cmd: " << bhs->cmd_;
+  MSF_DEBUG << "bhs seq: " << bhs->sessNo_;
+  MSF_DEBUG << "bhs errcode: " << bhs->retCode_;
+  MSF_DEBUG << "bhs datalen: " << bhs->dataLen_;
+  MSF_DEBUG << "bhs restlen: " << bhs->restLen_;
+  MSF_DEBUG << "bhs checksum: " << bhs->checkSum_;
+  MSF_DEBUG << "bhs timeout: " << bhs->timeOut_;
+  MSF_DEBUG << "###################################";
+}
 
 AgentServer::AgentServer() {
   maxBytes_ = 64 * 1024 * 1024; /* default is 64MB */
@@ -139,63 +156,39 @@ void AgentServer::succConn(ConnectionPtr c) {
   MSF_INFO << "Succ conn for fd: " << c->fd();
 }
 
-static inline void debugAgentBhs(struct AgentBhs *bhs)
-{
-    MSF_DEBUG << "###################################";
-    MSF_DEBUG << "bhs:";
-    MSF_DEBUG << "bhs version: "    << bhs->version;
-    MSF_DEBUG << "bhs magic:  "     << bhs->magic;
-    MSF_DEBUG << "bhs srcid: "      << bhs->srcid;
-    MSF_DEBUG << "bhs dstid: "      << bhs->dstid;
-    MSF_DEBUG << "bhs opcode: "     << bhs->opcode;
-    MSF_DEBUG << "bhs cmd: "        << bhs->cmd;
-    MSF_DEBUG << "bhs seq: "        << bhs->seq;
-    MSF_DEBUG << "bhs errcode: "    << bhs->errcode;
-    MSF_DEBUG << "bhs datalen: "    << bhs->datalen;
-    MSF_DEBUG << "bhs restlen: "    << bhs->restlen;
-    MSF_DEBUG << "bhs checksum: "   << bhs->checksum;
-    MSF_DEBUG << "bhs timeout: "    << bhs->timeout;
-    MSF_DEBUG << "###################################";
-}
-
-bool AgentServer::handleRxIORet(ConnectionPtr c, const int ret)
-{
-    if (unlikely(ret == 0)) {
-        c->close();
-        return false;
-    } else if (ret < 0 && 
-            errno != EWOULDBLOCK &&
-            errno != EAGAIN &&
-            errno != EINTR) {
-        c->close();
-        return false;
-    } else if (ret > 0) {
-      c->rxRecved_ += ret;
-      if (likely(c->rxRecved_ == c->rxWanted_)) {
-        c->rxRecved_ = 0;
-        c->rxWanted_ = 0;
-        return true;
-      }
-      c->rxIov_[0].iov_base = static_cast<char*>(c->rxIov_[0].iov_base) + c->rxRecved_;
-      c->rxIov_[0].iov_len = c->rxWanted_ - c->rxRecved_;
-      return false;
-    } else {
-      //EAGAIN
-      return false;
-    }
-}
-
-bool AgentServer::handleTxIORet(ConnectionPtr c, const int ret)
-{
+bool AgentServer::handleRxIORet(ConnectionPtr c, const int ret) {
   if (unlikely(ret == 0)) {
-      c->close();
-      return false;
-  } else if (ret < 0 && 
-          errno != EWOULDBLOCK &&
-          errno != EAGAIN &&
-          errno != EINTR) {
-      c->close();
-      return false;
+    c->close();
+    return false;
+  } else if (ret < 0 && errno != EWOULDBLOCK && errno != EAGAIN &&
+             errno != EINTR) {
+    c->close();
+    return false;
+  } else if (ret > 0) {
+    c->rxRecved_ += ret;
+    if (likely(c->rxRecved_ == c->rxWanted_)) {
+      c->rxRecved_ = 0;
+      c->rxWanted_ = 0;
+      return true;
+    }
+    c->rxIov_[0].iov_base =
+        static_cast<char *>(c->rxIov_[0].iov_base) + c->rxRecved_;
+    c->rxIov_[0].iov_len = c->rxWanted_ - c->rxRecved_;
+    return false;
+  } else {
+    // EAGAIN
+    return false;
+  }
+}
+
+bool AgentServer::handleTxIORet(ConnectionPtr c, const int ret) {
+  if (unlikely(ret == 0)) {
+    c->close();
+    return false;
+  } else if (ret < 0 && errno != EWOULDBLOCK && errno != EAGAIN &&
+             errno != EINTR) {
+    c->close();
+    return false;
   } else if (ret > 0) {
     c->txSended_ += ret;
     if (likely(c->txSended_ == c->txWanted_)) {
@@ -205,38 +198,65 @@ bool AgentServer::handleTxIORet(ConnectionPtr c, const int ret)
     }
     return false;
   } else {
-    //EAGAIN
+    // EAGAIN
     return false;
   }
 }
 
-void AgentServer::handleAgentBhs(ConnectionPtr c)
-{
-  AgentBhs *bhs = static_cast<AgentBhs*>(c->rxIov_[0].iov_base);
+void AgentServer::handleAgentBhs(ConnectionPtr c) {
+  AgentBhs *bhs = static_cast<AgentBhs *>(c->rxIov_[0].iov_base);
   debugAgentBhs(bhs);
 
-  switch (bhs->cmd)
-  {
-  case RPC_LOGIN:
-    {
+  switch (bhs->cmd_) {
+    case AGENT_LOGIN_REQUEST: {
       AgentLogin login = {0};
       struct iovec iov;
       iov.iov_base = &login;
       iov.iov_len = sizeof(AgentLogin);
       RecvMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
-      MSF_INFO << "Login: "
-              << "name: " << login.name;
+      MSF_INFO << "\n Login "
+               << "\n name: " << login.name_ << "\n cid: " << bhs->srcId_;
+      c->cid_ = bhs->srcId_;
+      activeConns_[bhs->srcId_] = c;
 
-      bhs->opcode = RPC_ACK;
-      bhs->errcode = RPC_EXEC_SUCC;
+      bhs->cmd_ = AGENT_LOGIN_RESPONSE;
+      bhs->retCode_ = AGENT_E_EXEC_SUCESS;
       iov.iov_base = bhs;
       iov.iov_len = sizeof(AgentBhs);
       SendMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
+    } break;
+    default: {
+      auto itor = activeConns_.find(bhs->dstId_);
+      if (itor != activeConns_.end()) {
+        ConnectionPtr peer = (ConnectionPtr)itor->second;
+        MSF_INFO << " \n Send cmd to"
+                 << " \n cmd: \n"
+                 << bhs->cmd_ << " \n cid: " << peer->cid_;
+        //http://blog.chinaunix.net/uid-14949191-id-3967282.html
+        // std::swap(bhs->srcId_, bhs->dstId_);
+        {
+          AgentAppId tmpId = bhs->srcId_;
+          bhs->srcId_ = bhs->dstId_;
+          bhs->dstId_ = tmpId;
+        }
+        struct iovec iov[2];
+        iov[0].iov_base = bhs;
+        iov[0].iov_len = sizeof(AgentBhs);
+        SendMsg(peer->fd(), iov, 2, MSG_NOSIGNAL | MSG_WAITALL);
+      } else {
+        struct iovec iov;
+        bhs->restLen_ = 0;
+        bhs->dataLen_ = 0;
+        int temp = static_cast<int>(bhs->cmd_);
+        temp++;
+        bhs->cmd_ = static_cast<AgentCommand>(temp);
+        bhs->retCode_ = AGENT_E_PEER_OFFLINE;
+        iov.iov_base = bhs;
+        iov.iov_len = sizeof(AgentBhs);
+        SendMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
+      }
+      break;
     }
-    break;
-  
-  default:
-    break;
   }
 }
 
@@ -248,16 +268,18 @@ void AgentServer::readConn(ConnectionPtr c) {
   MSF_INFO << "Read conn for fd: " << c->fd();
   if (c->rxWanted_ == 0) {
     c->rxWanted_ = sizeof(AgentBhs);
-    AgentBhs *bhs = static_cast<AgentBhs*>(mpool_->alloc(c->rxWanted_));
+    AgentBhs *bhs = static_cast<AgentBhs *>(mpool_->alloc(c->rxWanted_));
     if (!bhs) {
       DrianData(c->fd(), 2048);
       return;
     }
+    memset(bhs, 0, c->rxWanted_);
     c->rxIov_[0].iov_base = bhs;
     c->rxIov_[0].iov_len = c->rxWanted_;
   }
-  
-  if (!handleRxIORet(c, RecvMsg(c->fd(), c->rxIov_, 1, MSG_NOSIGNAL | MSG_WAITALL))) {
+
+  if (!handleRxIORet(
+          c, RecvMsg(c->fd(), c->rxIov_, 1, MSG_NOSIGNAL | MSG_WAITALL))) {
     return;
   }
 
@@ -310,7 +332,6 @@ void AgentServer::newConn(const int fd, const uint16_t event) {
   c->setCloseCallback(std::bind(&AgentServer::freeConn, this, c));
   c->setErrorCallback(std::bind(&AgentServer::freeConn, this, c));
   c->enableEvent();
-  activeConns_[c->cid()] = c;
   return;
 }
 
@@ -344,13 +365,12 @@ bool AgentServer::initListen() {
 }
 
 void AgentServer::init() {
-
   if (!IsFileExist(logFile_)) {
-      std::string logDIR = GetRealPath(logFile_);
-      if (!IsDirsExist(logDIR)) {
-          MSF_INFO << "Logger dir " << logDIR << " not exist";
-          assert(CreateFullDir(logDIR));
-      }
+    std::string logDIR = GetRealPath(logFile_);
+    if (!IsDirsExist(logDIR)) {
+      MSF_INFO << "Logger dir " << logDIR << " not exist";
+      assert(CreateFullDir(logDIR));
+    }
   }
 
   assert(Logger::getLogger().init(logFile_.c_str()));

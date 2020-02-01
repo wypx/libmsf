@@ -1,5 +1,5 @@
 syntax = "proto3";
-package MSF;
+package Agent;
 
 enum AgentErrno {
     RET_EXEC_SUCESS             = 0;
@@ -12,55 +12,52 @@ enum AgentErrno {
     RET_RECV_TIMEROUT           = 7;
 };
 
-enum AgentCmdType {
-    CLIENT_LOGIN_REQUEST        = 0;
-    CLIENT_LOGIN_RESPONSE       = 1;
-    CLIENT_LOGOUT_REQUEST       = 2;
-    CLIENT_LOGOUT_RESPONSE      = 3;
+enum AgentCommand {
+    AGENT_LOGIN_REQUEST        = 0;
+    AGENT_LOGIN_RESPONSE       = 1;
 
-    CLIENT_SET_PARAM_REQUEST    = 4;
-    CLIENT_SET_PARAM_RESPONSE   = 5;
-    CLIENT_GET_PARAM_REQUEST    = 6;
-    CLIENT_GET_PARAM_REPONSE    = 7;
+    AGENT_LOGOUT_REQUEST       = 2;
+    AGENT_LOGOUT_RESPONSE      = 3;
 
-    CLIENT_DATA_READ_REQUEST    = 8;
-    CLIENT_DATA_READ_REPONSE    = 9;
-    CLIENT_DATA_WRITE_REQUEST   = 10;
-    CLIENT_DATA_WRITE_REPONSE   = 11;
+    AGENT_NOPIN_REQUEST        = 4;
+    AGENT_NOPIN_REPONSE        = 5;
 
-    CLIENT_NOPIN_REQUEST        = 12;
-    CLIENT_NOPIN_REPONSE        = 13;
+    AGENT_READ_REQUEST         = 6;
+    AGENT_READ_RESPONCE        = 7;
+
+    AGENT_WRITE_REQUEST        = 8;
+    AGENT_WRITE_RESPONCE       = 9;
 };
 
-enum AgentModuleId {
-    MODULE_GUARD                = 0;
-    MODULE_AGENT                = 1;
-    MODULE_MOBILE               = 2;
-    MODULE_DLNA                 = 3;
-    MODULE_UPNP                 = 4;
-    MODULE_DDNS                 = 5;
+enum AgentAppId {
+    APP_GUARD    = 0;
+    APP_AGENT    = 1;
+    APP_MOBILE   = 2;
+    APP_DLNA     = 3;
+    APP_UPNP     = 4;
+    APP_DDNS     = 5;
 };
 
-message AgentHead {
+message AgentBhs {
     uint32 version              = 1;        /* high 8 major ver, low 8 bug and func update */
     uint32 magic                = 2;        /* Assic:U:0x55 I:0x49 P:0x50 C:0x43 */
 
-    AgentModuleId srcid         = 3;
-    AgentModuleId dstid         = 4;
-    AgentCmdType cmd            = 5;
-    uint32 sequence             = 6;
-    uint32 datalen              = 7;
-    uint32 restlen              = 8;
-    uint32 checksum             = 9;       /* Message Header checksum */
+    AgentAppId srcId            = 3;
+    AgentAppId dstId            = 4;
+    AgentCommand cmd            = 5;
+    uint32 sessNo               = 6;
+    uint32 dataLen              = 7;
+    uint32 restLen              = 8;
+    uint32 checkSum             = 9;       /* Message Header checksum */
     uint32 timeout              = 10;      /* Timeout wait for data */
 };
 
-message AgentLoginRequest {
-    string  name                = 10;
-    uint32  hash                = 11;      /* name and pass do hash */
-    uint32  chap                = 12;
+message LoginRequest {
+    string  name                = 1;
+    uint32  hash                = 2;      /* name and pass do hash */
+    uint32  chap                = 3;
 };
 
 message LoginReponse {
-    AgentErrno rc               = 1;
+    AgentErrno ret              = 1;
 };

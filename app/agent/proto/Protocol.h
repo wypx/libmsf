@@ -26,121 +26,90 @@ namespace AGENT {
 extern "C" {
 #endif
 
-#define RPC_VERSION     (0x0100) 
-#define RPC_VERINFO     "libagent-1.0"
+#define AGENT_VERSION       (0x0100) 
+#define AGENT_VERINFO       "libagent-1.0"
+#define AGENT_MAGIC         0x12345678
 
-#define RPC_REQ         0x1
-#define RPC_ACK         0x2
-#define RPC_CANCEL      0x3
-#define RPC_KALIVE      0x4
+#define AGENT_KEEP_ALIVE_SECS 60
+#define AGENT_KEEP_ALIVE_TIMEOUT_SECS (7*60+1) /* has 7 tries to send a keep alive */
 
-#define RPC_MAGIC       0x12345678
 
 /* Note: 0x1 - 0x10 is reseved id */
-#define RPC_DLNA_ID     0x11
-#define RPC_UPNP_ID     0x12
-#define RPC_HTTP_ID     0x13
-#define RPC_DDNS_ID     0x14
-#define RPC_SMTP_ID     0x15
-#define RPC_STUN_ID     0x16
-#define RPC_MOBILE_ID   0x17
-#define RPC_STORAGE_ID  0x18
-#define RPC_DATABASE_ID 0x19
 
-/* */
-#define RPC_MSG_SRV_ID   0xfffffff1
-#define RPC_LOGIN_SRV_ID 0xfffffff2
-#define RPC_IMAGE_SRV_ID 0xfffffff3
-
-#define RPC_KEEP_ALIVE_SECS 60
-#define RPC_KEEP_ALIVE_TIMEOUT_SECS (7*60+1) /* has 7 tries to send a keep alive */
-
-enum RPC_ERRCODE_ID {
-    RPC_EXEC_SUCC       = 0,
-    RPC_LOGIN_FAIL      = 1,
-    RPC_PEER_OFFLINE    = 2,
+enum AgentAppId {
+    APP_AGENT    = 0,
+    APP_GUARD    = 1,
+    APP_MOBILE   = 2,
+    APP_DLNA     = 3,
+    APP_UPNP     = 4,
+    APP_DDNS     = 5
 };
 
-enum opcode {
-    /* Client to Server Message Opcode values */
-    op_nopout_cmd   = 0x01,
-    op_login_cmd    = 0x02,
-    op_data_cmd     = 0x03,
-
-    /* Server to Client Message Opcode values */
-    op_nopin_cmd    = 0x10,
-    op_login_rsp    = 0x11,
-    op_data_rsp     = 0x12,
+enum AgentErrno {
+    AGENT_E_EXEC_SUCESS         = 0,
+    AGENT_E_EXEC_FAILURE        = 1,
+    AGENT_E_LOGIN_SUCESS        = 2,
+    AGENT_E_LOGIN_FAILURE       = 3,
+    AGENT_E_LOGIN_UNAUTH        = 4,
+    AGENT_E_PEER_OFFLINE        = 5,
+    AGENT_E_SEND_TIMEROUT       = 6,
+    AGENT_E_RECV_TIMEROUT       = 7
 };
 
-/* Message types */
-enum RPC_COMMAND_ID {
-    /* Command for rpc daemon process,
-     * such as subscibe messages */
-    RPC_LOGIN           = 0x01,
-    RPC_LOGOUT          = 0x02,
-    RPC_TRANSMIT        = 0x03,
-    RPC_DEBUG_ON        = 0x04,
-    RPC_DEBUG_OFF       = 0x05,
-
-    /* Command for plugins and compoments */
-    MOBILE_SET_PARAM    = 0x10,
-    MOBILE_GET_PARAM    = 0x11,
-
-    SMTP_SET_PARAM      = 0x21,
-    SMTP_GET_PARAM      = 0x22,
-    DDNS_SET_PARAM      = 0x23,
-    DDNS_GET_PARAM      = 0x24,
-    UPNP_SET_PARAM      = 0x25,
-    UPNP_GET_PARAM      = 0x26,
-    DLNA_SET_PARAM      = 0x27,
-    DLNA_GET_PARAM      = 0x28,
-    STUN_SET_PARAM      = 0x29,
-    STUN_GET_PARAM      = 0x2a,
+enum AgentCommand {
+    AGENT_LOGIN_REQUEST         = 0,
+    AGENT_LOGIN_RESPONSE        = 1,
+    AGENT_LOGOUT_REQUEST        = 2,
+    AGENT_LOGOUT_RESPONSE       = 3,
+    AGENT_NOPIN_REQUEST         = 4,
+    AGENT_NOPIN_REPONSE         = 5,
+    AGENT_READ_REQUEST          = 6,
+    AGENT_READ_RESPONCE         = 7,
+    AGENT_WRITE_REQUEST         = 8,
+    AGENT_WRITE_RESPONCE        = 9,
+    AGENT_DEBUG_ON_REQUEST      = 10,
+    AGENT_DEBUG_ON_RESPONCE     = 11,
+    AGENT_DEBUG_OFF_REQUEST     = 12,
+    AGENT_DEBUG_OFF_RESPONCE    = 13
 };
 
-enum pack_type {
-    PACK_BINARY,
-    PACK_JSON,
-    PACK_PROTO,
-    PACK_BUTT,
+enum AgentPacket {
+    AGENT_PACKET_BINNARY    = 0,
+    AGENT_PACKET_JSON       = 1,
+    AGENT_PACKET_PROTOBUF   = 2,
+    AGENT_PACKET_BUTT       = 3
 };
 
 struct AgentBhs {
-    uint32_t version;/* high 8 major ver, low 8 bug and func update */
-    uint32_t magic;  /* Assic:U:0x55 I:0x49 P:0x50 C:0x43 */
-
-    uint32_t srcid;
-    uint32_t dstid;
-    uint32_t opcode;
-    uint32_t cmd;
-    uint32_t seq;
-    uint32_t errcode;
-
-    uint32_t datalen;
-    uint32_t restlen;
-
-    uint32_t checksum;   /* Message Header checksum */
-    uint32_t timeout;    /* Timeout wait for data */
-
-    uint8_t  reserved[8];
+    uint32_t version_;/* high 8 major ver, low 8 bug and func update */
+    uint32_t magic_;  /* Assic:U:0x55 I:0x49 P:0x50 C:0x43 */
+    enum AgentAppId srcId_;
+    enum AgentAppId dstId_;
+    enum AgentCommand cmd_;
+    enum AgentErrno retCode_;
+    uint32_t sessNo_;
+    uint32_t dataLen_;
+    uint32_t restLen_;
+    uint32_t checkSum_;   /* Message Header checksum */
+    uint32_t timeOut_;    /* Timeout wait for data */
+    uint8_t  reserved_[8];
 } MSF_PACKED_MEMORY;
 
 
 struct AgentLogin {
-    uint8_t  name[32];
-    uint8_t  hash[32];/* name and pass do hash */
-    bool     chap;
+    uint8_t  name_[32];
+    uint8_t  hash_[32];/* name and pass do hash */
+    bool     chap_;
 } MSF_PACKED_MEMORY;
 
 struct AgentPdu {
-    uint32_t    dstid;
-    uint32_t    cmd;
-    uint32_t    timeout;
-    uint8_t     *payload;
-    uint32_t    paylen;
-    uint8_t     *restload;
-    uint32_t    restlen;
+    enum AgentAppId   dstId_;
+    enum AgentCommand cmd_;
+    uint32_t    timeOut_;
+    uint8_t     *payLoad_;
+    uint32_t    payLen_;
+    uint8_t     *restLoad_;
+    uint32_t    restLen_;
 } MSF_PACKED_MEMORY;
 
 #ifdef __cplusplus

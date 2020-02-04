@@ -11,6 +11,9 @@
 *
 **************************************************************************/
 #include <base/CountDownLatch.h>
+#include <base/Logger.h>
+
+using namespace MSF::BASE;
 
 namespace MSF {
 namespace BASE {
@@ -39,19 +42,26 @@ void CountDownLatch::wait()
 //http://www.voidcn.com/article/p-wonhtnlp-bsz.html
 //https://blog.csdn.net/fengbingchun/article/details/73695596
 //https://www.cnblogs.com/haippy/p/3252041.html
+//https://www.2cto.com/kf/201506/411327.html
 //wait_for: std::cv_status::timeout
 bool CountDownLatch::waitFor(const uint32_t ts)
 {
   std::unique_lock <std::mutex> lock(_mutex);
-  if (_condition.wait_for(lock, std::chrono::microseconds(ts),
-     [this](){ return (_count == 0);}) == false) {
+  if (_condition.wait_for(lock, std::chrono::seconds(ts)) == std::cv_status::timeout /*,
+     [this]() { 
+       MSF_INFO << "count wait: " << _count;
+       return (_count == 0);
+       }) == false*/) {
+    MSF_INFO << "count timeout: " << _count;
     return false;
   }
+  MSF_INFO << "count ok: " << _count;
   return true;
 }
  
 void CountDownLatch::countDown()
 {
+  MSF_INFO << "count is: " << _count;
   {
     std::lock_guard<std::mutex> lock(_mutex);
     --_count;

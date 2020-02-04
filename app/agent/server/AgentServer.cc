@@ -203,61 +203,76 @@ bool AgentServer::handleTxIORet(ConnectionPtr c, const int ret) {
   }
 }
 
+void AgentServer::handleAgentLogin(ConnectionPtr c) {
+  AgentBhs *bhs = static_cast<AgentBhs *>(c->rxIov_[0].iov_base);
+
+  AgentLogin login = {0};
+  struct iovec iov;
+  iov.iov_base = &login;
+  iov.iov_len = sizeof(AgentLogin);
+  RecvMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
+  MSF_INFO << "\n Login "
+            << "\n name: " << login.name_ << "\n cid: " << bhs->srcId_;
+  c->cid_ = bhs->srcId_;
+  activeConns_[bhs->srcId_] = c;
+
+  bhs->cmd_ = AGENT_LOGIN_RESPONSE;
+  bhs->retCode_ = AGENT_E_EXEC_SUCESS;
+  iov.iov_base = bhs;
+  iov.iov_len = sizeof(AgentBhs);
+  SendMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
+  c->rxWanted_ = 0;
+  c->rxRecved_ = 0;
+}
+
+void AgentServer::handleAgentRequest(ConnectionPtr c)
+{
+  AgentBhs *bhs = static_cast<AgentBhs *>(c->rxIov_[0].iov_base);
+  auto itor = activeConns_.find(bhs->dstId_);
+  if (itor != activeConns_.end()) {
+    ConnectionPtr peer = (ConnectionPtr)itor->second;
+    MSF_INFO << "\n Send cmd to"
+              << "\n cmd: " << bhs->cmd_ 
+              << "\n cid: " << peer->cid_;
+    //http://blog.chinaunix.net/uid-14949191-id-3967282.html
+    // std::swap(bhs->srcId_, bhs->dstId_);
+    {
+      AgentAppId tmpId = bhs->srcId_;
+      bhs->srcId_ = bhs->dstId_;
+      bhs->dstId_ = tmpId;
+    }
+    struct iovec iov[2];
+    iov[0].iov_base = bhs;
+    iov[0].iov_len = sizeof(AgentBhs);
+    //runinloop到这个loop中去
+    SendMsg(peer->fd(), iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
+  } else {
+    MSF_INFO << "\n Peer offline"
+              << "\n cmd: " << bhs->cmd_;
+    struct iovec iov;
+    bhs->restLen_ = 0;
+    bhs->dataLen_ = 0;
+    int temp = static_cast<int>(bhs->cmd_);
+    temp++;
+    bhs->cmd_ = static_cast<AgentCommand>(temp);
+    bhs->retCode_ = AGENT_E_PEER_OFFLINE;
+    iov.iov_base = bhs;
+    iov.iov_len = sizeof(AgentBhs);
+    SendMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
+  }
+}
+
 void AgentServer::handleAgentBhs(ConnectionPtr c) {
   AgentBhs *bhs = static_cast<AgentBhs *>(c->rxIov_[0].iov_base);
   debugAgentBhs(bhs);
 
   switch (bhs->cmd_) {
-    case AGENT_LOGIN_REQUEST: {
-      AgentLogin login = {0};
-      struct iovec iov;
-      iov.iov_base = &login;
-      iov.iov_len = sizeof(AgentLogin);
-      RecvMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
-      MSF_INFO << "\n Login "
-               << "\n name: " << login.name_ << "\n cid: " << bhs->srcId_;
-      c->cid_ = bhs->srcId_;
-      activeConns_[bhs->srcId_] = c;
-
-      bhs->cmd_ = AGENT_LOGIN_RESPONSE;
-      bhs->retCode_ = AGENT_E_EXEC_SUCESS;
-      iov.iov_base = bhs;
-      iov.iov_len = sizeof(AgentBhs);
-      SendMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
-    } break;
-    default: {
-      auto itor = activeConns_.find(bhs->dstId_);
-      if (itor != activeConns_.end()) {
-        ConnectionPtr peer = (ConnectionPtr)itor->second;
-        MSF_INFO << " \n Send cmd to"
-                 << " \n cmd: \n"
-                 << bhs->cmd_ << " \n cid: " << peer->cid_;
-        //http://blog.chinaunix.net/uid-14949191-id-3967282.html
-        // std::swap(bhs->srcId_, bhs->dstId_);
-        {
-          AgentAppId tmpId = bhs->srcId_;
-          bhs->srcId_ = bhs->dstId_;
-          bhs->dstId_ = tmpId;
-        }
-        struct iovec iov[2];
-        iov[0].iov_base = bhs;
-        iov[0].iov_len = sizeof(AgentBhs);
-        //runinloop到这个loop中去
-        SendMsg(peer->fd(), iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
-      } else {
-        struct iovec iov;
-        bhs->restLen_ = 0;
-        bhs->dataLen_ = 0;
-        int temp = static_cast<int>(bhs->cmd_);
-        temp++;
-        bhs->cmd_ = static_cast<AgentCommand>(temp);
-        bhs->retCode_ = AGENT_E_PEER_OFFLINE;
-        iov.iov_base = bhs;
-        iov.iov_len = sizeof(AgentBhs);
-        SendMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
-      }
+    case AGENT_LOGIN_REQUEST:
+      handleAgentLogin(c);
       break;
-    }
+    default:
+      handleAgentRequest(c);
+      break;
   }
 }
 
@@ -384,6 +399,10 @@ void AgentServer::init() {
 
   stack_ = new EventStack();
   assert(stack_);
+
+  std::vector<struct ThreadArg> threadArgs;
+  threadArgs.push_back(std::move(ThreadArg("AgentLoop")));
+  assert(stack_->startThreads(threadArgs));
 
   assert(initListen());
 }

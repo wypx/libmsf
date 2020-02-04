@@ -29,14 +29,9 @@ EventStack::~EventStack()
   // Don't delete loop, it's stack variable
 }
 
-void EventStack::setThreadArgs(const std::vector<ThreadArg> & threadArg)
-{ 
-  std::move(threadArg.begin(), threadArg.end(), std::back_inserter(threadArgs_)); 
-}
-
 EventLoop * EventStack::getOneLoop()
 {
-  baseLoop_.assertInLoopThread();
+  // baseLoop_.assertInLoopThread();
   if (unlikely(!started_)) {
     MSF_FATAL << "Event loop thread pool not start.";
     return nullptr;
@@ -54,7 +49,7 @@ EventLoop * EventStack::getOneLoop()
 
 EventLoop * EventStack::getHashLoop()
 {
-  baseLoop_.assertInLoopThread();
+  // baseLoop_.assertInLoopThread();
   if (unlikely(!started_)) {
     MSF_FATAL << "Event loop thread pool not start.";
     return nullptr;
@@ -105,7 +100,13 @@ void EventStack::startLoop(ThreadArg *arg)
   }
 }
 
-bool EventStack::start(const ThreadInitCallback& cb)
+
+void EventStack::setThreadArgs(const std::vector<ThreadArg> & threadArg)
+{ 
+  std::move(threadArg.begin(), threadArg.end(), std::back_inserter(threadArgs_)); 
+}
+
+bool EventStack::startThreads(const std::vector<ThreadArg> & threadArgs)
 {
   if (unlikely(started_)) {
     MSF_FATAL << "Event loop thread pool is started.";
@@ -114,26 +115,29 @@ bool EventStack::start(const ThreadInitCallback& cb)
   // baseLoop_->assertInLoopThread();
   started_ = true;
 
+  std::move(threadArgs.begin(), threadArgs.end(), std::back_inserter(threadArgs_));
+
   for (auto & th:threadArgs_) {
     th.thread_ = new Thread(std::bind(&EventStack::startLoop, this, &th), th.name_);
     if (th.thread_ == nullptr) {
       MSF_FATAL << "Alloc event thread failed, errno:" << errno;
       return false;
     }
-    th.thread_->start([this, &th, cb]() {
+    th.thread_->start([this, &th]() {
       /* Pre init function before thread loop */
       th.loop_ = new EventLoop();
       if (th.loop_ == nullptr) {
         MSF_FATAL << "Alloc event loop failed, errno:" << errno;
         return;
       }
-      if (cb) {
-        cb(th.loop_);
-      }
     });
   }
   MSF_INFO << "Start all " <<  threadArgs_.size() << " thread success.";
+  return true;
+}
 
+bool EventStack::start(const ThreadInitCallback& cb)
+{
   if (threadArgs_.size() == 0) {
     if (cb) {
       cb(&baseLoop_);

@@ -53,7 +53,9 @@ enum AgentErrno {
     AGENT_E_LOGIN_UNAUTH        = 4,
     AGENT_E_PEER_OFFLINE        = 5,
     AGENT_E_SEND_TIMEROUT       = 6,
-    AGENT_E_RECV_TIMEROUT       = 7
+    AGENT_E_RECV_TIMEROUT       = 7,
+    AGENT_E_CANNOT_IN_LOOP      = 8,
+    AGENT_E_AGENT_NOT_START     = 9
 };
 
 enum AgentCommand {
@@ -80,12 +82,18 @@ enum AgentPacket {
     AGENT_PACKET_BUTT       = 3
 };
 
+enum AgentOpcode {
+    AgentRequest    = 0,
+    AgentResponce   = 1
+};
+
 struct AgentBhs {
     uint32_t version_;/* high 8 major ver, low 8 bug and func update */
     uint32_t magic_;  /* Assic:U:0x55 I:0x49 P:0x50 C:0x43 */
     enum AgentAppId srcId_;
     enum AgentAppId dstId_;
     enum AgentCommand cmd_;
+    enum AgentOpcode  opCode_;
     enum AgentErrno retCode_;
     uint32_t sessNo_;
     uint32_t dataLen_;

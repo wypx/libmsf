@@ -64,7 +64,7 @@ namespace SOCK {
 * EPOLLEXCLUSIVE           Linux 4.5, glibc 2.24.
 */
 
-static uint32_t g_oldGateway = 0;
+// static uint32_t g_oldGateway = 0;
 
 bool SocketInit()
 {
@@ -999,7 +999,6 @@ int CreateTcpServer(const std::string &host,
     return fd;
 }
 
-#if 0
 bool Connect(const int fd, const struct sockaddr *srvAddr,
             socklen_t addrLen, const int timeout)
 {
@@ -1011,7 +1010,6 @@ bool Connect(const int fd, const struct sockaddr *srvAddr,
     fd_set rset;
     fd_set wset;
     int err;
-    socklen_t optlen;
 
     if (timeout <= 0) {
         return (connect(fd, srvAddr, addrLen) == 0);
@@ -1023,9 +1021,40 @@ bool Connect(const int fd, const struct sockaddr *srvAddr,
 
         /* start connect */
         if (connect(fd, srvAddr, addrLen) < 0) {
-            if (errno != EINPROGRESS) {
-                return false;
+            #ifdef WIN32
+            if (WSAGetLastError() == WSAENETUNREACH) {
+                MSF_ERROR << "Network is unreachable";
             }
+            #else
+            int saveErrno = errno;
+            switch (saveErrno) {
+                case EINPROGRESS:
+                    break;
+                case EISCONN:
+                    return true;
+                case ENETDOWN:
+                case ENETUNREACH:
+                    MSF_ERROR << "Network is unreachable";
+                    return false;
+                case EAGAIN:
+                case EADDRINUSE:
+                    MSF_ERROR << "Addres is inused";
+                case EADDRNOTAVAIL:
+                case ECONNREFUSED:
+                    MSF_ERROR << "Connect is refused";
+                case EACCES:
+                case EPERM:
+                case EAFNOSUPPORT:
+                case EALREADY:
+                case EBADF:
+                    MSF_ERROR << "Bad file descriptor";
+                case EFAULT:
+                case ENOTSOCK:
+                    MSF_ERROR << "Connect cannot ignore errno:" << strerror(saveErrno);
+                    return false;
+                default: return false;
+            }
+            #endif
 
             tv.tv_sec = timeout;
             tv.tv_usec = 0;
@@ -1044,10 +1073,7 @@ bool Connect(const int fd, const struct sockaddr *srvAddr,
             }
 
             /* test for success, set errno */
-            optlen = sizeof(int);
-            if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &optlen) < 0) {
-                return false;
-            }
+            err = SocketError(fd);
             if (err != 0) {
                 errno = err;
                 return false;
@@ -1062,7 +1088,6 @@ bool Connect(const int fd, const struct sockaddr *srvAddr,
     }
     #endif /* UNIX */
 }
-#endif
 
 int ConnectTcpServer(const std::string &host,
                 const uint16_t port,
@@ -1140,24 +1165,9 @@ int ConnectTcpServer(const std::string &host,
             SetTcpNoDelay(fd, true);
         }
 
-        ret = connect(fd, next->ai_addr, next->ai_addrlen);
-        if (ret == -1) {
-            if (errno == EINPROGRESS) {
-                break;
-            } else {
-                #ifdef WIN32
-                if (WSAGetLastError() != WSAENETUNREACH) {
-                    MSF_ERROR << "Network is unreachable";
-                }
-                #else
-                if (errno != ENETUNREACH || errno != ENETDOWN) {
-                    MSF_ERROR << "Network is unreachable";
-                }
-                #endif
-                MSF_ERROR << "Connect errno:" << strerror(errno);
-                close(fd);
-                continue;
-            }
+        if (!Connect(fd, next->ai_addr, next->ai_addrlen, 5)) {
+            close(fd);
+            continue;
         }
         break;
     }
@@ -1284,7 +1294,7 @@ bool addMuticalastMemershipv6(const int fd, const std::string &ip)
 bool dropMuticalastMemershipv4(const int fd, const std::string &ip)
 {
     struct ip_mreq mreq;
-    struct sockaddr_in ipv4;
+    struct sockaddr_in ipv4 = { 0 };
     // strncpy(mreq.ifr_name, "eth0", IFNAMSIZ);
     (void)ioctl(fd, SIOCGIFADDR, &mreq);
     mreq.imr_multiaddr.s_addr = ipv4.sin_addr.s_addr;

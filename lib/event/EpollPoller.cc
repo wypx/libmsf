@@ -223,7 +223,7 @@ void EPollPoller::updateEvent(Event* ev)
   MSF_INFO << "fd = " << ev->fd()
     << " events = " << ev->events() << " index = " << index;
 
-  Poller::assertInLoopThread();
+  // Poller::assertInLoopThread();
 
   if (index == kNew || index == kDeleted)
   {

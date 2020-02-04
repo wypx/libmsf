@@ -17,6 +17,8 @@
 #include <base/Logger.h>
 #include <event/Event.h>
 
+#include <cassert>
+
 using namespace MSF::EVENT;
 
 namespace MSF {
@@ -25,7 +27,7 @@ namespace AGENT {
 #define DEFAULT_SRVAGENT_IPADDR "127.0.0.1"
 #define DEFAULT_SRVAGENT_PORT 8888
 
-static inline void debugAgentBhs(struct AgentBhs *bhs) {
+inline void AgentClient::debugAgentBhs(struct AgentBhs *bhs) {
   MSF_DEBUG << "###################################";
   MSF_DEBUG << "bhs:";
   MSF_DEBUG << "bhs version: " << bhs->version_;
@@ -42,24 +44,45 @@ static inline void debugAgentBhs(struct AgentBhs *bhs) {
   MSF_DEBUG << "###################################";
 }
 
-AgentClient::AgentClient(const std::string &name, const enum AgentAppId cid,
-                         const std::string &host, const uint16_t port)
+AgentClient::AgentClient(EventLoop *loop,
+                        const std::string & name,
+                        const enum AgentAppId cid,
+                        const std::string & host, const uint16_t port)
     : started_(false),
+      loop_(loop),
       srvIpAddr_(host),
       srvPort_(port),
       name_(name),
       cid_(cid),
-      reqCb_() {}
+      reqCb_()
+{
+  mpool_ = new MemPool();
+  assert(mpool_);
+  assert(mpool_->init());
 
-AgentClient::AgentClient(const std::string &name, const enum AgentAppId cid,
-                         const std::string &srvUnixPath,
-                         const std::string &cliUnixPath)
+  connectAgent();
+}
+
+AgentClient::AgentClient(EventLoop *loop,
+                        const std::string & name,
+                        const enum AgentAppId cid,
+                        const std::string & srvUnixPath,
+                        const std::string & cliUnixPath)
     : started_(false),
+      loop_(loop),
       srvUnixPath_(srvUnixPath),
       cliUnixPath_(cliUnixPath),
       name_(name),
       cid_(cid),
-      reqCb_() {}
+      reqCb_()
+{
+  mpool_ = new MemPool();
+  assert(mpool_);
+  assert(mpool_->init());
+
+  connectAgent();
+}
+
 AgentClient::~AgentClient() {
   closeAgent();
   conn_ = nullptr;
@@ -186,6 +209,8 @@ bool AgentClient::loginAgent() {
 }
 
 bool AgentClient::handleIORet(const int ret) {
+
+  MSF_INFO << "handleIORet ret: " << ret;
   if (ret == 0) {
     closeAgent();
     txCmdList_.clear();
@@ -229,6 +254,7 @@ void AgentClient::handleRxCmd() {
   if (!handleIORet(RecvMsg(conn_->fd(), &iov, 1, MSG_WAITALL | MSG_NOSIGNAL))) {
     return;
   };
+  debugAgentBhs(&bhs_);
 
   switch (bhs_.cmd_) {
     case AGENT_LOGIN_RESPONSE: {
@@ -246,35 +272,47 @@ void AgentClient::handleRxCmd() {
           MSF_INFO << "Login to agent failed";
           started_ = false;
         }
-        req->latch_.countDown();
         freeCmd(req);
       }
     } break;
     default:
-      reqCb_(nullptr, 0, bhs_.cmd_);
-      if (bhs_.timeOut_) {
-        auto itor = ackCmdMap_.find(bhs_.sessNo_);
-        if (itor != ackCmdMap_.end()) {
-            struct AgentCmd *req = (struct AgentCmd *)itor->second;
-            req->latch_.countDown();
+        if (reqCb_) {
+            reqCb_(nullptr, 0, bhs_.cmd_);
         }
-      }
+        if (bhs_.timeOut_) {
+            auto itor = ackCmdMap_.find(bhs_.sessNo_);
+            if (itor != ackCmdMap_.end()) {
+                if (bhs_.retCode_ == AGENT_E_EXEC_SUCESS) {
+                  MSF_INFO << "Do cmd successful";
+                } else {
+                  MSF_INFO << "Do cmd failed";
+                }
+                struct AgentCmd *req = (struct AgentCmd *)itor->second;
+                req->bhs_.retCode_ = bhs_.retCode_;
+                req->latch_.countDown();
+            } else {
+                MSF_INFO << "Cannot find cmd for " <<  bhs_.sessNo_;
+            }
+        }
       break;
   }
   // ackCmdMap_
 }
 
-bool AgentClient::init(EventLoop *loop) {
-  loop_ = loop;
-  mpool_ = new MemPool();
-  mpool_->init();
-  connectAgent();
-  return true;
-}
-
 int AgentClient::sendPdu(const AgentPdu *pdu) {
   struct AgentBhs *bhs = nullptr;
   struct AgentCmd *req = nullptr;
+
+  if (!started_ || !loop_) {
+    MSF_ERROR << "Cannot send pdu, agent not start.";
+    // return AGENT_E_AGENT_NOT_START;
+  }
+
+  /* Cannot in loop thread */
+  if (loop_->isInLoopThread()) {
+    MSF_ERROR << "Cannot send pdu in loop thread.";
+    return AGENT_E_CANNOT_IN_LOOP;
+  }
 
   req = allocCmd(pdu->payLen_);
   if (req == nullptr) {
@@ -304,7 +342,10 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
   conn_->enableWriting();
   loop_->wakeup();
 
-  if (0 != pdu->timeOut_) {
+  if (pdu->timeOut_) {
+
+    MSF_INFO << "=====================";
+
     req->doIncRef();
     /* Check what happened */
     if (!req->latch_.waitFor(pdu->timeOut_)) {
@@ -320,6 +361,7 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
     }
     freeCmd(req);
   }
+  MSF_INFO << "==========*****===========";
   return bhs->retCode_;
 }
 

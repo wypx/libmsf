@@ -155,6 +155,8 @@ class AgentServer : public Noncopyable {
   bool handleTxIORet(ConnectionPtr c, const int ret);
 
   void handleAgentBhs(ConnectionPtr c);
+  void handleAgentLogin(ConnectionPtr c);
+  void handleAgentRequest(ConnectionPtr c);
 
   void succConn(ConnectionPtr c);
   void readConn(ConnectionPtr c);

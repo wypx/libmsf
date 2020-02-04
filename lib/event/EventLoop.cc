@@ -182,7 +182,7 @@ void EventLoop::cancel(TimerId timerId)
 void EventLoop::updateEvent(Event* ev)
 {
   assert(ev->ownerLoop() == this);
-  assertInLoopThread();
+  // assertInLoopThread();
   _poller->updateEvent(ev);
 }
 

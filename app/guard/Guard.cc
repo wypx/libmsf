@@ -14,13 +14,56 @@
 #include <base/Logger.h>
 #include <base/Signal.h>
 #include <base/MemPool.h>
-#include <event/EventLoop.h>
-#include <event/EventStack.h>
-#include <client/AgentClient.h>
 #include <base/Process.h>
+
+#include "Guard.h"
+
+#include <cassert>
 
 using namespace MSF;
 using namespace MSF::AGENT;
+using namespace MSF::GUARD;
+
+namespace MSF {
+namespace GUARD {
+
+Guard::Guard()
+{
+    stack_ = new EventStack();
+    assert(stack_);
+
+    std::vector<struct ThreadArg> threadArgs;
+    threadArgs.push_back(std::move(ThreadArg("AgentLoop")));
+    assert(stack_->startThreads(threadArgs));
+
+    agent_ = new AgentClient(stack_->getOneLoop(), "Guard", APP_GUARD);
+    assert(agent_);
+}
+
+Guard::~Guard()
+{
+}
+
+void Guard::start()
+{
+    stack_->start();
+}
+
+void Guard::sendPdu()
+{
+    AgentPdu pdu;
+    pdu.payLoad_ = nullptr;
+    pdu.payLen_ = 0;
+    pdu.restLoad_ = nullptr;
+    pdu.restLen_ = 0;
+    pdu.cmd_ = AGENT_DEBUG_ON_REQUEST;
+    pdu.dstId_ = APP_MOBILE;
+    pdu.timeOut_ = 5;
+    while (AGENT_E_AGENT_NOT_START != agent_->sendPdu(&pdu));
+}
+
+}
+}
 
 /**
  * 1是用来保存选项的参数的
@@ -134,28 +177,15 @@ int main(int argc, char* argv[])
 
     OptionParser(argc, argv);
 
-    EventStack *stack = new EventStack();
-    if (stack == nullptr) {
-        MSF_FATAL << "Fail to alloc event stack for mobile.";
-        return -1;
-    }
-
-    AgentClient *agent = new AgentClient("Guard", APP_GUARD);
-    agent->init(stack->getBaseLoop());
-    AgentPdu pdu;
-    pdu.payLoad_ = nullptr;
-    pdu.payLen_ = 0;
-    pdu.restLoad_ = nullptr;
-    pdu.restLen_ = 0;
-    pdu.cmd_ = AGENT_DEBUG_ON_REQUEST;
-    pdu.dstId_ = APP_MOBILE;
-    pdu.timeOut_ = 5000;
-    agent->sendPdu(&pdu);
+    Guard guard = Guard();
 
     // SignalReplace();
      /*设置创建文件的mask值，这里只有运行用户的rw权限生效*/
     umask(0177);
-    stack->start();
+
+    guard.sendPdu();
+
+    guard.start();
 
     return 0;
 }

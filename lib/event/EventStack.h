@@ -48,8 +48,9 @@ class EventStack : MSF::BASE::Noncopyable
 
     explicit EventStack();
     ~EventStack();
-    bool start(const ThreadInitCallback& cb = ThreadInitCallback());
     void setThreadArgs(const std::vector<ThreadArg> & threadArgs);
+    bool startThreads(const std::vector<ThreadArg> & threadArgs);
+    bool start(const ThreadInitCallback& cb = ThreadInitCallback());
 
     // valid after calling start()
     /// round-robin

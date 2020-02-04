@@ -125,7 +125,7 @@ public:
 
     uint64_t          lastActiveTime_;
 
-    struct iovec      rxIov_[1]; /* RX direction only support recv one head or one body */
+    struct iovec      rxIov_[2]; /* RX direction only support recv one head or one body */
     uint32_t          rxWanted_; /* One len of head or body */
     uint32_t          rxRecved_; /* One len of head or body has recv*/
 

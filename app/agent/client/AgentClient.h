@@ -113,16 +113,19 @@ struct AgentCmd {
 
 class AgentClient {
  public:
-  explicit AgentClient(const std::string& name, const enum AgentAppId cid,
-                       const std::string& host = "127.0.0.1",
-                       const uint16_t port = 8888);
-  explicit AgentClient(const std::string& name, const enum AgentAppId cid,
-                       const std::string& srvUnixPath,
-                       const std::string& cliUnixPath);
+  explicit AgentClient(EventLoop *loop,
+                      const std::string& name,
+                      const enum AgentAppId cid,
+                      const std::string& host = "127.0.0.1",
+                      const uint16_t port = 8888);
+  explicit AgentClient(EventLoop *loop,
+                      const std::string& name,
+                      const enum AgentAppId cid,
+                      const std::string& srvUnixPath,
+                      const std::string& cliUnixPath);
   ~AgentClient();
 
   void setReqCb(const AgentCb& cb) { reqCb_ = std::move(cb); }
-  bool init(EventLoop* loop);
   int sendPdu(const AgentPdu* pdu);
 
  private:
@@ -165,6 +168,7 @@ class AgentClient {
   std::unique_ptr<Connector> conn_;
 
  private:
+  inline void debugAgentBhs(struct AgentBhs *bhs);
   struct AgentCmd* allocCmd(const uint32_t len);
   void freeCmd(struct AgentCmd* cmd);
   bool connectAgent();

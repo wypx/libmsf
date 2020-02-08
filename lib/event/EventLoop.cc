@@ -61,6 +61,9 @@ EventLoop::EventLoop()
   _wakeupEvent->setReadCallback(std::bind(&EventLoop::handleWakeup, this));
   // we are always reading the wakeupfd
   _wakeupEvent->enableReading();
+
+  timer_ = std::make_unique<HeapTimer>(this, 1024);
+  assert(timer_);
 }
 
 EventLoop::~EventLoop()
@@ -81,6 +84,7 @@ void EventLoop::loop()
   assert(!_looping);
   assertInLoopThread();
 
+  uint32_t nextExpTime = 1;
   _looping = true;
   _quit = false;  // FIXME: what if someone calls quit() before loop() ?
   MSF_INFO << "EventLoop " << this << " start looping";
@@ -88,11 +92,16 @@ void EventLoop::loop()
   while (!_quit)
   {
     _activeEvents.clear();
-    int time = _poller->poll(kPollTimeMs, &_activeEvents);
+    int time = _poller->poll(nextExpTime, &_activeEvents);
     ++_iteration;
     #if 0
     printActiveEvents();
     #endif
+    nextExpTime = timer_->timerInLoop();
+    // MSF_WARN << "NextExpTime: " << nextExpTime;
+    if (nextExpTime == 0) {
+      nextExpTime = kPollTimeMs;
+    }
     // TODO sort channel by priority
     _eventHandling = true;
     for (Event* ev : _activeEvents)
@@ -153,29 +162,31 @@ size_t EventLoop::queueSize() const
 }
 
 
-TimerId EventLoop::runAt(int time, TimerCallback cb)
+TimerId EventLoop::runAt(const double time, const TimerCb & cb)
 {
-  // return timerQueue_->addTimer(std::move(cb), time, 0.0);
+  timer_->addTimer(cb, time, TIMER_ONESHOT);
+  wakeup();
   return 0;
 }
 
-TimerId EventLoop::runAfter(double delay, TimerCallback cb)
+TimerId EventLoop::runAfter(const double delay, const TimerCb & cb)
 {
-  // Timestamp time(addTime(Timestamp::now(), delay));
-  // return runAt(time, std::move(cb));
+  timer_->addTimer(cb, delay, TIMER_ONESHOT);
+  wakeup();
   return 0;
 }
 
-TimerId EventLoop::runEvery(double interval, TimerCallback cb)
+TimerId EventLoop::runEvery(const double interval, const TimerCb & cb)
 {
-  // Timestamp time(addTime(Timestamp::now(), interval));
-  // return timerQueue_->addTimer(std::move(cb), time, interval);
+  timer_->addTimer(cb, interval, TIMER_PERSIST);
+  wakeup();
   return 0;
 }
 
-void EventLoop::cancel(TimerId timerId)
+void EventLoop::cancel(uint64_t timerId)
 {
   // return timerQueue_->cancel(timerId);
+  // timer_->addTimer(cb, interval, TIMER_PERSIST);
   return;
 }
 
@@ -227,7 +238,7 @@ void EventLoop::wakeup()
 
 void EventLoop::handleWakeup()
 {
-  MSF_INFO << "EventLoop: handleWakeup";
+  // MSF_INFO << "EventLoop: handleWakeup";
   uint64_t one = 1;
   ssize_t n = read(_wakeupFd, &one, sizeof one);
   if (n != sizeof one)

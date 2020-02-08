@@ -1,5 +1,3 @@
-
-
 /**************************************************************************
  *
  * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
@@ -54,13 +52,14 @@ AgentClient::AgentClient(EventLoop *loop,
       srvPort_(port),
       name_(name),
       cid_(cid),
-      reqCb_()
+      reqCb_(),
+      reConnect_(true)
 {
   mpool_ = new MemPool();
   assert(mpool_);
   assert(mpool_->init());
 
-  connectAgent();
+  loop_->runInLoop(std::bind(&AgentClient::connectAgent, this));
 }
 
 AgentClient::AgentClient(EventLoop *loop,
@@ -74,13 +73,14 @@ AgentClient::AgentClient(EventLoop *loop,
       cliUnixPath_(cliUnixPath),
       name_(name),
       cid_(cid),
-      reqCb_()
+      reqCb_(),
+      reConnect_(true)
 {
   mpool_ = new MemPool();
   assert(mpool_);
   assert(mpool_->init());
 
-  connectAgent();
+  loop_->runInLoop(std::bind(&AgentClient::connectAgent, this));
 }
 
 AgentClient::~AgentClient() {
@@ -125,12 +125,20 @@ void AgentClient::freeCmd(struct AgentCmd *cmd) {
   }
 }
 
-bool AgentClient::connectAgent() {
+void AgentClient::connectAgent() {
+
+  MSF_INFO << "Agent client is connecting.";
+
+  if (started_) {
+    MSF_INFO << "Agent client has been connected.";
+    return;
+  }
+
   if (!conn_) {
     conn_ = std::make_unique<Connector>();
     if (conn_ == nullptr) {
       MSF_ERROR << "Alloc event for agent faild";
-      return false;
+      return;
     }
   }
 
@@ -142,7 +150,9 @@ bool AgentClient::connectAgent() {
   }
 
   if (!success) {
-    return false;
+    reConnecting_ = false;
+    closeAgent();
+    return;
   }
 
   conn_->init(loop_, conn_->fd());
@@ -154,18 +164,28 @@ bool AgentClient::connectAgent() {
   conn_->enableEvent();
 
   if (!loginAgent()) {
+    reConnecting_ = false;
     closeAgent();
-    return false;
+    return;
   }
 
-  return true;
+  reConnectFail_ = 0;
+
+  return;
 }
 
 void AgentClient::connectAgentCb() {}
 
 void AgentClient::closeAgent() {
-  conn_->close();
-  started_ = false;
+
+    conn_->close();
+    started_ = false;
+
+    if (reConnect_ && !reConnecting_) {
+      reConnecting_ = true;
+      MSF_WARN << "Agent client reconnecting server.";
+      loop_->runAfter(2000, std::bind(&AgentClient::connectAgent, this));
+    }
 }
 
 bool AgentClient::loginAgent() {
@@ -209,8 +229,6 @@ bool AgentClient::loginAgent() {
 }
 
 bool AgentClient::handleIORet(const int ret) {
-
-  MSF_INFO << "handleIORet ret: " << ret;
   if (ret == 0) {
     closeAgent();
     txCmdList_.clear();
@@ -256,47 +274,63 @@ void AgentClient::handleRxCmd() {
   };
   debugAgentBhs(&bhs_);
 
-  switch (bhs_.cmd_) {
-    case AGENT_LOGIN_RESPONSE: {
-      auto itor = ackCmdMap_.find(bhs_.sessNo_);
-      if (itor == ackCmdMap_.end()) {
-        MSF_INFO << "Cannot find cmd in ack map";
-        //清空map
-        closeAgent();
-      } else {
-        struct AgentCmd *req = (struct AgentCmd *)itor->second;
-        if (bhs_.retCode_ == AGENT_E_EXEC_SUCESS) {
-          MSF_INFO << "Login to agent successful";
-          started_ = true;
-        } else {
-          MSF_INFO << "Login to agent failed";
-          started_ = false;
-        }
-        freeCmd(req);
-      }
-    } break;
-    default:
-        if (reqCb_) {
-            reqCb_(nullptr, 0, bhs_.cmd_);
-        }
-        if (bhs_.timeOut_) {
-            auto itor = ackCmdMap_.find(bhs_.sessNo_);
-            if (itor != ackCmdMap_.end()) {
-                if (bhs_.retCode_ == AGENT_E_EXEC_SUCESS) {
-                  MSF_INFO << "Do cmd successful";
-                } else {
-                  MSF_INFO << "Do cmd failed";
-                }
-                struct AgentCmd *req = (struct AgentCmd *)itor->second;
-                req->bhs_.retCode_ = bhs_.retCode_;
-                req->latch_.countDown();
-            } else {
-                MSF_INFO << "Cannot find cmd for " <<  bhs_.sessNo_;
-            }
-        }
-      break;
+  if (bhs_.opCode_ == AGETN_REQUEST) {
+    handleRequest(&bhs_);
+  } else {
+    handleResponce(&bhs_);
   }
+
   // ackCmdMap_
+}
+
+void AgentClient::handleRequest(AgentBhs *bhs) {
+    if (reqCb_) {
+        reqCb_(nullptr, 0, bhs->cmd_);
+    }
+}
+void AgentClient::handleResponce(AgentBhs *bhs)
+{
+  switch (bhs->cmd_) {
+      case AGENT_LOGIN_REQUEST: {
+        auto itor = ackCmdMap_.find(bhs_.sessNo_);
+        if (itor == ackCmdMap_.end()) {
+          MSF_INFO << "Cannot find cmd in ack map";
+          //清空map
+          closeAgent();
+        } else {
+          struct AgentCmd *req = (struct AgentCmd *)itor->second;
+          if (bhs->retCode_ == AGENT_E_EXEC_SUCESS) {
+            MSF_INFO << "Login to agent successful";
+            started_ = true;
+            reConnecting_ = false;
+          } else {
+            MSF_INFO << "Login to agent failed";
+            started_ = false;
+            reConnecting_ = false;
+          }
+          ackCmdMap_.erase(itor);
+          freeCmd(req);
+        }
+      } break;
+      default:
+        if (bhs->timeOut_) {
+        auto itor = ackCmdMap_.find(bhs->sessNo_);
+        if (itor != ackCmdMap_.end()) {
+            if (bhs->retCode_ == AGENT_E_EXEC_SUCESS) {
+              MSF_INFO << "Do cmd successful";
+            } else {
+              MSF_INFO << "Do cmd failed";
+            }
+            struct AgentCmd *req = (struct AgentCmd *)itor->second;
+            req->bhs_.retCode_ = bhs->retCode_;
+            req->latch_.countDown();
+            ackCmdMap_.erase(itor);
+            freeCmd(req);
+        } else {
+            MSF_INFO << "Cannot find cmd for " <<  bhs->sessNo_;
+        }
+    } break;
+  }
 }
 
 int AgentClient::sendPdu(const AgentPdu *pdu) {
@@ -305,7 +339,7 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
 
   if (!started_ || !loop_) {
     MSF_ERROR << "Cannot send pdu, agent not start.";
-    // return AGENT_E_AGENT_NOT_START;
+    return AGENT_E_AGENT_NOT_START;
   }
 
   /* Cannot in loop thread */
@@ -334,9 +368,10 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
   bhs->dstId_ = pdu->dstId_;
   bhs->dataLen_ = pdu->payLen_;
   bhs->restLen_ = pdu->restLen_;
+  bhs->opCode_ = AGETN_REQUEST;
 
+  MSF_ERROR << "Send pdu ======>.";
   req->doIncRef();
-  ackCmdMap_[bhs->sessNo_] = req;
   txCmdList_.push_back(req);
 
   conn_->enableWriting();
@@ -345,7 +380,7 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
   if (pdu->timeOut_) {
 
     MSF_INFO << "=====================";
-
+    ackCmdMap_[bhs->sessNo_] = req;
     req->doIncRef();
     /* Check what happened */
     if (!req->latch_.waitFor(pdu->timeOut_)) {

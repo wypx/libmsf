@@ -16,7 +16,6 @@
 #include <base/Define.h>
 #include <base/GccAttr.h>
 #include <base/Noncopyable.h>
-// #include <base/msf_logstream.h>
 #include <string.h>
 #include <iostream>
 #include <sstream>

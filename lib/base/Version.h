@@ -33,7 +33,7 @@ const   char *MSF_VERSION = "Micro Service Framework 0.1";
  
 static const std::string MSF_GITHUB = "https://github.com/wypx/libmsf";
 
-static void MSF_BUILD_SHOW()
+static void BuildProject()
 {
     std::cout << std::endl << std::endl
               << "          Build systime  : " << __TIME__ << " " << __DATE__<< std::endl
@@ -44,7 +44,7 @@ static void MSF_BUILD_SHOW()
 }
 
 
-static void MSF_BUILD_LOGO(void)
+static void BuildLogo(void)
 {
     std::cout << std::endl
               << "                       .::::.                                  " << std::endl
@@ -68,18 +68,18 @@ static void MSF_BUILD_LOGO(void)
               << std::endl;
 }
 
-static void MSF_BUILD_START()
+static void BuildStart()
 {
     std::cout << std::endl
               << "******************** Micro Service Framework Starting *****************************"
               << std::endl << std::endl;
 }
 
-static void MSF_BUILD_STATISTIC(void) 
+static void BuildInfo(void) 
 {
-    MSF_BUILD_SHOW();
-    MSF_BUILD_LOGO();
-    MSF_BUILD_START();
+    BuildProject();
+    BuildLogo();
+    BuildStart();
 }
 
 } /**************************** end namespace MSF  ****************************/

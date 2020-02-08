@@ -216,7 +216,7 @@ void AgentServer::handleAgentLogin(ConnectionPtr c) {
   c->cid_ = bhs->srcId_;
   activeConns_[bhs->srcId_] = c;
 
-  bhs->cmd_ = AGENT_LOGIN_RESPONSE;
+  bhs->opCode_ = AGENT_RESPONCE;
   bhs->retCode_ = AGENT_E_EXEC_SUCESS;
   iov.iov_base = bhs;
   iov.iov_len = sizeof(AgentBhs);
@@ -252,9 +252,10 @@ void AgentServer::handleAgentRequest(ConnectionPtr c)
     struct iovec iov;
     bhs->restLen_ = 0;
     bhs->dataLen_ = 0;
-    int temp = static_cast<int>(bhs->cmd_);
-    temp++;
-    bhs->cmd_ = static_cast<AgentCommand>(temp);
+    // int temp = static_cast<int>(bhs->cmd_);
+    // temp++;
+    // bhs->cmd_ = static_cast<AgentCommand>(temp);
+    bhs->opCode_ = AGENT_RESPONCE;
     bhs->retCode_ = AGENT_E_PEER_OFFLINE;
     iov.iov_base = bhs;
     iov.iov_len = sizeof(AgentBhs);

@@ -5,7 +5,10 @@
 #include <base/Time.h>
 #include <base/Signal.h>
 #include <event/Timer.h>
+#include <event/EventLoop.h>
 #include <client/AgentClient.h>
+
+#include <cassert>
 
 using namespace MSF::EVENT;
 
@@ -39,60 +42,56 @@ __attribute__((destructor)) void after_main()
 //    ("after main.");  
 } 
 
-
-void  MSFLogTest(void) 
+void fun1() 
 {
-    std::string LogPath = "msf.log";
-    std::string module = "MSF";
-    Logger::getLogger().init(LogPath.c_str());
+    MSF_FATAL << "Hello Timer 1";
+    return;
+}
+
+void fun2() 
+{
+    MSF_INFO << "Hello Timer 2";
+    return;
+}
+
+#include <iostream>
+#include <ctime>
+#include <ratio>
+#include <chrono>
+
+int main(int argc, char* argv[]) 
+{
+    MSF::BuildInfo();
+
+    std::string logFile_ = "/var/log/luotang.me/Shell.log";
+    assert(Logger::getLogger().init(logFile_.c_str()));
+
     MSF_INFO  << "Hello world1." << "yyyyyyyy" << ":" << 2;
  
     MSF_DEBUG << "Hello world2.";
     MSF_WARN  << "Hello world3.";
     MSF_ERROR << "Hello world4.";
     MSF_FATAL << "Hello world5.";
-}
-
-int fun1(uint32_t id, void* args) 
-{
-    MSF_FATAL << "Hello Timer = " << id;
-    return TIMER_PERSIST;
-}
-
-int fun2(uint32_t id, void* args) 
-{
-    MSF_INFO << "Hello Timer = " << id;
-    return TIMER_ONESHOT;
-}
-
-int main(int argc, char* argv[]) 
-{
-    MSF::MSF_BUILD_STATISTIC();
-
-    MSFLogTest();
 
     // msf_os_init();
 
+    GetExecuteTime([]() {
+        sleep(5);
+    });
+
     MSF::TIME::msf_time_init();
     // MSF_WARN << "Time str: " << MSF::TIME::GetCurrentTimeString(NULL);
+    EventLoop loop = EventLoop();
 
-    HeapTimer * timer = new HeapTimer;
-    timer->initTimer();
-    timer->startTimer();
-    
-    timer->addTimer(1, TIMER_ONESHOT, 500, NULL, fun1);
-    
-    timer->addTimer(2, TIMER_PERSIST, 2000, NULL, fun2);
+    loop.runAfter(2000, fun1);
 
-    // AgentConn *cli = new AgentConn();
-    // cli->initAgent();
-    // cli->startAgent();
-    
-    while (true) {
-        sleep(1);
-    }
+    loop.runEvery(5000, fun2);
 
-    // TimerDestroy();
+    loop.runAfter(2000, fun1);
+
+    loop.runAfter(2000, fun1);
+    
+    loop.loop();
 
     return 0;
 }

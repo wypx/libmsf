@@ -15,7 +15,9 @@
 #include <base/Time.h>
 #include <base/Mem.h>
 #include <event/Timer.h>
+#include <event/EventLoop.h>
 
+#include <cassert>
 
 using namespace MSF::BASE;
 using namespace MSF::TIME;
@@ -30,146 +32,77 @@ HeapTimer::~HeapTimer()
 
 }
 
-void HeapTimer::initTimer()
+void HeapTimer::addTimer(const TimerCb & cb, const double interval, const enum TimerStrategy strategy)
 {
-    MSF_INFO << "Max timer num: " << _maxTimerNum;
-  
-}
-
-void HeapTimer::addTimer(uint32_t id, uint32_t flag, uint32_t interval, void *arg, TimerCb cb)
-{
-    if (timer_queue.size() > _maxTimerNum) {
-        MSF_ERROR << "up to max event num: " << _maxTimerNum;
+    // std::lock_guard<std::mutex> lock(mutex_);
+    if (unlikely(queue_.size() > maxTimer_)) {
+        MSF_ERROR << "Up to max event num: " << maxTimer_;
         return;
     }
-    struct TimerItem event(id, flag, interval, arg, cb);
-
-    struct timeval now;
-    gettimeofday(&now, nullptr);
-
-    msf_memory_barrier();
-
-    event.interval.tv_sec = interval / 1000;
-    event.interval.tv_usec = (interval % 1000) * 1000;
-    MSF_TIMERADD(&now, &(event.interval), &(event.expired));
-
-    _queue.push(event);
+    queue_.push(std::move(TimerItem(cb, interval, strategy)));
+    // MSF_ERROR << "Now event num: " << queue_.size();
 }
 
-void HeapTimer::removeTimer(uint32_t id)
+void HeapTimer::removeTimer(const uint32_t id)
 {
-
+    loop_->runInLoop(
+      std::bind(&HeapTimer::cancelInLoop, this, id));
 }
 
-void HeapTimer::timerHandler()
+void HeapTimer::cancelInLoop(const uint32_t id)
 {
-    struct timeval now;
-    int ret = 0;
+    // loop_->assertInLoopThread();
+    // ActiveTimerSet::iterator it = activeTimers_.find(id);
+    // if (it != activeTimers_.end()) {
+    //     activeTimers_.erase(it);
+    // }
+}
 
-    while (!_queue.empty())
-    {
-        auto largest = _queue.top();
+double HeapTimer::timerInLoop()
+{
+    // std::lock_guard<std::mutex> lock(mutex_);
+    // MSF_WARN << "queue_ size: " << queue_.size();
+    while (!queue_.empty()) {
+        const TimePoint currTp = CurrentMilliTimePoint();
+        {
+            /* Check wether min interval is expired */
+            auto largest = queue_.top();
+            if (!largest.isExpired(currTp)) {
+                double timePassed = GetDurationMilliSecond(largest.expired_, currTp);
+                // MSF_INFO << "Next timeout is: " << (largest.interval_ - timePassed);
+                return (largest.interval_ - timePassed);
+            }
 
-        gettimeofday(&now, nullptr);
-        if (MSF_TIMERCMP(&now, &largest.expired, < )) {
-            // MSF_ERROR << "Timer time is invalid";
-             break;
-        }
-        _queue.pop();
+            // MSF_WARN << "Timer execute ms: " << largest.expired_;
 
-        if (unlikely(largest.cb == nullptr)) {
-            MSF_ERROR << "Timer cb is invalid";
-            return;
-        }
-        
-        ret = largest.cb(largest.id, largest.arg);
-        //kill timer 
-        if (ret == TIMER_ONESHOT) {
-            largest.flag = TIMER_LIMITED;
-            largest.exe_num = 1;
-            MSF_INFO << "Timer cb ret is zero";
-        }
+            queue_.pop();
+            assert(largest.cb_);
 
-        if (largest.flag == TIMER_PERSIST
-        || (largest.flag == TIMER_LIMITED && --largest.exe_num > 0)) {
-            MSF_TIMERADD(&largest.expired, &largest.interval, &largest.expired);
-            _queue.push(largest);
-            // MSF_INFO << "Timer add to list again, size:" << timer_queue.size();
-        } else {
-            // free(ev);
-            MSF_INFO << "timer free it";
+            /* When error happed, return TIMER_ONESHOT to cancel */
+            largest.cb_();
+            // if (largest.cb_() == TIMER_ONESHOT) {
+            //     largest.strategy_ = TIMER_LIMITED;
+            //     largest.exeTimes_ = 1;
+            //     MSF_INFO << "Timer cb ret is zero";
+            // }
+            if (largest.strategy_ == TIMER_PERSIST || 
+                (largest.strategy_ == TIMER_LIMITED && --largest.exeTimes_ > 0)) {
+                largest.expired_ = CurrentMilliTimePoint();
+                queue_.push(std::move(largest));
+                // MSF_INFO << "Timer add to list again, size:" << queue_.size();
+            }
         }
     }
-}
-void HeapTimer::timerThread()
-{
-    MSF_INFO << "Timer thread id: " << std::this_thread::get_id();
-
-    bool error = false;
-    struct timeval now;
-    struct timeval tv;
-    struct timeval *tvp = NULL;
-    long long ms = 0;
-    uint64_t uIdleWait = 1;
-    
-    MSF_INFO << "Timer Thread started";
-    while (!_quit) {
-
-        if (unlikely(_queue.empty())) {
-            if (++uIdleWait == 2000) {
-                uIdleWait = 0;
-            }
-            tvp = NULL;
-        } else {
-            auto largest = _queue.top();
-
-            gettimeofday(&now, nullptr);
-
-            tvp = &tv;
-            /* How many milliseconds we need to wait for the next
-            * time event to fire? */
-            ms = (largest.expired.tv_sec - now.tv_sec) * 1000 +
-                    (largest.expired.tv_usec - now.tv_usec)/1000;
-
-            if (ms > 0) {
-                tvp->tv_sec = ms / 1000;
-                tvp->tv_usec = (ms % 1000) * 1000;
-            } else {
-                tvp->tv_sec = 0;
-                tvp->tv_usec = 0;
-            }
-
-            gettimeofday(&now, nullptr);
-
-            tv.tv_sec = largest.expired.tv_sec - now.tv_sec;;
-            tv.tv_usec = largest.expired.tv_usec - now.tv_usec;
-            if ( tv.tv_usec < 0 ) {
-                tv.tv_usec += 1000000;
-                tv.tv_sec--;
-                // MSF_INFO << "tv.tv_usec < 0.";
-            }
-            tvp = &tv;
-        }
-
-        if (tvp == nullptr) {
-            // error = _ep->dispatchTimerEvent(uIdleWait);
-        } else {
-            // MSF_INFO << "timer_wait:%ld." << tvp->tv_sec*1000 + tvp->tv_usec/1000;//ms
-            // error = _ep->dispatchTimerEvent(tvp->tv_sec*1000 + tvp->tv_usec/1000);
-        }
-        if (unlikely(!error)) {
-            MSF_ERROR << "timer epoll wait error";
-            break;
-        }
-        timerHandler();
-    }
+    return 0;;
 }
 
 void HeapTimer::startTimer()
 {
-    std::thread timer_thread([this](){this->timerThread();});
+    // std::thread timer_thread([this]() {
+    //     timerThread();
+    // });
     //https://www.cnblogs.com/little-ant/p/3312841.html
-    timer_thread.detach();
+    // timer_thread.detach();
 
     // std::this_thread::get_id()
     // std::thread::id timer_id = timer_thread.get_id();
@@ -187,23 +120,16 @@ void HeapTimer::updateTime()
 
 uint32_t HeapTimer::getTimerNumber()
 {
-    return timer_queue.size();
+    return queue_.size();
 }
-
-
-
-
 
 
 FdTimer::~FdTimer()
 {
 
 }
-void FdTimer::initTimer()
-{
 
-}
-void FdTimer::addTimer(uint32_t id, uint32_t flag, uint32_t interval, void *arg, TimerCb cb)
+void FdTimer::addTimer(const TimerCb & cb, const double interval, const enum TimerStrategy strategy)
 {
 
 }
@@ -246,20 +172,15 @@ uint32_t FdTimer::getTimerNumber()
     return 0;
 }
 
-void FdTimer::timerHandler()
+double FdTimer::timerInLoop()
 {
-
-}
-void FdTimer::timerThread()
-{
-
-
+    return 0;
 }
 
 void FdTimer::updateTime()
 {
     // const auto now = std::chrono::steady_clock::now();
-    const auto now = CurrentMilliTime();
+    // const auto now = CurrentMilliTime();
     // if (xx > now )
 }
 

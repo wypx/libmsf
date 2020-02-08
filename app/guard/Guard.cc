@@ -29,6 +29,9 @@ namespace GUARD {
 
 Guard::Guard()
 {
+    logFile_ = "/var/log/luotang.me/Guard.log";
+    assert(Logger::getLogger().init(logFile_.c_str()));
+
     stack_ = new EventStack();
     assert(stack_);
 
@@ -59,7 +62,12 @@ void Guard::sendPdu()
     pdu.cmd_ = AGENT_DEBUG_ON_REQUEST;
     pdu.dstId_ = APP_MOBILE;
     pdu.timeOut_ = 5;
-    while (AGENT_E_AGENT_NOT_START != agent_->sendPdu(&pdu));
+    while (1) {
+        int ret = agent_->sendPdu(&pdu);
+        if (AGENT_E_AGENT_NOT_START != ret) {
+            break;
+        }
+    }
 }
 
 }
@@ -173,7 +181,7 @@ int OptionParser(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    MSF_BUILD_STATISTIC();
+    BuildInfo();
 
     OptionParser(argc, argv);
 

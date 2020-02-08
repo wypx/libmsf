@@ -104,8 +104,12 @@ void SleepMsec(long long msec);
 
 uint64_t CurrentMilliTime();
 
-typedef std::function<void(void*)> ExecutorFunc;
-inline void GetExecuteTime(ExecutorFunc f, void *arg);
+typedef std::chrono::high_resolution_clock::time_point TimePoint;
+TimePoint CurrentMilliTimePoint();
+double GetDurationMilliSecond(const TimePoint t1, const TimePoint t2);
+
+typedef std::function<void(void)> ExecutorFunc;
+void GetExecuteTime(ExecutorFunc func);
 
 void msf_time_init(void);
 

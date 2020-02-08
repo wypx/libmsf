@@ -60,19 +60,12 @@ enum AgentErrno {
 
 enum AgentCommand {
     AGENT_LOGIN_REQUEST         = 0,
-    AGENT_LOGIN_RESPONSE        = 1,
-    AGENT_LOGOUT_REQUEST        = 2,
-    AGENT_LOGOUT_RESPONSE       = 3,
-    AGENT_NOPIN_REQUEST         = 4,
-    AGENT_NOPIN_REPONSE         = 5,
-    AGENT_READ_REQUEST          = 6,
-    AGENT_READ_RESPONCE         = 7,
-    AGENT_WRITE_REQUEST         = 8,
-    AGENT_WRITE_RESPONCE        = 9,
-    AGENT_DEBUG_ON_REQUEST      = 10,
-    AGENT_DEBUG_ON_RESPONCE     = 11,
-    AGENT_DEBUG_OFF_REQUEST     = 12,
-    AGENT_DEBUG_OFF_RESPONCE    = 13
+    AGENT_LOGOUT_REQUEST        = 1,
+    AGENT_NOPIN_REQUEST         = 2,
+    AGENT_READ_REQUEST          = 3,
+    AGENT_WRITE_REQUEST         = 4,
+    AGENT_DEBUG_ON_REQUEST      = 5,
+    AGENT_DEBUG_OFF_REQUEST     = 6,
 };
 
 enum AgentPacket {
@@ -83,8 +76,8 @@ enum AgentPacket {
 };
 
 enum AgentOpcode {
-    AgentRequest    = 0,
-    AgentResponce   = 1
+    AGETN_REQUEST    = 0,
+    AGENT_RESPONCE   = 1
 };
 
 struct AgentBhs {

@@ -166,17 +166,22 @@ class AgentClient {
       ackCmdMap_; /* queue of ack cmd to handle*/
 
   std::unique_ptr<Connector> conn_;
+  bool reConnect_;  /* Enable reconnct agent server*/
+  bool reConnecting_;
+  uint32_t reConnectFail_;
 
  private:
   inline void debugAgentBhs(struct AgentBhs *bhs);
   struct AgentCmd* allocCmd(const uint32_t len);
   void freeCmd(struct AgentCmd* cmd);
-  bool connectAgent();
+  void connectAgent();
   void connectAgentCb();
   void closeAgent();
   bool loginAgent();
   void handleTxCmd();
   void handleRxCmd();
+  void handleRequest(AgentBhs *bhs);
+  void handleResponce(AgentBhs *bhs);
   bool handleIORet(const int ret);
 };
 

@@ -30,6 +30,7 @@
 #include <sys/timerfd.h>
 #include <signal.h>
 #include <sys/signalfd.h>
+#include <sys/poll.h>
 
 /* netlink socket */
 #include <asm/types.h>
@@ -493,13 +494,14 @@ int RecvMsg(const int fd, struct iovec *iov, int cnt, int flag)
 }
 
 
-int SocketError(const int fd) {
-    int error = 0;
+bool SocketError(const int fd) {
+    int error = -1;
     socklen_t len = sizeof(error);
-    if (0 != getsockopt(fd, SOL_SOCKET, SO_ERROR, &error, &len)) {
-        error = errno; 
+    if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
+        MSF_ERROR << "Socket get errno: " << errno << " error: " << error;
+        return true;
     }
-    return error;
+    return false;
 }
 
 bool IsNoNetwork(int error) 
@@ -999,19 +1001,29 @@ int CreateTcpServer(const std::string &host,
     return fd;
 }
 
+/**
+ * https://www.cnblogs.com/cz-blog/p/4530641.html
+ * https://blog.csdn.net/ET_Endeavoring/article/details/93532974
+ * https://www.cnblogs.com/life2refuel/p/7337070.html
+ * https://blog.csdn.net/nphyez/article/details/10268723
+ * */
 bool Connect(const int fd, const struct sockaddr *srvAddr,
-            socklen_t addrLen, const int timeout)
+            socklen_t addrLen, const int timeOutSec)
 {
     #ifdef WIN32
     /* TODO: I don't know how to do this on Win32. Please send a patch. */
-    return (connect(fd, srvAddr, addrLen) == 0);
+    if (connect(fd, srvAddr, addrLen) < 0) {
+        if (WSAGetLastError() == WSAENETUNREACH) {
+            MSF_ERROR << "Network is unreachable";
+        }
+        return false;
+    }
+    return true;
     #else /* LINUX or DJGPP */
-    struct timeval tv;
-    fd_set rset;
-    fd_set wset;
     int err;
 
-    if (timeout <= 0) {
+    /* Default timeout in kernel is 75s */ 
+    if (timeOutSec <= 0) {
         return (connect(fd, srvAddr, addrLen) == 0);
     } else {
         /* make socket non-blocking */
@@ -1021,21 +1033,17 @@ bool Connect(const int fd, const struct sockaddr *srvAddr,
 
         /* start connect */
         if (connect(fd, srvAddr, addrLen) < 0) {
-            #ifdef WIN32
-            if (WSAGetLastError() == WSAENETUNREACH) {
-                MSF_ERROR << "Network is unreachable";
-            }
-            #else
             int saveErrno = errno;
             switch (saveErrno) {
                 case EINPROGRESS:
+                    MSF_ERROR << "Connect in progress";
                     break;
                 case EISCONN:
+                    MSF_ERROR << "Connect established yet";
                     return true;
                 case ENETDOWN:
                 case ENETUNREACH:
                     MSF_ERROR << "Network is unreachable";
-                    return false;
                 case EAGAIN:
                 case EADDRINUSE:
                     MSF_ERROR << "Addres is inused";
@@ -1054,9 +1062,12 @@ bool Connect(const int fd, const struct sockaddr *srvAddr,
                     return false;
                 default: return false;
             }
-            #endif
 
-            tv.tv_sec = timeout;
+            #ifdef MSF_USE_SELECT
+            struct timeval tv;
+            fd_set rset;
+            fd_set wset;
+            tv.tv_sec = timeOutSec;
             tv.tv_usec = 0;
             FD_ZERO(&rset);
             FD_ZERO(&wset);
@@ -1064,7 +1075,7 @@ bool Connect(const int fd, const struct sockaddr *srvAddr,
             FD_SET(fd, &wset);
 
             /* wait for connect() to finish */
-            if ((err = select(fd + 1, &rset, &wset, NULL, &tv)) <= 0) {
+            if ((err = select(fd + 1, &rset, &wset, nullptr, &tv)) <= 0) {
                 /* errno is already set if err < 0 */
                 if (err == 0) {
                     errno = ETIMEDOUT;
@@ -1072,14 +1083,27 @@ bool Connect(const int fd, const struct sockaddr *srvAddr,
                 return false;
             }
 
-            /* test for success, set errno */
-            err = SocketError(fd);
-            if (err != 0) {
-                errno = err;
+            if (FD_ISSET(fd, &wset)) {
+                /* test for success, set errno */
+                if (SocketError(fd)) {
+                    return false;
+                }
+            }
+            #else
+            struct pollfd pfd;
+            pfd.fd = fd;
+            pfd.events = POLLOUT | POLLERR;
+            //https://blog.csdn.net/skypeng57/article/details/82743681
+            //https://blog.csdn.net/cmh20161027/article/details/76401884
+            err = poll(&pfd, 1, timeOutSec * 1000);
+            if (err == 1 && pfd.revents == POLLOUT) {
+                MSF_INFO << "Nonblock connect success.";
+            } else {
+                MSF_INFO << "Nonblock connect errno: " << errno;
                 return false;
             }
+            #endif
         }
-
         /* restore blocking mode */
         if (!SetNonBlock(fd, false)) {
             return false;
@@ -1149,6 +1173,7 @@ int ConnectTcpServer(const std::string &host,
         if (next->ai_family == AF_INET6) {
             if (!SetIpv6Only(fd, true)) {
                 close(fd);
+                fd = -1;
                 continue;
             }
         }
@@ -1167,6 +1192,7 @@ int ConnectTcpServer(const std::string &host,
 
         if (!Connect(fd, next->ai_addr, next->ai_addrlen, 5)) {
             close(fd);
+            fd = -1;
             continue;
         }
         break;

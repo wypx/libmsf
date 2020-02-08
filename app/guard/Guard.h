@@ -31,6 +31,7 @@ class Guard
   private:
     EventStack* stack_;
     AgentClient* agent_;
+    std::string logFile_;
     // std::list<Process*> processes_;
   private:
     bool loadConfig();

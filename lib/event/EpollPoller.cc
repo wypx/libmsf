@@ -182,7 +182,7 @@ int EPollPoller::poll(int timeoutMs, EventList* activeEvents)
     //    _epEvents.resize(_epEvents.size()*2);
     // }
   } else if (numEvents == 0) {
-    MSF_INFO << "Timeout cause nothing happened";
+    // MSF_INFO << "Timeout cause nothing happened";
   } else {
     // error happens, log uncommon ones
     if (errno != EINTR && errno != EWOULDBLOCK && errno != EAGAIN) {

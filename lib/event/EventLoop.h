@@ -22,14 +22,16 @@
 #include <memory>
 #include <atomic>
 
+#include <event/Timer.h>
+
+using namespace MSF::EVENT;
+
 namespace MSF {
 namespace EVENT {
 
 class Event;
 class Poller;
-class TimerQueue;
 
-typedef std::function<void()> TimerCallback;
 typedef std::vector<Event*> EventList;
 
 typedef uint64_t TimerId;
@@ -74,15 +76,15 @@ class EventLoop
 
     /* Runs callback at 'time'.
       * Safe to call from other threads.*/
-    uint64_t runAt(int time, TimerCallback cb);
+    uint64_t runAt(const double time, const TimerCb & cb);
 
-    /* Runs callback after @c delay seconds.
+    /* Runs callback after @c delay milliseconds.
       * Safe to call from other threads.*/
-    uint64_t runAfter(double delay, TimerCallback cb);
+    uint64_t runAfter(const double delay, const TimerCb & cb);
 
-    /* Runs callback every @c interval seconds.
+    /* Runs callback every @c interval milliseconds.
       * Safe to call from other threads.*/
-    uint64_t runEvery(double interval, TimerCallback cb);
+    uint64_t runEvery(const double interval, const TimerCb & cb);
 
     /* Cancels the timer.
       * Safe to call from other threads.*/
@@ -123,9 +125,9 @@ class EventLoop
     bool _callingPendingFunctors; /* atomic */
     int64_t _iteration;
     const pid_t _threadId;
-    //   Timestamp pollReturnTime_;
+
     std::unique_ptr<Poller> _poller;
-    // std::unique_ptr<TimerQueue> _timerQueue;
+    std::unique_ptr<HeapTimer> timer_;
 
     int _wakeupFd;
     // unlike in TimerQueue, which is an internal class,

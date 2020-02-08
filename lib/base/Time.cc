@@ -112,32 +112,102 @@ uint64_t CurrentMilliTime()
    * non-x86 systems. */
   return std::chrono::steady_clock::now().time_since_epoch().count();
 
-  /* 
+    // std::chrono::steady_clock::time_point t1;
     auto tp = 
-        std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
+        std::chrono::time_point_cast<std::chrono::milliseconds>(
+            std::chrono::high_resolution_clock::now());
+    // std::chrono::steady_clock::duration dt;
     auto tmp = 
         std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch());
     return tmp.count();
-  */
 #endif
 }
 
-/**
- *  chrono库主要包含了三种类型: 时间间隔duration、时钟clock和时间点time_point
- *  https://blog.csdn.net/u013390476/article/details/50209603
- * 
- * */
-inline void GetExecuteTime(ExecutorFunc f, void *arg)
+TimePoint CurrentMilliTimePoint()
 {
-    auto start = std::chrono::system_clock::now();
-    f(arg);
-    auto end = std::chrono::system_clock::now();
+    return std::chrono::high_resolution_clock::now();
+}
+
+double GetDurationMilliSecond(const TimePoint t1, const TimePoint t2)
+{
+   std::chrono::duration<double,std::ratio<1,1000>> durationMs =
+        std::chrono::duration_cast<std::chrono::duration<double,std::ratio<1,1000>>>(t2 - t1);
+    return durationMs.count();
+}
+
+//ns
+//https://www.cnblogs.com/lzpong/p/6544117.html
+//https://blog.csdn.net/Y__Jason/article/details/78038991
+//https://www.jianshu.com/p/c9b775d831fb
+//https://blog.csdn.net/cw_hello1/article/details/66476290
+//https://www.cnblogs.com/jwk000/p/3560086.html
+//https://www.cnblogs.com/zhongpan/p/7490657.html
+/**
+ * chrono库主要包含了三种类型: 时间间隔duration、时钟clock和时间点time_point
+ * https://blog.csdn.net/u013390476/article/details/50209603
+ * https://blog.csdn.net/oncealong/article/details/28599655
+ * https://www.cnblogs.com/zhongpan/p/7490657.html
+ * https://www.jianshu.com/p/c9b775d831fb
+ * */
+void GetExecuteTime(ExecutorFunc func)
+{
+    // auto tp = 
+    //     std::chrono::time_point_cast<std::chrono::milliseconds>(
+    //         std::chrono::high_resolution_clock::now());
+    // auto tmp = 
+    //     std::chrono::duration_cast<std::chrono::milliseconds>(tp.time_since_epoch());
+    // return tmp.count();
+
+    auto start = std::chrono::high_resolution_clock::now();
+    func();
+    auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
  
+    std::cout << "Cost " << std::chrono::duration_cast<std::chrono::hours>(end - start).count()
+            << " hours" << std::endl;
+
+    std::cout << "Cost " << std::chrono::duration_cast<std::chrono::minutes>(end - start).count()
+            << " minutes" << std::endl;
+    std::chrono::duration<double,std::ratio<60,1>> duration_min =
+        std::chrono::duration_cast<std::chrono::duration<double,std::ratio<60,1>>>(end - start);
+    std::cout << "cost " << duration_min.count() << " minutes" << std::endl;
+
+    std::chrono::duration<double, std::ratio<1,1>> duration_s(end - start);
+    std::cout << "cost " << duration_s.count() << " seconds" << std::endl;
+    std::cout << "cost " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count()
+                << " seconds" << std::endl;
+    
+    //https://blog.csdn.net/Y__Jason/article/details/78038991
+    // 会被截断可能
+    std::chrono::duration<double> time_span = 
+        std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+    std::cout << "It took me " << time_span.count() << " seconds." << std::endl;
+
     std::cout   << "Cost time: " 
-                << double(duration.count()) * std::chrono::microseconds::period::num /   
-                std::chrono::microseconds::period::den 
-                << "s" << std::endl;
+        << double(duration.count()) * std::chrono::microseconds::period::num /   
+            std::chrono::microseconds::period::den 
+        << " seconds" << std::endl;
+
+
+    std::chrono::duration<double,std::ratio<1,1000>> duration_ms=
+        std::chrono::duration_cast<std::chrono::duration<double,std::ratio<1,1000>>>(end - start);
+    std::cout << "cost " << duration_ms.count() << " milliseconds" << std::endl;
+    std::cout << "cost " << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+                << " milliseconds" << std::endl;
+
+
+    std::chrono::duration<double,std::ratio<1,1000000>> duration_mcs=
+        std::chrono::duration_cast<std::chrono::duration<double,std::ratio<1,1000000>>>(end - start);
+    std::cout << "cost " << duration_mcs.count() << " microseconds" << std::endl;
+    std::cout << "cost " << std::chrono::duration_cast<std::chrono::microseconds>(end - start).count()
+                << " microseconds" << std::endl;
+    
+
+    std::chrono::duration<double,std::ratio<1,1000000000>> duration_ns=
+        std::chrono::duration_cast<std::chrono::duration<double,std::ratio<1,1000000000>>>(end - start);
+    std::cout << "cost " << duration_ns.count() << " nanoseconds" << std::endl;
+    std::cout << "cost " << std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count()
+                << " nanoseconds" << std::endl;
 }
 
 void msf_time_init(void)

@@ -153,7 +153,6 @@ class AgentClient {
   enum RecvStage _recvStage;
 
   struct msghdr _rxHdr;
-  ;
   struct msghdr _txHdr;
   struct iovec _rxIOV[MAX_CONN_IOV_SLOT];
   struct iovec _txIOV[MAX_CONN_IOV_SLOT];
@@ -168,8 +167,6 @@ class AgentClient {
   std::unique_ptr<Connector> conn_;
   bool reConnect_;  /* Enable reconnct agent server*/
   bool reConnecting_;
-  uint32_t reConnectFail_;
-
  private:
   inline void debugAgentBhs(struct AgentBhs *bhs);
   struct AgentCmd* allocCmd(const uint32_t len);

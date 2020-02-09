@@ -168,9 +168,6 @@ void AgentClient::connectAgent() {
     closeAgent();
     return;
   }
-
-  reConnectFail_ = 0;
-
   return;
 }
 
@@ -183,7 +180,6 @@ void AgentClient::closeAgent() {
 
     if (reConnect_ && !reConnecting_) {
       reConnecting_ = true;
-      MSF_WARN << "Agent client reconnecting server.";
       loop_->runAfter(2000, std::bind(&AgentClient::connectAgent, this));
     }
 }

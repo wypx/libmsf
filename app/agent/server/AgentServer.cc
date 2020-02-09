@@ -301,6 +301,7 @@ void AgentServer::readConn(ConnectionPtr c) {
   }
 
   handleAgentBhs(c);
+  mpool_->free(c->rxIov_[0].iov_base);
 }
 
 void AgentServer::writeConn(ConnectionPtr c) {

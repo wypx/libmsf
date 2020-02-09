@@ -156,6 +156,7 @@ class AgentServer : public Noncopyable {
 
   void handleAgentBhs(ConnectionPtr c);
   void handleAgentLogin(ConnectionPtr c);
+  void handleAgentPayLoad(ConnectionPtr c);
   void handleAgentRequest(ConnectionPtr c);
 
   void succConn(ConnectionPtr c);

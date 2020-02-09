@@ -52,16 +52,16 @@ bool CountDownLatch::waitFor(const uint32_t ts)
        MSF_INFO << "count wait: " << _count;
        return (_count == 0);
        }) == false*/) {
-    MSF_INFO << "count timeout: " << _count;
+    // MSF_INFO << "count timeout: " << _count;
     return false;
   }
-  MSF_INFO << "count ok: " << _count;
+  // MSF_INFO << "count ok: " << _count;
   return true;
 }
  
 void CountDownLatch::countDown()
 {
-  MSF_INFO << "count is: " << _count;
+  // MSF_INFO << "count is: " << _count;
   {
     std::lock_guard<std::mutex> lock(_mutex);
     --_count;

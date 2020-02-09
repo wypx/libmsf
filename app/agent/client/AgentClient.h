@@ -36,8 +36,8 @@ using namespace MSF::AGENT;
 namespace MSF {
 namespace AGENT {
 
-typedef std::function<void(const char* data, const uint32_t len,
-                           const uint32_t cmd)>
+typedef std::function<void(char* data, const uint32_t len,
+                           const AgentCommand cmd)>
     AgentCb;
 
 enum AgentType {

@@ -119,7 +119,7 @@ struct AgentCmd *AgentClient::allocCmd(const uint32_t len) {
 }
 
 void AgentClient::freeCmd(struct AgentCmd *cmd) {
-  if ((--cmd->refCnt_) == 0) {
+  if ((--cmd->refCnt_) < 0) {
     mpool_->free(cmd->buffer_);
     freeCmdList_.push_back(cmd);
   }
@@ -215,6 +215,7 @@ bool AgentClient::loginAgent() {
 
   debugAgentBhs(bhs);
 
+  req->doIncRef();
   ackCmdMap_[bhs->sessNo_] = req;
   txCmdList_.push_back(req);
 
@@ -258,6 +259,7 @@ void AgentClient::handleTxCmd() {
             SendMsg(conn_->fd(), iov, iovCnt, MSG_WAITALL | MSG_NOSIGNAL))) {
       return;
     };
+    freeCmd(cmd);
   }
   txCmdList_.clear();
   conn_->disableWriting();
@@ -280,8 +282,31 @@ void AgentClient::handleRxCmd() {
 }
 
 void AgentClient::handleRequest(AgentBhs *bhs) {
-    if (reqCb_) {
-        reqCb_(nullptr, 0, bhs->cmd_);
+   
+    if (bhs->dataLen_ || bhs->restLen_) {
+      uint32_t len = std::max(bhs->dataLen_, bhs->restLen_);
+      AgentCmd *cmd = allocCmd(len);
+      assert(cmd);
+
+      {
+        AgentAppId tmpId = bhs->srcId_;
+        bhs->srcId_ = bhs->dstId_;
+        bhs->dstId_ = tmpId;
+      }
+      bhs->dataLen_ = bhs->restLen_;
+      cmd->usedLen_ = bhs->restLen_;
+      bhs->restLen_ = 0;
+      bhs->opCode_ = AGENT_RESPONCE;
+      memcpy(&cmd->bhs_, bhs, sizeof(AgentBhs));
+      if (reqCb_) {
+        reqCb_(static_cast<char*>(cmd->buffer_), bhs->dataLen_, bhs->cmd_);
+      }
+
+      cmd->doIncRef();
+      txCmdList_.push_back(cmd);
+
+      conn_->enableWriting();
+      loop_->wakeup();
     }
 }
 void AgentClient::handleResponce(AgentBhs *bhs)
@@ -308,23 +333,32 @@ void AgentClient::handleResponce(AgentBhs *bhs)
           freeCmd(req);
         }
       } break;
-      default:
-        if (bhs->timeOut_) {
-        auto itor = ackCmdMap_.find(bhs->sessNo_);
-        if (itor != ackCmdMap_.end()) {
-            if (bhs->retCode_ == AGENT_E_EXEC_SUCESS) {
-              MSF_INFO << "Do cmd successful";
-            } else {
-              MSF_INFO << "Do cmd failed";
-            }
-            struct AgentCmd *req = (struct AgentCmd *)itor->second;
-            req->bhs_.retCode_ = bhs->retCode_;
-            req->latch_.countDown();
-            ackCmdMap_.erase(itor);
-            freeCmd(req);
-        } else {
-            MSF_INFO << "Cannot find cmd for " <<  bhs->sessNo_;
-        }
+      default: {
+          auto itor = ackCmdMap_.find(bhs->sessNo_);
+          if (itor != ackCmdMap_.end()) {
+    
+              struct AgentCmd *req = (struct AgentCmd *)itor->second;
+
+              struct iovec iov = { req->buffer_, bhs->dataLen_ };
+              RecvMsg(conn_->fd(), &iov, 1, MSG_WAITALL | MSG_NOSIGNAL);
+
+              if (bhs->retCode_ == AGENT_E_EXEC_SUCESS) {
+                MSF_INFO << "Do cmd successful";
+              } else {
+                MSF_INFO << "Do cmd failed";
+              }
+
+              if (bhs->timeOut_) {
+                req->bhs_.retCode_ = bhs->retCode_;
+                req->latch_.countDown();
+                ackCmdMap_.erase(itor);
+              } else {
+                reqCb_(static_cast<char*>(req->buffer_), bhs->dataLen_, bhs->cmd_);
+              }
+              freeCmd(req);
+          } else {
+              MSF_INFO << "Cannot find cmd for " <<  bhs->sessNo_;
+          }
     } break;
   }
 }
@@ -334,7 +368,7 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
   struct AgentCmd *req = nullptr;
 
   if (!started_ || !loop_) {
-    MSF_ERROR << "Cannot send pdu, agent not start.";
+    // MSF_ERROR << "Cannot send pdu, agent not start.";
     return AGENT_E_AGENT_NOT_START;
   }
 
@@ -344,7 +378,7 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
     return AGENT_E_CANNOT_IN_LOOP;
   }
 
-  req = allocCmd(pdu->payLen_);
+  req = allocCmd(std::max(pdu->payLen_, pdu->restLen_));
   if (req == nullptr) {
     MSF_INFO << "Alloc login cmd buffer failed";
     return false;
@@ -388,6 +422,7 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
     MSF_INFO << "Notify peer errcode ===>" << bhs->retCode_;
 
     if (likely(AGENT_E_EXEC_SUCESS == bhs->retCode_)) {
+      //pdu->restLen_ req->usedLen
       memcpy(pdu->restLoad_, req->buffer_, pdu->restLen_);
     }
     freeCmd(req);

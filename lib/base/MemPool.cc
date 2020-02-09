@@ -186,7 +186,7 @@ void * MemPool::alloc(const uint32_t size)
 
     std::lock_guard<std::mutex> lock(_mutex);
     auto & slab = _slabs[idx];
-    MSF_INFO << "slab addr: " << &slab;
+    MSF_INFO << "slab addr: " << &slab << " size: " << size;
     if (slab._freeBlkList.empty()) {
         MSF_INFO << "Alloc memblk faild, freeBlkList empty.";;
         return nullptr;

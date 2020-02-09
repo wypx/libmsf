@@ -216,6 +216,11 @@ void AgentServer::handleAgentLogin(ConnectionPtr c) {
   c->cid_ = bhs->srcId_;
   activeConns_[bhs->srcId_] = c;
 
+  {
+    AgentAppId tmpId = bhs->srcId_;
+    bhs->srcId_ = bhs->dstId_;
+    bhs->dstId_ = tmpId;
+  }
   bhs->opCode_ = AGENT_RESPONCE;
   bhs->retCode_ = AGENT_E_EXEC_SUCESS;
   iov.iov_base = bhs;
@@ -225,27 +230,48 @@ void AgentServer::handleAgentLogin(ConnectionPtr c) {
   c->rxRecved_ = 0;
 }
 
+void AgentServer::handleAgentPayLoad(ConnectionPtr c)
+{
+  AgentBhs *bhs = static_cast<AgentBhs*>(c->rxIov_[0].iov_base);
+
+  void *payLoad = mpool_->alloc(bhs->dataLen_);
+  if (!payLoad) {
+    MSF_INFO << "No pool data for fd: " << c->fd();
+    DrianData(c->fd(), 1024);
+    return;
+  }
+  struct iovec iov = { payLoad, bhs->dataLen_ };
+  // handleRxIORet(c, RecvMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL));
+  RecvMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
+  c->rxIov_[1].iov_base = payLoad;
+  c->rxIov_[1].iov_len = bhs->dataLen_;
+} 
+
 void AgentServer::handleAgentRequest(ConnectionPtr c)
 {
   AgentBhs *bhs = static_cast<AgentBhs *>(c->rxIov_[0].iov_base);
+  // debugAgentBhs(bhs);
   auto itor = activeConns_.find(bhs->dstId_);
+  MSF_INFO << "Peer cid: " << bhs->dstId_;
   if (itor != activeConns_.end()) {
     ConnectionPtr peer = (ConnectionPtr)itor->second;
     MSF_INFO << "\n Send cmd to"
               << "\n cmd: " << bhs->cmd_ 
               << "\n cid: " << peer->cid_;
+    assert(bhs->dstId_ == peer->cid_);
     //http://blog.chinaunix.net/uid-14949191-id-3967282.html
     // std::swap(bhs->srcId_, bhs->dstId_);
-    {
-      AgentAppId tmpId = bhs->srcId_;
-      bhs->srcId_ = bhs->dstId_;
-      bhs->dstId_ = tmpId;
+    // {
+    //   AgentAppId tmpId = bhs->srcId_;
+    //   bhs->srcId_ = bhs->dstId_;
+    //   bhs->dstId_ = tmpId;
+    // }
+    uint32_t iovCnt = 1;
+    if (bhs->dataLen_ > 0) {
+      iovCnt++;
     }
-    struct iovec iov[2];
-    iov[0].iov_base = bhs;
-    iov[0].iov_len = sizeof(AgentBhs);
     //runinloop到这个loop中去
-    SendMsg(peer->fd(), iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
+    handleTxIORet(c, SendMsg(peer->fd(), c->rxIov_, iovCnt, MSG_NOSIGNAL | MSG_WAITALL));
   } else {
     MSF_INFO << "\n Peer offline"
               << "\n cmd: " << bhs->cmd_;
@@ -257,6 +283,11 @@ void AgentServer::handleAgentRequest(ConnectionPtr c)
     // bhs->cmd_ = static_cast<AgentCommand>(temp);
     bhs->opCode_ = AGENT_RESPONCE;
     bhs->retCode_ = AGENT_E_PEER_OFFLINE;
+    {
+      AgentAppId tmpId = bhs->srcId_;
+      bhs->srcId_ = bhs->dstId_;
+      bhs->dstId_ = tmpId;
+    }
     iov.iov_base = bhs;
     iov.iov_len = sizeof(AgentBhs);
     SendMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
@@ -272,8 +303,15 @@ void AgentServer::handleAgentBhs(ConnectionPtr c) {
       handleAgentLogin(c);
       break;
     default:
+      if (bhs->dataLen_ > 0) {
+        handleAgentPayLoad(c);
+      }
       handleAgentRequest(c);
       break;
+  }
+  mpool_->free(c->rxIov_[0].iov_base);
+  if (c->rxIov_[1].iov_base) {
+    mpool_->free(c->rxIov_[1].iov_base);
   }
 }
 
@@ -282,12 +320,14 @@ void AgentServer::readConn(ConnectionPtr c) {
     return;
   }
 
-  MSF_INFO << "Read conn for fd: " << c->fd();
-  if (c->rxWanted_ == 0) {
+  MSF_INFO << "Read conn for fd: " << c->fd() << " wanted: " << c->rxWanted_;
+  // if (c->rxWanted_ == 0) 
+  {
     c->rxWanted_ = sizeof(AgentBhs);
     AgentBhs *bhs = static_cast<AgentBhs *>(mpool_->alloc(c->rxWanted_));
     if (!bhs) {
-      DrianData(c->fd(), 2048);
+      //Fixme: drian specific size payload
+      DrianData(c->fd(), 1024);
       return;
     }
     memset(bhs, 0, c->rxWanted_);
@@ -301,7 +341,6 @@ void AgentServer::readConn(ConnectionPtr c) {
   }
 
   handleAgentBhs(c);
-  mpool_->free(c->rxIov_[0].iov_base);
 }
 
 void AgentServer::writeConn(ConnectionPtr c) {

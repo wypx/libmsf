@@ -52,14 +52,25 @@ void Guard::start()
     stack_->start();
 }
 
+struct ApnItem {
+    int             cid;        /* Context ID, uniquely identifies this call */
+    int             active;     /* 0=inactive, 1=active/physical link down, 2=active/physical link up */
+    char *          type;       /* One of the PDP_type values in TS 27.007 section 10.1.1.
+                                   For example, "IP", "IPV6", "IPV4V6", or "PPP". */
+    char *          ifname;     /* The network interface name */
+    char *          apn;        /* ignored */
+    char *          address;    /* An address, e.g., "192.0.1.3" or "2001:db8::1". */
+};
+
 void Guard::sendPdu()
 {
+    struct ApnItem item = { 0 };
     AgentPdu pdu;
     pdu.payLoad_ = nullptr;
     pdu.payLen_ = 0;
-    pdu.restLoad_ = nullptr;
-    pdu.restLen_ = 0;
-    pdu.cmd_ = AGENT_DEBUG_ON_REQUEST;
+    pdu.restLoad_ = &item;
+    pdu.restLen_ = sizeof(item);
+    pdu.cmd_ = AGENT_READ_MOBILE_PARAM;
     pdu.dstId_ = APP_MOBILE;
     pdu.timeOut_ = 5;
     while (1) {
@@ -68,6 +79,7 @@ void Guard::sendPdu()
             break;
         }
     }
+    MSF_INFO << "ApnItem cid: " << item.cid << " active: " << item.active;
 }
 
 }

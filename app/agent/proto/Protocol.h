@@ -66,6 +66,8 @@ enum AgentCommand {
     AGENT_WRITE_REQUEST         = 4,
     AGENT_DEBUG_ON_REQUEST      = 5,
     AGENT_DEBUG_OFF_REQUEST     = 6,
+    AGENT_READ_MOBILE_PARAM     = 7,
+    AGENT_WRITE_MOBILE_PARAM    = 8
 };
 
 enum AgentPacket {
@@ -107,9 +109,9 @@ struct AgentPdu {
     enum AgentAppId   dstId_;
     enum AgentCommand cmd_;
     uint32_t    timeOut_;
-    uint8_t     *payLoad_;
+    void     *payLoad_;
     uint32_t    payLen_;
-    uint8_t     *restLoad_;
+    void     *restLoad_;
     uint32_t    restLen_;
 } MSF_PACKED_MEMORY;
 

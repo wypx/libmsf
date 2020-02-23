@@ -65,7 +65,7 @@ if __name__ == '__main__':
     BuildRoot = os.getcwd()
     MakeBuildDir("build/lib")
     MakeBuildDir("build/app")
-    # MakeBuildProto(BuildRoot)
+    MakeBuildProto(BuildRoot)
     MakeBuildLib(BuildRoot)
     MakeBuildApp(BuildRoot)
     # MakeBuildClean("build")

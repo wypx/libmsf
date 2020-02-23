@@ -42,20 +42,20 @@ static const struct {
     {CONFIG_PACKTYPE, "packType"},
 };
 
-static inline void debugAgentBhs(struct AgentBhs *bhs) {
+static inline void debugAgentBhs(const Agent::AgentBhs & bhs) {
   MSF_DEBUG << "###################################";
   MSF_DEBUG << "bhs:";
-  MSF_DEBUG << "bhs version: " << bhs->version_;
-  MSF_DEBUG << "bhs magic:  " << bhs->magic_;
-  MSF_DEBUG << "bhs srcid: " << bhs->srcId_;
-  MSF_DEBUG << "bhs dstid: " << bhs->dstId_;
-  MSF_DEBUG << "bhs cmd: " << bhs->cmd_;
-  MSF_DEBUG << "bhs seq: " << bhs->sessNo_;
-  MSF_DEBUG << "bhs errcode: " << bhs->retCode_;
-  MSF_DEBUG << "bhs datalen: " << bhs->dataLen_;
-  MSF_DEBUG << "bhs restlen: " << bhs->restLen_;
-  MSF_DEBUG << "bhs checksum: " << bhs->checkSum_;
-  MSF_DEBUG << "bhs timeout: " << bhs->timeOut_;
+  // MSF_DEBUG << "bhs version: " << bhs->version_;
+  // MSF_DEBUG << "bhs magic:  " << bhs->magic_;
+  // MSF_DEBUG << "bhs srcid: " << bhs->srcId_;
+  // MSF_DEBUG << "bhs dstid: " << bhs->dstId_;
+  // MSF_DEBUG << "bhs cmd: " << bhs->cmd_;
+  // MSF_DEBUG << "bhs seq: " << bhs->sessNo_;
+  // MSF_DEBUG << "bhs errcode: " << bhs->retCode_;
+  // MSF_DEBUG << "bhs datalen: " << bhs->dataLen_;
+  // MSF_DEBUG << "bhs restlen: " << bhs->restLen_;
+  // MSF_DEBUG << "bhs checksum: " << bhs->checkSum_;
+  // MSF_DEBUG << "bhs timeout: " << bhs->timeOut_;
   MSF_DEBUG << "###################################";
 }
 
@@ -66,7 +66,7 @@ AgentServer::AgentServer() {
   srvConf_.tcpPort_ = 8888;
 
   if (confFile_.empty()) {
-    confFile_ = "//home/luotang.me/conf/AgentServer.conf";
+    confFile_ = "/home/luotang.me/conf/AgentServer.conf";
   }
   if (logFile_.empty()) {
     logFile_ = "/home/luotang.me/log/AgentServer.log";
@@ -203,62 +203,66 @@ bool AgentServer::handleTxIORet(ConnectionPtr c, const int ret) {
   }
 }
 
-void AgentServer::handleAgentLogin(ConnectionPtr c) {
-  AgentBhs *bhs = static_cast<AgentBhs *>(c->rxIov_[0].iov_base);
+void AgentServer::handleAgentLogin(ConnectionPtr c, Agent::AgentBhs & bhs) {
 
-  AgentLogin login = {0};
+  void *body = mpool_->alloc(proto_->pduLen(bhs));
+  assert(body);
+
   struct iovec iov;
-  iov.iov_base = &login;
-  iov.iov_len = sizeof(AgentLogin);
+  iov.iov_base = body;
+  iov.iov_len = proto_->pduLen(bhs);
   RecvMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
-  MSF_INFO << "\n Login "
-            << "\n name: " << login.name_ << "\n cid: " << bhs->srcId_;
-  c->cid_ = bhs->srcId_;
-  activeConns_[bhs->srcId_] = c;
 
+  Agent::LoginRequest login;
+  login.ParseFromArray(body, proto_->pduLen(bhs));
+
+  MSF_INFO << "\n Login "
+            << "\n name: " << login.name()
+            << "\n cid: " << proto_->srcId(bhs);
+  c->cid_ = static_cast<uint32_t>(proto_->srcId(bhs));
+  activeConns_[proto_->srcId(bhs)] = c;
   {
-    AgentAppId tmpId = bhs->srcId_;
-    bhs->srcId_ = bhs->dstId_;
-    bhs->dstId_ = tmpId;
+    AgentAppId tmpId = proto_->srcId(bhs);
+    proto_->setSrcId(bhs, proto_->dstId(bhs));
+    proto_->setDstId(bhs, tmpId);
   }
-  bhs->opCode_ = AGENT_RESPONCE;
-  bhs->retCode_ = AGENT_E_EXEC_SUCESS;
-  iov.iov_base = bhs;
-  iov.iov_len = sizeof(AgentBhs);
-  SendMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
+  proto_->setOpcode(bhs, Agent::AgentOpcode::AGENT_RESPONCE);
+  proto_->setRetCode(bhs, Agent::AgentErrno::AGENT_E_EXEC_SUCESS);
+  proto_->setPduLen(bhs, 0);
+  proto_->debugBhs(bhs);
+  bhs.SerializeToArray(c->rxIov_[0].iov_base, AGENT_HEAD_LEN);
+
+  SendMsg(c->fd(), c->rxIov_, 1, MSG_NOSIGNAL | MSG_WAITALL);
   c->rxWanted_ = 0;
   c->rxRecved_ = 0;
 }
 
-void AgentServer::handleAgentPayLoad(ConnectionPtr c)
+void AgentServer::handleAgentPayLoad(ConnectionPtr c, Agent::AgentBhs & bhs)
 {
-  AgentBhs *bhs = static_cast<AgentBhs*>(c->rxIov_[0].iov_base);
-
-  void *payLoad = mpool_->alloc(bhs->dataLen_);
+  void *payLoad = mpool_->alloc(proto_->pduLen(bhs));
   if (!payLoad) {
     MSF_INFO << "No pool data for fd: " << c->fd();
     DrianData(c->fd(), 1024);
     return;
   }
-  struct iovec iov = { payLoad, bhs->dataLen_ };
+  struct iovec iov = { payLoad, proto_->pduLen(bhs)};
   // handleRxIORet(c, RecvMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL));
   RecvMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
   c->rxIov_[1].iov_base = payLoad;
-  c->rxIov_[1].iov_len = bhs->dataLen_;
+  c->rxIov_[1].iov_len = proto_->pduLen(bhs);
 } 
 
-void AgentServer::handleAgentRequest(ConnectionPtr c)
+void AgentServer::handleAgentRequest(ConnectionPtr c, Agent::AgentBhs & bhs)
 {
-  AgentBhs *bhs = static_cast<AgentBhs *>(c->rxIov_[0].iov_base);
   // debugAgentBhs(bhs);
-  auto itor = activeConns_.find(bhs->dstId_);
-  MSF_INFO << "Peer cid: " << bhs->dstId_;
+  auto itor = activeConns_.find(proto_->dstId(bhs));
+  MSF_INFO << "Peer cid: " << proto_->dstId(bhs);
   if (itor != activeConns_.end()) {
     ConnectionPtr peer = (ConnectionPtr)itor->second;
     MSF_INFO << "\n Send cmd to"
-              << "\n cmd: " << bhs->cmd_ 
+              << "\n cmd: " << proto_->command(bhs)
               << "\n cid: " << peer->cid_;
-    assert(bhs->dstId_ == peer->cid_);
+    assert(proto_->dstId(bhs) == static_cast<Agent::AgentAppId>(peer->cid_));
     //http://blog.chinaunix.net/uid-14949191-id-3967282.html
     // std::swap(bhs->srcId_, bhs->dstId_);
     // {
@@ -267,52 +271,60 @@ void AgentServer::handleAgentRequest(ConnectionPtr c)
     //   bhs->dstId_ = tmpId;
     // }
     uint32_t iovCnt = 1;
-    if (bhs->dataLen_ > 0) {
+    if (proto_->pduLen(bhs) > 0) {
       iovCnt++;
     }
     //runinloop到这个loop中去
-    handleTxIORet(c, SendMsg(peer->fd(), c->rxIov_, iovCnt, MSG_NOSIGNAL | MSG_WAITALL));
+    SendMsg(peer->fd(), c->rxIov_, iovCnt, MSG_NOSIGNAL | MSG_WAITALL);
+    // handleTxIORet(c, SendMsg(peer->fd(), c->rxIov_, iovCnt, MSG_NOSIGNAL | MSG_WAITALL));
   } else {
     MSF_INFO << "\n Peer offline"
-              << "\n cmd: " << bhs->cmd_;
+              << "\n cmd: " << proto_->command(bhs);
     struct iovec iov;
-    bhs->restLen_ = 0;
-    bhs->dataLen_ = 0;
-    // int temp = static_cast<int>(bhs->cmd_);
-    // temp++;
-    // bhs->cmd_ = static_cast<AgentCommand>(temp);
-    bhs->opCode_ = AGENT_RESPONCE;
-    bhs->retCode_ = AGENT_E_PEER_OFFLINE;
+
     {
-      AgentAppId tmpId = bhs->srcId_;
-      bhs->srcId_ = bhs->dstId_;
-      bhs->dstId_ = tmpId;
+      AgentAppId tmpId = proto_->srcId(bhs);
+      proto_->setSrcId(bhs, proto_->dstId(bhs));
+      proto_->setDstId(bhs, tmpId);
     }
-    iov.iov_base = bhs;
-    iov.iov_len = sizeof(AgentBhs);
-    SendMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
+    proto_->setOpcode(bhs, Agent::AgentOpcode::AGENT_RESPONCE);
+    proto_->setRetCode(bhs, Agent::AgentErrno::AGENT_E_PEER_OFFLINE);
+    proto_->setPduLen(bhs, 0);
+
+    bhs.SerializeToArray(c->rxIov_[0].iov_base, AGENT_HEAD_LEN);
+
+    SendMsg(c->fd(), c->rxIov_, 1, MSG_NOSIGNAL | MSG_WAITALL);
   }
 }
 
 void AgentServer::handleAgentBhs(ConnectionPtr c) {
-  AgentBhs *bhs = static_cast<AgentBhs *>(c->rxIov_[0].iov_base);
-  debugAgentBhs(bhs);
 
-  switch (bhs->cmd_) {
-    case AGENT_LOGIN_REQUEST:
-      handleAgentLogin(c);
+  MSF_INFO << "handleAgentBhs:";
+
+  Agent::AgentBhs bhs;
+  bhs.ParseFromArray(c->rxIov_[0].iov_base, AGENT_HEAD_LEN);
+  proto_->debugBhs(bhs);
+
+  MSF_INFO << "AgentCommand: " << proto_->command(bhs);
+  switch (static_cast<AgentCommand>(proto_->command(bhs))) {
+    case Agent::AGENT_LOGIN_REQUEST:
+      handleAgentLogin(c, bhs);
       break;
     default:
-      if (bhs->dataLen_ > 0) {
-        handleAgentPayLoad(c);
+      if (proto_->pduLen(bhs) > 0) {
+        handleAgentPayLoad(c, bhs);
       }
-      handleAgentRequest(c);
+      handleAgentRequest(c, bhs);
       break;
   }
   mpool_->free(c->rxIov_[0].iov_base);
-  if (c->rxIov_[1].iov_base) {
+  if (c->rxIov_[1].iov_len) {
     mpool_->free(c->rxIov_[1].iov_base);
   }
+  c->rxIov_[0].iov_base = nullptr;
+  c->rxIov_[1].iov_base = nullptr;
+  c->rxIov_[0].iov_len = 0;
+  c->rxIov_[1].iov_len = 0;
 }
 
 void AgentServer::readConn(ConnectionPtr c) {
@@ -320,25 +332,25 @@ void AgentServer::readConn(ConnectionPtr c) {
     return;
   }
 
+  c->rxWanted_ = AGENT_HEAD_LEN;
   MSF_INFO << "Read conn for fd: " << c->fd() << " wanted: " << c->rxWanted_;
-  // if (c->rxWanted_ == 0) 
   {
-    c->rxWanted_ = sizeof(AgentBhs);
-    AgentBhs *bhs = static_cast<AgentBhs *>(mpool_->alloc(c->rxWanted_));
-    if (!bhs) {
+    void *head = mpool_->alloc(AGENT_HEAD_LEN);
+    if (!head) {
       //Fixme: drian specific size payload
       DrianData(c->fd(), 1024);
       return;
     }
-    memset(bhs, 0, c->rxWanted_);
-    c->rxIov_[0].iov_base = bhs;
-    c->rxIov_[0].iov_len = c->rxWanted_;
+    memset(head, 0, AGENT_HEAD_LEN);
+    c->rxIov_[0].iov_base = head;
+    c->rxIov_[0].iov_len = AGENT_HEAD_LEN;
   }
 
-  if (!handleRxIORet(
-          c, RecvMsg(c->fd(), c->rxIov_, 1, MSG_NOSIGNAL | MSG_WAITALL))) {
-    return;
-  }
+  RecvMsg(c->fd(), c->rxIov_, 1, MSG_NOSIGNAL | MSG_WAITALL);
+  // if (!handleRxIORet(
+  //         c, RecvMsg(c->fd(), c->rxIov_, 1, MSG_NOSIGNAL | MSG_WAITALL))) {
+  //   return;
+  // }
 
   handleAgentBhs(c);
 }
@@ -381,6 +393,13 @@ void AgentServer::newConn(const int fd, const uint16_t event) {
   freeConns_.pop_front();
 
   MSF_INFO << "Alloc connection for fd: " << fd;
+
+   if (!proto_) {
+    proto_ = std::make_unique<AgentProto>(c, mpool_);
+    if (proto_ == nullptr) {
+      MSF_ERROR << "Alloc proto_ for agent faild";
+    }
+  }
 
   c->init(stack_->getHashLoop(), fd);
   c->setSuccCallback(std::bind(&AgentServer::succConn, this, c));

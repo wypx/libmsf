@@ -39,7 +39,7 @@ Guard::Guard()
     threadArgs.push_back(std::move(ThreadArg("AgentLoop")));
     assert(stack_->startThreads(threadArgs));
 
-    agent_ = new AgentClient(stack_->getOneLoop(), "Guard", APP_GUARD);
+    agent_ = new AgentClient(stack_->getOneLoop(), "Guard", Agent::APP_GUARD);
     assert(agent_);
 }
 
@@ -70,12 +70,13 @@ void Guard::sendPdu()
     pdu.payLen_ = 0;
     pdu.restLoad_ = &item;
     pdu.restLen_ = sizeof(item);
-    pdu.cmd_ = AGENT_READ_MOBILE_PARAM;
-    pdu.dstId_ = APP_MOBILE;
+    pdu.cmd_ = Agent::AgentCommand::AGENT_READ_MOBILE_PARAM;
+    pdu.dstId_ = Agent::AgentAppId::APP_MOBILE;
     pdu.timeOut_ = 5;
-    while (1) {
+    while (1)
+    {
         int ret = agent_->sendPdu(&pdu);
-        if (AGENT_E_AGENT_NOT_START != ret) {
+        if (AGENT_E_EXEC_SUCESS == ret || AGENT_E_PEER_OFFLINE == ret) {
             break;
         }
     }

@@ -2,55 +2,123 @@ syntax = "proto3";
 package Agent;
 
 enum AgentErrno {
-    RET_EXEC_SUCESS             = 0;
-    RET_EXEC_FAILURE            = 1;
-    RET_LOGIN_SUCESS            = 2;
-    RET_LOGIN_FAILURE           = 3;
-    RET_LOGIN_UNAUTH            = 4;
-    RET_PEER_OFFLINE            = 5;
-    RET_SEND_TIMEROUT           = 6;
-    RET_RECV_TIMEROUT           = 7;
+    AGENT_E_EXEC_SUCESS         = 0;
+    AGENT_E_EXEC_FAILURE        = 1;
+    AGENT_E_LOGIN_SUCESS        = 2;
+    AGENT_E_LOGIN_FAILURE       = 3;
+    AGENT_E_LOGIN_UNAUTH        = 4;
+    AGENT_E_PEER_OFFLINE        = 5;
+    AGENT_E_SEND_TIMEROUT       = 6;
+    AGENT_E_RECV_TIMEROUT       = 7;
+    AGENT_E_CANNOT_IN_LOOP      = 8;
+    AGENT_E_AGENT_NOT_START     = 9;
+    AGENT_E_ENCODE_FAILURE      = 10;
+    AGENT_E_DECODE_FAILURE      = 11;
 };
 
 enum AgentCommand {
-    AGENT_LOGIN_REQUEST        = 0;
-    AGENT_LOGIN_RESPONSE       = 1;
+    AGENT_REQUEST_START         = 0x00000000;
+    AGENT_LOGIN_REQUEST         = 0x00000001;
+    AGENT_LOGIN_RESPNCE         = 0x00000002;
+    AGENT_LOGOUT_REQUEST        = 0x00000003;
+    AGENT_LOGOUT_RESPONCE       = 0x00000004;
 
-    AGENT_LOGOUT_REQUEST       = 2;
-    AGENT_LOGOUT_RESPONSE      = 3;
+    AGENT_NOPIN_REQUEST         = 0x00000005;
+    AGENT_NOPIN_RESPONCE        = 0x00000006;
 
-    AGENT_NOPIN_REQUEST        = 4;
-    AGENT_NOPIN_REPONSE        = 5;
+    AGENT_DEBUG_ON_REQUEST      = 0x00000007;
+    AGENT_DEBUG_OFF_REQUEST     = 0x00000008;
 
-    AGENT_READ_REQUEST         = 6;
-    AGENT_READ_RESPONCE        = 7;
+    AGENT_GET_FRIENDS_REQUEST   = 0x00000009;
+    AGENT_GET_FRIENDS_RESPONCE  = 0x0000000a;
 
-    AGENT_WRITE_REQUEST        = 8;
-    AGENT_WRITE_RESPONCE       = 9;
+    AGENT_SEND_MSG_REQUEST      = 0x0000000b;
+    AGENT_SEND_MSG_RESPONCE     = 0x0000000c;
+
+    AGENT_FRIENDS_NOTIFY        = 0x0000000d;
+    AGENT_MESSAGE_NOTIFY        = 0x0000000e;
+
+    AGENT_READ_REQUEST          = 0x0000000f;
+    AGENT_WRITE_REQUEST         = 0x00000010;
+
+    AGENT_READ_MOBILE_PARAM     = 0x00000011;
+    AGENT_WRITE_MOBILE_PARAM    = 0x00000012;
 };
 
 enum AgentAppId {
-    APP_GUARD    = 0;
+    APP_ONESELF  = 0;
     APP_AGENT    = 1;
-    APP_MOBILE   = 2;
-    APP_DLNA     = 3;
-    APP_UPNP     = 4;
-    APP_DDNS     = 5;
+    APP_GUARD    = 2;
+    APP_MOBILE   = 3;
+    APP_DLNA     = 4;
+    APP_UPNP     = 5;
+    APP_DDNS     = 6;
 };
 
-message AgentBhs {
-    uint32 version              = 1;        /* high 8 major ver, low 8 bug and func update */
-    uint32 magic                = 2;        /* Assic:U:0x55 I:0x49 P:0x50 C:0x43 */
-
-    AgentAppId srcId            = 3;
-    AgentAppId dstId            = 4;
-    AgentCommand cmd            = 5;
-    uint32 sessNo               = 6;
-    uint32 dataLen              = 7;
-    uint32 restLen              = 8;
-    uint32 checkSum             = 9;       /* Message Header checksum */
-    uint32 timeout              = 10;      /* Timeout wait for data */
+enum AgentPacket {
+    AGENT_PACKET_BINNARY    = 0;
+    AGENT_PACKET_JSON       = 1;
+    AGENT_PACKET_PROTOBUF   = 2;
+    AGENT_PACKET_BUTT       = 3;
 };
+
+enum AgentOpcode {
+    AGENT_REQUEST    = 0;
+    AGENT_RESPONCE   = 1;
+};
+
+
+// Protobuf data type
+// https://blog.csdn.net/superbfly/article/details/17920383
+// https://www.cnblogs.com/tohxyblog/p/8974763.html
+// https://blog.csdn.net/qing666888/article/details/79389964
+/**
+ * 消息头
+ * MsgHead为固定15字节的头部，当AgentBhs不等于20字节时，消息发送将出错。
+ * 在proto2版本,AgentBhs为15字节总是成立，cmd、seq、len都是required；
+ * 但proto3版本,AgentBhs为15字节则必须要求cmd、seq、len均不等于0，否则无法正确进行收发编解码。
+ */
+ message AgentBhs {
+    /* |63    55      47     39      31      23      15      8      0|
+     * |<-  macgic  ->|version|encrypt|<-          checksum        ->|
+     * |<-  srcid   ->|<-   dstid   ->|<-      sessno / retcode    ->|
+     * |<-  cmd     ->| opcode(1B)  ->|<-          datalen        -->|
+     * */
+    fixed64 verify  = 1;
+    fixed64 router  = 2;
+    fixed64 command = 3;
+}
+
+// message AgentRequest
+// {
+//     AgentAppId  src_id      = 1;
+//     AgentAppId  dst_id      = 2;
+//     AgentAppId  route_id    = 3;    /* Router id */
+//     string route_info       = 4;    /* Router str when route_id cannot express */
+//     uint32      length      = 5;    /* Request data length */
+// }
+
+// message AgentResponse
+// {
+//     AgentErrno ret_code     = 1;      /* Error happen */
+//     bytes ret_msg           = 2;      /* Error message, ascii or utf8 and etc */
+//     bool  last_rsp          = 3;      /* Last responce */
+// }
+
+// message AgentPdu
+// {
+//     oneof AgentType
+//     {
+//         AgentRequest request         = 1;
+//         AgentResponse responce       = 2;
+//     }
+//     bytes msg                   = 3;    /* Message body data */
+// }
+
+// message AgentMsg {
+//     AgentBhs    bhs = 1;
+//     AgentPdu    pdu = 2;
+// }
 
 message LoginRequest {
     string  name                = 1;
@@ -59,5 +127,35 @@ message LoginRequest {
 };
 
 message LoginReponse {
-    AgentErrno ret              = 1;
+    AgentErrno ret_code     = 1;      /* Error happen */
+    bytes ret_msg           = 2;      /* Error message, ascii or utf8 and etc */
+    fixed32 ttl             = 3;
 };
+
+enum FriendStatus {
+    IDLE = 0;
+    BUSY = 1;
+};
+
+message Friend {
+    bytes name  = 1;
+    bool  online = 2;
+    FriendStatus status = 3;
+}
+message GetFriendsResponse {
+    repeated Friend  friends  = 1;
+}
+message SendMessageRequest {
+    bytes receiver = 1;
+    bytes  text  = 2;
+}
+message FriendNotification {
+    bytes name  = 1;
+    bool online = 2;
+}
+
+message MessageNotification {
+    bytes sender = 1;
+    bytes text = 2;
+    string timestamp = 3;
+}

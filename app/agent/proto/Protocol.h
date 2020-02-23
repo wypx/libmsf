@@ -35,7 +35,7 @@ extern "C" {
 
 
 /* Note: 0x1 - 0x10 is reseved id */
-
+#if 0
 enum AgentAppId {
     APP_AGENT    = 0,
     APP_GUARD    = 1,
@@ -44,7 +44,6 @@ enum AgentAppId {
     APP_UPNP     = 4,
     APP_DDNS     = 5
 };
-
 enum AgentErrno {
     AGENT_E_EXEC_SUCESS         = 0,
     AGENT_E_EXEC_FAILURE        = 1,
@@ -82,6 +81,7 @@ enum AgentOpcode {
     AGENT_RESPONCE   = 1
 };
 
+
 struct AgentBhs {
     uint32_t version_;/* high 8 major ver, low 8 bug and func update */
     uint32_t magic_;  /* Assic:U:0x55 I:0x49 P:0x50 C:0x43 */
@@ -105,15 +105,17 @@ struct AgentLogin {
     bool     chap_;
 } MSF_PACKED_MEMORY;
 
-struct AgentPdu {
-    enum AgentAppId   dstId_;
-    enum AgentCommand cmd_;
-    uint32_t    timeOut_;
-    void     *payLoad_;
-    uint32_t    payLen_;
-    void     *restLoad_;
-    uint32_t    restLen_;
-} MSF_PACKED_MEMORY;
+#endif
+
+// struct AgentPdu {
+//     enum AgentAppId   dstId_;
+//     enum AgentCommand cmd_;
+//     uint32_t    timeOut_;
+//     void     *payLoad_;
+//     uint32_t    payLen_;
+//     void     *restLoad_;
+//     uint32_t    restLen_;
+// } MSF_PACKED_MEMORY;
 
 #ifdef __cplusplus
 }

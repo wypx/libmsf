@@ -19,6 +19,7 @@
 #include <memory>
 #include <functional>
 
+#include <base/Buffer.h>
 #include <sock/Socket.h>
 #include <event/Event.h>
 #include <event/EventLoop.h>
@@ -125,6 +126,10 @@ public:
 
     uint64_t          lastActiveTime_;
 
+ //不用处理发送和接收,这样处理更简单
+    Buffer            readBuffer_;
+    Buffer            writeBuffer_;
+    
     struct iovec      rxIov_[2]; /* RX direction only support recv one head or one body */
     uint32_t          rxWanted_; /* One len of head or body */
     uint32_t          rxRecved_; /* One len of head or body has recv*/

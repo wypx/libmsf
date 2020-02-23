@@ -21,6 +21,7 @@
 #include <event/EventLoop.h>
 #include <event/EventStack.h>
 #include <proto/Protocol.h>
+#include <proto/AgentProto.h>
 #include <sock/Acceptor.h>
 #include <sock/Connector.h>
 
@@ -117,7 +118,7 @@ class AgentServer : public Noncopyable {
 
   std::mutex mutex_;
   /* Mutiple connections supported, such as tcp, udp, unix, event fd and etc*/
-  std::map<enum AgentAppId, ConnectionPtr> activeConns_;
+  std::map<Agent::AgentAppId, ConnectionPtr> activeConns_;
   std::list<ConnectionPtr> freeConns_;
   uint32_t connPerAlloc_;
   std::atomic_uint64_t connId_; /* increment connection id for server register*/
@@ -148,6 +149,8 @@ class AgentServer : public Noncopyable {
 
   std::list<std::shared_ptr<Acceptor>> actors_;
 
+  std::unique_ptr<AgentProto> proto_;
+
   std::string confFile_;
   std::string logFile_;
 
@@ -155,9 +158,9 @@ class AgentServer : public Noncopyable {
   bool handleTxIORet(ConnectionPtr c, const int ret);
 
   void handleAgentBhs(ConnectionPtr c);
-  void handleAgentLogin(ConnectionPtr c);
-  void handleAgentPayLoad(ConnectionPtr c);
-  void handleAgentRequest(ConnectionPtr c);
+  void handleAgentLogin(ConnectionPtr c, Agent::AgentBhs & bhs);
+  void handleAgentPayLoad(ConnectionPtr c, Agent::AgentBhs & bhs);
+  void handleAgentRequest(ConnectionPtr c, Agent::AgentBhs & bhs);
 
   void succConn(ConnectionPtr c);
   void readConn(ConnectionPtr c);

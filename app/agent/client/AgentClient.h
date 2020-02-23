@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_CLI_AGENT_H__
-#define __MSF_CLI_AGENT_H__
+#ifndef AGENT_CLIENT_AGENTCLIENT_H
+#define AGENT_CLIENT_AGENTCLIENT_H
 
 #include <sys/socket.h>
 #include <unistd.h>
@@ -19,13 +19,12 @@
 #include <functional>
 #include <iostream>
 #include <string>
-// #include <sys/uio.h>
-// #include <sys/socket.h>
 #include <base/CountDownLatch.h>
 #include <base/GccAttr.h>
+
 #include <base/MemPool.h>
 #include <event/EventLoop.h>
-#include <proto/Protocol.h>
+#include <proto/AgentProto.h>
 #include <sock/Connector.h>
 
 using namespace MSF::BASE;
@@ -36,9 +35,7 @@ using namespace MSF::AGENT;
 namespace MSF {
 namespace AGENT {
 
-typedef std::function<void(char* data, const uint32_t len,
-                           const AgentCommand cmd)>
-    AgentCb;
+typedef std::function<void(char *data, uint32_t *len, const AgentCommand cmd)> AgentCb;
 
 enum AgentType {
   kAgentUnix,
@@ -85,19 +82,30 @@ struct Chap {
 #define ITEM_MAX_ALLOC 64
 
 struct AgentCmd {
-  struct AgentBhs bhs_;
   uint32_t state_;
   CountDownLatch latch_;
-  // std::condition_variable ackSem_; /*semaphore used in queue*/
-
   AgentCb doneCb_; /*callback called in thread pool*/
 
-  void* buffer_;
-  uint32_t usedLen_;
+  Agent::AgentBhs bhs_;
+  struct iovec iov[2];
   /* https://blog.csdn.net/ubuntu64fan/article/details/17629509 */
   /* ref_cnt aim to solve wildpointer and object, pointer retain */
   uint32_t refCnt_;
+  Agent::AgentErrno retCode_;
+  uint32_t timeOut_;
   bool needAck_;
+
+  void addHead(void *head, const uint32_t len)
+  {
+    iov[0].iov_base = head;
+    iov[0].iov_len = len;
+  }
+
+  void addBody(void *body, const uint32_t len)
+  {
+    iov[1].iov_base = body;
+    iov[1].iov_len = len;
+  }
 
   AgentCmd(const AgentCb& cb = AgentCb()) : latch_(1) {
     doneCb_ = std::move(cb);
@@ -115,12 +123,12 @@ class AgentClient {
  public:
   explicit AgentClient(EventLoop *loop,
                       const std::string& name,
-                      const enum AgentAppId cid,
+                      const Agent::AgentAppId cid,
                       const std::string& host = "127.0.0.1",
                       const uint16_t port = 8888);
   explicit AgentClient(EventLoop *loop,
                       const std::string& name,
-                      const enum AgentAppId cid,
+                      const Agent::AgentAppId cid,
                       const std::string& srvUnixPath,
                       const std::string& cliUnixPath);
   ~AgentClient();
@@ -138,16 +146,16 @@ class AgentClient {
   std::string zkAddr_;
   uint16_t zkPort_;
   std::vector<std::tuple<std::string, uint16_t>> zkServer_;
-  std::atomic_uint64_t msgSeq_; /*for client: ack seq num*/
+  std::atomic_uint16_t msgSeq_; /*for client: ack seq num*/
   int eventFd_;
 
   std::string name_;
-  enum AgentAppId cid_;
+  Agent::AgentAppId cid_;
 
   AgentCb reqCb_;
   AgentCb ackCb_;
 
-  AgentBhs bhs_;
+  Agent::AgentBhs bhs_;
   enum IOState ioState;
   enum SendStage _sendStage;
   enum RecvStage _recvStage;
@@ -157,18 +165,18 @@ class AgentClient {
   struct iovec _rxIOV[MAX_CONN_IOV_SLOT];
   struct iovec _txIOV[MAX_CONN_IOV_SLOT];
 
+
   MemPool* mpool_;
   std::list<struct AgentCmd*> freeCmdList_;
   std::list<struct AgentCmd*> txCmdList_;  /* queue of tx cmd to handle*/
   std::list<struct AgentCmd*> txBusyList_; /* queue of tx cmd is handling */
-  std::map<uint32_t, struct AgentCmd*>
-      ackCmdMap_; /* queue of ack cmd to handle*/
+  std::map<uint32_t, struct AgentCmd*> ackCmdMap_;
 
-  std::unique_ptr<Connector> conn_;
+  std::unique_ptr<AgentProto> proto_;
+  ConnectionPtr conn_;
   bool reConnect_;  /* Enable reconnct agent server*/
   bool reConnecting_;
  private:
-  inline void debugAgentBhs(struct AgentBhs *bhs);
   struct AgentCmd* allocCmd(const uint32_t len);
   void freeCmd(struct AgentCmd* cmd);
   void connectAgent();
@@ -177,8 +185,8 @@ class AgentClient {
   bool loginAgent();
   void handleTxCmd();
   void handleRxCmd();
-  void handleRequest(AgentBhs *bhs);
-  void handleResponce(AgentBhs *bhs);
+  void handleRequest(Agent::AgentBhs & bhs);
+  void handleResponce(Agent::AgentBhs & bhs);
   bool handleIORet(const int ret);
 };
 

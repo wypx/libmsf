@@ -30,6 +30,7 @@ static inline MSF_CONST_CALL bool isPowerOf2(uint32_t n)
 }
 
 static struct MemSlab _DefaultMemSlab_[] = {
+    MemSlab(MEMBLK_32B, 4, 1024, 8),
     MemSlab(MEMBLK_64B, 4, 1024, 8),
     MemSlab(MEMBLK_128B, 4, 1024, 8),
     MemSlab(MEMBLK_256B, 4, 1024, 8),
@@ -45,7 +46,7 @@ static struct MemSlab _DefaultMemSlab_[] = {
 
 /* every block size in cmd mem pool */
 static const uint32_t _MemBlkSizeArray_[MEMBLK_MAX] = 
-    { 64, 128, 256, 512, 1024, 2048, 4096, 8096,
+    { 32, 64, 128, 256, 512, 1024, 2048, 4096, 8096,
       1024 * 1024 * 1, 1024 * 1024 * 2, 1024 * 1024 * 1024 };
 
 enum MemBlkIdx MemPool::getMemBlkIdx(const uint32_t size)
@@ -106,10 +107,10 @@ bool MemPool::createSlab()
                 // if (mem_start_ == MAP_FAILED) {
                 // }
             }
-            MSF_DEBUG << "BlkIdx: " << slab._blkIdx
-                    << " BlkSize: " << alignSize
-                    << " BlkBuff: " << blk._buffer
-                    << " SlabAddr: " << &slab;
+            // MSF_DEBUG << "BlkIdx: " << slab._blkIdx
+            //         << " BlkSize: " << alignSize
+            //         << " BlkBuff: " << blk._buffer
+            //         << " SlabAddr: " << &slab;
             blk._blkIdx = slab._blkIdx;
             slab._freeBlkList.push_back(std::move(blk));
             //https://blog.csdn.net/fengbingchun/article/details/70406274

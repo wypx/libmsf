@@ -1,6 +1,6 @@
 
 #include <encrypt/Sha1.h>
-#include <base/Bitops.h>
+#include <base/Endian.h>
 
 using namespace MSF::BASE;
 

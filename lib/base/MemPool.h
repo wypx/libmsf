@@ -43,6 +43,7 @@ namespace BASE {
 
 enum MemBlkIdx
 {
+    MEMBLK_32B,
     MEMBLK_64B,
     MEMBLK_128B,
     MEMBLK_256B,
@@ -54,7 +55,7 @@ enum MemBlkIdx
     MEMBLK_1M,      /* huge pages */
     MEMBLK_2M,      /* huge pages */
     MEMBLK_1G,      /* huge pages */
-    MEMBLK_MAX = 11,
+    MEMBLK_MAX = 12,
     MEMBLK_ZERO = UINT32_MAX
 };
 

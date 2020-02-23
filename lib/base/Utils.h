@@ -165,6 +165,14 @@ inline To down_cast(From* f)                     // so we only accept pointers
   return static_cast<To>(f);
 }
 
+// struct ExitCaller: private Noncopyable {
+//     ~ExitCaller() { functor_(); }
+//     ExitCaller(std::function<void()>&& functor): functor_(std::move(functor)) {}
+// private:
+//     std::function<void()> functor_;
+// };
+
+
 } /**************************** end namespace BASE ****************************/
 } /**************************** end namespace MSF  ****************************/
 
@@ -195,6 +203,7 @@ inline int get_value()
 
 return 0;
 }
+
 
 
 #endif

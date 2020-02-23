@@ -15,6 +15,7 @@ link_directories(
     ${PROJECT_SOURCE_DIR}/../build/lib/msf_base/
     ${PROJECT_SOURCE_DIR}/../build/lib/msf_sock/
     ${PROJECT_SOURCE_DIR}/../build/lib/msf_event/
+    ${PROJECT_SOURCE_DIR}/../build/app/msf_proto/
     ${PROJECT_SOURCE_DIR}/../build/app/msf_agent/
     ${PROJECT_SOURCE_DIR}/../build/lib/
 )

@@ -197,6 +197,23 @@ void ShutdownWrite(const int fd)
 
 }
 
+bool SocketIsConnected(const int fd) {
+  struct sockaddr junk;
+  socklen_t length = sizeof(junk);
+  memset(&junk, 0, sizeof(junk));
+  return getpeername(fd, &junk, &length) == 0;
+}
+
+//https://www.cnblogs.com/tinaluo/p/7792152.html
+bool SocketIsListener(const int fd) {
+  int val;
+  socklen_t len = sizeof(val);
+  if (getsockopt(fd, SOL_SOCKET, SO_ACCEPTCONN, &val, &len) < 0) {
+    return false;
+  }
+  return true;
+}
+
 void DebugSocket(const int fd)
 {
     int ret;

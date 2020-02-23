@@ -14,10 +14,12 @@
 
 #include <base/Logger.h>
 #include <event/Event.h>
+#include <proto/AgentProto.h>
 
 #include <cassert>
 
 using namespace MSF::EVENT;
+using namespace MSF::AGENT;
 
 namespace MSF {
 namespace AGENT {
@@ -25,26 +27,9 @@ namespace AGENT {
 #define DEFAULT_SRVAGENT_IPADDR "127.0.0.1"
 #define DEFAULT_SRVAGENT_PORT 8888
 
-inline void AgentClient::debugAgentBhs(struct AgentBhs *bhs) {
-  MSF_DEBUG << "###################################";
-  MSF_DEBUG << "bhs:";
-  MSF_DEBUG << "bhs version: " << bhs->version_;
-  MSF_DEBUG << "bhs magic:  " << bhs->magic_;
-  MSF_DEBUG << "bhs srcid: " << bhs->srcId_;
-  MSF_DEBUG << "bhs dstid: " << bhs->dstId_;
-  MSF_DEBUG << "bhs cmd: " << bhs->cmd_;
-  MSF_DEBUG << "bhs seq: " << bhs->sessNo_;
-  MSF_DEBUG << "bhs errcode: " << bhs->retCode_;
-  MSF_DEBUG << "bhs datalen: " << bhs->dataLen_;
-  MSF_DEBUG << "bhs restlen: " << bhs->restLen_;
-  MSF_DEBUG << "bhs checksum: " << bhs->checkSum_;
-  MSF_DEBUG << "bhs timeout: " << bhs->timeOut_;
-  MSF_DEBUG << "###################################";
-}
-
 AgentClient::AgentClient(EventLoop *loop,
                         const std::string & name,
-                        const enum AgentAppId cid,
+                        const Agent::AgentAppId cid,
                         const std::string & host, const uint16_t port)
     : started_(false),
       loop_(loop),
@@ -64,7 +49,7 @@ AgentClient::AgentClient(EventLoop *loop,
 
 AgentClient::AgentClient(EventLoop *loop,
                         const std::string & name,
-                        const enum AgentAppId cid,
+                        const Agent::AgentAppId cid,
                         const std::string & srvUnixPath,
                         const std::string & cliUnixPath)
     : started_(false),
@@ -85,25 +70,27 @@ AgentClient::AgentClient(EventLoop *loop,
 
 AgentClient::~AgentClient() {
   closeAgent();
+  // conn_->reset();
   conn_ = nullptr;
   delete mpool_;
+  mpool_ = nullptr;
 }
 
 struct AgentCmd *AgentClient::allocCmd(const uint32_t len) {
-  void *buffer = nullptr;
-  if (len) {
-    buffer = mpool_->alloc(len);
-    if (unlikely(buffer == nullptr)) {
-      MSF_INFO << "Alloc cmd buffer failed";
-      return nullptr;
-    }
-  }
+  // void *buffer = nullptr;
+  // if (len) {
+  //   // buffer = mpool_->alloc(len);
+  //   // if (unlikely(buffer == nullptr)) {
+  //   //   MSF_INFO << "Alloc cmd buffer failed";
+  //   //   return nullptr;
+  //   // }
+  // }
 
   if (unlikely(freeCmdList_.empty())) {
     for (uint32_t i = 0; i < ITEM_PER_ALLOC; ++i) {
       struct AgentCmd *tmp = new AgentCmd();
       if (tmp == nullptr) {
-        mpool_->free(buffer);
+        // mpool_->free(buffer);
         return nullptr;
       }
       freeCmdList_.push_back(tmp);
@@ -111,7 +98,6 @@ struct AgentCmd *AgentClient::allocCmd(const uint32_t len) {
   }
 
   struct AgentCmd *cmd = freeCmdList_.front();
-  cmd->buffer_ = buffer;
   cmd->latch_.setCount(1);
   freeCmdList_.pop_front();
 
@@ -120,24 +106,27 @@ struct AgentCmd *AgentClient::allocCmd(const uint32_t len) {
 
 void AgentClient::freeCmd(struct AgentCmd *cmd) {
   if ((--cmd->refCnt_) < 0) {
-    mpool_->free(cmd->buffer_);
+    mpool_->free(cmd->iov[0].iov_base);
+    mpool_->free(cmd->iov[1].iov_base);
+    cmd->iov[0].iov_base = nullptr;
+    cmd->iov[1].iov_base = nullptr;
+    cmd->iov[0].iov_len = 0;
+    cmd->iov[1].iov_len = 0;
     freeCmdList_.push_back(cmd);
   }
 }
 
 void AgentClient::connectAgent() {
-
-  MSF_INFO << "Agent client is connecting.";
-
   if (started_) {
     MSF_INFO << "Agent client has been connected.";
     return;
   }
+  MSF_INFO << "Agent client is connecting.";
 
   if (!conn_) {
     conn_ = std::make_unique<Connector>();
     if (conn_ == nullptr) {
-      MSF_ERROR << "Alloc event for agent faild";
+      MSF_ERROR << "Alloc conn for agent faild";
       return;
     }
   }
@@ -153,6 +142,16 @@ void AgentClient::connectAgent() {
     reConnecting_ = false;
     closeAgent();
     return;
+  }
+
+  if (!proto_) {
+    proto_ = std::make_unique<AgentProto>(conn_, mpool_);
+    if (proto_ == nullptr) {
+      MSF_ERROR << "Alloc proto_ for agent faild";
+      reConnecting_ = false;
+      closeAgent();
+      return;
+    }
   }
 
   conn_->init(loop_, conn_->fd());
@@ -185,43 +184,64 @@ void AgentClient::closeAgent() {
 }
 
 bool AgentClient::loginAgent() {
-  struct AgentBhs *bhs = nullptr;
-  struct AgentLogin *login = nullptr;
-  struct AgentCmd *req = nullptr;
 
-  req = allocCmd(sizeof(struct AgentLogin));
+  Agent::LoginRequest login;
+  login.set_name(name_);
+  login.set_hash(0);
+  login.set_chap(false);
+
+  MSF_INFO << "Login pb size: " << login.ByteSizeLong();
+
+  struct AgentCmd *req = allocCmd(login.ByteSizeLong());
   if (req == nullptr) {
     MSF_INFO << "Alloc login cmd buffer failed";
     return false;
   }
+  req->timeOut_ = MSF_NONE_WAIT;
 
-  bhs = &req->bhs_;
-  memset(bhs, 0, sizeof(AgentBhs));
-  login = (struct AgentLogin *)req->buffer_;
-  bhs->magic_ = AGENT_MAGIC;
-  bhs->version_ = AGENT_VERSION;
-  bhs->sessNo_ = (++msgSeq_) % UINT64_MAX;
-  bhs->timeOut_ = MSF_NONE_WAIT;
-  bhs->cmd_ = AGENT_LOGIN_REQUEST;
-  bhs->srcId_ = cid_;
-  bhs->dstId_ = APP_AGENT;
-  bhs->dataLen_ = sizeof(struct AgentLogin);
-  memset(login->name_, 0, sizeof(login->name_));
-  memcpy(login->name_, name_.c_str(),
-         std::min(name_.size(), sizeof(login->name_)));
-  login->chap_ = false;
-  req->usedLen_ = sizeof(struct AgentLogin);
-  // req->doneCb_ = reqCb_;
+  /* Default check param, not change usually */
+  proto_->setVersion(bhs_, kAgentVersion);
+  proto_->setEncrypt(bhs_, kAgentEncryptZip);
+  proto_->setMagic(bhs_, kAgentMagic);
 
-  debugAgentBhs(bhs);
+  uint16_t sessNo = (++msgSeq_) % UINT16_MAX;
 
-  req->doIncRef();
-  ackCmdMap_[bhs->sessNo_] = req;
-  txCmdList_.push_back(req);
+  MSF_INFO << "sessNo: " << sessNo;
+  MSF_INFO << "Bhs encrypt: " << std::hex << (uint32_t)proto_->encrypt(bhs_);
 
-  conn_->enableWriting();
-  loop_->wakeup();
+  // 不压缩也不加密
+  // https://blog.csdn.net/u012707739/article/details/80084440?depth_1.utm_source=distribute.pc_relevant.none-task&utm_source=distribute.pc_relevant.none-task
+  // https://blog.csdn.net/carbon06/article/details/80856436?utm_source=blogxgwz6
+  // if ((uint32_t)proto_->encrypt(bhs_) == 0)
+  {
+    proto_->setSrcId(bhs_, cid_);
+    proto_->setDstId(bhs_, Agent::AgentAppId::APP_AGENT);
+    proto_->setCommand(bhs_, Agent::AgentCommand::AGENT_LOGIN_REQUEST);
+    proto_->setOpcode(bhs_, Agent::AgentOpcode::AGENT_REQUEST);
+    proto_->setSessNo(bhs_, sessNo);
+    proto_->setPduLen(bhs_, login.ByteSizeLong());
 
+    proto_->debugBhs(bhs_);
+    MSF_INFO << "Bhs pb size: " << bhs_.ByteSizeLong();
+
+    void *head = mpool_->alloc(AGENT_HEAD_LEN);
+    assert(head);
+    bhs_.SerializeToArray(head, AGENT_HEAD_LEN);
+
+    req->addHead(head, AGENT_HEAD_LEN);
+    /* 无包体(心跳包等),在proto3的使用上以-1表示包体长度为0 */
+    void *body = mpool_->alloc(login.ByteSizeLong());
+    assert(body);
+    login.SerializeToArray(body, login.ByteSizeLong());
+    req->addBody(body, login.ByteSizeLong());
+
+    req->doIncRef();
+    ackCmdMap_[sessNo] = req;
+    txCmdList_.push_back(req);
+
+    conn_->enableWriting();
+    loop_->wakeup();
+  }
   return true;
 }
 
@@ -244,21 +264,16 @@ void AgentClient::handleTxCmd() {
   if (txCmdList_.empty()) {
     return;
   }
-  struct iovec iov[2];
   uint32_t iovCnt = 1;
   for (auto cmd : txCmdList_) {
-    iov[0].iov_base = &cmd->bhs_;
-    iov[0].iov_len = sizeof(struct AgentBhs);
-
-    if (cmd->usedLen_) {
-      iov[1].iov_base = cmd->buffer_;
-      iov[1].iov_len = cmd->usedLen_;
-      iovCnt++;
+    if (cmd->iov[1].iov_len) {
+      iovCnt = 2;
     }
-    if (!handleIORet(
-            SendMsg(conn_->fd(), iov, iovCnt, MSG_WAITALL | MSG_NOSIGNAL))) {
-      return;
-    };
+    // if (!handleIORet(
+    //         SendMsg(conn_->fd(), cmd->iov, iovCnt, MSG_WAITALL | MSG_NOSIGNAL))) {
+    //   return;
+    // };
+    SendMsg(conn_->fd(), cmd->iov, iovCnt, MSG_WAITALL | MSG_NOSIGNAL);
     freeCmd(cmd);
   }
   txCmdList_.clear();
@@ -266,61 +281,74 @@ void AgentClient::handleTxCmd() {
 }
 
 void AgentClient::handleRxCmd() {
-  struct iovec iov = {&bhs_, sizeof(AgentBhs)};
-  if (!handleIORet(RecvMsg(conn_->fd(), &iov, 1, MSG_WAITALL | MSG_NOSIGNAL))) {
-    return;
-  };
-  debugAgentBhs(&bhs_);
+  MSF_INFO << "Recv msg from fd: " << conn_->fd(); 
+  void *head = mpool_->alloc(AGENT_HEAD_LEN);
+  assert(head);
+  struct iovec iov = {head, AGENT_HEAD_LEN};
+  RecvMsg(conn_->fd(), &iov, 1, MSG_WAITALL | MSG_NOSIGNAL);
+  // if (!handleIORet(RecvMsg(conn_->fd(), &iov, 1, MSG_WAITALL | MSG_NOSIGNAL))) {
+  //   return;
+  // };
+  Agent::AgentBhs bhs;
+  bhs.ParseFromArray(head, AGENT_HEAD_LEN);
+  proto_->debugBhs(bhs);
 
-  if (bhs_.opCode_ == AGETN_REQUEST) {
-    handleRequest(&bhs_);
+  mpool_->free(head);
+
+  if (proto_->opCode(bhs) == Agent::AgentOpcode::AGENT_REQUEST) {
+    handleRequest(bhs);
   } else {
-    handleResponce(&bhs_);
+    handleResponce(bhs);
   }
-
-  // ackCmdMap_
 }
 
-void AgentClient::handleRequest(AgentBhs *bhs) {
+void AgentClient::handleRequest(Agent::AgentBhs & bhs) {
    
-    if (bhs->dataLen_ || bhs->restLen_) {
-      uint32_t len = std::max(bhs->dataLen_, bhs->restLen_);
-      AgentCmd *cmd = allocCmd(len);
-      assert(cmd);
-
-      {
-        AgentAppId tmpId = bhs->srcId_;
-        bhs->srcId_ = bhs->dstId_;
-        bhs->dstId_ = tmpId;
-      }
-      bhs->dataLen_ = bhs->restLen_;
-      cmd->usedLen_ = bhs->restLen_;
-      bhs->restLen_ = 0;
-      bhs->opCode_ = AGENT_RESPONCE;
-      memcpy(&cmd->bhs_, bhs, sizeof(AgentBhs));
-      if (reqCb_) {
-        reqCb_(static_cast<char*>(cmd->buffer_), bhs->dataLen_, bhs->cmd_);
-      }
-
-      cmd->doIncRef();
-      txCmdList_.push_back(cmd);
-
-      conn_->enableWriting();
-      loop_->wakeup();
+   AgentCmd *cmd = allocCmd(proto_->pduLen(bhs) );
+    assert(cmd);
+    if (proto_->pduLen(bhs)) {
+        ///
     }
+
+
+    {
+      AgentAppId tmpId = proto_->srcId(bhs);
+      proto_->setSrcId(bhs, proto_->dstId(bhs));
+      proto_->setDstId(bhs, tmpId);
+    }
+    proto_->setOpcode(bhs, Agent::AgentOpcode::AGENT_RESPONCE);
+
+    uint32_t len = 0;
+
+    if (reqCb_) {
+      reqCb_(static_cast<char*>(cmd->iov[1].iov_base),
+            &len,
+            static_cast<AgentCommand>(proto_->command(bhs_)));
+    }
+    MSF_INFO << "len: " << len;
+
+    proto_->setPduLen(bhs, len);
+
+    proto_->debugBhs(bhs);
+
+    cmd->doIncRef();
+    txCmdList_.push_back(cmd);
+
+    conn_->enableWriting();
+    loop_->wakeup();
 }
-void AgentClient::handleResponce(AgentBhs *bhs)
+void AgentClient::handleResponce(Agent::AgentBhs & bhs)
 {
-  switch (bhs->cmd_) {
+  switch (static_cast<AgentCommand>(proto_->command(bhs_))) {
       case AGENT_LOGIN_REQUEST: {
-        auto itor = ackCmdMap_.find(bhs_.sessNo_);
+        auto itor = ackCmdMap_.find(proto_->sessNo(bhs));
         if (itor == ackCmdMap_.end()) {
           MSF_INFO << "Cannot find cmd in ack map";
           //清空map
           closeAgent();
         } else {
           struct AgentCmd *req = (struct AgentCmd *)itor->second;
-          if (bhs->retCode_ == AGENT_E_EXEC_SUCESS) {
+          if (proto_->retCode(bhs) == AGENT_E_EXEC_SUCESS) {
             MSF_INFO << "Login to agent successful";
             started_ = true;
             reConnecting_ = false;
@@ -334,37 +362,40 @@ void AgentClient::handleResponce(AgentBhs *bhs)
         }
       } break;
       default: {
-          auto itor = ackCmdMap_.find(bhs->sessNo_);
+          auto itor = ackCmdMap_.find(proto_->sessNo(bhs));
           if (itor != ackCmdMap_.end()) {
-    
               struct AgentCmd *req = (struct AgentCmd *)itor->second;
 
-              struct iovec iov = { req->buffer_, bhs->dataLen_ };
-              RecvMsg(conn_->fd(), &iov, 1, MSG_WAITALL | MSG_NOSIGNAL);
-
-              if (bhs->retCode_ == AGENT_E_EXEC_SUCESS) {
+              if (proto_->pduLen(bhs)) {
+                void *body = mpool_->alloc(proto_->pduLen(bhs));
+                struct iovec iov = { body, proto_->pduLen(bhs) };
+                RecvMsg(conn_->fd(), &iov, 1, MSG_WAITALL | MSG_NOSIGNAL);
+                req->addBody(body, proto_->pduLen(bhs));
+              }
+ 
+              if (proto_->retCode(bhs) == AGENT_E_EXEC_SUCESS) {
                 MSF_INFO << "Do cmd successful";
               } else {
                 MSF_INFO << "Do cmd failed";
               }
 
-              if (bhs->timeOut_) {
-                req->bhs_.retCode_ = bhs->retCode_;
+              if (req->timeOut_) {
+                // req->bhs_.retCode_ = bhs.retCode_;
                 req->latch_.countDown();
                 ackCmdMap_.erase(itor);
               } else {
-                reqCb_(static_cast<char*>(req->buffer_), bhs->dataLen_, bhs->cmd_);
+                // reqCb_(static_cast<char*>(req->buffer_), bhs->dataLen_, bhs->cmd_);
               }
               freeCmd(req);
           } else {
-              MSF_INFO << "Cannot find cmd for " <<  bhs->sessNo_;
+              MSF_INFO << "Cannot find cmd for " <<  proto_->sessNo(bhs);
           }
     } break;
   }
 }
 
 int AgentClient::sendPdu(const AgentPdu *pdu) {
-  struct AgentBhs *bhs = nullptr;
+  // struct AgentBhs *bhs = nullptr;
   struct AgentCmd *req = nullptr;
 
   if (!started_ || !loop_) {
@@ -378,27 +409,46 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
     return AGENT_E_CANNOT_IN_LOOP;
   }
 
-  req = allocCmd(std::max(pdu->payLen_, pdu->restLen_));
+  req = allocCmd(pdu->payLen_);
   if (req == nullptr) {
     MSF_INFO << "Alloc login cmd buffer failed";
     return false;
   }
 
   if (pdu->payLen_) {
-    memcpy(req->buffer_, pdu->payLoad_, pdu->payLen_);
+    void *body = mpool_->alloc(pdu->payLen_);
+    if (unlikely(body == nullptr)) {
+      MSF_INFO << "Alloc cmd buffer failed";
+      return -1;
+    }
+    if (pdu->payLen_) {
+      memcpy(body, pdu->payLoad_, pdu->payLen_);
+    }
+    req->addBody(body, pdu->payLen_);
   }
-  bhs = &req->bhs_;
-  memset(bhs, 0, sizeof(AgentBhs));
-  bhs->magic_ = AGENT_MAGIC;
-  bhs->version_ = AGENT_VERSION;
-  bhs->sessNo_ = (++msgSeq_) % UINT64_MAX;
-  bhs->timeOut_ = pdu->timeOut_;
-  bhs->cmd_ = pdu->cmd_;
-  bhs->srcId_ = cid_;
-  bhs->dstId_ = pdu->dstId_;
-  bhs->dataLen_ = pdu->payLen_;
-  bhs->restLen_ = pdu->restLen_;
-  bhs->opCode_ = AGETN_REQUEST;
+
+  uint16_t sessNo = (++msgSeq_) % UINT16_MAX;
+  proto_->setSrcId(bhs_, cid_);
+  proto_->setDstId(bhs_, pdu->dstId_);
+  proto_->setCommand(bhs_, pdu->cmd_);
+  proto_->setOpcode(bhs_, Agent::AgentOpcode::AGENT_REQUEST);
+  proto_->setSessNo(bhs_, sessNo);
+  proto_->setPduLen(bhs_, pdu->payLen_);
+
+  proto_->debugBhs(bhs_);
+  MSF_INFO << "Bhs pb size: " << bhs_.ByteSizeLong();
+
+  void *head = mpool_->alloc(AGENT_HEAD_LEN);
+  assert(head);
+  bhs_.SerializeToArray(head, AGENT_HEAD_LEN);
+
+  req->addHead(head, AGENT_HEAD_LEN);
+
+  /* 无包体(心跳包等),在proto3的使用上以-1表示包体长度为0 */
+  // void *body = mpool_->alloc(login.ByteSizeLong());
+  // assert(body);
+  // login.SerializeToArray(body, login.ByteSizeLong());
+  // req->addBody(body, login.ByteSizeLong());
 
   MSF_ERROR << "Send pdu ======>.";
   req->doIncRef();
@@ -410,7 +460,8 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
   if (pdu->timeOut_) {
 
     MSF_INFO << "=====================";
-    ackCmdMap_[bhs->sessNo_] = req;
+    req->timeOut_ = pdu->timeOut_;
+    ackCmdMap_[sessNo] = req;
     req->doIncRef();
     /* Check what happened */
     if (!req->latch_.waitFor(pdu->timeOut_)) {
@@ -419,16 +470,17 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
       return AGENT_E_RECV_TIMEROUT;
     };
 
-    MSF_INFO << "Notify peer errcode ===>" << bhs->retCode_;
+    MSF_INFO << "Notify peer errcode ===>" << proto_->retCode(bhs_);
 
-    if (likely(AGENT_E_EXEC_SUCESS == bhs->retCode_)) {
+    if (likely(AGENT_E_EXEC_SUCESS == proto_->retCode(bhs_))) {
       //pdu->restLen_ req->usedLen
-      memcpy(pdu->restLoad_, req->buffer_, pdu->restLen_);
+      memcpy(pdu->restLoad_, req->iov[0].iov_base, req->iov[0].iov_len);
     }
     freeCmd(req);
   }
   MSF_INFO << "==========*****===========";
-  return bhs->retCode_;
+  // return bhs->retCode_;
+  return 0;
 }
 
 }  // namespace AGENT

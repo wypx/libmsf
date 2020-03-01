@@ -70,13 +70,13 @@ void Guard::sendPdu()
     pdu.payLen_ = 0;
     pdu.restLoad_ = &item;
     pdu.restLen_ = sizeof(item);
-    pdu.cmd_ = Agent::AgentCommand::AGENT_READ_MOBILE_PARAM;
-    pdu.dstId_ = Agent::AgentAppId::APP_MOBILE;
+    pdu.cmd_ = Agent::Command::CMD_REQ_MOBILE_READ;
+    pdu.dstId_ = Agent::AppId::APP_MOBILE;
     pdu.timeOut_ = 5;
     while (1)
     {
         int ret = agent_->sendPdu(&pdu);
-        if (AGENT_E_EXEC_SUCESS == ret || AGENT_E_PEER_OFFLINE == ret) {
+        if (Agent::ERR_EXEC_SUCESS == ret || Agent::ERR_PEER_OFFLINE == ret) {
             break;
         }
     }

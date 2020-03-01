@@ -58,6 +58,16 @@ def MakeBuildClean(buildPath):
     os.system("cd ..")
     os.system("rm -rvf build")
 
+
+def InstallDependencies():
+    dependLibs = []
+    dependLibs.append("gcc")
+    dependLibs.append("g++")
+    dependLibs.append("cmake3")
+    dependLibs.append("libnuma-dev")
+    dependLibs.append("libprotobuf-dev")
+    dependLibs.append("protobuf-compiler")
+
 if __name__ == '__main__':
     DisplayGithub()
     # DisplayLogo()

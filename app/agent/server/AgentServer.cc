@@ -222,12 +222,12 @@ void AgentServer::handleAgentLogin(ConnectionPtr c, Agent::AgentBhs & bhs) {
   c->cid_ = static_cast<uint32_t>(proto_->srcId(bhs));
   activeConns_[proto_->srcId(bhs)] = c;
   {
-    AgentAppId tmpId = proto_->srcId(bhs);
+    Agent::AppId tmpId = proto_->srcId(bhs);
     proto_->setSrcId(bhs, proto_->dstId(bhs));
     proto_->setDstId(bhs, tmpId);
   }
-  proto_->setOpcode(bhs, Agent::AgentOpcode::AGENT_RESPONCE);
-  proto_->setRetCode(bhs, Agent::AgentErrno::AGENT_E_EXEC_SUCESS);
+  proto_->setOpcode(bhs, Agent::Opcode::OP_RSP);
+  proto_->setRetCode(bhs, Agent::Errno::ERR_EXEC_SUCESS);
   proto_->setPduLen(bhs, 0);
   proto_->debugBhs(bhs);
   bhs.SerializeToArray(c->rxIov_[0].iov_base, AGENT_HEAD_LEN);
@@ -262,7 +262,7 @@ void AgentServer::handleAgentRequest(ConnectionPtr c, Agent::AgentBhs & bhs)
     MSF_INFO << "\n Send cmd to"
               << "\n cmd: " << proto_->command(bhs)
               << "\n cid: " << peer->cid_;
-    assert(proto_->dstId(bhs) == static_cast<Agent::AgentAppId>(peer->cid_));
+    assert(proto_->dstId(bhs) == static_cast<Agent::AppId>(peer->cid_));
     //http://blog.chinaunix.net/uid-14949191-id-3967282.html
     // std::swap(bhs->srcId_, bhs->dstId_);
     // {
@@ -283,12 +283,12 @@ void AgentServer::handleAgentRequest(ConnectionPtr c, Agent::AgentBhs & bhs)
     struct iovec iov;
 
     {
-      AgentAppId tmpId = proto_->srcId(bhs);
+      Agent::AppId tmpId = proto_->srcId(bhs);
       proto_->setSrcId(bhs, proto_->dstId(bhs));
       proto_->setDstId(bhs, tmpId);
     }
-    proto_->setOpcode(bhs, Agent::AgentOpcode::AGENT_RESPONCE);
-    proto_->setRetCode(bhs, Agent::AgentErrno::AGENT_E_PEER_OFFLINE);
+    proto_->setOpcode(bhs, Agent::Opcode::OP_RSP);
+    proto_->setRetCode(bhs, Agent::Errno::ERR_PEER_OFFLINE);
     proto_->setPduLen(bhs, 0);
 
     bhs.SerializeToArray(c->rxIov_[0].iov_base, AGENT_HEAD_LEN);
@@ -306,8 +306,8 @@ void AgentServer::handleAgentBhs(ConnectionPtr c) {
   proto_->debugBhs(bhs);
 
   MSF_INFO << "AgentCommand: " << proto_->command(bhs);
-  switch (static_cast<AgentCommand>(proto_->command(bhs))) {
-    case Agent::AGENT_LOGIN_REQUEST:
+  switch (static_cast<Agent::Command>(proto_->command(bhs))) {
+    case Agent::Command::CMD_REQ_NODE_REGISTER:
       handleAgentLogin(c, bhs);
       break;
     default:

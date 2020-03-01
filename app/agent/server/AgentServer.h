@@ -118,7 +118,7 @@ class AgentServer : public Noncopyable {
 
   std::mutex mutex_;
   /* Mutiple connections supported, such as tcp, udp, unix, event fd and etc*/
-  std::map<Agent::AgentAppId, ConnectionPtr> activeConns_;
+  std::map<Agent::AppId, ConnectionPtr> activeConns_;
   std::list<ConnectionPtr> freeConns_;
   uint32_t connPerAlloc_;
   std::atomic_uint64_t connId_; /* increment connection id for server register*/

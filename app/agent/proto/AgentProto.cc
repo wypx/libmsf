@@ -41,16 +41,16 @@ const uint32_t AgentProto::checkSum(const Agent::AgentBhs & bhs) const
   return (uint32_t)(bhs.verify());
 }
 
-const Agent::AgentAppId AgentProto::srcId(const Agent::AgentBhs & bhs) const
+const Agent::AppId AgentProto::srcId(const Agent::AgentBhs & bhs) const
 {
   uint16_t sid = (uint16_t)(bhs.router() >> 48);
-  return static_cast<Agent::AgentAppId>(sid);
+  return static_cast<Agent::AppId>(sid);
 }
 
-const Agent::AgentAppId AgentProto::dstId(const Agent::AgentBhs & bhs) const
+const Agent::AppId AgentProto::dstId(const Agent::AgentBhs & bhs) const
 {
   uint16_t did = (uint16_t)(bhs.router() >> 32);
-  return static_cast<Agent::AgentAppId>(did);
+  return static_cast<Agent::AppId>(did);
 }
 
 const uint16_t AgentProto::sessNo(const Agent::AgentBhs & bhs) const
@@ -58,10 +58,10 @@ const uint16_t AgentProto::sessNo(const Agent::AgentBhs & bhs) const
   return (uint16_t)(bhs.router() >> 16);
 }
 
-const Agent::AgentErrno AgentProto::retCode(const Agent::AgentBhs & bhs) const
+const Agent::Errno AgentProto::retCode(const Agent::AgentBhs & bhs) const
 {
   uint16_t err = (uint16_t)(bhs.router());
-  return static_cast<Agent::AgentErrno>(err);
+  return static_cast<Agent::Errno>(err);
 }
 
 const uint16_t AgentProto::command(const Agent::AgentBhs & bhs) const
@@ -69,10 +69,10 @@ const uint16_t AgentProto::command(const Agent::AgentBhs & bhs) const
   return (uint16_t)(bhs.command() >> 48);
 }
 
-const Agent::AgentOpcode AgentProto::opCode(const Agent::AgentBhs & bhs) const
+const Agent::Opcode AgentProto::opCode(const Agent::AgentBhs & bhs) const
 {
   uint8_t op = (uint8_t)(bhs.command() >> 32);
-  return static_cast<Agent::AgentOpcode>(op);
+  return static_cast<Agent::Opcode>(op);
 }
 const uint32_t AgentProto::pduLen(const Agent::AgentBhs & bhs) const
 {
@@ -109,14 +109,14 @@ void AgentProto::setCheckSum(Agent::AgentBhs & bhs, const uint32_t checkSum)
   bhs.set_verify(verify);
 }
 
-void AgentProto::setSrcId(Agent::AgentBhs & bhs, const Agent::AgentAppId srcId)
+void AgentProto::setSrcId(Agent::AgentBhs & bhs, const Agent::AppId srcId)
 {
   uint64_t router = bhs.router();
   BIT_CLEAR(router, (static_cast<uint64_t>(0xff)) << 48);
   BIT_SET(router, static_cast<uint64_t>(srcId) << 48);
   bhs.set_router(router);
 }
-void AgentProto::setDstId(Agent::AgentBhs & bhs, const Agent::AgentAppId dstId)
+void AgentProto::setDstId(Agent::AgentBhs & bhs, const Agent::AppId dstId)
 {
   uint64_t router = bhs.router();
   BIT_CLEAR(router, (static_cast<uint64_t>(0xff)) << 32);
@@ -132,7 +132,7 @@ void AgentProto::setSessNo(Agent::AgentBhs & bhs, const uint16_t sessNo)
   bhs.set_router(router);
 }
 
-void AgentProto::setRetCode(Agent::AgentBhs & bhs, const Agent::AgentErrno retcode)
+void AgentProto::setRetCode(Agent::AgentBhs & bhs, const Agent::Errno retcode)
 {
   uint64_t router = bhs.router();
   BIT_CLEAR(router, static_cast<uint64_t>(0xff));
@@ -140,14 +140,14 @@ void AgentProto::setRetCode(Agent::AgentBhs & bhs, const Agent::AgentErrno retco
   bhs.set_router(router);
 }
 
-void AgentProto::setCommand(Agent::AgentBhs & bhs, const Agent::AgentCommand cmd)
+void AgentProto::setCommand(Agent::AgentBhs & bhs, const Agent::Command cmd)
 {
   uint64_t command = bhs.command();
   BIT_CLEAR(command, (static_cast<uint64_t>(0xff)) << 48);
   BIT_SET(command, static_cast<uint64_t>(cmd) << 48);
   bhs.set_command(command);
 }
-void AgentProto::setOpcode(Agent::AgentBhs & bhs, const Agent::AgentOpcode op)
+void AgentProto::setOpcode(Agent::AgentBhs & bhs, const Agent::Opcode op)
 {
   uint64_t command = bhs.command();
   BIT_CLEAR(command, (static_cast<uint64_t>(0x1)) << 32);
@@ -174,7 +174,7 @@ void AgentProto::debugBhs(const Agent::AgentBhs & bhs)
   MSF_INFO << "srcid: " << std::hex << srcId(bhs);
   MSF_INFO << "dstid: " << std::hex  << dstId(bhs);
   MSF_INFO << "sessno: " << std::hex << sessNo(bhs);
-  MSF_INFO << "opcode: " << std::hex << opCode(bhs);
+  MSF_INFO << "retCode: " << std::hex << retCode(bhs);
 
   MSF_INFO << "command: " << std::hex << command(bhs);
   MSF_INFO << "opcode: " << std::hex  << opCode(bhs);

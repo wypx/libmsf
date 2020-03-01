@@ -54,12 +54,21 @@ void RegSigHandler(int sig, SigHandler handler)
 
 void InitSigHandler()
 {
+    /* interrupt, generated from terminal special char */
     RegSigHandler(SIGINT,  SignalHandler);//当按下ctrl+c时，它的效果就是发送SIGINT信号
     RegSigHandler(SIGPIPE, SIG_IGN);
+    /* hangup, generated when terminal disconnects */
     RegSigHandler(SIGHUP,  SIG_IGN);
     RegSigHandler(SIGTERM, SIG_IGN);//kill pid
     RegSigHandler(SIGPIPE, SIG_IGN);
+    /* (*) quit, generated from terminal special char */
     RegSigHandler(SIGQUIT, SIG_IGN);//ctrl+\代表退出SIGQUIT
+    /* (*) illegal instruction (not reset when caught)*/
+    RegSigHandler(SIGILL, SIG_IGN);//ctrl+\代表退出SIGQUIT
+    /* (*) trace trap (not reset when caught) */
+    RegSigHandler(SIGTRAP, SIG_IGN);//ctrl+\代表退出SIGQUIT
+    /* (*) abort process */
+    RegSigHandler(SIGABRT, SIG_IGN);//ctrl+\代表退出SIGQUIT
 
      /* 
       * #define    SIGTERM        15
@@ -71,11 +80,33 @@ void InitSigHandler()
       * exit信号不会被系统阻塞，所以kill -9能顺利杀掉进程 */
     //SIGSTOP和SIGKILL信号是不可捕获的,所以下面两句话写了等于没有写
     RegSigHandler(SIGKILL, SIG_IGN);//kill -9 pid
+    RegSigHandler(SIGSTOP, SIG_IGN);   /* (@) stop (cannot be caught or ignored) */
     RegSigHandler(SIGSTOP, SignalHandler);//ctrl+z代表停止
 
+    /* (*) bus error (specification exception) */
     RegSigHandler(SIGBUS,  SignalHandler);
     RegSigHandler(SIGSEGV, SignalHandler);
     RegSigHandler(SIGILL,  SignalHandler);
+
+    RegSigHandler(SIGSYS, SignalHandler);   /* (*) bad argument to system call */
+    RegSigHandler(SIGPIPE, SignalHandler);   /* write on a pipe with no one to read it */
+
+    signal(SIGURG  ,SIG_IGN );   /* (+) urgent contition on I/O channel */
+    signal(SIGSTOP ,SIG_IGN );   /* (@) stop (cannot be caught or ignored) */
+    signal(SIGTSTP ,SIG_IGN );   /* (@) interactive stop */
+    signal(SIGCONT ,SIG_IGN );   /* (!) continue (cannot be caught or ignored) */
+    //signal(SIGCHLD ,SIG_IGN);    /* (+) sent to parent on child stop or exit */
+    signal(SIGTTIN ,SIG_IGN);    /* (@) background read attempted from control terminal*/
+    signal(SIGTTOU ,SIG_IGN);    /* (@) background write attempted to control terminal */
+    signal(SIGIO   ,SIG_IGN);    /* (+) I/O possible, or completed */
+    signal(SIGXCPU ,SIG_IGN);    /* cpu time limit exceeded (see setrlimit()) */
+    signal(SIGXFSZ ,SIG_IGN);    /* file size limit exceeded (see setrlimit()) */
+
+    signal(SIGWINCH,SIG_IGN);    /* (+) window size changed */
+    signal(SIGPWR  ,SIG_IGN);    /* (+) power-fail restart */
+    signal(SIGUSR1 ,SIG_IGN);   /* user defined signal 1 */
+    signal(SIGUSR2 ,SIG_IGN);   /* user defined signal 2 */
+    signal(SIGPROF ,SIG_IGN);    /* profiling time alarm (see setitimer) */
 }
 
 void SignalReplace()

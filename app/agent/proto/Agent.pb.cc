@@ -163,7 +163,7 @@ static void InitDefaultsscc_info_SendMessageRequest_Agent_2eproto() {
     {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_SendMessageRequest_Agent_2eproto}, {}};
 
 static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_Agent_2eproto[8];
-static const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* file_level_enum_descriptors_Agent_2eproto[6];
+static const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* file_level_enum_descriptors_Agent_2eproto[7];
 static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_service_descriptors_Agent_2eproto = nullptr;
 
 const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_Agent_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
@@ -183,6 +183,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_Agent_2eproto::offsets[] PROTO
   PROTOBUF_FIELD_OFFSET(::Agent::LoginRequest, name_),
   PROTOBUF_FIELD_OFFSET(::Agent::LoginRequest, hash_),
   PROTOBUF_FIELD_OFFSET(::Agent::LoginRequest, chap_),
+  PROTOBUF_FIELD_OFFSET(::Agent::LoginRequest, net_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::Agent::LoginReponse, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -231,12 +232,12 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_Agent_2eproto::offsets[] PROTO
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::Agent::AgentBhs)},
   { 8, -1, sizeof(::Agent::LoginRequest)},
-  { 16, -1, sizeof(::Agent::LoginReponse)},
-  { 24, -1, sizeof(::Agent::Friend)},
-  { 32, -1, sizeof(::Agent::GetFriendsResponse)},
-  { 38, -1, sizeof(::Agent::SendMessageRequest)},
-  { 45, -1, sizeof(::Agent::FriendNotification)},
-  { 52, -1, sizeof(::Agent::MessageNotification)},
+  { 17, -1, sizeof(::Agent::LoginReponse)},
+  { 25, -1, sizeof(::Agent::Friend)},
+  { 33, -1, sizeof(::Agent::GetFriendsResponse)},
+  { 39, -1, sizeof(::Agent::SendMessageRequest)},
+  { 46, -1, sizeof(::Agent::FriendNotification)},
+  { 53, -1, sizeof(::Agent::MessageNotification)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
@@ -253,48 +254,46 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 const char descriptor_table_protodef_Agent_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\013Agent.proto\022\005Agent\";\n\010AgentBhs\022\016\n\006veri"
   "fy\030\001 \001(\006\022\016\n\006router\030\002 \001(\006\022\017\n\007command\030\003 \001("
-  "\006\"8\n\014LoginRequest\022\014\n\004name\030\001 \001(\t\022\014\n\004hash\030"
-  "\002 \001(\r\022\014\n\004chap\030\003 \001(\r\"Q\n\014LoginReponse\022#\n\010r"
-  "et_code\030\001 \001(\0162\021.Agent.AgentErrno\022\017\n\007ret_"
-  "msg\030\002 \001(\014\022\013\n\003ttl\030\003 \001(\007\"K\n\006Friend\022\014\n\004name"
-  "\030\001 \001(\014\022\016\n\006online\030\002 \001(\010\022#\n\006status\030\003 \001(\0162\023"
-  ".Agent.FriendStatus\"4\n\022GetFriendsRespons"
-  "e\022\036\n\007friends\030\001 \003(\0132\r.Agent.Friend\"4\n\022Sen"
-  "dMessageRequest\022\020\n\010receiver\030\001 \001(\014\022\014\n\004tex"
-  "t\030\002 \001(\014\"2\n\022FriendNotification\022\014\n\004name\030\001 "
-  "\001(\014\022\016\n\006online\030\002 \001(\010\"F\n\023MessageNotificati"
-  "on\022\016\n\006sender\030\001 \001(\014\022\014\n\004text\030\002 \001(\014\022\021\n\ttime"
-  "stamp\030\003 \001(\t*\317\002\n\nAgentErrno\022\027\n\023AGENT_E_EX"
-  "EC_SUCESS\020\000\022\030\n\024AGENT_E_EXEC_FAILURE\020\001\022\030\n"
-  "\024AGENT_E_LOGIN_SUCESS\020\002\022\031\n\025AGENT_E_LOGIN"
-  "_FAILURE\020\003\022\030\n\024AGENT_E_LOGIN_UNAUTH\020\004\022\030\n\024"
-  "AGENT_E_PEER_OFFLINE\020\005\022\031\n\025AGENT_E_SEND_T"
-  "IMEROUT\020\006\022\031\n\025AGENT_E_RECV_TIMEROUT\020\007\022\032\n\026"
-  "AGENT_E_CANNOT_IN_LOOP\020\010\022\033\n\027AGENT_E_AGEN"
-  "T_NOT_START\020\t\022\032\n\026AGENT_E_ENCODE_FAILURE\020"
-  "\n\022\032\n\026AGENT_E_DECODE_FAILURE\020\013*\222\004\n\014AgentC"
-  "ommand\022\027\n\023AGENT_REQUEST_START\020\000\022\027\n\023AGENT"
-  "_LOGIN_REQUEST\020\001\022\027\n\023AGENT_LOGIN_RESPNCE\020"
-  "\002\022\030\n\024AGENT_LOGOUT_REQUEST\020\003\022\031\n\025AGENT_LOG"
-  "OUT_RESPONCE\020\004\022\027\n\023AGENT_NOPIN_REQUEST\020\005\022"
-  "\030\n\024AGENT_NOPIN_RESPONCE\020\006\022\032\n\026AGENT_DEBUG"
-  "_ON_REQUEST\020\007\022\033\n\027AGENT_DEBUG_OFF_REQUEST"
-  "\020\010\022\035\n\031AGENT_GET_FRIENDS_REQUEST\020\t\022\036\n\032AGE"
-  "NT_GET_FRIENDS_RESPONCE\020\n\022\032\n\026AGENT_SEND_"
-  "MSG_REQUEST\020\013\022\033\n\027AGENT_SEND_MSG_RESPONCE"
-  "\020\014\022\030\n\024AGENT_FRIENDS_NOTIFY\020\r\022\030\n\024AGENT_ME"
-  "SSAGE_NOTIFY\020\016\022\026\n\022AGENT_READ_REQUEST\020\017\022\027"
-  "\n\023AGENT_WRITE_REQUEST\020\020\022\033\n\027AGENT_READ_MO"
-  "BILE_PARAM\020\021\022\034\n\030AGENT_WRITE_MOBILE_PARAM"
-  "\020\022*u\n\nAgentAppId\022\017\n\013APP_ONESELF\020\000\022\r\n\tAPP"
-  "_AGENT\020\001\022\r\n\tAPP_GUARD\020\002\022\016\n\nAPP_MOBILE\020\003\022"
-  "\014\n\010APP_DLNA\020\004\022\014\n\010APP_UPNP\020\005\022\014\n\010APP_DDNS\020"
-  "\006*p\n\013AgentPacket\022\030\n\024AGENT_PACKET_BINNARY"
-  "\020\000\022\025\n\021AGENT_PACKET_JSON\020\001\022\031\n\025AGENT_PACKE"
-  "T_PROTOBUF\020\002\022\025\n\021AGENT_PACKET_BUTT\020\003*4\n\013A"
-  "gentOpcode\022\021\n\rAGENT_REQUEST\020\000\022\022\n\016AGENT_R"
-  "ESPONCE\020\001*\"\n\014FriendStatus\022\010\n\004IDLE\020\000\022\010\n\004B"
-  "USY\020\001b\006proto3"
+  "\006\"U\n\014LoginRequest\022\014\n\004name\030\001 \001(\t\022\014\n\004hash\030"
+  "\002 \001(\r\022\014\n\004chap\030\003 \001(\r\022\033\n\003net\030\004 \001(\0162\016.Agent"
+  ".NetType\"L\n\014LoginReponse\022\036\n\010ret_code\030\001 \001"
+  "(\0162\014.Agent.Errno\022\017\n\007ret_msg\030\002 \001(\014\022\013\n\003ttl"
+  "\030\003 \001(\007\"K\n\006Friend\022\014\n\004name\030\001 \001(\014\022\016\n\006online"
+  "\030\002 \001(\010\022#\n\006status\030\003 \001(\0162\023.Agent.FriendSta"
+  "tus\"4\n\022GetFriendsResponse\022\036\n\007friends\030\001 \003"
+  "(\0132\r.Agent.Friend\"4\n\022SendMessageRequest\022"
+  "\020\n\010receiver\030\001 \001(\014\022\014\n\004text\030\002 \001(\014\"2\n\022Frien"
+  "dNotification\022\014\n\004name\030\001 \001(\014\022\016\n\006online\030\002 "
+  "\001(\010\"F\n\023MessageNotification\022\016\n\006sender\030\001 \001"
+  "(\014\022\014\n\004text\030\002 \001(\014\022\021\n\ttimestamp\030\003 \001(\t*\377\002\n\005"
+  "Errno\022\023\n\017ERR_EXEC_SUCESS\020\000\022\024\n\020ERR_EXEC_F"
+  "AILURE\020\001\022\024\n\020ERR_LOGIN_SUCESS\020\002\022\025\n\021ERR_LO"
+  "GIN_FAILURE\020\003\022\024\n\020ERR_LOGIN_UNAUTH\020\004\022\024\n\020E"
+  "RR_PEER_OFFLINE\020\005\022\025\n\021ERR_SEND_TIMEROUT\020\006"
+  "\022\025\n\021ERR_RECV_TIMEROUT\020\007\022\026\n\022ERR_CANNOT_IN"
+  "_LOOP\020\010\022\027\n\023ERR_AGENT_NOT_START\020\t\022\026\n\022ERR_"
+  "ENCODE_FAILURE\020\n\022\026\n\022ERR_DECODE_FAILURE\020\013"
+  "\022\025\n\021ERR_UNKNOWN_MAGIC\020\014\022\027\n\023ERR_UNKNOWN_C"
+  "OMMAND\020\r\022\031\n\025ERR_REPEAT_REGISTERED\020\016\022\030\n\024E"
+  "RR_SERVER_INNER_ERR\020\017*\364\002\n\007Command\022\031\n\025CMD"
+  "_REQ_NODE_REGISTER\020\000\022\033\n\027CMD_REQ_NODE_UNR"
+  "EGISTER\020\001\022\032\n\026CMD_REQ_NODE_HEARTBEAT\020\002\022\036\n"
+  "\032CMD_REQ_NODE_STATUS_REPORT\020\003\022\027\n\023CMD_REQ"
+  "_NODE_LOGGER\020\004\022\035\n\031CMD_REQ_NODE_LOGGER_LE"
+  "VEL\020\005\022\026\n\022CMD_REQ_NODE_QUERY\020\006\022\027\n\023CMD_REQ"
+  "_NODE_NOTIFY\020\007\022 \n\034CMD_REQ_NODE_LEADER_EL"
+  "ECTION\020\010\022\031\n\024CMD_REQ_STORAGE_READ\020\200\002\022\032\n\025C"
+  "MD_REQ_STORAGE_WRITE\020\201\002\022\030\n\023CMD_REQ_MOBIL"
+  "E_READ\020\202\002\022\031\n\024CMD_REQ_MOBILE_WRITE\020\203\002*p\n\005"
+  "AppId\022\017\n\013APP_ONESELF\020\000\022\r\n\tAPP_AGENT\020\001\022\r\n"
+  "\tAPP_GUARD\020\002\022\016\n\nAPP_MOBILE\020\003\022\014\n\010APP_DLNA"
+  "\020\004\022\014\n\010APP_UPNP\020\005\022\014\n\010APP_DDNS\020\006*M\n\010PackTy"
+  "pe\022\020\n\014PACK_BINNARY\020\000\022\r\n\tPACK_JSON\020\001\022\021\n\rP"
+  "ACK_PROTOBUF\020\002\022\r\n\tPACK_BUTT\020\003* \n\006Opcode\022"
+  "\n\n\006OP_REQ\020\000\022\n\n\006OP_RSP\020\001*4\n\007NetType\022\013\n\007NE"
+  "T_ETH\020\000\022\014\n\010NET_WLAN\020\001\022\016\n\nNET_MOBILE\020\002*\"\n"
+  "\014FriendStatus\022\010\n\004IDLE\020\000\022\010\n\004BUSY\020\001b\006proto"
+  "3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_Agent_2eproto_deps[1] = {
 };
@@ -311,7 +310,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_Age
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_Agent_2eproto_once;
 static bool descriptor_table_Agent_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_Agent_2eproto = {
-  &descriptor_table_Agent_2eproto_initialized, descriptor_table_protodef_Agent_2eproto, "Agent.proto", 1733,
+  &descriptor_table_Agent_2eproto_initialized, descriptor_table_protodef_Agent_2eproto, "Agent.proto", 1641,
   &descriptor_table_Agent_2eproto_once, descriptor_table_Agent_2eproto_sccs, descriptor_table_Agent_2eproto_deps, 8, 0,
   schemas, file_default_instances, TableStruct_Agent_2eproto::offsets,
   file_level_metadata_Agent_2eproto, 8, file_level_enum_descriptors_Agent_2eproto, file_level_service_descriptors_Agent_2eproto,
@@ -320,35 +319,11 @@ const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_Agent_
 // Force running AddDescriptors() at dynamic initialization time.
 static bool dynamic_init_dummy_Agent_2eproto = (  ::PROTOBUF_NAMESPACE_ID::internal::AddDescriptors(&descriptor_table_Agent_2eproto), true);
 namespace Agent {
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AgentErrno_descriptor() {
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* Errno_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Agent_2eproto);
   return file_level_enum_descriptors_Agent_2eproto[0];
 }
-bool AgentErrno_IsValid(int value) {
-  switch (value) {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-    case 6:
-    case 7:
-    case 8:
-    case 9:
-    case 10:
-    case 11:
-      return true;
-    default:
-      return false;
-  }
-}
-
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AgentCommand_descriptor() {
-  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Agent_2eproto);
-  return file_level_enum_descriptors_Agent_2eproto[1];
-}
-bool AgentCommand_IsValid(int value) {
+bool Errno_IsValid(int value) {
   switch (value) {
     case 0:
     case 1:
@@ -366,20 +341,42 @@ bool AgentCommand_IsValid(int value) {
     case 13:
     case 14:
     case 15:
-    case 16:
-    case 17:
-    case 18:
       return true;
     default:
       return false;
   }
 }
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AgentAppId_descriptor() {
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* Command_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Agent_2eproto);
+  return file_level_enum_descriptors_Agent_2eproto[1];
+}
+bool Command_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 256:
+    case 257:
+    case 258:
+    case 259:
+      return true;
+    default:
+      return false;
+  }
+}
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AppId_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Agent_2eproto);
   return file_level_enum_descriptors_Agent_2eproto[2];
 }
-bool AgentAppId_IsValid(int value) {
+bool AppId_IsValid(int value) {
   switch (value) {
     case 0:
     case 1:
@@ -394,11 +391,11 @@ bool AgentAppId_IsValid(int value) {
   }
 }
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AgentPacket_descriptor() {
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PackType_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Agent_2eproto);
   return file_level_enum_descriptors_Agent_2eproto[3];
 }
-bool AgentPacket_IsValid(int value) {
+bool PackType_IsValid(int value) {
   switch (value) {
     case 0:
     case 1:
@@ -410,11 +407,11 @@ bool AgentPacket_IsValid(int value) {
   }
 }
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AgentOpcode_descriptor() {
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* Opcode_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Agent_2eproto);
   return file_level_enum_descriptors_Agent_2eproto[4];
 }
-bool AgentOpcode_IsValid(int value) {
+bool Opcode_IsValid(int value) {
   switch (value) {
     case 0:
     case 1:
@@ -424,9 +421,24 @@ bool AgentOpcode_IsValid(int value) {
   }
 }
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* FriendStatus_descriptor() {
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* NetType_descriptor() {
   ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Agent_2eproto);
   return file_level_enum_descriptors_Agent_2eproto[5];
+}
+bool NetType_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
+      return true;
+    default:
+      return false;
+  }
+}
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* FriendStatus_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_Agent_2eproto);
+  return file_level_enum_descriptors_Agent_2eproto[6];
 }
 bool FriendStatus_IsValid(int value) {
   switch (value) {
@@ -695,8 +707,8 @@ LoginRequest::LoginRequest(const LoginRequest& from)
     name_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.name_);
   }
   ::memcpy(&hash_, &from.hash_,
-    static_cast<size_t>(reinterpret_cast<char*>(&chap_) -
-    reinterpret_cast<char*>(&hash_)) + sizeof(chap_));
+    static_cast<size_t>(reinterpret_cast<char*>(&net_) -
+    reinterpret_cast<char*>(&hash_)) + sizeof(net_));
   // @@protoc_insertion_point(copy_constructor:Agent.LoginRequest)
 }
 
@@ -704,8 +716,8 @@ void LoginRequest::SharedCtor() {
   ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_LoginRequest_Agent_2eproto.base);
   name_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   ::memset(&hash_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&chap_) -
-      reinterpret_cast<char*>(&hash_)) + sizeof(chap_));
+      reinterpret_cast<char*>(&net_) -
+      reinterpret_cast<char*>(&hash_)) + sizeof(net_));
 }
 
 LoginRequest::~LoginRequest() {
@@ -734,8 +746,8 @@ void LoginRequest::Clear() {
 
   name_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   ::memset(&hash_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&chap_) -
-      reinterpret_cast<char*>(&hash_)) + sizeof(chap_));
+      reinterpret_cast<char*>(&net_) -
+      reinterpret_cast<char*>(&hash_)) + sizeof(net_));
   _internal_metadata_.Clear();
 }
 
@@ -765,6 +777,14 @@ const char* LoginRequest::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_I
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 24)) {
           chap_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
           CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // .Agent.NetType net = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 32)) {
+          ::PROTOBUF_NAMESPACE_ID::uint64 val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
+          CHK_(ptr);
+          _internal_set_net(static_cast<::Agent::NetType>(val));
         } else goto handle_unusual;
         continue;
       default: {
@@ -815,6 +835,13 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt32ToArray(3, this->_internal_chap(), target);
   }
 
+  // .Agent.NetType net = 4;
+  if (this->net() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteEnumToArray(
+      4, this->_internal_net(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
@@ -850,6 +877,12 @@ size_t LoginRequest::ByteSizeLong() const {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt32Size(
         this->_internal_chap());
+  }
+
+  // .Agent.NetType net = 4;
+  if (this->net() != 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(this->_internal_net());
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -893,6 +926,9 @@ void LoginRequest::MergeFrom(const LoginRequest& from) {
   if (from.chap() != 0) {
     _internal_set_chap(from._internal_chap());
   }
+  if (from.net() != 0) {
+    _internal_set_net(from._internal_net());
+  }
 }
 
 void LoginRequest::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
@@ -920,6 +956,7 @@ void LoginRequest::InternalSwap(LoginRequest* other) {
     GetArenaNoVirtual());
   swap(hash_, other->hash_);
   swap(chap_, other->chap_);
+  swap(net_, other->net_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata LoginRequest::GetMetadata() const {
@@ -1000,12 +1037,12 @@ const char* LoginReponse::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_I
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     CHK_(ptr);
     switch (tag >> 3) {
-      // .Agent.AgentErrno ret_code = 1;
+      // .Agent.Errno ret_code = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 8)) {
           ::PROTOBUF_NAMESPACE_ID::uint64 val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
           CHK_(ptr);
-          _internal_set_ret_code(static_cast<::Agent::AgentErrno>(val));
+          _internal_set_ret_code(static_cast<::Agent::Errno>(val));
         } else goto handle_unusual;
         continue;
       // bytes ret_msg = 2;
@@ -1048,7 +1085,7 @@ failure:
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .Agent.AgentErrno ret_code = 1;
+  // .Agent.Errno ret_code = 1;
   if (this->ret_code() != 0) {
     target = stream->EnsureSpace(target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteEnumToArray(
@@ -1090,7 +1127,7 @@ size_t LoginReponse::ByteSizeLong() const {
         this->_internal_ret_msg());
   }
 
-  // .Agent.AgentErrno ret_code = 1;
+  // .Agent.Errno ret_code = 1;
   if (this->ret_code() != 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(this->_internal_ret_code());

@@ -93,84 +93,82 @@ template<> ::Agent::SendMessageRequest* Arena::CreateMaybeMessage<::Agent::SendM
 PROTOBUF_NAMESPACE_CLOSE
 namespace Agent {
 
-enum AgentErrno : int {
-  AGENT_E_EXEC_SUCESS = 0,
-  AGENT_E_EXEC_FAILURE = 1,
-  AGENT_E_LOGIN_SUCESS = 2,
-  AGENT_E_LOGIN_FAILURE = 3,
-  AGENT_E_LOGIN_UNAUTH = 4,
-  AGENT_E_PEER_OFFLINE = 5,
-  AGENT_E_SEND_TIMEROUT = 6,
-  AGENT_E_RECV_TIMEROUT = 7,
-  AGENT_E_CANNOT_IN_LOOP = 8,
-  AGENT_E_AGENT_NOT_START = 9,
-  AGENT_E_ENCODE_FAILURE = 10,
-  AGENT_E_DECODE_FAILURE = 11,
-  AgentErrno_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
-  AgentErrno_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
+enum Errno : int {
+  ERR_EXEC_SUCESS = 0,
+  ERR_EXEC_FAILURE = 1,
+  ERR_LOGIN_SUCESS = 2,
+  ERR_LOGIN_FAILURE = 3,
+  ERR_LOGIN_UNAUTH = 4,
+  ERR_PEER_OFFLINE = 5,
+  ERR_SEND_TIMEROUT = 6,
+  ERR_RECV_TIMEROUT = 7,
+  ERR_CANNOT_IN_LOOP = 8,
+  ERR_AGENT_NOT_START = 9,
+  ERR_ENCODE_FAILURE = 10,
+  ERR_DECODE_FAILURE = 11,
+  ERR_UNKNOWN_MAGIC = 12,
+  ERR_UNKNOWN_COMMAND = 13,
+  ERR_REPEAT_REGISTERED = 14,
+  ERR_SERVER_INNER_ERR = 15,
+  Errno_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
+  Errno_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
 };
-bool AgentErrno_IsValid(int value);
-constexpr AgentErrno AgentErrno_MIN = AGENT_E_EXEC_SUCESS;
-constexpr AgentErrno AgentErrno_MAX = AGENT_E_DECODE_FAILURE;
-constexpr int AgentErrno_ARRAYSIZE = AgentErrno_MAX + 1;
+bool Errno_IsValid(int value);
+constexpr Errno Errno_MIN = ERR_EXEC_SUCESS;
+constexpr Errno Errno_MAX = ERR_SERVER_INNER_ERR;
+constexpr int Errno_ARRAYSIZE = Errno_MAX + 1;
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AgentErrno_descriptor();
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* Errno_descriptor();
 template<typename T>
-inline const std::string& AgentErrno_Name(T enum_t_value) {
-  static_assert(::std::is_same<T, AgentErrno>::value ||
+inline const std::string& Errno_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, Errno>::value ||
     ::std::is_integral<T>::value,
-    "Incorrect type passed to function AgentErrno_Name.");
+    "Incorrect type passed to function Errno_Name.");
   return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
-    AgentErrno_descriptor(), enum_t_value);
+    Errno_descriptor(), enum_t_value);
 }
-inline bool AgentErrno_Parse(
-    const std::string& name, AgentErrno* value) {
-  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<AgentErrno>(
-    AgentErrno_descriptor(), name, value);
+inline bool Errno_Parse(
+    const std::string& name, Errno* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<Errno>(
+    Errno_descriptor(), name, value);
 }
-enum AgentCommand : int {
-  AGENT_REQUEST_START = 0,
-  AGENT_LOGIN_REQUEST = 1,
-  AGENT_LOGIN_RESPNCE = 2,
-  AGENT_LOGOUT_REQUEST = 3,
-  AGENT_LOGOUT_RESPONCE = 4,
-  AGENT_NOPIN_REQUEST = 5,
-  AGENT_NOPIN_RESPONCE = 6,
-  AGENT_DEBUG_ON_REQUEST = 7,
-  AGENT_DEBUG_OFF_REQUEST = 8,
-  AGENT_GET_FRIENDS_REQUEST = 9,
-  AGENT_GET_FRIENDS_RESPONCE = 10,
-  AGENT_SEND_MSG_REQUEST = 11,
-  AGENT_SEND_MSG_RESPONCE = 12,
-  AGENT_FRIENDS_NOTIFY = 13,
-  AGENT_MESSAGE_NOTIFY = 14,
-  AGENT_READ_REQUEST = 15,
-  AGENT_WRITE_REQUEST = 16,
-  AGENT_READ_MOBILE_PARAM = 17,
-  AGENT_WRITE_MOBILE_PARAM = 18,
-  AgentCommand_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
-  AgentCommand_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
+enum Command : int {
+  CMD_REQ_NODE_REGISTER = 0,
+  CMD_REQ_NODE_UNREGISTER = 1,
+  CMD_REQ_NODE_HEARTBEAT = 2,
+  CMD_REQ_NODE_STATUS_REPORT = 3,
+  CMD_REQ_NODE_LOGGER = 4,
+  CMD_REQ_NODE_LOGGER_LEVEL = 5,
+  CMD_REQ_NODE_QUERY = 6,
+  CMD_REQ_NODE_NOTIFY = 7,
+  CMD_REQ_NODE_LEADER_ELECTION = 8,
+  CMD_REQ_STORAGE_READ = 256,
+  CMD_REQ_STORAGE_WRITE = 257,
+  CMD_REQ_MOBILE_READ = 258,
+  CMD_REQ_MOBILE_WRITE = 259,
+  Command_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
+  Command_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
 };
-bool AgentCommand_IsValid(int value);
-constexpr AgentCommand AgentCommand_MIN = AGENT_REQUEST_START;
-constexpr AgentCommand AgentCommand_MAX = AGENT_WRITE_MOBILE_PARAM;
-constexpr int AgentCommand_ARRAYSIZE = AgentCommand_MAX + 1;
+bool Command_IsValid(int value);
+constexpr Command Command_MIN = CMD_REQ_NODE_REGISTER;
+constexpr Command Command_MAX = CMD_REQ_MOBILE_WRITE;
+constexpr int Command_ARRAYSIZE = Command_MAX + 1;
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AgentCommand_descriptor();
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* Command_descriptor();
 template<typename T>
-inline const std::string& AgentCommand_Name(T enum_t_value) {
-  static_assert(::std::is_same<T, AgentCommand>::value ||
+inline const std::string& Command_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, Command>::value ||
     ::std::is_integral<T>::value,
-    "Incorrect type passed to function AgentCommand_Name.");
+    "Incorrect type passed to function Command_Name.");
   return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
-    AgentCommand_descriptor(), enum_t_value);
+    Command_descriptor(), enum_t_value);
 }
-inline bool AgentCommand_Parse(
-    const std::string& name, AgentCommand* value) {
-  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<AgentCommand>(
-    AgentCommand_descriptor(), name, value);
+inline bool Command_Parse(
+    const std::string& name, Command* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<Command>(
+    Command_descriptor(), name, value);
 }
-enum AgentAppId : int {
+enum AppId : int {
   APP_ONESELF = 0,
   APP_AGENT = 1,
   APP_GUARD = 2,
@@ -178,79 +176,105 @@ enum AgentAppId : int {
   APP_DLNA = 4,
   APP_UPNP = 5,
   APP_DDNS = 6,
-  AgentAppId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
-  AgentAppId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
+  AppId_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
+  AppId_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
 };
-bool AgentAppId_IsValid(int value);
-constexpr AgentAppId AgentAppId_MIN = APP_ONESELF;
-constexpr AgentAppId AgentAppId_MAX = APP_DDNS;
-constexpr int AgentAppId_ARRAYSIZE = AgentAppId_MAX + 1;
+bool AppId_IsValid(int value);
+constexpr AppId AppId_MIN = APP_ONESELF;
+constexpr AppId AppId_MAX = APP_DDNS;
+constexpr int AppId_ARRAYSIZE = AppId_MAX + 1;
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AgentAppId_descriptor();
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AppId_descriptor();
 template<typename T>
-inline const std::string& AgentAppId_Name(T enum_t_value) {
-  static_assert(::std::is_same<T, AgentAppId>::value ||
+inline const std::string& AppId_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, AppId>::value ||
     ::std::is_integral<T>::value,
-    "Incorrect type passed to function AgentAppId_Name.");
+    "Incorrect type passed to function AppId_Name.");
   return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
-    AgentAppId_descriptor(), enum_t_value);
+    AppId_descriptor(), enum_t_value);
 }
-inline bool AgentAppId_Parse(
-    const std::string& name, AgentAppId* value) {
-  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<AgentAppId>(
-    AgentAppId_descriptor(), name, value);
+inline bool AppId_Parse(
+    const std::string& name, AppId* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<AppId>(
+    AppId_descriptor(), name, value);
 }
-enum AgentPacket : int {
-  AGENT_PACKET_BINNARY = 0,
-  AGENT_PACKET_JSON = 1,
-  AGENT_PACKET_PROTOBUF = 2,
-  AGENT_PACKET_BUTT = 3,
-  AgentPacket_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
-  AgentPacket_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
+enum PackType : int {
+  PACK_BINNARY = 0,
+  PACK_JSON = 1,
+  PACK_PROTOBUF = 2,
+  PACK_BUTT = 3,
+  PackType_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
+  PackType_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
 };
-bool AgentPacket_IsValid(int value);
-constexpr AgentPacket AgentPacket_MIN = AGENT_PACKET_BINNARY;
-constexpr AgentPacket AgentPacket_MAX = AGENT_PACKET_BUTT;
-constexpr int AgentPacket_ARRAYSIZE = AgentPacket_MAX + 1;
+bool PackType_IsValid(int value);
+constexpr PackType PackType_MIN = PACK_BINNARY;
+constexpr PackType PackType_MAX = PACK_BUTT;
+constexpr int PackType_ARRAYSIZE = PackType_MAX + 1;
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AgentPacket_descriptor();
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PackType_descriptor();
 template<typename T>
-inline const std::string& AgentPacket_Name(T enum_t_value) {
-  static_assert(::std::is_same<T, AgentPacket>::value ||
+inline const std::string& PackType_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, PackType>::value ||
     ::std::is_integral<T>::value,
-    "Incorrect type passed to function AgentPacket_Name.");
+    "Incorrect type passed to function PackType_Name.");
   return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
-    AgentPacket_descriptor(), enum_t_value);
+    PackType_descriptor(), enum_t_value);
 }
-inline bool AgentPacket_Parse(
-    const std::string& name, AgentPacket* value) {
-  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<AgentPacket>(
-    AgentPacket_descriptor(), name, value);
+inline bool PackType_Parse(
+    const std::string& name, PackType* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<PackType>(
+    PackType_descriptor(), name, value);
 }
-enum AgentOpcode : int {
-  AGENT_REQUEST = 0,
-  AGENT_RESPONCE = 1,
-  AgentOpcode_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
-  AgentOpcode_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
+enum Opcode : int {
+  OP_REQ = 0,
+  OP_RSP = 1,
+  Opcode_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
+  Opcode_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
 };
-bool AgentOpcode_IsValid(int value);
-constexpr AgentOpcode AgentOpcode_MIN = AGENT_REQUEST;
-constexpr AgentOpcode AgentOpcode_MAX = AGENT_RESPONCE;
-constexpr int AgentOpcode_ARRAYSIZE = AgentOpcode_MAX + 1;
+bool Opcode_IsValid(int value);
+constexpr Opcode Opcode_MIN = OP_REQ;
+constexpr Opcode Opcode_MAX = OP_RSP;
+constexpr int Opcode_ARRAYSIZE = Opcode_MAX + 1;
 
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* AgentOpcode_descriptor();
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* Opcode_descriptor();
 template<typename T>
-inline const std::string& AgentOpcode_Name(T enum_t_value) {
-  static_assert(::std::is_same<T, AgentOpcode>::value ||
+inline const std::string& Opcode_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, Opcode>::value ||
     ::std::is_integral<T>::value,
-    "Incorrect type passed to function AgentOpcode_Name.");
+    "Incorrect type passed to function Opcode_Name.");
   return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
-    AgentOpcode_descriptor(), enum_t_value);
+    Opcode_descriptor(), enum_t_value);
 }
-inline bool AgentOpcode_Parse(
-    const std::string& name, AgentOpcode* value) {
-  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<AgentOpcode>(
-    AgentOpcode_descriptor(), name, value);
+inline bool Opcode_Parse(
+    const std::string& name, Opcode* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<Opcode>(
+    Opcode_descriptor(), name, value);
+}
+enum NetType : int {
+  NET_ETH = 0,
+  NET_WLAN = 1,
+  NET_MOBILE = 2,
+  NetType_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
+  NetType_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
+};
+bool NetType_IsValid(int value);
+constexpr NetType NetType_MIN = NET_ETH;
+constexpr NetType NetType_MAX = NET_MOBILE;
+constexpr int NetType_ARRAYSIZE = NetType_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* NetType_descriptor();
+template<typename T>
+inline const std::string& NetType_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, NetType>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function NetType_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    NetType_descriptor(), enum_t_value);
+}
+inline bool NetType_Parse(
+    const std::string& name, NetType* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<NetType>(
+    NetType_descriptor(), name, value);
 }
 enum FriendStatus : int {
   IDLE = 0,
@@ -538,6 +562,7 @@ class LoginRequest :
     kNameFieldNumber = 1,
     kHashFieldNumber = 2,
     kChapFieldNumber = 3,
+    kNetFieldNumber = 4,
   };
   // string name = 1;
   void clear_name();
@@ -573,6 +598,15 @@ class LoginRequest :
   void _internal_set_chap(::PROTOBUF_NAMESPACE_ID::uint32 value);
   public:
 
+  // .Agent.NetType net = 4;
+  void clear_net();
+  ::Agent::NetType net() const;
+  void set_net(::Agent::NetType value);
+  private:
+  ::Agent::NetType _internal_net() const;
+  void _internal_set_net(::Agent::NetType value);
+  public:
+
   // @@protoc_insertion_point(class_scope:Agent.LoginRequest)
  private:
   class _Internal;
@@ -581,6 +615,7 @@ class LoginRequest :
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr name_;
   ::PROTOBUF_NAMESPACE_ID::uint32 hash_;
   ::PROTOBUF_NAMESPACE_ID::uint32 chap_;
+  int net_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_Agent_2eproto;
 };
@@ -712,13 +747,13 @@ class LoginReponse :
   std::string* _internal_mutable_ret_msg();
   public:
 
-  // .Agent.AgentErrno ret_code = 1;
+  // .Agent.Errno ret_code = 1;
   void clear_ret_code();
-  ::Agent::AgentErrno ret_code() const;
-  void set_ret_code(::Agent::AgentErrno value);
+  ::Agent::Errno ret_code() const;
+  void set_ret_code(::Agent::Errno value);
   private:
-  ::Agent::AgentErrno _internal_ret_code() const;
-  void _internal_set_ret_code(::Agent::AgentErrno value);
+  ::Agent::Errno _internal_ret_code() const;
+  void _internal_set_ret_code(::Agent::Errno value);
   public:
 
   // fixed32 ttl = 3;
@@ -1680,26 +1715,46 @@ inline void LoginRequest::set_chap(::PROTOBUF_NAMESPACE_ID::uint32 value) {
   // @@protoc_insertion_point(field_set:Agent.LoginRequest.chap)
 }
 
+// .Agent.NetType net = 4;
+inline void LoginRequest::clear_net() {
+  net_ = 0;
+}
+inline ::Agent::NetType LoginRequest::_internal_net() const {
+  return static_cast< ::Agent::NetType >(net_);
+}
+inline ::Agent::NetType LoginRequest::net() const {
+  // @@protoc_insertion_point(field_get:Agent.LoginRequest.net)
+  return _internal_net();
+}
+inline void LoginRequest::_internal_set_net(::Agent::NetType value) {
+  
+  net_ = value;
+}
+inline void LoginRequest::set_net(::Agent::NetType value) {
+  _internal_set_net(value);
+  // @@protoc_insertion_point(field_set:Agent.LoginRequest.net)
+}
+
 // -------------------------------------------------------------------
 
 // LoginReponse
 
-// .Agent.AgentErrno ret_code = 1;
+// .Agent.Errno ret_code = 1;
 inline void LoginReponse::clear_ret_code() {
   ret_code_ = 0;
 }
-inline ::Agent::AgentErrno LoginReponse::_internal_ret_code() const {
-  return static_cast< ::Agent::AgentErrno >(ret_code_);
+inline ::Agent::Errno LoginReponse::_internal_ret_code() const {
+  return static_cast< ::Agent::Errno >(ret_code_);
 }
-inline ::Agent::AgentErrno LoginReponse::ret_code() const {
+inline ::Agent::Errno LoginReponse::ret_code() const {
   // @@protoc_insertion_point(field_get:Agent.LoginReponse.ret_code)
   return _internal_ret_code();
 }
-inline void LoginReponse::_internal_set_ret_code(::Agent::AgentErrno value) {
+inline void LoginReponse::_internal_set_ret_code(::Agent::Errno value) {
   
   ret_code_ = value;
 }
-inline void LoginReponse::set_ret_code(::Agent::AgentErrno value) {
+inline void LoginReponse::set_ret_code(::Agent::Errno value) {
   _internal_set_ret_code(value);
   // @@protoc_insertion_point(field_set:Agent.LoginReponse.ret_code)
 }
@@ -2347,30 +2402,35 @@ inline void MessageNotification::set_allocated_timestamp(std::string* timestamp)
 
 PROTOBUF_NAMESPACE_OPEN
 
-template <> struct is_proto_enum< ::Agent::AgentErrno> : ::std::true_type {};
+template <> struct is_proto_enum< ::Agent::Errno> : ::std::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::Agent::AgentErrno>() {
-  return ::Agent::AgentErrno_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::Agent::Errno>() {
+  return ::Agent::Errno_descriptor();
 }
-template <> struct is_proto_enum< ::Agent::AgentCommand> : ::std::true_type {};
+template <> struct is_proto_enum< ::Agent::Command> : ::std::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::Agent::AgentCommand>() {
-  return ::Agent::AgentCommand_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::Agent::Command>() {
+  return ::Agent::Command_descriptor();
 }
-template <> struct is_proto_enum< ::Agent::AgentAppId> : ::std::true_type {};
+template <> struct is_proto_enum< ::Agent::AppId> : ::std::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::Agent::AgentAppId>() {
-  return ::Agent::AgentAppId_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::Agent::AppId>() {
+  return ::Agent::AppId_descriptor();
 }
-template <> struct is_proto_enum< ::Agent::AgentPacket> : ::std::true_type {};
+template <> struct is_proto_enum< ::Agent::PackType> : ::std::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::Agent::AgentPacket>() {
-  return ::Agent::AgentPacket_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::Agent::PackType>() {
+  return ::Agent::PackType_descriptor();
 }
-template <> struct is_proto_enum< ::Agent::AgentOpcode> : ::std::true_type {};
+template <> struct is_proto_enum< ::Agent::Opcode> : ::std::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::Agent::AgentOpcode>() {
-  return ::Agent::AgentOpcode_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::Agent::Opcode>() {
+  return ::Agent::Opcode_descriptor();
+}
+template <> struct is_proto_enum< ::Agent::NetType> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Agent::NetType>() {
+  return ::Agent::NetType_descriptor();
 }
 template <> struct is_proto_enum< ::Agent::FriendStatus> : ::std::true_type {};
 template <>

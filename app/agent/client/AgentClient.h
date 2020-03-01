@@ -35,7 +35,7 @@ using namespace MSF::AGENT;
 namespace MSF {
 namespace AGENT {
 
-typedef std::function<void(char *data, uint32_t *len, const AgentCommand cmd)> AgentCb;
+typedef std::function<void(char *data, uint32_t *len, const Agent::Command cmd)> AgentCb;
 
 enum AgentType {
   kAgentUnix,
@@ -91,7 +91,7 @@ struct AgentCmd {
   /* https://blog.csdn.net/ubuntu64fan/article/details/17629509 */
   /* ref_cnt aim to solve wildpointer and object, pointer retain */
   uint32_t refCnt_;
-  Agent::AgentErrno retCode_;
+  Agent::Errno retCode_;
   uint32_t timeOut_;
   bool needAck_;
 
@@ -123,12 +123,12 @@ class AgentClient {
  public:
   explicit AgentClient(EventLoop *loop,
                       const std::string& name,
-                      const Agent::AgentAppId cid,
+                      const Agent::AppId cid,
                       const std::string& host = "127.0.0.1",
                       const uint16_t port = 8888);
   explicit AgentClient(EventLoop *loop,
                       const std::string& name,
-                      const Agent::AgentAppId cid,
+                      const Agent::AppId cid,
                       const std::string& srvUnixPath,
                       const std::string& cliUnixPath);
   ~AgentClient();
@@ -150,7 +150,7 @@ class AgentClient {
   int eventFd_;
 
   std::string name_;
-  Agent::AgentAppId cid_;
+  Agent::AppId cid_;
 
   AgentCb reqCb_;
   AgentCb ackCb_;

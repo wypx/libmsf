@@ -15,6 +15,7 @@
 
 #include <base/Noncopyable.h>
 #include <sock/Connector.h>
+#include <proto/AgentProto.h>
 
 using namespace MSF::BASE;
 using namespace MSF::SOCK;
@@ -28,11 +29,20 @@ namespace EVENT {
 
 class EventHandle : Noncopyable {
   public:
-      EventHandle() { }
-      virtual ~EventHandle() {};
-      virtual void handleMessage(ConnectionPtr c, void* head, void* body)
-      {
-      }
+    EventHandle() { }
+    explicit EventHandle(const Agent::AgentCommand cmd) { cmd = cmd_; }
+    virtual ~EventHandle() {};
+    virtual void handleMessage(ConnectionPtr c, void* head, void* body)
+    {
+    }
+    virtual void handleMessage(ConnectionPtr c, Agent::AgentBhs & bhs)
+    {
+    }
+    const Agent::AgentCommand cmd() const {
+        return cmd_;
+    }
+  private:
+    Agent::AgentCommand cmd_;
 };
 
 class EventHandleFactory : Noncopyable {

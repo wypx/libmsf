@@ -1,51 +1,44 @@
 syntax = "proto3";
 package Agent;
 
-enum AgentErrno {
-    AGENT_E_EXEC_SUCESS         = 0;
-    AGENT_E_EXEC_FAILURE        = 1;
-    AGENT_E_LOGIN_SUCESS        = 2;
-    AGENT_E_LOGIN_FAILURE       = 3;
-    AGENT_E_LOGIN_UNAUTH        = 4;
-    AGENT_E_PEER_OFFLINE        = 5;
-    AGENT_E_SEND_TIMEROUT       = 6;
-    AGENT_E_RECV_TIMEROUT       = 7;
-    AGENT_E_CANNOT_IN_LOOP      = 8;
-    AGENT_E_AGENT_NOT_START     = 9;
-    AGENT_E_ENCODE_FAILURE      = 10;
-    AGENT_E_DECODE_FAILURE      = 11;
+enum Errno {
+    ERR_EXEC_SUCESS         = 0;
+    ERR_EXEC_FAILURE        = 1;
+    ERR_LOGIN_SUCESS        = 2;
+    ERR_LOGIN_FAILURE       = 3;
+    ERR_LOGIN_UNAUTH        = 4;
+    ERR_PEER_OFFLINE        = 5;
+    ERR_SEND_TIMEROUT       = 6;
+    ERR_RECV_TIMEROUT       = 7;
+    ERR_CANNOT_IN_LOOP      = 8;
+    ERR_AGENT_NOT_START     = 9;
+    ERR_ENCODE_FAILURE      = 10;
+    ERR_DECODE_FAILURE      = 11;
+    ERR_UNKNOWN_MAGIC       = 12;
+    ERR_UNKNOWN_COMMAND     = 13;
+    ERR_REPEAT_REGISTERED   = 14;
+    ERR_SERVER_INNER_ERR    = 15;
 };
 
-enum AgentCommand {
-    AGENT_REQUEST_START         = 0x00000000;
-    AGENT_LOGIN_REQUEST         = 0x00000001;
-    AGENT_LOGIN_RESPNCE         = 0x00000002;
-    AGENT_LOGOUT_REQUEST        = 0x00000003;
-    AGENT_LOGOUT_RESPONCE       = 0x00000004;
+enum Command {
+    /* Basic node command defines 0x00000000 - 0x000000ff*/
+    CMD_REQ_NODE_REGISTER           = 0x00000000;
+    CMD_REQ_NODE_UNREGISTER         = 0x00000001;
+    CMD_REQ_NODE_HEARTBEAT          = 0x00000002;
+    CMD_REQ_NODE_STATUS_REPORT      = 0x00000003;
+    CMD_REQ_NODE_LOGGER             = 0x00000004;   /* Distributed network logger */
+    CMD_REQ_NODE_LOGGER_LEVEL       = 0x00000005;   /* Set one node logger level */
+    CMD_REQ_NODE_QUERY              = 0x00000006;   /* Query all nodes infomation */
+    CMD_REQ_NODE_NOTIFY             = 0x00000007;   /* Agent server notify all nodes */
+    CMD_REQ_NODE_LEADER_ELECTION    = 0x00000008;
 
-    AGENT_NOPIN_REQUEST         = 0x00000005;
-    AGENT_NOPIN_RESPONCE        = 0x00000006;
-
-    AGENT_DEBUG_ON_REQUEST      = 0x00000007;
-    AGENT_DEBUG_OFF_REQUEST     = 0x00000008;
-
-    AGENT_GET_FRIENDS_REQUEST   = 0x00000009;
-    AGENT_GET_FRIENDS_RESPONCE  = 0x0000000a;
-
-    AGENT_SEND_MSG_REQUEST      = 0x0000000b;
-    AGENT_SEND_MSG_RESPONCE     = 0x0000000c;
-
-    AGENT_FRIENDS_NOTIFY        = 0x0000000d;
-    AGENT_MESSAGE_NOTIFY        = 0x0000000e;
-
-    AGENT_READ_REQUEST          = 0x0000000f;
-    AGENT_WRITE_REQUEST         = 0x00000010;
-
-    AGENT_READ_MOBILE_PARAM     = 0x00000011;
-    AGENT_WRITE_MOBILE_PARAM    = 0x00000012;
+    CMD_REQ_STORAGE_READ            = 0x00000100;
+    CMD_REQ_STORAGE_WRITE           = 0x00000101;
+    CMD_REQ_MOBILE_READ             = 0x00000102;
+    CMD_REQ_MOBILE_WRITE            = 0x00000103;
 };
 
-enum AgentAppId {
+enum AppId {
     APP_ONESELF  = 0;
     APP_AGENT    = 1;
     APP_GUARD    = 2;
@@ -55,16 +48,16 @@ enum AgentAppId {
     APP_DDNS     = 6;
 };
 
-enum AgentPacket {
-    AGENT_PACKET_BINNARY    = 0;
-    AGENT_PACKET_JSON       = 1;
-    AGENT_PACKET_PROTOBUF   = 2;
-    AGENT_PACKET_BUTT       = 3;
+enum PackType {
+    PACK_BINNARY    = 0;
+    PACK_JSON       = 1;
+    PACK_PROTOBUF   = 2;
+    PACK_BUTT       = 3;
 };
 
-enum AgentOpcode {
-    AGENT_REQUEST    = 0;
-    AGENT_RESPONCE   = 1;
+enum Opcode {
+    OP_REQ      = 0;
+    OP_RSP      = 1;
 };
 
 
@@ -74,9 +67,9 @@ enum AgentOpcode {
 // https://blog.csdn.net/qing666888/article/details/79389964
 /**
  * 消息头
- * MsgHead为固定15字节的头部，当AgentBhs不等于20字节时，消息发送将出错。
- * 在proto2版本,AgentBhs为15字节总是成立，cmd、seq、len都是required；
- * 但proto3版本,AgentBhs为15字节则必须要求cmd、seq、len均不等于0，否则无法正确进行收发编解码。
+ * MsgHead为固定15字节的头部，当ERRBhs不等于20字节时，消息发送将出错。
+ * 在proto2版本,ERRBhs为15字节总是成立，cmd、seq、len都是required；
+ * 但proto3版本,ERRBhs为15字节则必须要求cmd、seq、len均不等于0，否则无法正确进行收发编解码。
  */
  message AgentBhs {
     /* |63    55      47     39      31      23      15      8      0|
@@ -91,45 +84,52 @@ enum AgentOpcode {
 
 // message AgentRequest
 // {
-//     AgentAppId  src_id      = 1;
-//     AgentAppId  dst_id      = 2;
-//     AgentAppId  route_id    = 3;    /* Router id */
-//     string route_info       = 4;    /* Router str when route_id cannot express */
-//     uint32      length      = 5;    /* Request data length */
+//     ERRAppId  src_id      = 1;
+//     ERRAppId  dst_id      = 2;
+//     ERRAppId  route_id    = 3;    /* Router id */
+//     string route_info     = 4;    /* Router str when route_id cannot express */
+//     uint32      length    = 5;    /* Request data length */
 // }
 
 // message AgentResponse
 // {
-//     AgentErrno ret_code     = 1;      /* Error happen */
-//     bytes ret_msg           = 2;      /* Error message, ascii or utf8 and etc */
-//     bool  last_rsp          = 3;      /* Last responce */
+//     Errno ret_code        = 1;      /* Error happen */
+//     bytes ret_msg         = 2;      /* Error message, ascii or utf8 and etc */
+//     bool  last_rsp        = 3;      /* Last responce */
 // }
 
-// message AgentPdu
+// message ERRPdu
 // {
-//     oneof AgentType
+//     oneof ERRType
 //     {
-//         AgentRequest request         = 1;
-//         AgentResponse responce       = 2;
+//         ERRRequest request         = 1;
+//         ERRResponse responce       = 2;
 //     }
 //     bytes msg                   = 3;    /* Message body data */
 // }
 
-// message AgentMsg {
-//     AgentBhs    bhs = 1;
-//     AgentPdu    pdu = 2;
+// message ERRMsg {
+//     ERRBhs    bhs = 1;
+//     ERRPdu    pdu = 2;
 // }
 
+enum NetType {
+    NET_ETH       = 0;
+    NET_WLAN      = 1;
+    NET_MOBILE    = 2;
+}
+
 message LoginRequest {
-    string  name                = 1;
-    uint32  hash                = 2;      /* name and pass do hash */
-    uint32  chap                = 3;
+    string  name        = 1;
+    uint32  hash        = 2;      /* name and pass do hash */
+    uint32  chap        = 3;
+    NetType net         = 4;
 };
 
 message LoginReponse {
-    AgentErrno ret_code     = 1;      /* Error happen */
-    bytes ret_msg           = 2;      /* Error message, ascii or utf8 and etc */
-    fixed32 ttl             = 3;
+    Errno ret_code      = 1;      /* Error happen */
+    bytes ret_msg       = 2;      /* Error message, ascii or utf8 and etc */
+    fixed32 ttl         = 3;
 };
 
 enum FriendStatus {

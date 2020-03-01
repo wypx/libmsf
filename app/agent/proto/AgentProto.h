@@ -19,7 +19,6 @@
 
 using namespace MSF::BASE;
 using namespace MSF::SOCK;
-using namespace Agent;
 
 namespace MSF {
 namespace AGENT {
@@ -56,8 +55,8 @@ struct tagAgentBhs {
 
 
 struct AgentPdu {
-    Agent::AgentAppId   dstId_;
-    Agent::AgentCommand cmd_;
+    Agent::AppId   dstId_;
+    Agent::Command cmd_;
     uint32_t    timeOut_;
     void        *payLoad_;
     uint32_t    payLen_;
@@ -94,13 +93,13 @@ class AgentProto {
     const uint8_t encrypt(const Agent::AgentBhs & bhs) const;
     const uint32_t checkSum(const Agent::AgentBhs & bhs) const;
 
-    const Agent::AgentAppId srcId(const Agent::AgentBhs & bhs) const;
-    const Agent::AgentAppId dstId(const Agent::AgentBhs & bhs) const;
+    const Agent::AppId srcId(const Agent::AgentBhs & bhs) const;
+    const Agent::AppId dstId(const Agent::AgentBhs & bhs) const;
     const uint16_t sessNo(const Agent::AgentBhs & bhs) const;
-    const Agent::AgentErrno retCode(const Agent::AgentBhs & bhs) const;
+    const Agent::Errno retCode(const Agent::AgentBhs & bhs) const;
 
     const uint16_t command(const Agent::AgentBhs & bhs) const;
-    const Agent::AgentOpcode opCode(const Agent::AgentBhs & bhs) const;
+    const Agent::Opcode opCode(const Agent::AgentBhs & bhs) const;
     const uint32_t pduLen(const Agent::AgentBhs & bhs) const;
 
     void setMagic(Agent::AgentBhs & bhs, const uint16_t magic = kAgentMagic);
@@ -109,13 +108,13 @@ class AgentProto {
     void setCheckSum(Agent::AgentBhs & bhs, const uint32_t checkSum);
 
 
-    void setSrcId(Agent::AgentBhs & bhs, const Agent::AgentAppId srcId);
-    void setDstId(Agent::AgentBhs & bhs, const Agent::AgentAppId dstId);
+    void setSrcId(Agent::AgentBhs & bhs, const Agent::AppId srcId);
+    void setDstId(Agent::AgentBhs & bhs, const Agent::AppId dstId);
     void setSessNo(Agent::AgentBhs & bhs, const uint16_t sessNo);
-    void setRetCode(Agent::AgentBhs & bhs, const Agent::AgentErrno retcode);
+    void setRetCode(Agent::AgentBhs & bhs, const Agent::Errno retcode);
 
-    void setCommand(Agent::AgentBhs & bhs, const Agent::AgentCommand cmd);
-    void setOpcode(Agent::AgentBhs & bhs, const Agent::AgentOpcode op);
+    void setCommand(Agent::AgentBhs & bhs, const Agent::Command cmd);
+    void setOpcode(Agent::AgentBhs & bhs, const Agent::Opcode op);
     void setPduLen(Agent::AgentBhs & bhs, const uint32_t pduLen);
 
     void debugBhs(const Agent::AgentBhs & bhs);

@@ -1,21 +1,20 @@
 
 /**************************************************************************
-*
-* Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
-* All rights reserved.
-*
-* Distributed under the terms of the GNU General Public License v2.
-*
-* This software is provided 'as is' with no explicit or implied warranties
-* in respect of its properties, including, but not limited to, correctness
-* and/or fitness for purpose.
-*
-**************************************************************************/
-#include <base/Shm.h>
+ *
+ * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
+ * All rights reserved.
+ *
+ * Distributed under the terms of the GNU General Public License v2.
+ *
+ * This software is provided 'as is' with no explicit or implied warranties
+ * in respect of its properties, including, but not limited to, correctness
+ * and/or fitness for purpose.
+ *
+ **************************************************************************/
 #include <base/File.h>
-
-#include <sys/mman.h>
+#include <base/Shm.h>
 #include <sys/ipc.h>
+#include <sys/mman.h>
 #include <sys/shm.h>
 
 using namespace MSF::BASE;
@@ -39,10 +38,12 @@ namespace MEM {
     ngx_shm_free用于释放已经存在的共享内存。
     在描述这两个方法前，先以mmap为例说朗
     Linux是怎样向应用程序提供共享内存的，如下所示。
-    void *mmap (void *start, size_t length,  int prot,  int flags, int fd, off_t offset);
+    void *mmap (void *start, size_t length,  int prot,  int flags, int fd, off_t
+   offset);
     mmap可以将磁盘文件映射到内存中，直接操作内存时Linux内核将负责同步内存和磁盘文件中的数据，
     fd参数就指向需要同步的磁盘文件，而offset则代表从文件的这个偏移量处开始共享，当然Nginx没有使用这一特性。
-    当flags参数中加入MAP ANON或者MAP—ANONYMOUS参数时表示不使用文件映射方式，这时fd和offset参数就没有意义，
+    当flags参数中加入MAP
+   ANON或者MAP—ANONYMOUS参数时表示不使用文件映射方式，这时fd和offset参数就没有意义，
     也不需要传递了，此时的mmap方法和ngx_shm_alloc的功能几乎完全相同。length参数就是将要在内存中开辟的线性地址空间大小，而prot参数则是操作这段共享内存的方式（如只读或者可读可写），start参数说明希望的共享内存起始映射地址，当然，通常都会把start设为NULL空指针
 
     先来看看如何使用mmap实现ngx_shm_alloc方法，代码如下。
@@ -79,96 +80,82 @@ namespace MEM {
     对于Nginx的跨平台特性考虑得很周到。下面以一个统计HTTP框架连接状况的例子来说明共享内存的用法。
 */
 
-MSF_SHM::MSF_SHM(const std::string &name, uint64_t size)
-{
+MSF_SHM::MSF_SHM(const std::string &name, uint64_t size) {}
 
+int MSF_SHM::ShmAllocByMapFile(const std::string &filename) {
+  addr = (uint8_t *)mmap(NULL, size, PROT_READ | PROT_WRITE,
+                         MAP_ANON | MAP_SHARED, -1, 0);
+
+  if (addr == MAP_FAILED) {
+    return -1;
+  }
+  return 0;
 }
 
-int MSF_SHM::ShmAllocByMapFile(const std::string & filename)
-{
-    addr = (uint8_t *) mmap(NULL, size,
-                            PROT_READ |PROT_WRITE,
-                            MAP_ANON|MAP_SHARED, -1, 0);
+int MSF_SHM::ShmAlloc() {
+  if (strategy == ALLOC_BY_MAPPING_FILE) {
+  } else if (strategy == ALLOC_BY_UNMAPPING_FILE) {
+    // https://blog.csdn.net/qq_33611327/article/details/81738195
+    addr = (uint8_t *)mmap(NULL, size, PROT_READ | PROT_WRITE,
+                           MAP_ANON | MAP_SHARED, -1, 0);
+
+    // addr = (uint8_t *) mmap(NULL, size, PROT_READ | PROT_WRITE,
+    //     MAP_PRIVATE | MAP_ANONYMOUS |
+    //     MAP_POPULATE | MAP_HUGETLB, -1, 0);
 
     if (addr == MAP_FAILED) {
-        return -1;
+      return -1;
     }
-    return 0;
-}
-
-int MSF_SHM::ShmAlloc()
-{
-    if (strategy == ALLOC_BY_MAPPING_FILE) {
-
-
-    } else if (strategy == ALLOC_BY_UNMAPPING_FILE) {
-
-        //https://blog.csdn.net/qq_33611327/article/details/81738195
-        addr = (uint8_t *) mmap(NULL, size,
-                            PROT_READ |PROT_WRITE,
-                            MAP_ANON|MAP_SHARED, -1, 0);
-        
-        // addr = (uint8_t *) mmap(NULL, size, PROT_READ | PROT_WRITE,
-        //     MAP_PRIVATE | MAP_ANONYMOUS |
-        //     MAP_POPULATE | MAP_HUGETLB, -1, 0);
-
-        if (addr == MAP_FAILED) {
-            return -1;
-        }
-    } else if (strategy == ALLOC_BY_MAPPING_DEVZERO) {
-
-        int fd = open("/dev/zero", O_RDWR);
-        if (fd == -1) {
-            return -1;
-        }
-        addr = (uint8_t *) mmap(NULL, size, PROT_READ|PROT_WRITE,
-                                    MAP_SHARED, fd, 0);
-        if (addr == MAP_FAILED) {
-            MSF_ERROR << "mmap(/dev/zero, MAP_SHARED, "<< size << "failed";
-        }
-        if (close(fd) == -1) {
-        }
-        return (addr == MAP_FAILED) ? -1 : 0;
-
-    } else if (strategy == ALLOC_BY_SHMGET) {
-        
-        int  id = shmget(IPC_PRIVATE, size, (SHM_R|SHM_W|IPC_CREAT));
-        if (id == -1) {
-            return -1;
-        }
-
-        MSF_INFO << "shmget id: " << id;
-
-        addr = (uint8_t*)shmat(id, NULL, 0);
-        if (addr == (void *) -1) {
-            MSF_ERROR << "shmat mem failed: " << strerror(errno);
-        }
-        if (shmctl(id, IPC_RMID, NULL) == -1) {
-            MSF_ERROR << "shmctl mem failed: " << strerror(errno);
-        }
-        return (addr == (void *) -1) ? -1 : 0;
-    } else {
-        MSF_ERROR << "Not support this way.";
-        return -1;
+  } else if (strategy == ALLOC_BY_MAPPING_DEVZERO) {
+    int fd = open("/dev/zero", O_RDWR);
+    if (fd == -1) {
+      return -1;
     }
-    return 0;
-}
-
-void MSF_SHM::ShmFree()
-{
-    if (strategy == ALLOC_BY_MAPPING_FILE) {
-
-    } else if (strategy == ALLOC_BY_UNMAPPING_FILE 
-            || strategy == ALLOC_BY_MAPPING_DEVZERO) {
-        if (munmap((void *)addr, size) == -1) {
-            MSF_ERROR << "munmap mem failed: " << strerror(errno);
-        }
-    } else if (strategy == ALLOC_BY_SHMGET) {
-        if (shmdt(addr) == -1) {
-            MSF_ERROR << "shmdt mem failed: " << strerror(errno);
-        }
+    addr =
+        (uint8_t *)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (addr == MAP_FAILED) {
+      MSF_ERROR << "mmap(/dev/zero, MAP_SHARED, " << size << "failed";
     }
+    if (close(fd) == -1) {
+    }
+    return (addr == MAP_FAILED) ? -1 : 0;
+
+  } else if (strategy == ALLOC_BY_SHMGET) {
+    int id = shmget(IPC_PRIVATE, size, (SHM_R | SHM_W | IPC_CREAT));
+    if (id == -1) {
+      return -1;
+    }
+
+    MSF_INFO << "shmget id: " << id;
+
+    addr = (uint8_t *)shmat(id, NULL, 0);
+    if (addr == (void *)-1) {
+      MSF_ERROR << "shmat mem failed: " << strerror(errno);
+    }
+    if (shmctl(id, IPC_RMID, NULL) == -1) {
+      MSF_ERROR << "shmctl mem failed: " << strerror(errno);
+    }
+    return (addr == (void *)-1) ? -1 : 0;
+  } else {
+    MSF_ERROR << "Not support this way.";
+    return -1;
+  }
+  return 0;
 }
 
+void MSF_SHM::ShmFree() {
+  if (strategy == ALLOC_BY_MAPPING_FILE) {
+  } else if (strategy == ALLOC_BY_UNMAPPING_FILE ||
+             strategy == ALLOC_BY_MAPPING_DEVZERO) {
+    if (munmap((void *)addr, size) == -1) {
+      MSF_ERROR << "munmap mem failed: " << strerror(errno);
+    }
+  } else if (strategy == ALLOC_BY_SHMGET) {
+    if (shmdt(addr) == -1) {
+      MSF_ERROR << "shmdt mem failed: " << strerror(errno);
+    }
+  }
 }
-}
+
+}  // namespace MEM
+}  // namespace MSF

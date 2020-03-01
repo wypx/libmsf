@@ -1,21 +1,20 @@
 /**************************************************************************
-*
-* Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
-* All rights reserved.
-*
-* Distributed under the terms of the GNU General Public License v2.
-*
-* This software is provided 'as is' with no explicit or implied warranties
-* in respect of its properties, including, but not limited to, correctness
-* and/or fitness for purpose.
-*
-**************************************************************************/
-
-#include <sys/prctl.h>
-#include <unistd.h>
+ *
+ * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
+ * All rights reserved.
+ *
+ * Distributed under the terms of the GNU General Public License v2.
+ *
+ * This software is provided 'as is' with no explicit or implied warranties
+ * in respect of its properties, including, but not limited to, correctness
+ * and/or fitness for purpose.
+ *
+ **************************************************************************/
 
 #include <base/Mem.h>
 #include <base/Proctitle.h>
+#include <sys/prctl.h>
+#include <unistd.h>
 
 using namespace MSF::BASE;
 
@@ -33,7 +32,6 @@ namespace BASE {
  * UCB mode: either "/usr/ucb/ps -axwww" or "/usr/bin/ps axwww".
  */
 
-
 /* example
  * ./a.out start
  * memory layout, supporse ptr point to it
@@ -43,40 +41,36 @@ namespace BASE {
  * argv[1] = ptr + strlen(argv[0])+1;
  * argv[2] = 0;
  * environ[0] = ptr + strlen(argv[0])+1 + strlen(argv[1])+1
- * environ[1] = ptr + strlen(argv[0])+1 + strlen(argv[1])+1 + strlen(environ[0])+1
- * environ[2] = 0;
+ * environ[1] = ptr + strlen(argv[0])+1 + strlen(argv[1])+1 +
+ * strlen(environ[0])+1 environ[2] = 0;
  */
-
 
 extern char **environ;
 char *os_argv_last;
 
 static char **old_environ;
 
-static int ClearEnv(void)
-{
+static int ClearEnv(void) {
 #if __GLIBC__
-    clearenv();
+  clearenv();
 
-    return 0;
+  return 0;
 #else
-    static char **tmp;
+  static char **tmp;
 
-    if (!(tmp = MSF_NEW(char, sizeof *tmp)))
-        return errno;
+  if (!(tmp = MSF_NEW(char, sizeof *tmp))) return errno;
 
-    tmp[0]  = NULL;
-    environ = tmp;
+  tmp[0] = NULL;
+  environ = tmp;
 
-    return 0;
+  return 0;
 #endif
 }
 
-int InitSetProcTitle(int argc, char *argv[])
-{
-    char *p;
-    size_t size = 0;
-    uint32_t   i;
+int InitSetProcTitle(int argc, char *argv[]) {
+  char *p;
+  size_t size = 0;
+  uint32_t i;
 
 #if 0
     int error;
@@ -109,58 +103,53 @@ int InitSetProcTitle(int argc, char *argv[])
         goto error;
 #endif
 
-    for (i = 0; environ[i]; i++) {
-        size += strlen(environ[i]) + 1;
+  for (i = 0; environ[i]; i++) {
+    size += strlen(environ[i]) + 1;
+  }
+
+  p = MSF_NEW(char, size);
+  if (NULL == p) {
+    goto error;
+  }
+
+  os_argv_last = argv[0];
+
+  for (i = 0; argv[i]; i++) {
+    if (os_argv_last == argv[i]) {
+      os_argv_last = argv[i] + strlen(argv[i]) + 1;
     }
+  }
 
-    p = MSF_NEW(char, size);
-    if (NULL == p) {
-        goto error;
+  for (i = 0; environ[i]; i++) {
+    if (os_argv_last == environ[i]) {
+      size = strlen(environ[i]) + 1;
+      os_argv_last = environ[i] + size;
+
+      memcpy(p, (char *)environ[i], size);
+      environ[i] = (char *)p;
+      p += size;
     }
+  }
 
-    os_argv_last = argv[0];
+  os_argv_last--;
+  return 0;
 
-    for (i = 0; argv[i]; i++) {
-        if (os_argv_last == argv[i]) {
-            os_argv_last = argv[i] + strlen(argv[i]) + 1;
-        }
-    }
-
-    for (i = 0; environ[i]; i++) {
-        if (os_argv_last == environ[i]) {
-
-            size = strlen(environ[i]) + 1;
-            os_argv_last = environ[i] + size;
-
-            memcpy(p, (char *) environ[i], size);
-            environ[i] = (char *) p;
-            p += size;
-        }
-    }
-
-    os_argv_last--;
-    return 0;
-    
 error:
-    environ = old_environ;
-    return -1;
+  environ = old_environ;
+  return -1;
 }
 
+void SetProcTitle(int argc, char *argv[], char *title) {
+  char *p = NULL;
 
-void SetProcTitle(int argc, char *argv[], char *title)
-{
-    char *p = NULL;
+  p = argv[0];
 
-    p = argv[0];
+  memcpy(p, (char *)title, os_argv_last - (char *)p);
 
-    memcpy(p, (char *) title, os_argv_last - (char *) p);
-
-    if (os_argv_last - (char *) p) {
-        memset(p, 0x00, os_argv_last - (char *) p);
-    }
+  if (os_argv_last - (char *)p) {
+    memset(p, 0x00, os_argv_last - (char *)p);
+  }
 }
 
-} /**************************** end namespace BASE ****************************/
-} /**************************** end namespace MSF  ****************************/
-
-
+}  // namespace BASE
+}  // namespace MSF

@@ -20,8 +20,8 @@
 #include <event/Event.h>
 #include <event/EventLoop.h>
 #include <event/EventStack.h>
-#include <proto/Protocol.h>
 #include <proto/AgentProto.h>
+#include <proto/Protocol.h>
 #include <sock/Acceptor.h>
 #include <sock/Connector.h>
 
@@ -158,9 +158,9 @@ class AgentServer : public Noncopyable {
   bool handleTxIORet(ConnectionPtr c, const int ret);
 
   void handleAgentBhs(ConnectionPtr c);
-  void handleAgentLogin(ConnectionPtr c, Agent::AgentBhs & bhs);
-  void handleAgentPayLoad(ConnectionPtr c, Agent::AgentBhs & bhs);
-  void handleAgentRequest(ConnectionPtr c, Agent::AgentBhs & bhs);
+  void handleAgentLogin(ConnectionPtr c, Agent::AgentBhs &bhs);
+  void handleAgentPayLoad(ConnectionPtr c, Agent::AgentBhs &bhs);
+  void handleAgentRequest(ConnectionPtr c, Agent::AgentBhs &bhs);
 
   void succConn(ConnectionPtr c);
   void readConn(ConnectionPtr c);

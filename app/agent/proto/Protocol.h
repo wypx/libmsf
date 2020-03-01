@@ -1,20 +1,19 @@
 /**************************************************************************
-*
-* Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
-* All rights reserved.
-*
-* Distributed under the terms of the GNU General Public License v2.
-*
-* This software is provided 'as is' with no explicit or implied warranties
-* in respect of its properties, including, but not limited to, correctness
-* and/or fitness for purpose.
-*
-**************************************************************************/
+ *
+ * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
+ * All rights reserved.
+ *
+ * Distributed under the terms of the GNU General Public License v2.
+ *
+ * This software is provided 'as is' with no explicit or implied warranties
+ * in respect of its properties, including, but not limited to, correctness
+ * and/or fitness for purpose.
+ *
+ **************************************************************************/
 #ifndef __MSF_PROTOCOL_H__
 #define __MSF_PROTOCOL_H__
 
 #include <base/GccAttr.h>
-
 #include <stdint.h>
 
 using namespace MSF::BASE;
@@ -26,13 +25,13 @@ namespace AGENT {
 extern "C" {
 #endif
 
-#define AGENT_VERSION       (0x0100) 
-#define AGENT_VERINFO       "libagent-1.0"
-#define AGENT_MAGIC         0x12345678
+#define AGENT_VERSION (0x0100)
+#define AGENT_VERINFO "libagent-1.0"
+#define AGENT_MAGIC 0x12345678
 
 #define AGENT_KEEP_ALIVE_SECS 60
-#define AGENT_KEEP_ALIVE_TIMEOUT_SECS (7*60+1) /* has 7 tries to send a keep alive */
-
+#define AGENT_KEEP_ALIVE_TIMEOUT_SECS \
+  (7 * 60 + 1) /* has 7 tries to send a keep alive */
 
 /* Note: 0x1 - 0x10 is reseved id */
 #if 0
@@ -121,6 +120,6 @@ struct AgentLogin {
 }
 #endif
 
-}
-}
+}  // namespace AGENT
+}  // namespace MSF
 #endif

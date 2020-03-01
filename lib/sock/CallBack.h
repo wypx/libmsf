@@ -21,14 +21,13 @@ namespace MSF {
 namespace SOCK {
 
 typedef std::shared_ptr<BaseConn> ConnectionPtr;
-typedef std::function<void (const ConnectionPtr&)> ConnSuccCallback;
-typedef std::function<void (const ConnectionPtr&)> CloseCallback;
-typedef std::function<void (const ConnectionPtr&)> WriteCallback;
-typedef std::function<void (const ConnectionPtr&)> ReadCallback;
-typedef std::function<void (const ConnectionPtr&)> WriteCompleteCallback;
-typedef std::function<void (const ConnectionPtr&, size_t)> HighWaterMarkCallback;
+typedef std::function<void(const ConnectionPtr&)> ConnSuccCallback;
+typedef std::function<void(const ConnectionPtr&)> CloseCallback;
+typedef std::function<void(const ConnectionPtr&)> WriteCallback;
+typedef std::function<void(const ConnectionPtr&)> ReadCallback;
+typedef std::function<void(const ConnectionPtr&)> WriteCompleteCallback;
+typedef std::function<void(const ConnectionPtr&, size_t)> HighWaterMarkCallback;
 
-
-}
-}
+}  // namespace SOCK
+}  // namespace MSF
 #endif

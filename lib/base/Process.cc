@@ -1,16 +1,15 @@
-#include <algorithm>
 #include <assert.h>
+#include <base/Process.h>
 #include <dirent.h>
 #include <pwd.h>
-#include <stdio.h> // snprintf
+#include <stdio.h>  // snprintf
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/resource.h>
 #include <sys/times.h>
+#include <unistd.h>
 
-#include <base/Process.h>
+#include <algorithm>
 using namespace MSF::BASE;
-
 
 /* 其他方法:
  * 1. /proc/pid/status
@@ -128,11 +127,11 @@ int Process::pageSize()
 
 bool Process::isDebugBuild()
 {
-    #ifdef NDEBUG
+#ifdef NDEBUG
     return false;
-    #else
+#else
     return true;
-    #endif
+#endif
 }
 
 std::string Process::hostname()

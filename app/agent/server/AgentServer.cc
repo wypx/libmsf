@@ -42,7 +42,7 @@ static const struct {
     {CONFIG_PACKTYPE, "packType"},
 };
 
-static inline void debugAgentBhs(const Agent::AgentBhs & bhs) {
+static inline void debugAgentBhs(const Agent::AgentBhs &bhs) {
   MSF_DEBUG << "###################################";
   MSF_DEBUG << "bhs:";
   // MSF_DEBUG << "bhs version: " << bhs->version_;
@@ -203,8 +203,7 @@ bool AgentServer::handleTxIORet(ConnectionPtr c, const int ret) {
   }
 }
 
-void AgentServer::handleAgentLogin(ConnectionPtr c, Agent::AgentBhs & bhs) {
-
+void AgentServer::handleAgentLogin(ConnectionPtr c, Agent::AgentBhs &bhs) {
   void *body = mpool_->alloc(proto_->pduLen(bhs));
   assert(body);
 
@@ -217,8 +216,7 @@ void AgentServer::handleAgentLogin(ConnectionPtr c, Agent::AgentBhs & bhs) {
   login.ParseFromArray(body, proto_->pduLen(bhs));
 
   MSF_INFO << "\n Login "
-            << "\n name: " << login.name()
-            << "\n cid: " << proto_->srcId(bhs);
+           << "\n name: " << login.name() << "\n cid: " << proto_->srcId(bhs);
   c->cid_ = static_cast<uint32_t>(proto_->srcId(bhs));
   activeConns_[proto_->srcId(bhs)] = c;
   {
@@ -237,33 +235,30 @@ void AgentServer::handleAgentLogin(ConnectionPtr c, Agent::AgentBhs & bhs) {
   c->rxRecved_ = 0;
 }
 
-void AgentServer::handleAgentPayLoad(ConnectionPtr c, Agent::AgentBhs & bhs)
-{
+void AgentServer::handleAgentPayLoad(ConnectionPtr c, Agent::AgentBhs &bhs) {
   void *payLoad = mpool_->alloc(proto_->pduLen(bhs));
   if (!payLoad) {
     MSF_INFO << "No pool data for fd: " << c->fd();
     DrianData(c->fd(), 1024);
     return;
   }
-  struct iovec iov = { payLoad, proto_->pduLen(bhs)};
+  struct iovec iov = {payLoad, proto_->pduLen(bhs)};
   // handleRxIORet(c, RecvMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL));
   RecvMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
   c->rxIov_[1].iov_base = payLoad;
   c->rxIov_[1].iov_len = proto_->pduLen(bhs);
-} 
+}
 
-void AgentServer::handleAgentRequest(ConnectionPtr c, Agent::AgentBhs & bhs)
-{
+void AgentServer::handleAgentRequest(ConnectionPtr c, Agent::AgentBhs &bhs) {
   // debugAgentBhs(bhs);
   auto itor = activeConns_.find(proto_->dstId(bhs));
   MSF_INFO << "Peer cid: " << proto_->dstId(bhs);
   if (itor != activeConns_.end()) {
     ConnectionPtr peer = (ConnectionPtr)itor->second;
     MSF_INFO << "\n Send cmd to"
-              << "\n cmd: " << proto_->command(bhs)
-              << "\n cid: " << peer->cid_;
+             << "\n cmd: " << proto_->command(bhs) << "\n cid: " << peer->cid_;
     assert(proto_->dstId(bhs) == static_cast<Agent::AppId>(peer->cid_));
-    //http://blog.chinaunix.net/uid-14949191-id-3967282.html
+    // http://blog.chinaunix.net/uid-14949191-id-3967282.html
     // std::swap(bhs->srcId_, bhs->dstId_);
     // {
     //   AgentAppId tmpId = bhs->srcId_;
@@ -274,12 +269,13 @@ void AgentServer::handleAgentRequest(ConnectionPtr c, Agent::AgentBhs & bhs)
     if (proto_->pduLen(bhs) > 0) {
       iovCnt++;
     }
-    //runinloop到这个loop中去
+    // runinloop到这个loop中去
     SendMsg(peer->fd(), c->rxIov_, iovCnt, MSG_NOSIGNAL | MSG_WAITALL);
-    // handleTxIORet(c, SendMsg(peer->fd(), c->rxIov_, iovCnt, MSG_NOSIGNAL | MSG_WAITALL));
+    // handleTxIORet(c, SendMsg(peer->fd(), c->rxIov_, iovCnt, MSG_NOSIGNAL |
+    // MSG_WAITALL));
   } else {
     MSF_INFO << "\n Peer offline"
-              << "\n cmd: " << proto_->command(bhs);
+             << "\n cmd: " << proto_->command(bhs);
     struct iovec iov;
 
     {
@@ -298,7 +294,6 @@ void AgentServer::handleAgentRequest(ConnectionPtr c, Agent::AgentBhs & bhs)
 }
 
 void AgentServer::handleAgentBhs(ConnectionPtr c) {
-
   MSF_INFO << "handleAgentBhs:";
 
   Agent::AgentBhs bhs;
@@ -337,7 +332,7 @@ void AgentServer::readConn(ConnectionPtr c) {
   {
     void *head = mpool_->alloc(AGENT_HEAD_LEN);
     if (!head) {
-      //Fixme: drian specific size payload
+      // Fixme: drian specific size payload
       DrianData(c->fd(), 1024);
       return;
     }
@@ -394,7 +389,7 @@ void AgentServer::newConn(const int fd, const uint16_t event) {
 
   MSF_INFO << "Alloc connection for fd: " << fd;
 
-   if (!proto_) {
+  if (!proto_) {
     proto_ = std::make_unique<AgentProto>(c, mpool_);
     if (proto_ == nullptr) {
       MSF_ERROR << "Alloc proto_ for agent faild";

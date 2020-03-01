@@ -1,21 +1,22 @@
 /**************************************************************************
-*
-* Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
-* All rights reserved.
-*
-* Distributed under the terms of the GNU General Public License v2.
-*
-* This software is provided 'as is' with no explicit or implied warranties
-* in respect of its properties, including, but not limited to, correctness
-* and/or fitness for purpose.
-*
-**************************************************************************/
+ *
+ * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
+ * All rights reserved.
+ *
+ * Distributed under the terms of the GNU General Public License v2.
+ *
+ * This software is provided 'as is' with no explicit or implied warranties
+ * in respect of its properties, including, but not limited to, correctness
+ * and/or fitness for purpose.
+ *
+ **************************************************************************/
 #ifndef __MSF_FILE_DETAILS_H__
 #define __MSF_FILE_DETAILS_H__
 
 #pragma once
 
 #include <base/Uio.h>
+
 #include <algorithm>
 #include <cerrno>
 
@@ -40,9 +41,7 @@ ssize_t wrapNoInt(F f, Args... args) {
 }
 
 inline void incr(ssize_t /* n */) {}
-inline void incr(ssize_t n, off_t& offset) {
-  offset += off_t(n);
-}
+inline void incr(ssize_t n, off_t& offset) { offset += off_t(n); }
 
 // Wrap call to read/pread/write/pwrite(fd, buf, count, offset?) to retry on
 // incomplete reads / writes.  The variadic argument magic is there to support
@@ -67,7 +66,7 @@ ssize_t wrapFull(F f, int fd, void* buf, size_t count, Offset... offset) {
     b += r;
     count -= r;
     incr(r, offset...);
-  } while (r != 0 && count); // 0 means EOF
+  } while (r != 0 && count);  // 0 means EOF
 
   return totalBytes;
 }
@@ -88,7 +87,7 @@ ssize_t wrapvFull(F f, int fd, iovec* iov, int count, Offset... offset) {
     }
 
     if (r == 0) {
-      break; // EOF
+      break;  // EOF
     }
 
     totalBytes += r;
@@ -109,6 +108,6 @@ ssize_t wrapvFull(F f, int fd, iovec* iov, int count, Offset... offset) {
   return totalBytes;
 }
 
-} /**************************** end namespace IO ******************************/
-} /**************************** end namespace MSF  ****************************/
+}  // namespace IO
+}  // namespace MSF
 #endif

@@ -13,9 +13,10 @@
 #ifndef AGENT_PROTO_H
 #define AGENT_PROTO_H
 
-#include "Agent.pb.h"
 #include <base/MemPool.h>
 #include <sock/Connector.h>
+
+#include "Agent.pb.h"
 
 using namespace MSF::BASE;
 using namespace MSF::SOCK;
@@ -23,45 +24,42 @@ using namespace MSF::SOCK;
 namespace MSF {
 namespace AGENT {
 
-#define AGENT_VERSION       (0x0100) 
-#define AGENT_VERINFO       "libagent-1.0"
-#define AGENT_MAGIC         0x12345678
+#define AGENT_VERSION (0x0100)
+#define AGENT_VERINFO "libagent-1.0"
+#define AGENT_MAGIC 0x12345678
 
-#define AGENT_HEAD_LEN      (27)  /* Encode size in protobuf */
+#define AGENT_HEAD_LEN (27) /* Encode size in protobuf */
 
 /**
  * Message header after decode protobuf AgentBhs
  **/
 struct tagAgentBhs {
-    uint8_t     version_;   /* Protocol version - 1 bit */
-    uint8_t     encrypt_;   /* Header encrypt alg - 1 bit */
-    uint16_t    magic_;     /* Header magic - 2 bit */
-    uint16_t    checksum_;  /* Header checksum */
-    uint16_t    cmd_;       /* User command */
-    uint32_t    bodyLen_;   /* Extra body data length */
-    uint32_t    sessNo_;    /* Session number */
+  uint8_t version_;   /* Protocol version - 1 bit */
+  uint8_t encrypt_;   /* Header encrypt alg - 1 bit */
+  uint16_t magic_;    /* Header magic - 2 bit */
+  uint16_t checksum_; /* Header checksum */
+  uint16_t cmd_;      /* User command */
+  uint32_t bodyLen_;  /* Extra body data length */
+  uint32_t sessNo_;   /* Session number */
 
-    tagAgentBhs() 
-        : version_(0),
+  tagAgentBhs()
+      : version_(0),
         encrypt_(0),
         magic_(0),
         checksum_(0),
         cmd_(0),
         bodyLen_(0),
-        sessNo_(0)
-    {
-    }
+        sessNo_(0) {}
 } MSF_PACKED_MEMORY;
 
-
 struct AgentPdu {
-    Agent::AppId   dstId_;
-    Agent::Command cmd_;
-    uint32_t    timeOut_;
-    void        *payLoad_;
-    uint32_t    payLen_;
-    void        *restLoad_;
-    uint32_t    restLen_;
+  Agent::AppId dstId_;
+  Agent::Command cmd_;
+  uint32_t timeOut_;
+  void *payLoad_;
+  uint32_t payLen_;
+  void *restLoad_;
+  uint32_t restLen_;
 } MSF_PACKED_MEMORY;
 
 const uint32_t kAgentVersion = 0x0001;
@@ -72,59 +70,50 @@ const uint32_t kAgentEncryptRC5 = 0x00a0;
 const uint32_t kAgentMagic = 0xab00;
 
 class AgentProto {
-  public:
-    AgentProto(ConnectionPtr conn, MemPool *mpool)
-      : conn_(conn),
-        mpool_(mpool) 
-    {
+ public:
+  AgentProto(ConnectionPtr conn, MemPool *mpool) : conn_(conn), mpool_(mpool) {}
+  ~AgentProto() {}
 
-    }
-    ~AgentProto()
-    {
+  void init(ConnectionPtr conn) { conn_ = conn; }
 
-    }
+  const uint16_t magic(const Agent::AgentBhs &bhs) const;
+  const uint8_t version(const Agent::AgentBhs &bhs) const;
+  const uint8_t encrypt(const Agent::AgentBhs &bhs) const;
+  const uint32_t checkSum(const Agent::AgentBhs &bhs) const;
 
-    void init(ConnectionPtr conn) {
-      conn_ = conn;
-    }
+  const Agent::AppId srcId(const Agent::AgentBhs &bhs) const;
+  const Agent::AppId dstId(const Agent::AgentBhs &bhs) const;
+  const uint16_t sessNo(const Agent::AgentBhs &bhs) const;
+  const Agent::Errno retCode(const Agent::AgentBhs &bhs) const;
 
-    const uint16_t magic(const Agent::AgentBhs & bhs) const;
-    const uint8_t version(const Agent::AgentBhs & bhs) const;
-    const uint8_t encrypt(const Agent::AgentBhs & bhs) const;
-    const uint32_t checkSum(const Agent::AgentBhs & bhs) const;
+  const uint16_t command(const Agent::AgentBhs &bhs) const;
+  const Agent::Opcode opCode(const Agent::AgentBhs &bhs) const;
+  const uint32_t pduLen(const Agent::AgentBhs &bhs) const;
 
-    const Agent::AppId srcId(const Agent::AgentBhs & bhs) const;
-    const Agent::AppId dstId(const Agent::AgentBhs & bhs) const;
-    const uint16_t sessNo(const Agent::AgentBhs & bhs) const;
-    const Agent::Errno retCode(const Agent::AgentBhs & bhs) const;
+  void setMagic(Agent::AgentBhs &bhs, const uint16_t magic = kAgentMagic);
+  void setVersion(Agent::AgentBhs &bhs, const uint8_t version = kAgentVersion);
+  void setEncrypt(Agent::AgentBhs &bhs,
+                  const uint8_t encrypt = kAgentEncryptZip);
+  void setCheckSum(Agent::AgentBhs &bhs, const uint32_t checkSum);
 
-    const uint16_t command(const Agent::AgentBhs & bhs) const;
-    const Agent::Opcode opCode(const Agent::AgentBhs & bhs) const;
-    const uint32_t pduLen(const Agent::AgentBhs & bhs) const;
+  void setSrcId(Agent::AgentBhs &bhs, const Agent::AppId srcId);
+  void setDstId(Agent::AgentBhs &bhs, const Agent::AppId dstId);
+  void setSessNo(Agent::AgentBhs &bhs, const uint16_t sessNo);
+  void setRetCode(Agent::AgentBhs &bhs, const Agent::Errno retcode);
 
-    void setMagic(Agent::AgentBhs & bhs, const uint16_t magic = kAgentMagic);
-    void setVersion(Agent::AgentBhs & bhs, const uint8_t version = kAgentVersion);
-    void setEncrypt(Agent::AgentBhs & bhs, const uint8_t encrypt = kAgentEncryptZip);
-    void setCheckSum(Agent::AgentBhs & bhs, const uint32_t checkSum);
+  void setCommand(Agent::AgentBhs &bhs, const Agent::Command cmd);
+  void setOpcode(Agent::AgentBhs &bhs, const Agent::Opcode op);
+  void setPduLen(Agent::AgentBhs &bhs, const uint32_t pduLen);
 
+  void debugBhs(const Agent::AgentBhs &bhs);
+  int SendPdu(const Agent::AgentBhs &bhs, const iovec &iov_body);
+  int RecvPdu(Agent::AgentBhs &bhs, AgentPdu &pdu);
 
-    void setSrcId(Agent::AgentBhs & bhs, const Agent::AppId srcId);
-    void setDstId(Agent::AgentBhs & bhs, const Agent::AppId dstId);
-    void setSessNo(Agent::AgentBhs & bhs, const uint16_t sessNo);
-    void setRetCode(Agent::AgentBhs & bhs, const Agent::Errno retcode);
-
-    void setCommand(Agent::AgentBhs & bhs, const Agent::Command cmd);
-    void setOpcode(Agent::AgentBhs & bhs, const Agent::Opcode op);
-    void setPduLen(Agent::AgentBhs & bhs, const uint32_t pduLen);
-
-    void debugBhs(const Agent::AgentBhs & bhs);
-    int SendPdu(const Agent::AgentBhs & bhs, const iovec & iov_body);
-    int RecvPdu(Agent::AgentBhs & bhs, AgentPdu & pdu);
-  private:
-    ConnectionPtr conn_;
-    MemPool *mpool_;
+ private:
+  ConnectionPtr conn_;
+  MemPool *mpool_;
 };
 
-}
-}
+}  // namespace AGENT
+}  // namespace MSF
 #endif

@@ -1,25 +1,23 @@
 /**************************************************************************
-*
-* Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
-* All rights reserved.
-*
-* Distributed under the terms of the GNU General Public License v2.
-*
-* This software is provided 'as is' with no explicit or implied warranties
-* in respect of its properties, including, but not limited to, correctness
-* and/or fitness for purpose.
-*
-**************************************************************************/
+ *
+ * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
+ * All rights reserved.
+ *
+ * Distributed under the terms of the GNU General Public License v2.
+ *
+ * This software is provided 'as is' with no explicit or implied warranties
+ * in respect of its properties, including, but not limited to, correctness
+ * and/or fitness for purpose.
+ *
+ **************************************************************************/
 #include <base/Uio.h>
-
-#include <unistd.h>
 #include <errno.h>
+#include <unistd.h>
 
 using namespace MSF::IO;
 
 namespace MSF {
 namespace IO {
-
 
 template <class F, class... Args>
 static int wrapPositional(F f, int fd, off_t offset, Args... args) {
@@ -52,6 +50,5 @@ extern "C" ssize_t pwritev(int fd, const iovec* iov, int count, off_t offset) {
   return wrapPositional(writev, fd, offset, iov, count);
 }
 
-
-}
-}
+}  // namespace IO
+}  // namespace MSF

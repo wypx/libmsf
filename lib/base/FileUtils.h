@@ -1,28 +1,29 @@
 /**************************************************************************
-*
-* Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
-* All rights reserved.
-*
-* Distributed under the terms of the GNU General Public License v2.
-*
-* This software is provided 'as is' with no explicit or implied warranties
-* in respect of its properties, including, but not limited to, correctness
-* and/or fitness for purpose.
-*
-**************************************************************************/
+ *
+ * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
+ * All rights reserved.
+ *
+ * Distributed under the terms of the GNU General Public License v2.
+ *
+ * This software is provided 'as is' with no explicit or implied warranties
+ * in respect of its properties, including, but not limited to, correctness
+ * and/or fitness for purpose.
+ *
+ **************************************************************************/
 #ifndef __MSF_FILE_UTILS_H__
 #define __MSF_FILE_UTILS_H__
 
 #pragma once
 
+#include <assert.h>
 #include <fcntl.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/uio.h>
-#include <string.h>
-#include <system_error>
-#include <assert.h>
+
 #include <limits>
+#include <system_error>
 
 namespace MSF {
 namespace IO {
@@ -113,48 +114,45 @@ ssize_t pwritevFull(int fd, iovec* iov, int count, off_t offset);
  * errno will be set appropriately by the failing system primitive.
  */
 template <class Container>
-bool readFile(
-    int fd,
-    Container& out,
-    size_t num_bytes = std::numeric_limits<size_t>::max()) {
-        static_assert(
-            sizeof(out[0]) == 1,
-            "readFile: only containers with byte-sized elements accepted");
+bool readFile(int fd, Container& out,
+              size_t num_bytes = std::numeric_limits<size_t>::max()) {
+  static_assert(sizeof(out[0]) == 1,
+                "readFile: only containers with byte-sized elements accepted");
 
-        size_t soFar = 0; // amount of bytes successfully read
-        {
-            assert(out.size() >= soFar); // resize better doesn't throw
-            out.resize(soFar);
-        };
+  size_t soFar = 0;  // amount of bytes successfully read
+  {
+    assert(out.size() >= soFar);  // resize better doesn't throw
+    out.resize(soFar);
+  };
 
-        // Obtain file size:
-        struct stat buf;
-        if (fstat(fd, &buf) == -1) {
-            return false;
-        }
+  // Obtain file size:
+  struct stat buf;
+  if (fstat(fd, &buf) == -1) {
+    return false;
+  }
 
-        // Some files (notably under /proc and /sys on Linux) lie about
-        // their size, so treat the size advertised by fstat under advise
-        // but don't rely on it. In particular, if the size is zero, we
-        // should attempt to read stuff. If not zero, we'll attempt to read
-        // one extra byte.
-        constexpr size_t initialAlloc = 1024 * 4;
-        out.resize(std::min(
-            buf.st_size > 0 ? (size_t(buf.st_size) + 1) : initialAlloc, num_bytes));
+  // Some files (notably under /proc and /sys on Linux) lie about
+  // their size, so treat the size advertised by fstat under advise
+  // but don't rely on it. In particular, if the size is zero, we
+  // should attempt to read stuff. If not zero, we'll attempt to read
+  // one extra byte.
+  constexpr size_t initialAlloc = 1024 * 4;
+  out.resize(std::min(
+      buf.st_size > 0 ? (size_t(buf.st_size) + 1) : initialAlloc, num_bytes));
 
-        while (soFar < out.size()) {
-            const auto actual = readFull(fd, &out[soFar], out.size() - soFar);
-            if (actual == -1) {
-            return false;
-            }
-            soFar += actual;
-            if (soFar < out.size()) {
-            // File exhausted
-            break;
-            }
-        // Ew, allocate more memory. Use exponential growth to avoid
-        // quadratic behavior. Cap size to num_bytes.
-        out.resize(std::min(out.size() * 3 / 2, num_bytes));
+  while (soFar < out.size()) {
+    const auto actual = readFull(fd, &out[soFar], out.size() - soFar);
+    if (actual == -1) {
+      return false;
+    }
+    soFar += actual;
+    if (soFar < out.size()) {
+      // File exhausted
+      break;
+    }
+    // Ew, allocate more memory. Use exponential growth to avoid
+    // quadratic behavior. Cap size to num_bytes.
+    out.resize(std::min(out.size() * 3 / 2, num_bytes));
   }
 
   return true;
@@ -164,23 +162,21 @@ bool readFile(
  * Same as above, but takes in a file name instead of fd
  */
 template <class Container>
-bool readFile(
-    const char* file_name,
-    Container& out,
-    size_t num_bytes = std::numeric_limits<size_t>::max()) {
-        assert(file_name);
+bool readFile(const char* file_name, Container& out,
+              size_t num_bytes = std::numeric_limits<size_t>::max()) {
+  assert(file_name);
 
-        const auto fd = openNoInt(file_name, O_RDONLY | O_CLOEXEC);
-        if (fd == -1) {
-            return false;
-        }
+  const auto fd = openNoInt(file_name, O_RDONLY | O_CLOEXEC);
+  if (fd == -1) {
+    return false;
+  }
 
-        {
-            // Ignore errors when closing the file
-            closeNoInt(fd);
-        };
+  {
+    // Ignore errors when closing the file
+    closeNoInt(fd);
+  };
 
-        return readFile(fd, out, num_bytes);
+  return readFile(fd, out, num_bytes);
 }
 
 /**
@@ -200,23 +196,19 @@ bool readFile(
  * state will be unchanged on error.
  */
 template <class Container>
-bool writeFile(
-    const Container& data,
-    const char* filename,
-    int flags = O_WRONLY | O_CREAT | O_TRUNC,
-    mode_t mode = 0666) {
-        static_assert(
-            sizeof(data[0]) == 1, "writeFile works with element size equal to 1");
-        int fd = open(filename, flags, mode);
-        if (fd == -1) {
-            return false;
-        }
-        bool ok = data.empty() ||
-            writeFull(fd, &data[0], data.size()) == static_cast<ssize_t>(data.size());
-        return closeNoInt(fd) == 0 && ok;
+bool writeFile(const Container& data, const char* filename,
+               int flags = O_WRONLY | O_CREAT | O_TRUNC, mode_t mode = 0666) {
+  static_assert(sizeof(data[0]) == 1,
+                "writeFile works with element size equal to 1");
+  int fd = open(filename, flags, mode);
+  if (fd == -1) {
+    return false;
+  }
+  bool ok = data.empty() || writeFull(fd, &data[0], data.size()) ==
+                                static_cast<ssize_t>(data.size());
+  return closeNoInt(fd) == 0 && ok;
 }
 
-
-} /**************************** end namespace IO ******************************/
-} /**************************** end namespace MSF  ****************************/
+}  // namespace IO
+}  // namespace MSF
 #endif

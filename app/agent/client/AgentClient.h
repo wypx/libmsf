@@ -13,19 +13,18 @@
 #ifndef AGENT_CLIENT_AGENTCLIENT_H
 #define AGENT_CLIENT_AGENTCLIENT_H
 
+#include <base/CountDownLatch.h>
+#include <base/GccAttr.h>
+#include <base/MemPool.h>
+#include <event/EventLoop.h>
+#include <proto/AgentProto.h>
+#include <sock/Connector.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 #include <functional>
 #include <iostream>
 #include <string>
-#include <base/CountDownLatch.h>
-#include <base/GccAttr.h>
-
-#include <base/MemPool.h>
-#include <event/EventLoop.h>
-#include <proto/AgentProto.h>
-#include <sock/Connector.h>
 
 using namespace MSF::BASE;
 using namespace MSF::SOCK;
@@ -35,7 +34,8 @@ using namespace MSF::AGENT;
 namespace MSF {
 namespace AGENT {
 
-typedef std::function<void(char *data, uint32_t *len, const Agent::Command cmd)> AgentCb;
+typedef std::function<void(char* data, uint32_t* len, const Agent::Command cmd)>
+    AgentCb;
 
 enum AgentType {
   kAgentUnix,
@@ -95,14 +95,12 @@ struct AgentCmd {
   uint32_t timeOut_;
   bool needAck_;
 
-  void addHead(void *head, const uint32_t len)
-  {
+  void addHead(void* head, const uint32_t len) {
     iov[0].iov_base = head;
     iov[0].iov_len = len;
   }
 
-  void addBody(void *body, const uint32_t len)
-  {
+  void addBody(void* body, const uint32_t len) {
     iov[1].iov_base = body;
     iov[1].iov_len = len;
   }
@@ -121,16 +119,13 @@ struct AgentCmd {
 
 class AgentClient {
  public:
-  explicit AgentClient(EventLoop *loop,
-                      const std::string& name,
-                      const Agent::AppId cid,
-                      const std::string& host = "127.0.0.1",
-                      const uint16_t port = 8888);
-  explicit AgentClient(EventLoop *loop,
-                      const std::string& name,
-                      const Agent::AppId cid,
-                      const std::string& srvUnixPath,
-                      const std::string& cliUnixPath);
+  explicit AgentClient(EventLoop* loop, const std::string& name,
+                       const Agent::AppId cid,
+                       const std::string& host = "127.0.0.1",
+                       const uint16_t port = 8888);
+  explicit AgentClient(EventLoop* loop, const std::string& name,
+                       const Agent::AppId cid, const std::string& srvUnixPath,
+                       const std::string& cliUnixPath);
   ~AgentClient();
 
   void setReqCb(const AgentCb& cb) { reqCb_ = std::move(cb); }
@@ -165,7 +160,6 @@ class AgentClient {
   struct iovec _rxIOV[MAX_CONN_IOV_SLOT];
   struct iovec _txIOV[MAX_CONN_IOV_SLOT];
 
-
   MemPool* mpool_;
   std::list<struct AgentCmd*> freeCmdList_;
   std::list<struct AgentCmd*> txCmdList_;  /* queue of tx cmd to handle*/
@@ -174,8 +168,9 @@ class AgentClient {
 
   std::unique_ptr<AgentProto> proto_;
   ConnectionPtr conn_;
-  bool reConnect_;  /* Enable reconnct agent server*/
+  bool reConnect_; /* Enable reconnct agent server*/
   bool reConnecting_;
+
  private:
   struct AgentCmd* allocCmd(const uint32_t len);
   void freeCmd(struct AgentCmd* cmd);
@@ -185,8 +180,8 @@ class AgentClient {
   bool loginAgent();
   void handleTxCmd();
   void handleRxCmd();
-  void handleRequest(Agent::AgentBhs & bhs);
-  void handleResponce(Agent::AgentBhs & bhs);
+  void handleRequest(Agent::AgentBhs& bhs);
+  void handleResponce(Agent::AgentBhs& bhs);
   bool handleIORet(const int ret);
 };
 

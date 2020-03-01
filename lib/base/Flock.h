@@ -1,11 +1,11 @@
 
-#include <sys/stat.h>
-#include <sys/file.h>
-#include <string.h>
-#include <unistd.h>
-#include <iostream>
-
 #include <base/Logger.h>
+#include <string.h>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include <iostream>
 using namespace MSF::BASE;
 
 /*Linux/Unix文件系统中，有一种排它锁：WRLCK，
@@ -47,105 +47,96 @@ using namespace MSF::BASE;
     */
 
 class MSF_FLOCK {
-    public:
-        int OpenLockFile(const std::string & filename)
-        {
-            int fd = open(filename.c_str(), O_RDWR | O_CREAT | O_CLOEXEC, 
-                            S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-            if (fd < 0) {
-                MSF_ERROR << "Failed to open lock file: " << filename;
-            }
-            // msf_socket_closeonexec(fd);
-            if (0 == flock(fd, LOCK_EX | LOCK_NB)) {
-                MSF_INFO << filename << "has not been locked, lock it.";
-            } else {
-                MSF_INFO << filename << " has locked.";
-                if (EACCES == errno || EAGAIN == errno || EWOULDBLOCK == errno) {
+ public:
+  int OpenLockFile(const std::string& filename) {
+    int fd = open(filename.c_str(), O_RDWR | O_CREAT | O_CLOEXEC,
+                  S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+    if (fd < 0) {
+      MSF_ERROR << "Failed to open lock file: " << filename;
+    }
+    // msf_socket_closeonexec(fd);
+    if (0 == flock(fd, LOCK_EX | LOCK_NB)) {
+      MSF_INFO << filename << "has not been locked, lock it.";
+    } else {
+      MSF_INFO << filename << " has locked.";
+      if (EACCES == errno || EAGAIN == errno || EWOULDBLOCK == errno) {
+      }
+    }
+    return 0;
+  }
+  int TryRLock(short start, short whence, short len) {
+    struct flock lock;
+    lock.l_type = F_RDLCK;
+    lock.l_start = start;
+    lock.l_whence = whence;  // SEEK_CUR,SEEK_SET,SEEK_END
+    lock.l_len = len;
+    lock.l_pid = getpid();
+    /* 阻塞方式加锁 */
+    if (fcntl(fd, F_SETLK, &lock) == 0) return 1;
+    return 0;
+  }
 
-                }              
-            }
-            return 0;
-        }
-        int TryRLock(short start, short whence, short len)
-        {  
-            struct flock lock;
-            lock.l_type = F_RDLCK;
-            lock.l_start = start;
-            lock.l_whence = whence;//SEEK_CUR,SEEK_SET,SEEK_END
-            lock.l_len = len;
-            lock.l_pid = getpid();
-            /* 阻塞方式加锁 */
-            if(fcntl(fd, F_SETLK, &lock) == 0)
-                return 1;
-            return 0;
-        }
+  /* flock锁的释放非常具有特色:
+   * 即可调用LOCK_UN参数来释放文件锁
+   * 也可以通过关闭fd的方式来释放文件锁
+   * 意味着flock会随着进程的关闭而被自动释放掉 */
+  int TryWLock() {
+    struct flock fl;
+    /* 这个文件锁并不用于锁文件中的内容,填充为0 */
+    memset(&fl, 0, sizeof(struct flock));
+    fl.l_type = F_WRLCK; /*F_WRLCK意味着不会导致进程睡眠*/
+    fl.l_whence = SEEK_SET;
 
-        /* flock锁的释放非常具有特色:
-        * 即可调用LOCK_UN参数来释放文件锁
-        * 也可以通过关闭fd的方式来释放文件锁
-        * 意味着flock会随着进程的关闭而被自动释放掉 */
-        int TryWLock()
-        {
-            struct flock  fl;
-            /* 这个文件锁并不用于锁文件中的内容,填充为0 */
-            memset(&fl, 0, sizeof(struct flock));
-            fl.l_type = F_WRLCK; /*F_WRLCK意味着不会导致进程睡眠*/
-            fl.l_whence = SEEK_SET;
+    /* 获取互斥锁成功时会返回0,否则返回的其实是errno错误码,
+     * 而这个错误码为EAGAIN或者EACCESS时表示当前没有拿到互斥锁,
+     * 否则可以认为fcntl执行错误*/
+    if (fcntl(fd, F_SETLK, &fl) == -1) {
+      return -1;
+    }
+    return 0;
+  }
 
-            /* 获取互斥锁成功时会返回0,否则返回的其实是errno错误码,
-            * 而这个错误码为EAGAIN或者EACCESS时表示当前没有拿到互斥锁,
-            * 否则可以认为fcntl执行错误*/
-            if (fcntl(fd, F_SETLK, &fl) == -1) {
-                return -1;
-            }
-            return 0;
-        }
-        
-        int RLock(short start, short whence, short len)
-        {
-            struct flock lock;
-            lock.l_type = F_RDLCK;
-            lock.l_start = start;
-            lock.l_whence = whence;//SEEK_CUR,SEEK_SET,SEEK_END
-            lock.l_len = len;
-            lock.l_pid = getpid();
-            if(fcntl(fd, F_SETLKW, &lock) == 0)
-                return 1;
-            return 0;
-        }
+  int RLock(short start, short whence, short len) {
+    struct flock lock;
+    lock.l_type = F_RDLCK;
+    lock.l_start = start;
+    lock.l_whence = whence;  // SEEK_CUR,SEEK_SET,SEEK_END
+    lock.l_len = len;
+    lock.l_pid = getpid();
+    if (fcntl(fd, F_SETLKW, &lock) == 0) return 1;
+    return 0;
+  }
 
-        /*
-        * 该将会阻塞进程的执行,使用时需要非常谨慎,
-        * 它可能会导致worker进程宁可睡眠也不处理其他正常请*/
-        int msf_lock_wfd()
-        {
-            struct flock  fl;
-            memset(&fl, 0, sizeof(struct flock));
-            fl.l_type = F_WRLCK;
-            fl.l_whence = SEEK_SET;
-            /* 如果返回-1, 则表示fcntl执行错误
-            * 一旦返回0, 表示成功地拿到了锁*/
-            if (fcntl(fd, F_SETLKW, &fl) == -1) {
-                return -1;
-            }
-            return 0;
-        }
+  /*
+   * 该将会阻塞进程的执行,使用时需要非常谨慎,
+   * 它可能会导致worker进程宁可睡眠也不处理其他正常请*/
+  int msf_lock_wfd() {
+    struct flock fl;
+    memset(&fl, 0, sizeof(struct flock));
+    fl.l_type = F_WRLCK;
+    fl.l_whence = SEEK_SET;
+    /* 如果返回-1, 则表示fcntl执行错误
+     * 一旦返回0, 表示成功地拿到了锁*/
+    if (fcntl(fd, F_SETLKW, &fl) == -1) {
+      return -1;
+    }
+    return 0;
+  }
 
-        int Unlock()
-        {
-            struct flock  fl;
+  int Unlock() {
+    struct flock fl;
 
-            memset(&fl, sizeof(struct flock));
-            fl.l_type = F_UNLCK;
-            fl.l_whence = SEEK_SET;
+    memset(&fl, sizeof(struct flock));
+    fl.l_type = F_UNLCK;
+    fl.l_whence = SEEK_SET;
 
-            if (fcntl(fd, F_SETLK, &fl) == -1) {
-                return  -1;
-            }
+    if (fcntl(fd, F_SETLK, &fl) == -1) {
+      return -1;
+    }
 
-            return 0;
-        }
+    return 0;
+  }
 
-    private:
-        int fd;
+ private:
+  int fd;
 };

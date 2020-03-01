@@ -14,8 +14,8 @@
 #define __MSF_ACCEPTTOR_H__
 
 #include <base/Noncopyable.h>
-#include <sock/InetAddress.h>
 #include <event/EventLoop.h>
+#include <sock/InetAddress.h>
 
 using namespace MSF::EVENT;
 
@@ -24,36 +24,37 @@ namespace SOCK {
 
 typedef std::function<void(const int, const uint16_t)> NewConnCb;
 
-class Acceptor : public Noncopyable
-{
-public:
-    explicit Acceptor(EventLoop *loop, const InetAddress & addr, const NewConnCb & cb);
-    ~Acceptor();
+class Acceptor : public Noncopyable {
+ public:
+  explicit Acceptor(EventLoop *loop, const InetAddress &addr,
+                    const NewConnCb &cb);
+  ~Acceptor();
 
-    void acceptCb();
-    void errorCb();
+  void acceptCb();
+  void errorCb();
 
-    bool listen();
-    bool enableListen();
-    bool disableListen();
-    const int sfd() const { return sfd_; }
-private:
-    void closeIdleFd();
-    void openIdleFd();
-    void discardAccept();
-private:
-    bool started_;
-    bool quit_;
-    int  idleFd_;
-    int  backLog_;
-    int  sfd_;
+  bool listen();
+  bool enableListen();
+  bool disableListen();
+  const int sfd() const { return sfd_; }
 
-    EventLoop   *loop_;
-    InetAddress addr_;
-    NewConnCb   newConnCb_;
+ private:
+  void closeIdleFd();
+  void openIdleFd();
+  void discardAccept();
+
+ private:
+  bool started_;
+  bool quit_;
+  int idleFd_;
+  int backLog_;
+  int sfd_;
+
+  EventLoop *loop_;
+  InetAddress addr_;
+  NewConnCb newConnCb_;
 };
 
-
-}
-}
+}  // namespace SOCK
+}  // namespace MSF
 #endif

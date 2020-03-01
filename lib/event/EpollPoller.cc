@@ -1,22 +1,22 @@
 
 /**************************************************************************
-*
-* Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
-* All rights reserved.
-*
-* Distributed under the terms of the GNU General Public License v2.
-*
-* This software is provided 'as is' with no explicit or implied warranties
-* in respect of its properties, including, but not limited to, correctness
-* and/or fitness for purpose.
-*
-**************************************************************************/
+ *
+ * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
+ * All rights reserved.
+ *
+ * Distributed under the terms of the GNU General Public License v2.
+ *
+ * This software is provided 'as is' with no explicit or implied warranties
+ * in respect of its properties, including, but not limited to, correctness
+ * and/or fitness for purpose.
+ *
+ **************************************************************************/
+#include <assert.h>
 #include <base/Logger.h>
 #include <base/Utils.h>
-#include <sock/Socket.h>
-#include <event/Event.h>
 #include <event/EpollPoller.h>
-#include <assert.h>
+#include <event/Event.h>
+#include <sock/Socket.h>
 
 using namespace MSF::BASE;
 
@@ -24,32 +24,30 @@ namespace MSF {
 namespace EVENT {
 
 /*
-* MSF_EVENT_DISABLED state is used to track whether EPOLLONESHOT
-* event should be added or modified, epoll_ctl(2):
-*
-* EPOLLONESHOT (since Linux 2.6.2)
-*     Sets the one-shot behavior for the associated file descriptor.
-*     This means that after an event is pulled out with epoll_wait(2)
-*     the associated file descriptor is internally disabled and no
-*     other events will be reported by the epoll interface.  The user
-*     must call epoll_ctl() with EPOLL_CTL_MOD to rearm the file
-*     descriptor with a new event mask.
-*
-* Notice:
-*  Although calling close() on a file descriptor will remove any epoll
-*  events that reference the descriptor, in this case the close() acquires
-*  the kernel global "epmutex" while epoll_ctl(EPOLL_CTL_DEL) does not
-*  acquire the "epmutex" since Linux 3.13 if the file descriptor presents
-*  only in one epoll set.  Thus removing events explicitly before closing
-*  eliminates possible lock contention.
-*/
-EPollPoller::EPollPoller(EventLoop* loop) : Poller(loop), _epFd(-1)
-{
+ * MSF_EVENT_DISABLED state is used to track whether EPOLLONESHOT
+ * event should be added or modified, epoll_ctl(2):
+ *
+ * EPOLLONESHOT (since Linux 2.6.2)
+ *     Sets the one-shot behavior for the associated file descriptor.
+ *     This means that after an event is pulled out with epoll_wait(2)
+ *     the associated file descriptor is internally disabled and no
+ *     other events will be reported by the epoll interface.  The user
+ *     must call epoll_ctl() with EPOLL_CTL_MOD to rearm the file
+ *     descriptor with a new event mask.
+ *
+ * Notice:
+ *  Although calling close() on a file descriptor will remove any epoll
+ *  events that reference the descriptor, in this case the close() acquires
+ *  the kernel global "epmutex" while epoll_ctl(EPOLL_CTL_DEL) does not
+ *  acquire the "epmutex" since Linux 3.13 if the file descriptor presents
+ *  only in one epoll set.  Thus removing events explicitly before closing
+ *  eliminates possible lock contention.
+ */
+EPollPoller::EPollPoller(EventLoop* loop) : Poller(loop), _epFd(-1) {
   createEpSocket();
 }
 
-EPollPoller::~EPollPoller()
-{
+EPollPoller::~EPollPoller() {
   if (_epFd > 0) {
     close(_epFd);
     _epFd = -1;
@@ -62,121 +60,122 @@ EPollPoller::~EPollPoller()
  * largest number of msec we can support here is 2147482.  Let's
  * round that down by 47 seconds.
  */
-bool EPollPoller::createEpSocket()
-{
-  #ifdef EVENT__HAVE_EPOLL_CREATE1
+bool EPollPoller::createEpSocket() {
+#ifdef EVENT__HAVE_EPOLL_CREATE1
   /* First, try the shiny new epoll_create1 interface, if we have it. */
   _epFd = epoll_create1(EPOLL_CLOEXEC);
-  #endif
+#endif
   if (_epFd < 0) {
-      /* Initialize the kernel queue using the old interface.  
-      * (The size field is ignored   since 2.6.8.) */
-      _epFd = epoll_create(_maxEpEventNum);
-      if (_epFd < 0) {
-          if (errno != ENOSYS) {
-              MSF_FATAL << "Failed to create epoll fd: " << errno;
-              return false;
-          }
-          return false;
+    /* Initialize the kernel queue using the old interface.
+     * (The size field is ignored   since 2.6.8.) */
+    _epFd = epoll_create(_maxEpEventNum);
+    if (_epFd < 0) {
+      if (errno != ENOSYS) {
+        MSF_FATAL << "Failed to create epoll fd: " << errno;
+        return false;
       }
-      SetCloseOnExec(_epFd);
+      return false;
+    }
+    SetCloseOnExec(_epFd);
   }
   MSF_INFO << "EPoll create fd: " << _epFd;
   return true;
 }
 
-
-bool EPollPoller::addEpEvent(const Event *ev)
-{
+bool EPollPoller::addEpEvent(const Event* ev) {
   struct epoll_event event;
   memset(&event, 0, sizeof event);
   event.events = ev->events();
   event.data.ptr = (void*)ev;
 
   if (epoll_ctl(_epFd, EPOLL_CTL_ADD, ev->fd(), &event) < 0) {
-      /* If an ADD operation fails with EEXIST,
-      * either the operation was redundant (as with a
-      * precautionary add), or we ran into a fun
-      * kernel bug where using dup*() to duplicate the
-      * same file into the same fd gives you the same epitem
-      * rather than a fresh one.  For the second case,
-      * we must retry with MOD. */
-      if (errno == EEXIST) {
-          if (epoll_ctl(_epFd, EPOLL_CTL_MOD, ev->fd(), &event) < 0) {
-              MSF_ERROR << "Epoll MOD on" << ev->fd() << " retried as ADD; that failed too.";
-              return true;
-          } else {
-              MSF_ERROR <<"Epoll MOD on" << ev->fd() << " retried as ADD; tsucceeded.";
-              return false;
-          }
+    /* If an ADD operation fails with EEXIST,
+     * either the operation was redundant (as with a
+     * precautionary add), or we ran into a fun
+     * kernel bug where using dup*() to duplicate the
+     * same file into the same fd gives you the same epitem
+     * rather than a fresh one.  For the second case,
+     * we must retry with MOD. */
+    if (errno == EEXIST) {
+      if (epoll_ctl(_epFd, EPOLL_CTL_MOD, ev->fd(), &event) < 0) {
+        MSF_ERROR << "Epoll MOD on" << ev->fd()
+                  << " retried as ADD; that failed too.";
+        return true;
+      } else {
+        MSF_ERROR << "Epoll MOD on" << ev->fd()
+                  << " retried as ADD; tsucceeded.";
+        return false;
       }
+    }
   }
-  MSF_INFO << "Epoll Add" << " on " << ev->fd() << " succeeded.";
+  MSF_INFO << "Epoll Add"
+           << " on " << ev->fd() << " succeeded.";
   // _epEvents.resize(_epEvents.size() + 1);
   return true;
 }
 
-bool EPollPoller::modEpEvent(const Event *ev)
-{
+bool EPollPoller::modEpEvent(const Event* ev) {
   struct epoll_event event;
   memset(&event, 0, sizeof event);
   event.events = ev->events();
   event.data.ptr = (void*)ev;
 
   if (epoll_ctl(_epFd, EPOLL_CTL_MOD, ev->fd(), &event) < 0) {
-      MSF_ERROR << "Failed to mod epoll event";
-      /* If a MOD operation fails with ENOENT, the
-      * fd was probably closed and re-opened.  We
-      * should retry the operation as an ADD.
-      */
-      if (errno == ENOENT) {
-          if (epoll_ctl(_epFd, EPOLL_CTL_ADD, ev->fd(), &event) < 0) {
-              MSF_ERROR << "Epoll MOD" << " on " << ev->fd() << " retried as ADD; that failed too.";
-              return true;
-          } else {
-              MSF_ERROR << "Epoll MOD" << " on " << ev->fd() << " retried as ADD; succeeded.";
-              return false;
-          }
+    MSF_ERROR << "Failed to mod epoll event";
+    /* If a MOD operation fails with ENOENT, the
+     * fd was probably closed and re-opened.  We
+     * should retry the operation as an ADD.
+     */
+    if (errno == ENOENT) {
+      if (epoll_ctl(_epFd, EPOLL_CTL_ADD, ev->fd(), &event) < 0) {
+        MSF_ERROR << "Epoll MOD"
+                  << " on " << ev->fd() << " retried as ADD; that failed too.";
+        return true;
+      } else {
+        MSF_ERROR << "Epoll MOD"
+                  << " on " << ev->fd() << " retried as ADD; succeeded.";
+        return false;
       }
+    }
   }
-  MSF_INFO << "Epoll MOD" << " on " << ev->fd() << " succeeded.";
+  MSF_INFO << "Epoll MOD"
+           << " on " << ev->fd() << " succeeded.";
   return true;
 }
 
-bool EPollPoller::delEpEvent(const Event *ev)
-{
-    if (epoll_ctl(_epFd, EPOLL_CTL_DEL, ev->fd(), NULL) < 0) {
-        MSF_ERROR << "Failed to del epoll event for fd: " << ev->fd() << ",errno" << errno;
-        if (errno == ENOENT || errno == EBADF || errno == EPERM) {
-            /* If a delete fails with one of these errors,
-            * that's fine too: we closed the fd before we
-            * got around to calling epoll_dispatch. */
-            MSF_ERROR << "Epoll DEL on fd " << ev->fd() << "gave " 
-                        << strerror(errno) << "DEL was unnecessary.";
-            return true;
-        }
-        return false;
+bool EPollPoller::delEpEvent(const Event* ev) {
+  if (epoll_ctl(_epFd, EPOLL_CTL_DEL, ev->fd(), NULL) < 0) {
+    MSF_ERROR << "Failed to del epoll event for fd: " << ev->fd() << ",errno"
+              << errno;
+    if (errno == ENOENT || errno == EBADF || errno == EPERM) {
+      /* If a delete fails with one of these errors,
+       * that's fine too: we closed the fd before we
+       * got around to calling epoll_dispatch. */
+      MSF_ERROR << "Epoll DEL on fd " << ev->fd() << "gave " << strerror(errno)
+                << "DEL was unnecessary.";
+      return true;
     }
-    MSF_INFO << "Epoll Del" << " on " << ev->fd() << " succeeded.";
-    return true;
+    return false;
+  }
+  MSF_INFO << "Epoll Del"
+           << " on " << ev->fd() << " succeeded.";
+  return true;
 }
 
-int EPollPoller::poll(int timeoutMs, EventList* activeEvents)
-{
+int EPollPoller::poll(int timeoutMs, EventList* activeEvents) {
   // MSF_INFO << "fd total count " << _epEvents.size();
   // MSF_INFO << "timeoutMs: " << timeoutMs;
   int numEvents = epoll_wait(_epFd,
-                              // &*_epEvents.begin(),
-                              _epEvents,
-                              512,
-                              // static_cast<int>(_epEvents.size()),
-                               timeoutMs);
+                             // &*_epEvents.begin(),
+                             _epEvents, 512,
+                             // static_cast<int>(_epEvents.size()),
+                             timeoutMs);
   // MSF_INFO << "_activeEvents size: " << activeEvents.size();
   // Timestamp now(Timestamp::now());
   if (numEvents > 0) {
     // MSF_INFO << numEvents << " events happened";
     fillActiveEvents(numEvents, activeEvents);
-    //https://blog.csdn.net/xiaoc_fantasy/article/details/79570788
+    // https://blog.csdn.net/xiaoc_fantasy/article/details/79570788
     // if (implicit_cast<size_t>(numEvents) == _epEvents.size())
     // {
     //    _epEvents.resize(_epEvents.size()*2);
@@ -193,18 +192,16 @@ int EPollPoller::poll(int timeoutMs, EventList* activeEvents)
   return 0;
 }
 
-void EPollPoller::fillActiveEvents(int numEvents, EventList* activeEvents)
-{
+void EPollPoller::fillActiveEvents(int numEvents, EventList* activeEvents) {
   // assert(implicit_cast<size_t>(numEvents) <= _epEvents.size());
-  /* 
-  * Notice:
-  * Epoll event struct's "data" is a union,
-  * one of data.fd and data.ptr is valid.
-  * refer:
-  * https://blog.csdn.net/sun_z_x/article/details/22581411
-  */
-  for (int i = 0; i < numEvents; ++i)
-  {
+  /*
+   * Notice:
+   * Epoll event struct's "data" is a union,
+   * one of data.fd and data.ptr is valid.
+   * refer:
+   * https://blog.csdn.net/sun_z_x/article/details/22581411
+   */
+  for (int i = 0; i < numEvents; ++i) {
     Event* ev = static_cast<Event*>(_epEvents[i].data.ptr);
 #ifndef NDEBUG
     int fd = ev->fd();
@@ -217,24 +214,20 @@ void EPollPoller::fillActiveEvents(int numEvents, EventList* activeEvents)
   }
 }
 
-void EPollPoller::updateEvent(Event* ev)
-{
+void EPollPoller::updateEvent(Event* ev) {
   const int index = ev->index();
-  MSF_INFO << "fd = " << ev->fd()
-    << " events = " << ev->events() << " index = " << index;
+  MSF_INFO << "fd = " << ev->fd() << " events = " << ev->events()
+           << " index = " << index;
 
   // Poller::assertInLoopThread();
 
-  if (index == kNew || index == kDeleted)
-  {
+  if (index == kNew || index == kDeleted) {
     // a new one, add with EPOLL_CTL_ADD
     int fd = ev->fd();
-    if (index == kNew)
-    {
+    if (index == kNew) {
       assert(_events.find(fd) == _events.end());
       _events[fd] = ev;
-    }
-    else // index == kDeleted
+    } else  // index == kDeleted
     {
       assert(_events.find(fd) != _events.end());
       assert(_events[fd] == ev);
@@ -242,28 +235,22 @@ void EPollPoller::updateEvent(Event* ev)
 
     ev->set_index(kAdded);
     addEpEvent(ev);
-  }
-  else
-  {
+  } else {
     // update existing one with EPOLL_CTL_MOD/DEL
     int fd = ev->fd();
     (void)fd;
     assert(_events.find(fd) != _events.end());
     assert(_events[fd] == ev);
     assert(index == kAdded);
-    if (ev->isNoneEvent())
-    {
+    if (ev->isNoneEvent()) {
       delEpEvent(ev);
       ev->set_index(kDeleted);
-    }
-    else
-    {
+    } else {
       modEpEvent(ev);
     }
   }
 }
-void EPollPoller::removeEvent(Event* ev)
-{
+void EPollPoller::removeEvent(Event* ev) {
   Poller::assertInLoopThread();
   int fd = ev->fd();
   MSF_INFO << "Remove from epoll, fd: " << fd;
@@ -285,17 +272,14 @@ void EPollPoller::removeEvent(Event* ev)
   (void)n;
   assert(n == 1);
 
-  if (index == kAdded)
-  {
+  if (index == kAdded) {
     delEpEvent(ev);
   }
   ev->set_index(kNew);
 }
 
-const char* EPollPoller::operationToString(int op)
-{
-  switch (op)
-  {
+const char* EPollPoller::operationToString(int op) {
+  switch (op) {
     case EPOLL_CTL_ADD:
       return "ADD";
     case EPOLL_CTL_DEL:
@@ -308,19 +292,18 @@ const char* EPollPoller::operationToString(int op)
   }
 }
 
+}  // namespace EVENT
+}  // namespace MSF
 
-}
-}
-
-//http://www.cnblogs.com/Anker/archive/2013/08/17/3263780.html
+// http://www.cnblogs.com/Anker/archive/2013/08/17/3263780.html
 /* http://blog.csdn.net/yusiguyuan/article/details/15027821
 EPOLLET:
 将EPOLL设为边缘触发(Edge Triggered)模式,
 这是相对于水平触发(Level Triggered)来说的
 EPOLL事件有两种模型：
-Edge Triggered(ET)	 
+Edge Triggered(ET)
 高速工作方式,错误率比较大,只支持no_block socket (非阻塞socket)
-LevelTriggered(LT)	 
+LevelTriggered(LT)
 缺省工作方式，即默认的工作方式,支持blocksocket和no_blocksocket,错误率比较小.
 EPOLLIN:
 listen fd,有新连接请求,对端发送普通数据
@@ -329,7 +312,7 @@ EPOLLPRI:
 EPOLLERR:
 表示对应的文件描述符发生错误
 EPOLLHUP:
-表示对应的文件描述符被挂断 
+表示对应的文件描述符被挂断
 对端正常关闭(程序里close(),shell下kill或ctr+c),触发EPOLLIN和EPOLLRDHUP,
 但是不触发EPOLLERR 和EPOLLHUP.再man epoll_ctl看下后两个事件的说明,
 这两个应该是本端（server端）出错才触发的.
@@ -376,7 +359,7 @@ epoll是通过内核于用户空间mmap同一块内存实现的。
 这一点其实不算epoll的优点了，而是整个linux平台的优点。
 也许你可以怀疑linux平台，但是你无法回避linux平台赋予你微调内核的能力。
 比如，内核TCP/IP协议栈使用内存池管理sk_buff结构，
-那么可以在运行时期动态调整这个内存pool(skb_head_pool)的大小--- 
+那么可以在运行时期动态调整这个内存pool(skb_head_pool)的大小---
 通过echoXXXX>/proc/sys/net/core/hot_list_length完成。
 再比如listen函数的第2个参数(TCP完成3次握手的数据包队列长度)，
 也可以根据你平台内存大小动态调整。

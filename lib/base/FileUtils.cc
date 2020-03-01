@@ -1,21 +1,22 @@
 /**************************************************************************
-*
-* Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
-* All rights reserved.
-*
-* Distributed under the terms of the GNU General Public License v2.
-*
-* This software is provided 'as is' with no explicit or implied warranties
-* in respect of its properties, including, but not limited to, correctness
-* and/or fitness for purpose.
-*
-**************************************************************************/
+ *
+ * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
+ * All rights reserved.
+ *
+ * Distributed under the terms of the GNU General Public License v2.
+ *
+ * This software is provided 'as is' with no explicit or implied warranties
+ * in respect of its properties, including, but not limited to, correctness
+ * and/or fitness for purpose.
+ *
+ **************************************************************************/
 #include "FileUtils.h"
+
+#include <sys/file.h>
+#include <unistd.h>
+
 #include "FileDetails.h"
 #include "Uio.h"
-
-#include <unistd.h>
-#include <sys/file.h>
 
 using namespace MSF::IO;
 
@@ -42,17 +43,11 @@ static int filterCloseReturn(int r) {
   return r;
 }
 
-int closeNoInt(int fd) {
-  return filterCloseReturn(::close(fd));
-}
+int closeNoInt(int fd) { return filterCloseReturn(::close(fd)); }
 
-int fsyncNoInt(int fd) {
-  return int(wrapNoInt(fsync, fd));
-}
+int fsyncNoInt(int fd) { return int(wrapNoInt(fsync, fd)); }
 
-int dupNoInt(int fd) {
-  return int(wrapNoInt(dup, fd));
-}
+int dupNoInt(int fd) { return int(wrapNoInt(dup, fd)); }
 
 int dup2NoInt(int oldfd, int newfd) {
   return int(wrapNoInt(dup2, oldfd, newfd));
@@ -81,8 +76,8 @@ int flockNoInt(int fd, int operation) {
 }
 
 int shutdownNoInt(int fd, int how) {
-//   return int(wrapNoInt(shutdown, fd, how));
-    return 0;
+  //   return int(wrapNoInt(shutdown, fd, how));
+  return 0;
 }
 
 ssize_t readNoInt(int fd, void* buf, size_t count) {
@@ -141,7 +136,5 @@ ssize_t pwritevFull(int fd, iovec* iov, int count, off_t offset) {
   return wrapvFull(pwritev, fd, iov, count, offset);
 }
 
-
-
-} /**************************** end namespace IO   ****************************/
-} /**************************** end namespace MSF  ****************************/
+}  // namespace IO
+}  // namespace MSF

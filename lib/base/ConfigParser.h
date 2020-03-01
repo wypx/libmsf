@@ -1,61 +1,60 @@
 #include <map>
-#include <string>
 #include <sstream>
+#include <string>
 
 #ifdef CONFIG_DEBUG
 #include <iostream>
 #endif
 
 class ConfigParser {
-public:
-    bool Load(const char* FileName);
+ public:
+  bool Load(const char* FileName);
 
-    template <typename T>
-    T GetData(const char* key, const T& default_ = T()) const;
+  template <typename T>
+  T GetData(const char* key, const T& default_ = T()) const;
 
 #ifdef CONFIG_DEBUG
-    void Print() {
-        std::cout << "//////////////////"<< std::endl;
-        for (const auto& kv : data_) {
-            std::cout << kv.first << ":" << kv.second << "\n";
-        }
+  void Print() {
+    std::cout << "//////////////////" << std::endl;
+    for (const auto& kv : data_) {
+      std::cout << kv.first << ":" << kv.second << "\n";
     }
+  }
 #endif
 
-private:
-    typedef std::map<std::string, std::string> Data;
+ private:
+  typedef std::map<std::string, std::string> Data;
 
-    Data data_;
+  Data data_;
 
-    template <typename T>
-    T _ToType(const std::string& data) const;
+  template <typename T>
+  T _ToType(const std::string& data) const;
 };
-
 
 template <typename T>
 inline T ConfigParser::_ToType(const std::string& data) const {
-    T t;
-    std::istringstream os(data);
-    os >> t;
-    return t;
+  T t;
+  std::istringstream os(data);
+  os >> t;
+  return t;
 }
 
 template <>
-inline const char* ConfigParser::_ToType<const char* >(const std::string& data) const {
-    return data.c_str();
+inline const char* ConfigParser::_ToType<const char*>(
+    const std::string& data) const {
+  return data.c_str();
 }
 
 template <>
-inline std::string ConfigParser::_ToType<std::string>(const std::string& data) const {
-    return data;
+inline std::string ConfigParser::_ToType<std::string>(
+    const std::string& data) const {
+  return data;
 }
-
 
 template <typename T>
 inline T ConfigParser::GetData(const char* key, const T& default_) const {
-    auto it = data_.find(key);
-    if (it == data_.end())
-        return default_;
+  auto it = data_.find(key);
+  if (it == data_.end()) return default_;
 
-    return _ToType<T>(it->second);
+  return _ToType<T>(it->second);
 }

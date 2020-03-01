@@ -1,7 +1,7 @@
 #include <base/Logger.h>
 #include <base/Mem.h>
-#include <sock/UnixCmsg.h>
 #include <errno.h>
+#include <sock/UnixCmsg.h>
 
 #define HAVE_MSGHDR_MSG_CONTROL 1
 
@@ -55,7 +55,6 @@ int ReadFdMessage(int sockfd, char *buf, int buflen, int *fds, int fd_num) {
 }
 
 int SendFdMessage(int sockfd, char *buf, int buflen, int *fds, int fd_num) {
-
   struct iovec iov;
   struct msghdr msgh;
   size_t fdsize = fd_num * sizeof(int);
@@ -71,7 +70,7 @@ int SendFdMessage(int sockfd, char *buf, int buflen, int *fds, int fd_num) {
   msgh.msg_iovlen = 1;
 
   if (fds && fd_num > 0) {
-    #ifdef HAVE_MSGHDR_MSG_CONTROL
+#ifdef HAVE_MSGHDR_MSG_CONTROL
     msgh.msg_control = control;
     msgh.msg_controllen = sizeof(control);
     cmsg = CMSG_FIRSTHDR(&msgh);
@@ -80,30 +79,30 @@ int SendFdMessage(int sockfd, char *buf, int buflen, int *fds, int fd_num) {
       errno = EINVAL;
       return -1;
     }
-   /* CMSG_LEN = CMSG_SPACE + sizeof(struct cmsghdr)
-    * Use as:
-    *  union {
-    *    struct cmsghdr cm;
-    *    s8 space[CMSG_SPACE(sizeof(s32)*fd_num)];
-    *  } cmsg;
-    */
+    /* CMSG_LEN = CMSG_SPACE + sizeof(struct cmsghdr)
+     * Use as:
+     *  union {
+     *    struct cmsghdr cm;
+     *    s8 space[CMSG_SPACE(sizeof(s32)*fd_num)];
+     *  } cmsg;
+     */
     cmsg->cmsg_len = CMSG_LEN(fdsize);
     cmsg->cmsg_level = SOL_SOCKET;
     cmsg->cmsg_type = SCM_RIGHTS;
     /*
-    * We have to use memcpy() instead of simple
-    * *(int *) CMSG_DATA(&cmsg.cm) = ch->fd;
-    * because some gcc 4.4 with -O2/3/s optimization issues the warning:
-    * dereferencing type-punned pointer will break strict-aliasing rules
-    * Fortunately, gcc with -O1 compiles this msf_memcpy()
-    * in the same simple assignment as in the code above
-    */
+     * We have to use memcpy() instead of simple
+     * *(int *) CMSG_DATA(&cmsg.cm) = ch->fd;
+     * because some gcc 4.4 with -O2/3/s optimization issues the warning:
+     * dereferencing type-punned pointer will break strict-aliasing rules
+     * Fortunately, gcc with -O1 compiles this msf_memcpy()
+     * in the same simple assignment as in the code above
+     */
     memcpy(CMSG_DATA(cmsg), fds, CMSG_SPACE(fdsize));
-    #else
+#else
     /* do not support muti transfer socket rights now*/
-    cmsg.msg_accrights = (caddr_t) & fds[0];
+    cmsg.msg_accrights = (caddr_t)&fds[0];
     cmsg.msg_accrightslen = sizeof(int);
-    #endif
+#endif
 
   } else {
     msgh.msg_control = NULL;

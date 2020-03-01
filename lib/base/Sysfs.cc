@@ -18,23 +18,23 @@
  *
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <ctype.h>
 #include <errno.h>
-#include <limits.h>
+#include <fcntl.h>
 #include <inttypes.h>
-#include <sys/stat.h>
+#include <limits.h>
 #include <malloc.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 // #include <bsd/string.h> /* strlcpy */
 
 // #include "sysdeps.h"
-#include <base/Sysfs.h>
 #include <base/Logger.h>
+#include <base/Sysfs.h>
 #include <base/Utils.h>
 
 namespace MSF {
@@ -803,5 +803,5 @@ char *iscsi_sysfs_get_blockdev_from_lun(int host_no, int target, int lun)
 
 #endif
 
-}
-}
+}  // namespace BASE
+}  // namespace MSF

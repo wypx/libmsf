@@ -57,8 +57,7 @@ void ThreadPool::start(int numThreads) {
 }
 
 void ThreadPool::stop() {
-  /* 保证lock的保护范围在括号内
-   * 激活所有的线程*/
+  /* 保证lock的保护范围在括号内激活所有的线程*/
   {
     std::lock_guard<std::mutex> lock(_mutex);
     _running = false;

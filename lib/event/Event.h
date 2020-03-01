@@ -15,6 +15,7 @@
 
 #include <base/Bitops.h>
 #include <base/Buffer.h>
+#include <mutex>
 
 using namespace MSF::BASE;
 

@@ -77,6 +77,7 @@ https://blog.csdn.net/libaineu2004/article/details/80539557
 #include <queue>
 #include <set>
 #include <utility>
+#include <atomic>
 
 using namespace MSF::TIME;
 

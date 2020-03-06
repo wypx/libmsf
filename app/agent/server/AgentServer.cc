@@ -207,6 +207,8 @@ void AgentServer::handleAgentLogin(ConnectionPtr c, Agent::AgentBhs &bhs) {
   void *body = mpool_->alloc(proto_->pduLen(bhs));
   assert(body);
 
+  c->rxIov_[1].iov_base = body;
+
   struct iovec iov;
   iov.iov_base = body;
   iov.iov_len = proto_->pduLen(bhs);
@@ -270,7 +272,10 @@ void AgentServer::handleAgentRequest(ConnectionPtr c, Agent::AgentBhs &bhs) {
       iovCnt++;
     }
     // runinloop到这个loop中去
-    SendMsg(peer->fd(), c->rxIov_, iovCnt, MSG_NOSIGNAL | MSG_WAITALL);
+    int ret = SendMsg(peer->fd(), c->rxIov_, iovCnt, MSG_NOSIGNAL | MSG_WAITALL);
+    MSF_INFO << "Send ret: " << c->rxIov_[0].iov_len;
+    MSF_INFO << "Send ret: " << c->rxIov_[1].iov_len;
+    MSF_INFO << "Send ret: " << ret;
     // handleTxIORet(c, SendMsg(peer->fd(), c->rxIov_, iovCnt, MSG_NOSIGNAL |
     // MSG_WAITALL));
   } else {
@@ -313,9 +318,8 @@ void AgentServer::handleAgentBhs(ConnectionPtr c) {
       break;
   }
   mpool_->free(c->rxIov_[0].iov_base);
-  if (c->rxIov_[1].iov_len) {
-    mpool_->free(c->rxIov_[1].iov_base);
-  }
+  mpool_->free(c->rxIov_[1].iov_base);
+  
   c->rxIov_[0].iov_base = nullptr;
   c->rxIov_[1].iov_base = nullptr;
   c->rxIov_[0].iov_len = 0;

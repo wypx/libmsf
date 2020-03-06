@@ -267,7 +267,10 @@ void AgentClient::handleTxCmd() {
     //         MSG_NOSIGNAL))) {
     //   return;
     // };
-    SendMsg(conn_->fd(), cmd->iov, iovCnt, MSG_WAITALL | MSG_NOSIGNAL);
+    int ret = SendMsg(conn_->fd(), cmd->iov, iovCnt, MSG_WAITALL | MSG_NOSIGNAL);
+    MSF_INFO << "Send ret: " << cmd->iov[0].iov_len;
+    MSF_INFO << "Send ret: " << cmd->iov[1].iov_len;
+    MSF_INFO << "Send ret: " << ret;
     freeCmd(cmd);
   }
   txCmdList_.clear();
@@ -313,13 +316,28 @@ void AgentClient::handleRequest(Agent::AgentBhs &bhs) {
 
   uint32_t len = 0;
 
+  void *body = mpool_->alloc(1024);
+  if (unlikely(body == nullptr)) {
+    MSF_INFO << "Alloc cmd buffer failed";
+    return;
+  }
+  assert(body);
+
   if (reqCb_) {
-    reqCb_(static_cast<char *>(cmd->iov[1].iov_base), &len,
-           static_cast<Agent::Command>(proto_->command(bhs_)));
+    reqCb_(static_cast<char *>(body), &len,
+           static_cast<Agent::Command>(proto_->command(bhs)));
   }
   MSF_INFO << "len: " << len;
 
+  cmd->addBody(body, len);
+
   proto_->setPduLen(bhs, len);
+
+  void *head = mpool_->alloc(AGENT_HEAD_LEN);
+  assert(head);
+  cmd->iov[0].iov_base = head;
+  cmd->iov[0].iov_len = AGENT_HEAD_LEN;
+  bhs.SerializeToArray(cmd->iov[0].iov_base, AGENT_HEAD_LEN);
 
   proto_->debugBhs(bhs);
 
@@ -467,7 +485,7 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
 
     if (likely(Agent::ERR_EXEC_SUCESS == proto_->retCode(bhs_))) {
       // pdu->restLen_ req->usedLen
-      memcpy(pdu->restLoad_, req->iov[0].iov_base, req->iov[0].iov_len);
+      memcpy(pdu->restLoad_, req->iov[1].iov_base, req->iov[0].iov_len);
     }
     freeCmd(req);
   }

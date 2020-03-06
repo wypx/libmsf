@@ -147,18 +147,18 @@ void AgentProto::setPduLen(Agent::AgentBhs &bhs, const uint32_t pduLen) {
 void AgentProto::debugBhs(const Agent::AgentBhs &bhs) {
   MSF_INFO << "Bhs:";
   MSF_INFO << "magic: " << std::hex << magic(bhs);
-  MSF_INFO << "version: " << std::hex << (uint32_t)version(bhs);
-  MSF_INFO << "encrypt: " << std::hex << (uint32_t)encrypt(bhs);
+  MSF_INFO << "version: " << (uint32_t)version(bhs);
+  MSF_INFO << "encrypt: " << (uint32_t)encrypt(bhs);
   MSF_INFO << "checkSum: " << std::hex << checkSum(bhs);
 
-  MSF_INFO << "srcid: " << std::hex << srcId(bhs);
-  MSF_INFO << "dstid: " << std::hex << dstId(bhs);
-  MSF_INFO << "sessno: " << std::hex << sessNo(bhs);
-  MSF_INFO << "retCode: " << std::hex << retCode(bhs);
+  MSF_INFO << "srcid: " << srcId(bhs);
+  MSF_INFO << "dstid: " << dstId(bhs);
+  MSF_INFO << "sessno: " << sessNo(bhs);
+  MSF_INFO << "retCode: " << retCode(bhs);
 
   MSF_INFO << "command: " << std::hex << command(bhs);
-  MSF_INFO << "opcode: " << std::hex << opCode(bhs);
-  MSF_INFO << "pdulen: " << std::hex << pduLen(bhs);
+  MSF_INFO << "opcode: " << opCode(bhs);
+  MSF_INFO << "pdulen: " << pduLen(bhs);
 
   MSF_INFO << "command: " << std::hex << bhs.verify();
   MSF_INFO << "opcode: " << std::hex << bhs.router();

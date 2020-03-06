@@ -69,7 +69,7 @@ void Guard::sendPdu() {
   pdu.timeOut_ = 5;
   while (1) {
     int ret = agent_->sendPdu(&pdu);
-    if (Agent::ERR_EXEC_SUCESS == ret || Agent::ERR_PEER_OFFLINE == ret) {
+    if (Agent::ERR_AGENT_NOT_START != ret) {
       break;
     }
   }

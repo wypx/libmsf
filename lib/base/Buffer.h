@@ -312,8 +312,8 @@ class Buffer : Noncopyable {
   /// It may implement with readv(2)
   /// @return result of read(2), @c errno is saved
   // ssize_t readFd(int fd, int* savedErrno);
-  uint64_t readFd(const int fd, int* savedErrno);
-  uint64_t sendFd(const int fd, int* savedErrno);
+  ssize_t readFd(const int fd, int* savedErrno);
+  ssize_t sendFd(const int fd, int* savedErrno);
 
  private:
   char* begin() { return &*buffer_.begin(); }

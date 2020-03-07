@@ -23,7 +23,7 @@ const char Buffer::kCRLF[] = "\r\n";
 const size_t Buffer::kCheapPrepend;
 const size_t Buffer::kInitialSize;
 
-uint64_t Buffer::readFd(int fd, int* savedErrno) {
+ssize_t Buffer::readFd(int fd, int* savedErrno) {
   // saved an ioctl()/FIONREAD call to tell how much to read
   char extrabuf[65536];
   struct iovec vec[2];
@@ -42,7 +42,7 @@ uint64_t Buffer::readFd(int fd, int* savedErrno) {
     writerIndex_ += n;
   } else {
     writerIndex_ = buffer_.size();
-    // append(extrabuf, n - writable);
+    append(extrabuf, n - writable);
   }
   // if (n == writable + sizeof extrabuf)
   // {
@@ -51,7 +51,7 @@ uint64_t Buffer::readFd(int fd, int* savedErrno) {
   return n;
 }
 
-uint64_t Buffer::sendFd(const int fd, int* savedErrno) {
+ssize_t Buffer::sendFd(const int fd, int* savedErrno) {
   struct iovec vec[2];
   uint32_t iovcnt;
   if (readerIndex_ < writerIndex_) {
@@ -71,7 +71,9 @@ uint64_t Buffer::sendFd(const int fd, int* savedErrno) {
     }
   }
   const ssize_t n = SendMsg(fd, vec, iovcnt, MSG_NOSIGNAL | MSG_DONTWAIT);
-  if (n > 0) {
+  if (n <= 0) {
+    *savedErrno = errno;
+  } else {
     retrieve(n);
   }
   return n;

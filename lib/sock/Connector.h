@@ -72,13 +72,17 @@ class Connector : public std::enable_shared_from_this<Connector> {
     event_.init(loop, fd);
   }
 
-  void setSuccCallback(const EventCallback &cb) { event_.setSuccCallback(cb); }
-  void setReadCallback(const EventCallback &cb) { event_.setReadCallback(cb); }
+  void setSuccCallback(const EventCallback &cb) { 
+    event_.setSuccCallback(cb);
+  }
+  void setReadCallback(const EventCallback &cb) {
+    event_.setReadCallback(std::bind(&Connector::bufferReadCb, this, cb));
+  }
   void setWriteCallback(const EventCallback &cb) {
-    event_.setWriteCallback(cb);
+    event_.setWriteCallback(std::bind(&Connector::bufferWriteCb, this, cb));
   }
   void setCloseCallback(const EventCallback &cb) {
-    event_.setCloseCallback(cb);
+    event_.setCloseCallback(std::bind(&Connector::bufferCloseCb, this, cb));
   }
   void setErrorCallback(const EventCallback &cb) {
     event_.setErrorCallback(cb);
@@ -96,6 +100,37 @@ class Connector : public std::enable_shared_from_this<Connector> {
   void setCid(const uint32_t cid) { cid_ = cid; }
   const uint32_t cid() const { return cid_; }
 
+  bool addBuffer(const void *buffer, const uint32_t len)
+  {
+    if (fd_ < 0) {
+      MSF_INFO << "Conn has been closed, cannot send buffer";
+      return false;
+    }
+    writeBuffer_.append(buffer, len);
+    enableWriting();
+  }
+  bool removeBuffer(void *buffer, const uint32_t len)
+  {
+    readBuffer_.retrieve(len);
+    return true;
+  }
+  bool prependBuffer(void *buffer, const uint32_t len)
+  {
+    if (fd_ < 0) {
+      return false;
+    }
+    readBuffer_.prepend(buffer, len);
+    return true;
+  }
+
+ private:
+  void updateActiveTime();
+  /* Read all data to buffer ring */
+  void bufferReadCb(const EventCallback &cb);
+  /* Send all data in buffer ring */
+  void bufferWriteCb(const EventCallback &cb);
+  void bufferCloseCb(const EventCallback &cb);
+
  public:
   Event event_;
 
@@ -111,15 +146,13 @@ class Connector : public std::enable_shared_from_this<Connector> {
   Buffer readBuffer_;
   Buffer writeBuffer_;
 
-  struct iovec
-      rxIov_[2];      /* RX direction only support recv one head or one body */
+  struct iovec rxIov_[2];      /* RX direction only support recv one head or one body */
   uint32_t rxWanted_; /* One len of head or body */
   uint32_t rxRecved_; /* One len of head or body has recv*/
 
   struct iovec txIov_[2]; /* TX direction support send one head and one body */
   uint32_t txWanted_;     /* Total len of head and body */
   uint32_t txSended_;     /* Total len of head and body has send */
-  void updateActiveTime();
 };
 
 }  // namespace SOCK

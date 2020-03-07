@@ -24,6 +24,9 @@ namespace SOCK {
 
 typedef std::function<void(const int, const uint16_t)> NewConnCb;
 
+class Acceptor;
+typedef std::shared_ptr<Acceptor> AcceptorPtr;
+
 class Acceptor : public Noncopyable {
  public:
   explicit Acceptor(EventLoop *loop, const InetAddress &addr,

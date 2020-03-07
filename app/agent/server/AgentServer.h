@@ -13,9 +13,10 @@
 #ifndef __MSF_AGENT_SERVER_H__
 #define __MSF_AGENT_SERVER_H__
 
-#include <base/MemPool.h>
 #include <base/Noncopyable.h>
+#include <base/MemPool.h>
 #include <base/Plugin.h>
+#include <base/Buffer.h>
 #include <base/ThreadPool.h>
 #include <event/Event.h>
 #include <event/EventLoop.h>
@@ -37,32 +38,39 @@ namespace AGENT {
 #define DEFAULT_QUEUE_SIZE (32)
 #define DEFAULT_UNIX_PATH "/var/tmp/AgentServer.sock"
 #define DEFAULT_CONF_PATH "/home/luotang.me/conf/AgentServer.conf"
+#define DEFAULT_LOG_PATH "/home/luotang.me/log/AgentServer.log"
 
-/* enum of index available in the agent conf */
-enum CONFIG_IDX {
-  CONFIG_INVALID = 0,
-  CONFIG_LOGLEVEL,
-  CONFIG_LOGFILE,
-  CONFIG_PIDFILE,
-  CONFIG_DAEMON,
-  CONFIG_PLUGINS,
-  CONFIG_BACKLOG,
-  CONFIG_MAXCONNS,
-  CONFIG_MAXTHREAD,
-  CONFIG_MAXQUEUE,
-  CONFIG_IPADDRV4,
-  CONFIG_IPADDRV6,
-  CONFIG_TCPPORT,
-  CONFIG_UDPPORT,
-  CONFIG_UNXIPATH,
-  CONFIG_UNXIMASK,
-  CONFIG_AUTHCHAP,
-  CONFIG_PACKTYPE,
-  CONFIG_BUTT,
-};
+class AgentServer : public Noncopyable {
+ public:
+  AgentServer();
+  ~AgentServer();
 
-struct SrvConfig {
+  void init(int argc, char **argv);
+  void start();
+
+ private:
+  bool handleRxIORet(ConnectionPtr c, const int ret);
+  bool handleTxIORet(ConnectionPtr c, const int ret);
+
+  bool verifyAgentBhs(const Agent::AgentBhs &bhs);
+  void handleAgentBhs(ConnectionPtr c);
+  void handleAgentLogin(ConnectionPtr c, Agent::AgentBhs &bhs);
+  void handleAgentPayLoad(ConnectionPtr c, Agent::AgentBhs &bhs);
+  void handleAgentRequest(ConnectionPtr c, Agent::AgentBhs &bhs);
+
+  void succConn(ConnectionPtr c);
+  void readConn(ConnectionPtr c);
+  void writeConn(ConnectionPtr c);
+  void freeConn(ConnectionPtr c);
+  void newConn(const int fd, const uint16_t event);
+
+  void showUsage();
+  void parseOption(int argc, char **argv);
+  bool initConfig();
+  bool initListen();
+ private:
   std::string version_;
+  std::string confFile_;
   bool daemon_;
   int logLevel_;
   std::string logFile_;
@@ -75,8 +83,10 @@ struct SrvConfig {
   int udpPort_;
   int backLog_;
   int maxConns_; /* Max online client, different from backlog */
+  int perConnsAlloc;
   std::string unixPath_;
   std::string unixMask_;
+
   struct {
     bool timeout_ : 1;
     bool close_ : 1; /*conn closed state*/
@@ -84,6 +94,7 @@ struct SrvConfig {
     bool sndLowat_ : 1;
     bool tcpNoDelay_ : 2; /* Unix socket default disable */
     bool tcpNoPush_ : 2;
+    bool keepAlive_ : 1;
   } opt;
   std::string zkAddr_;
   int zkPort_;
@@ -96,17 +107,7 @@ struct SrvConfig {
   int maxThread_;
   bool authChap_;
   std::string packType_;
-};
 
-class AgentServer : public Noncopyable {
- public:
-  AgentServer();
-  ~AgentServer();
-
-  void init();
-  void start();
-
- private:
   enum SocketFdType {
     UNIX_SOCKET,
     TCP_SOCKET_V4,
@@ -117,10 +118,11 @@ class AgentServer : public Noncopyable {
   };
 
   std::mutex mutex_;
+  /* If accept in sigle thread, no need to use mutex guard activeConns_ */
+  bool accpetSafe_ = true;
   /* Mutiple connections supported, such as tcp, udp, unix, event fd and etc*/
   std::map<Agent::AppId, ConnectionPtr> activeConns_;
   std::list<ConnectionPtr> freeConns_;
-  uint32_t connPerAlloc_;
   std::atomic_uint64_t connId_; /* increment connection id for server register*/
 
   bool started_;
@@ -140,36 +142,14 @@ class AgentServer : public Noncopyable {
   std::list<struct AgentCmd *> freeCmdList_;
 
   PluginManager *pluginMGR_;
-  struct SrvConfig srvConf_;
-
+ 
   MemPool *mpool_;
   ThreadPool *pool;
-
   EventStack *stack_;
 
-  std::list<std::shared_ptr<Acceptor>> actors_;
+  std::list<AcceptorPtr> actors_;
 
   std::unique_ptr<AgentProto> proto_;
-
-  std::string confFile_;
-  std::string logFile_;
-
-  bool handleRxIORet(ConnectionPtr c, const int ret);
-  bool handleTxIORet(ConnectionPtr c, const int ret);
-
-  void handleAgentBhs(ConnectionPtr c);
-  void handleAgentLogin(ConnectionPtr c, Agent::AgentBhs &bhs);
-  void handleAgentPayLoad(ConnectionPtr c, Agent::AgentBhs &bhs);
-  void handleAgentRequest(ConnectionPtr c, Agent::AgentBhs &bhs);
-
-  void succConn(ConnectionPtr c);
-  void readConn(ConnectionPtr c);
-  void writeConn(ConnectionPtr c);
-  void freeConn(ConnectionPtr c);
-  void newConn(const int fd, const uint16_t event);
-
-  bool initConfig();
-  bool initListen();
 };
 
 }  // namespace AGENT

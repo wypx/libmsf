@@ -62,12 +62,12 @@ struct AgentPdu {
   uint32_t restLen_;
 } MSF_PACKED_MEMORY;
 
+const uint32_t kAgentMagic = 0xab00;
 const uint32_t kAgentVersion = 0x0001;
 const uint32_t kAgentEncryptZip = 0x0010;
 const uint32_t kAgentEncryptGZip = 0x0020;
 const uint32_t kAgentEncryptAES = 0x0090;
 const uint32_t kAgentEncryptRC5 = 0x00a0;
-const uint32_t kAgentMagic = 0xab00;
 
 class AgentProto {
  public:

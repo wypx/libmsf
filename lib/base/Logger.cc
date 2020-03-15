@@ -12,7 +12,7 @@
  **************************************************************************/
 #include <base/GccAttr.h>
 #include <base/Logger.h>
-#include <base/Mem.h>
+#include <base/mem/Mem.h>
 #include <base/Time.h>
 #include <conf/Config.h>
 #include <fcntl.h>

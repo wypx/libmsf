@@ -16,7 +16,6 @@
 #include <base/File.h>
 #include <base/IniFile.h>
 #include <base/Logger.h>
-#include <base/Mem.h>
 #include <base/Utils.h>
 #include <base/Version.h>
 #include <getopt.h>
@@ -33,6 +32,7 @@ AgentServer::AgentServer() {
   maxBytes_ = 64 * 1024 * 1024; /* default is 64MB */
   ipAddr4_ = "127.0.0.1";
   tcpPort_ = 8888;
+  perConnsAlloc_ = 8;
 
   if (confFile_.empty()) {
     confFile_ = DEFAULT_CONF_PATH;
@@ -91,18 +91,22 @@ void AgentServer::parseOption(int argc, char **argv) {
     switch (c) {
       case 'c':
         printf("c: %s\n", optarg);
+        confFile_ = std::string(optarg);
         break;
       case 's':
         printf("s: %s\n", optarg);
+        ipAddr4_ = std::string(optarg);
         break;
       case 'p':
         printf("p: %s\n", optarg);
+        tcpPort_ = atoi(optarg);
         break;
       case 'g':
         printf("d: %s\n", optarg);
         break;
       case 'd':
         printf("d: %s\n", optarg);
+        daemon_ = static_cast<bool>(atoi(optarg));
         break;
       case 'v':
         printf("v: %s\n", optarg);
@@ -248,7 +252,7 @@ void AgentServer::handleAgentLogin(ConnectionPtr c, Agent::AgentBhs &bhs) {
   proto_->debugBhs(bhs);
   bhs.SerializeToArray(c->rxIov_[0].iov_base, AGENT_HEAD_LEN);
 
-  SendMsg(c->fd(), c->rxIov_, 1, MSG_NOSIGNAL | MSG_WAITALL);
+  SendMsg(c->fd(), c->rxIov_, 1, MSG_NOSIGNAL | MSG_DONTWAIT);
   c->rxWanted_ = 0;
   c->rxRecved_ = 0;
 }
@@ -261,7 +265,6 @@ void AgentServer::handleAgentPayLoad(ConnectionPtr c, Agent::AgentBhs &bhs) {
     return;
   }
   struct iovec iov = {payLoad, proto_->pduLen(bhs)};
-  // handleRxIORet(c, RecvMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL));
   RecvMsg(c->fd(), &iov, 1, MSG_NOSIGNAL | MSG_WAITALL);
   c->rxIov_[1].iov_base = payLoad;
   c->rxIov_[1].iov_len = proto_->pduLen(bhs);
@@ -288,13 +291,10 @@ void AgentServer::handleAgentRequest(ConnectionPtr c, Agent::AgentBhs &bhs) {
       iovCnt++;
     }
     // runinloop到这个loop中去
-    int ret =
-        SendMsg(peer->fd(), c->rxIov_, iovCnt, MSG_NOSIGNAL | MSG_WAITALL);
+    int ret = SendMsg(peer->fd(), c->rxIov_, iovCnt, MSG_NOSIGNAL | MSG_DONTWAIT);
     MSF_INFO << "Send ret: " << c->rxIov_[0].iov_len;
     MSF_INFO << "Send ret: " << c->rxIov_[1].iov_len;
     MSF_INFO << "Send ret: " << ret;
-    // handleTxIORet(c, SendMsg(peer->fd(), c->rxIov_, iovCnt, MSG_NOSIGNAL |
-    // MSG_WAITALL));
   } else {
     MSF_INFO << "\n Peer offline"
              << "\n cmd: " << proto_->command(bhs);
@@ -311,7 +311,7 @@ void AgentServer::handleAgentRequest(ConnectionPtr c, Agent::AgentBhs &bhs) {
 
     bhs.SerializeToArray(c->rxIov_[0].iov_base, AGENT_HEAD_LEN);
 
-    SendMsg(c->fd(), c->rxIov_, 1, MSG_NOSIGNAL | MSG_WAITALL);
+    SendMsg(c->fd(), c->rxIov_, 1, MSG_NOSIGNAL | MSG_DONTWAIT);
   }
 }
 
@@ -362,9 +362,25 @@ void AgentServer::readConn(ConnectionPtr c) {
   if (unlikely(c->fd() <= 0)) {
     return;
   }
+  MSF_INFO << "Read conn for fd: " << c->fd() << " wanted: " << c->rxWanted_;
+
+  // size_t readable = c->readableBytes();
+  // size_t pkgSize;
+  // while (readable >= AGENT_HEAD_LEN) {  
+  //   char *head = c->peekBuffer();
+
+  //   Agent::AgentBhs bhs;
+  //   bhs.ParseFromArray(head, AGENT_HEAD_LEN);
+  //   proto_->debugBhs(bhs);
+
+  //   if (!verifyAgentBhs(bhs)) {
+  //     c->close();
+  //     return;
+  //   }
+  //   return;
+  // }
 
   c->rxWanted_ = AGENT_HEAD_LEN;
-  MSF_INFO << "Read conn for fd: " << c->fd() << " wanted: " << c->rxWanted_;
   {
     void *head = mpool_->alloc(AGENT_HEAD_LEN);
     if (!head) {
@@ -377,12 +393,7 @@ void AgentServer::readConn(ConnectionPtr c) {
     c->rxIov_[0].iov_len = AGENT_HEAD_LEN;
   }
 
-  RecvMsg(c->fd(), c->rxIov_, 1, MSG_NOSIGNAL | MSG_WAITALL);
-  // if (!handleRxIORet(
-  //         c, RecvMsg(c->fd(), c->rxIov_, 1, MSG_NOSIGNAL | MSG_WAITALL))) {
-  //   return;
-  // }
-
+  RecvMsg(c->fd(), c->rxIov_, 1, MSG_NOSIGNAL | MSG_DONTWAIT);
   handleAgentBhs(c);
 }
 
@@ -408,7 +419,7 @@ void AgentServer::newConn(const int fd, const uint16_t event) {
   std::lock_guard<std::mutex> lock(mutex_);
   /* If single thread to handle accept, so no mutex guard */
   if (unlikely(freeConns_.empty())) {
-    for (uint32_t i = 0; i < perConnsAlloc; ++i) {
+    for (uint32_t i = 0; i < perConnsAlloc_; ++i) {
       ConnectionPtr conn = std::make_shared<Connector>();
       if (conn == nullptr) {
         MSF_ERROR << "Fail to alloc connection for fd: " << fd;
@@ -418,7 +429,7 @@ void AgentServer::newConn(const int fd, const uint16_t event) {
       freeConns_.push_back(conn);
     }
   }
-
+ 
   ConnectionPtr c = freeConns_.front();
   freeConns_.pop_front();
 

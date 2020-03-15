@@ -15,7 +15,7 @@
 
 #include <base/CountDownLatch.h>
 #include <base/GccAttr.h>
-#include <base/MemPool.h>
+#include <base/mem/MemPool.h>
 #include <event/EventLoop.h>
 #include <proto/AgentProto.h>
 #include <sock/Connector.h>
@@ -93,7 +93,6 @@ struct AgentCmd {
   uint32_t refCnt_;
   Agent::Errno retCode_;
   uint32_t timeOut_;
-  bool needAck_;
 
   void addHead(void* head, const uint32_t len) {
     iov[0].iov_base = head;

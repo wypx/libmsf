@@ -11,7 +11,7 @@
  *
  **************************************************************************/
 #include <base/Atomic.h>
-#include <base/Mem.h>
+#include <base/mem/Mem.h>
 #include <base/Thread.h>
 #include <base/Time.h>
 #include <event/EventLoop.h>

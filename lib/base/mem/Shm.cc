@@ -12,7 +12,7 @@
  *
  **************************************************************************/
 #include <base/File.h>
-#include <base/Shm.h>
+#include <base/mem/Shm.h>
 #include <sys/ipc.h>
 #include <sys/mman.h>
 #include <sys/shm.h>

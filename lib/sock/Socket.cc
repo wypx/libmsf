@@ -1137,10 +1137,6 @@ int ConnectTcpServer(const std::string &host, const uint16_t port,
       }
     }
 
-    SetNonBlock(fd, true);
-    SetReuseAddr(fd, true);
-    SetReusePort(fd, true);
-
     if (IS_UDP(proto)) {
       SetSendBufferSize(fd, 1024);
     } else {
@@ -1154,6 +1150,9 @@ int ConnectTcpServer(const std::string &host, const uint16_t port,
       fd = -1;
       continue;
     }
+    SetNonBlock(fd, true);
+    SetReuseAddr(fd, true);
+    SetReusePort(fd, true);
     break;
   }
   freeaddrinfo(ai);
@@ -1417,7 +1416,6 @@ int ConnectUnixServer(const std::string &srvPath, const std::string &cliPath) {
   if (fd < 0) {
     return -1;
   }
-  SetNonBlock(fd, true);
 
   struct sockaddr_un addr;
   SetupAbsAddr(addr, cliPath);
@@ -1448,6 +1446,7 @@ int ConnectUnixServer(const std::string &srvPath, const std::string &cliPath) {
       return -1;
     }
   }
+  SetNonBlock(fd, true);
   return fd;
 }
 /************************* UNIX SOCKET FEATURES ******************************/

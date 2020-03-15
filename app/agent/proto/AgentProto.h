@@ -13,7 +13,7 @@
 #ifndef AGENT_PROTO_H
 #define AGENT_PROTO_H
 
-#include <base/MemPool.h>
+#include <base/mem/MemPool.h>
 #include <sock/Connector.h>
 
 #include "Agent.pb.h"

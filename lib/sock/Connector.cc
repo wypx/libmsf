@@ -19,7 +19,9 @@ namespace SOCK {
 
 Connector::Connector() : event_(Event()) {}
 
-Connector::~Connector() {}
+Connector::~Connector() {
+  close();
+}
 
 bool Connector::connect(const std::string &host, const uint16_t port,
                         const uint32_t proto) {
@@ -39,50 +41,63 @@ bool Connector::connect(const std::string &srvPath,
   return true;
 }
 
-void Connector::bufferReadCb(const EventCallback &cb) {
-  int ret;
-  int err;
-  while (true) {
-    ret = readBuffer_.readFd(fd_, &err);
-    if (unlikely(ret == -1)) {
-      if (err == EINTR) {
-        continue;
-      }
-      /* Maybe there is no data anymore */
-      if (err == EAGAIN || err == EWOULDBLOCK) {
-        break;
-      }
-    } else if (ret == 0) {
-      close();//
-    }
-  }
-  cb();
-}
+// void Connector::bufferReadCb() {
+//   int ret;
+//   int err;
+//   rxIov_[0].iov_base = buffer;
+//   rxIov_[0].iov_len = 4096;
+//   while (true) {
+//     ret = RecvMsg(fd_, &*rxIov_.begin(), rxIov_.size(), MSG_DONTWAIT | MSG_NOSIGNAL);
+//     MSF_DEBUG << "Recv ret:" << ret;
+//     if (unlikely(ret == -1)) {
+//       if (errno == EINTR) {
+//         continue;
+//       }
+//       /* Maybe there is no data anymore */
+//       if (errno == EAGAIN || errno == EWOULDBLOCK) {
+//         MSF_DEBUG << "Recv no data";
+//         break;
+//       }
+//       bufferCloseCb();
+//       return;
+//     } else if (ret == 0) {
+//       close();
+//       bufferCloseCb();
+//       return;
+//     }
+//   }
+//   ret = readable;
+//   readCb_();
+// }
 
-void Connector::bufferWriteCb(const EventCallback &cb) {
-  int ret;
-  int err;
-  while (true) {
-    ret = writeBuffer_.sendFd(fd_, &err);
-    if (unlikely(ret == -1)) {
-      if (err == EINTR) {
-        continue;
-      }
-      /* Maybe there is no data anymore */
-      if (err == EAGAIN || err == EWOULDBLOCK) {
-        break;
-      }
-    } else if (ret == 0) {
-      close();//
-    }
-  }
-  cb();
-}
+// void Connector::bufferWriteCb() {
+//   int ret;
+//   int err;
+//   while (true) {
+//     ret = SendMsg(fd_, &*txIov_.begin(), txIov_.size(), MSG_DONTWAIT | MSG_NOSIGNAL);
+//     MSF_DEBUG << "Send ret:" << ret;
+//     if (unlikely(ret == -1)) {
+//       if (errno == EINTR) {
+//         continue;
+//       }
+//       /* Maybe there is no data anymore */
+//       if (errno == EAGAIN || errno == EWOULDBLOCK) {
+//         break;
+//       }
+//       bufferCloseCb();
+//       return;
+//     } else if (ret == 0) {
+//       bufferCloseCb();
+//       return;
+//     }
+//   }
+//   writeCb_();
+// }
 
-void Connector::bufferCloseCb(const EventCallback &cb) {
-  close();
-  cb();
-}
+// void Connector::bufferCloseCb() {
+//   close();
+//   closeCb_();
+// }
 
 void Connector::close() {
   if (fd_ > 0) {

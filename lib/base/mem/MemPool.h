@@ -14,7 +14,7 @@
 #define __MSF_MEMPOOL_H__
 
 #include <base/Atomic.h>
-#include <base/Mem.h>
+#include <base/mem/Mem.h>
 #include <base/Noncopyable.h>
 
 #include <algorithm>

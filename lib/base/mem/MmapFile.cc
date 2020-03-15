@@ -15,6 +15,71 @@ static const size_t kDefaultSize = 1 * 1024 * 1024;
 static const int kInvalidFile = -1;
 static char* const kInvalidAddr = reinterpret_cast<char*>(-1);
 
+// https://blog.csdn.net/gatieme/article/details/50779184
+
+bool mapMem(const uint32_t n) {
+  // Technically, we could also report sucess here since a zero-length
+  // buffer can't be legally used anyways.
+  if (n == 0) {
+    errno = EINVAL;
+    return false;
+  }
+  int PAGE_SIZE = 0;
+  // Round up to nearest multiple of page size.
+	int bytes = n & ~(PAGE_SIZE-1);
+	if (n % PAGE_SIZE) {
+		bytes += PAGE_SIZE;
+	}
+
+	// Check for overflow.
+	if (bytes*2u < bytes) {
+		errno = EINVAL;
+		return -1;
+	}
+
+// Use `char*` instead of `void*` because we need to do arithmetic on them.
+	uint8_t* addr =nullptr;
+	uint8_t* addr2=nullptr;
+  // Allocate twice the buffer size
+  addr = static_cast<unsigned char*>(mmap(NULL, 2*bytes,
+    PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0));
+
+  if (addr == MAP_FAILED) {
+    goto errout;
+  }
+
+  // Shrink to actual buffer size.
+  addr = static_cast<uint8_t*>(mremap(addr, 2*bytes, bytes, 0));
+  if (addr == MAP_FAILED) {
+    goto errout;
+  }
+
+  // Create the second copy right after the shrinked buffer.
+  addr2 = static_cast<uint8_t*>(mremap(addr, 0, bytes, MREMAP_MAYMOVE,
+    addr+bytes));
+
+  if (addr2 == MAP_FAILED) {
+    goto errout;
+  }
+
+  if (addr2 != addr+bytes) {
+    errno = EAGAIN;
+    goto errout;
+  }
+  return true;
+errout:
+  // We actually have to check for non-null here, since even if `addr` is
+  // null, `bytes` might be large enough that this overlaps some actual
+  // mappings.
+  if (addr) {
+    ::munmap(addr, bytes);
+  }
+  if (addr2) {
+    ::munmap(addr2, bytes);
+  }
+  return false;
+}
+
 // OMmapFile
 OMmapFile::OMmapFile()
     : file_(kInvalidFile),

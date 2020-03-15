@@ -64,28 +64,18 @@ AgentClient::AgentClient(EventLoop *loop, const std::string &name,
 }
 
 AgentClient::~AgentClient() {
-  closeAgent();
   // conn_->reset();
+  closeAgent();
   conn_ = nullptr;
   delete mpool_;
   mpool_ = nullptr;
 }
 
 struct AgentCmd *AgentClient::allocCmd(const uint32_t len) {
-  // void *buffer = nullptr;
-  // if (len) {
-  //   // buffer = mpool_->alloc(len);
-  //   // if (unlikely(buffer == nullptr)) {
-  //   //   MSF_INFO << "Alloc cmd buffer failed";
-  //   //   return nullptr;
-  //   // }
-  // }
-
   if (unlikely(freeCmdList_.empty())) {
     for (uint32_t i = 0; i < ITEM_PER_ALLOC; ++i) {
       struct AgentCmd *tmp = new AgentCmd();
       if (tmp == nullptr) {
-        // mpool_->free(buffer);
         return nullptr;
       }
       freeCmdList_.push_back(tmp);
@@ -95,7 +85,6 @@ struct AgentCmd *AgentClient::allocCmd(const uint32_t len) {
   struct AgentCmd *cmd = freeCmdList_.front();
   cmd->latch_.setCount(1);
   freeCmdList_.pop_front();
-
   return cmd;
 }
 
@@ -220,14 +209,13 @@ bool AgentClient::loginAgent() {
     void *head = mpool_->alloc(AGENT_HEAD_LEN);
     assert(head);
     bhs_.SerializeToArray(head, AGENT_HEAD_LEN);
-
     req->addHead(head, AGENT_HEAD_LEN);
     /* 无包体(心跳包等),在proto3的使用上以-1表示包体长度为0 */
     void *body = mpool_->alloc(login.ByteSizeLong());
     assert(body);
     login.SerializeToArray(body, login.ByteSizeLong());
     req->addBody(body, login.ByteSizeLong());
-
+  
     req->doIncRef();
     ackCmdMap_[sessNo] = req;
     txCmdList_.push_back(req);
@@ -257,17 +245,14 @@ void AgentClient::handleTxCmd() {
   if (txCmdList_.empty()) {
     return;
   }
+  
   uint32_t iovCnt = 1;
   for (auto cmd : txCmdList_) {
+    freeCmd(cmd);
     if (cmd->iov[1].iov_len) {
       iovCnt = 2;
     }
-    // if (!handleIORet(
-    //         SendMsg(conn_->fd(), cmd->iov, iovCnt, MSG_WAITALL |
-    //         MSG_NOSIGNAL))) {
-    //   return;
-    // };
-    int ret = SendMsg(conn_->fd(), cmd->iov, iovCnt, MSG_WAITALL | MSG_NOSIGNAL);
+    int ret = SendMsg(conn_->fd(), cmd->iov, iovCnt, MSG_DONTWAIT | MSG_NOSIGNAL);
     MSF_INFO << "Send ret: " << cmd->iov[0].iov_len;
     MSF_INFO << "Send ret: " << cmd->iov[1].iov_len;
     MSF_INFO << "Send ret: " << ret;
@@ -282,11 +267,7 @@ void AgentClient::handleRxCmd() {
   void *head = mpool_->alloc(AGENT_HEAD_LEN);
   assert(head);
   struct iovec iov = {head, AGENT_HEAD_LEN};
-  RecvMsg(conn_->fd(), &iov, 1, MSG_WAITALL | MSG_NOSIGNAL);
-  // if (!handleIORet(RecvMsg(conn_->fd(), &iov, 1, MSG_WAITALL |
-  // MSG_NOSIGNAL))) {
-  //   return;
-  // };
+  RecvMsg(conn_->fd(), &iov, 1, MSG_DONTWAIT | MSG_NOSIGNAL);
   Agent::AgentBhs bhs;
   bhs.ParseFromArray(head, AGENT_HEAD_LEN);
   proto_->debugBhs(bhs);
@@ -406,7 +387,6 @@ void AgentClient::handleResponce(Agent::AgentBhs &bhs) {
 }
 
 int AgentClient::sendPdu(const AgentPdu *pdu) {
-  // struct AgentBhs *bhs = nullptr;
   struct AgentCmd *req = nullptr;
 
   if (!started_ || !loop_) {

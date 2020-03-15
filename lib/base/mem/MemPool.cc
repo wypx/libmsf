@@ -11,7 +11,7 @@
  *
  **************************************************************************/
 #include <base/Affinity.h>
-#include <base/MemPool.h>
+#include <base/mem/MemPool.h>
 #include <base/Os.h>
 #include <base/Utils.h>
 

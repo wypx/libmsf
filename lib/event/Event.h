@@ -14,7 +14,7 @@
 #define __MSF_EVENT_H__
 
 #include <base/Bitops.h>
-#include <base/Buffer.h>
+#include <base/mem/Buffer.h>
 #include <mutex>
 
 using namespace MSF::BASE;

@@ -10,7 +10,7 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include <base/Mem.h>
+#include <base/mem/Mem.h>
 #include <base/Os.h>
 #include <base/Utils.h>
 

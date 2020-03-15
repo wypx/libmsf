@@ -18,40 +18,50 @@
 namespace MSF {
 namespace BASE {
 
-const char Buffer::kCRLF[] = "\r\n";
-
-const size_t Buffer::kCheapPrepend;
-const size_t Buffer::kInitialSize;
-
-ssize_t Buffer::readFd(int fd, int* savedErrno) {
+ssize_t Buffer::ReadFd(int fd, int *savedErrno) {
   // saved an ioctl()/FIONREAD call to tell how much to read
   char extrabuf[65536];
-  struct iovec vec[2];
-  const size_t writable = writableBytes();
-  vec[0].iov_base = begin() + writerIndex_;
-  vec[0].iov_len = writable;
-  vec[1].iov_base = extrabuf;
-  vec[1].iov_len = sizeof extrabuf;
+  struct iovec vec[3];
+  const size_t writeable = writeableBytes();
+  uint32_t  idx = 0;
+  if (readerIndex_ <= writerIndex_) {
+    if (readerIndex_ == 0) { // 尾部要留空一个
+      vec[idx].iov_base = &buffer_[writerIndex_];
+      vec[idx].iov_len = capacity_ - 1 - writerIndex_;
+    } else {  // 头部有空，尾部写满
+      vec[idx].iov_base = &buffer_[writerIndex_];
+      vec[idx].iov_len = capacity_ - writerIndex_;
+      if (readerIndex_ > 1) { // 头部大于一个空格，需要加上头部空的区域
+        ++idx;
+        vec[idx].iov_base = &buffer_[0];
+        vec[idx].iov_len = readerIndex_ - 1;
+      }
+    }
+  } else {
+    vec[idx].iov_base = &buffer_[writerIndex_];
+    vec[idx].iov_len = readerIndex_ -1  - writerIndex_;
+  }
   // when there is enough space in this buffer, don't read into extrabuf.
   // when extrabuf is used, we read 128k-1 bytes at most.
-  const int iovcnt = (writable < sizeof extrabuf) ? 2 : 1;
-  const ssize_t n = RecvMsg(fd, vec, iovcnt, MSG_NOSIGNAL | MSG_DONTWAIT);
+  if (writeable < sizeof extrabuf) {
+    ++idx;
+    vec[idx].iov_base = extrabuf;
+    vec[idx].iov_len = sizeof extrabuf;
+  }
+  const ssize_t n = ::readv(fd, vec, idx + 1);
   if (n < 0) {
     *savedErrno = errno;
-  } else if (implicit_cast<size_t>(n) <= writable) {
-    writerIndex_ += n;
+  } else if ((size_t)n <= writeable) {
+    hasWritten(n);
   } else {
-    writerIndex_ = buffer_.size();
-    append(extrabuf, n - writable);
+    hasWritten(writeable);
+    append(extrabuf, n - writeable);
   }
-  // if (n == writable + sizeof extrabuf)
-  // {
-  //   goto line_30;
-  // }
   return n;
 }
 
-ssize_t Buffer::sendFd(const int fd, int* savedErrno) {
+
+ssize_t Buffer::WriteFd(int fd) {
   struct iovec vec[2];
   uint32_t iovcnt;
   if (readerIndex_ < writerIndex_) {
@@ -60,9 +70,9 @@ ssize_t Buffer::sendFd(const int fd, int* savedErrno) {
     iovcnt = 1;
   } else if (readerIndex_ == writerIndex_) {
     return 0;
-  } else {  // readerIndex_ > writerIndex_
+  } else { // readerIndex_ > writerIndex_
     vec[0].iov_base = &buffer_[readerIndex_];
-    vec[0].iov_len = internalCapacity() - readerIndex_;
+    vec[0].iov_len = capacity_ - readerIndex_;
     iovcnt = 1;
     if (writerIndex_ != 0) {
       vec[1].iov_base = &buffer_[0];
@@ -70,14 +80,13 @@ ssize_t Buffer::sendFd(const int fd, int* savedErrno) {
       iovcnt = 2;
     }
   }
-  const ssize_t n = SendMsg(fd, vec, iovcnt, MSG_NOSIGNAL | MSG_DONTWAIT);
-  if (n <= 0) {
-    *savedErrno = errno;
-  } else {
+  const ssize_t n = ::writev(fd, vec, iovcnt);
+  if (n > 0) {
     retrieve(n);
   }
   return n;
 }
+
 
 }  // namespace BASE
 }  // namespace MSF

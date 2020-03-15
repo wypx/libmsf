@@ -13,7 +13,7 @@
 #ifndef __MSF_Connector_H__
 #define __MSF_Connector_H__
 
-#include <base/Buffer.h>
+#include <base/mem/Buffer.h>
 #include <event/Event.h>
 #include <event/EventLoop.h>
 #include <sock/Socket.h>
@@ -76,16 +76,24 @@ class Connector : public std::enable_shared_from_this<Connector> {
     event_.setSuccCallback(cb);
   }
   void setReadCallback(const EventCallback &cb) {
-    event_.setReadCallback(std::bind(&Connector::bufferReadCb, this, cb));
+    event_.setReadCallback(cb);
+    // readCb_ = std::move(cb);
+    // event_.setReadCallback(std::bind(&Connector::bufferReadCb, this));
   }
   void setWriteCallback(const EventCallback &cb) {
-    event_.setWriteCallback(std::bind(&Connector::bufferWriteCb, this, cb));
+    event_.setWriteCallback(cb);
+    // writeCb_ = std::move(cb);
+    // event_.setWriteCallback(std::bind(&Connector::bufferWriteCb, this));
   }
   void setCloseCallback(const EventCallback &cb) {
-    event_.setCloseCallback(std::bind(&Connector::bufferCloseCb, this, cb));
+    event_.setCloseCallback(cb);
+    // closeCb_ = std::move(cb);
+    // event_.setCloseCallback(std::bind(&Connector::bufferCloseCb, this));
   }
   void setErrorCallback(const EventCallback &cb) {
     event_.setErrorCallback(cb);
+    // errorCb_ = std::move(cb);
+    // event_.setErrorCallback(std::bind(&Connector::bufferCloseCb, this));
   }
 
   void enableEvent() {
@@ -100,39 +108,44 @@ class Connector : public std::enable_shared_from_this<Connector> {
   void setCid(const uint32_t cid) { cid_ = cid; }
   const uint32_t cid() const { return cid_; }
 
-  bool addBuffer(const void *buffer, const uint32_t len)
+  // bool addBuffer(char *data, const uint32_t len)
+  // {
+  //   if (fd_ < 0) {
+  //     MSF_INFO << "Conn has been closed, cannot send buffer";
+  //     return false;
+  //   }
+  //   struct iovec iov = { data, len };
+  //   txIov_.push_back(std::move(iov));
+  // }
+  // bool removeBuffer(void *data, const uint32_t len)
+  // {
+  //   return true;
+  // }
+  // struct iovec peekBuffer()
+  // {
+  //   return rxIov_.front();
+  // }
+  char * peekBuffer()
   {
-    if (fd_ < 0) {
-      MSF_INFO << "Conn has been closed, cannot send buffer";
-      return false;
-    }
-    writeBuffer_.append(buffer, len);
-    enableWriting();
+    return buffer;
   }
-  bool removeBuffer(void *buffer, const uint32_t len)
-  {
-    readBuffer_.retrieve(len);
-    return true;
-  }
-  bool prependBuffer(void *buffer, const uint32_t len)
-  {
-    if (fd_ < 0) {
-      return false;
-    }
-    readBuffer_.prepend(buffer, len);
-    return true;
-  }
+
+  size_t readableBytes() { return readable; }
 
  private:
   void updateActiveTime();
-  /* Read all data to buffer ring */
-  void bufferReadCb(const EventCallback &cb);
-  /* Send all data in buffer ring */
-  void bufferWriteCb(const EventCallback &cb);
-  void bufferCloseCb(const EventCallback &cb);
+  // /* Read all data to buffer ring */
+  // void bufferReadCb();
+  // /* Send all data in buffer ring */
+  // void bufferWriteCb();
+  // void bufferCloseCb();
 
  public:
   Event event_;
+  EventCallback readCb_;
+  EventCallback writeCb_;
+  EventCallback errorCb_;
+  EventCallback closeCb_;
 
   std::string name_;
   std::string key_; /*key is used to find conn by cid*/
@@ -142,15 +155,20 @@ class Connector : public std::enable_shared_from_this<Connector> {
 
   uint64_t lastActiveTime_;
 
+  char buffer[4096];
+  int readable;
+
   //不用处理发送和接收,这样处理更简单
   Buffer readBuffer_;
   Buffer writeBuffer_;
 
-  struct iovec rxIov_[2];      /* RX direction only support recv one head or one body */
+  // std::vector<struct iovec> rxIov_;
+  struct iovec rxIov_[2]; 
   uint32_t rxWanted_; /* One len of head or body */
   uint32_t rxRecved_; /* One len of head or body has recv*/
 
-  struct iovec txIov_[2]; /* TX direction support send one head and one body */
+  // std::vector<struct iovec> txIov_;
+  struct iovec txIov_[2];
   uint32_t txWanted_;     /* Total len of head and body */
   uint32_t txSended_;     /* Total len of head and body has send */
 };

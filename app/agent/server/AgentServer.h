@@ -14,9 +14,9 @@
 #define __MSF_AGENT_SERVER_H__
 
 #include <base/Noncopyable.h>
-#include <base/MemPool.h>
+#include <base/mem/MemPool.h>
 #include <base/Plugin.h>
-#include <base/Buffer.h>
+#include <base/mem/Buffer.h>
 #include <base/ThreadPool.h>
 #include <event/Event.h>
 #include <event/EventLoop.h>
@@ -83,7 +83,7 @@ class AgentServer : public Noncopyable {
   int udpPort_;
   int backLog_;
   int maxConns_; /* Max online client, different from backlog */
-  int perConnsAlloc;
+  int perConnsAlloc_;
   std::string unixPath_;
   std::string unixMask_;
 

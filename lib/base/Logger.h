@@ -13,17 +13,17 @@
 #ifndef __MSF_LOGGER_H__
 #define __MSF_LOGGER_H__
 
-#include <base/Define.h>
-#include <base/GccAttr.h>
-#include <base/Noncopyable.h>
 #include <stdarg.h>
 #include <string.h>
-
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <mutex>
 #include <sstream>
+
+#include <base/Define.h>
+#include <base/GccAttr.h>
+#include <base/Noncopyable.h>
 
 using namespace MSF::BASE;
 
@@ -65,7 +65,7 @@ extern "C" {
 // #define MSF_FUNC_FILE_LINE   __func__, __FILE__, __LINE__
 #define MSF_FUNC_FILE_LINE __FUNCTION__, __FILE__, __LINE__
 
-enum LogLevel { LEVEL_DEBUG, LEVEL_INFO, LEVEL_WARN, LEVEL_ERROR, LEVEL_FATAL };
+enum LogLevel { LEVEL_TRACE, LEVEL_DEBUG, LEVEL_INFO, LEVEL_WARN, LEVEL_ERROR, LEVEL_FATAL };
 
 enum LogState { LOG_CLOSED, LOG_ERROR, LOG_OPENING, LOG_OPENED, LOG_ZIPING };
 
@@ -117,6 +117,9 @@ class Logger : public Noncopyable {
   }
   ~Logger();
 
+  const enum LogLevel logLevel() const {
+    return iLogLevel;
+  }
   void setLogLevel(enum LogLevel level);
   bool setLogFilePath(const std::string &logpath); /* Need to reopen log file*/
   bool init(const std::string &logpath);
@@ -155,10 +158,12 @@ class Logger : public Noncopyable {
   int compressFile(void);
 };
 
-#define MSF_INFO \
-  Logger::getLogger().LogWrite(LEVEL_INFO, MSF_FUNC_FILE_LINE)->stream()
+#define MSF_TRACE \
+  Logger::getLogger().LogWrite(LEVEL_TRACE, MSF_FUNC_FILE_LINE)->stream()
 #define MSF_DEBUG \
   Logger::getLogger().LogWrite(LEVEL_DEBUG, MSF_FUNC_FILE_LINE)->stream()
+#define MSF_INFO \
+  Logger::getLogger().LogWrite(LEVEL_INFO, MSF_FUNC_FILE_LINE)->stream()
 #define MSF_WARN \
   Logger::getLogger().LogWrite(LEVEL_WARN, MSF_FUNC_FILE_LINE)->stream()
 #define MSF_ERROR \

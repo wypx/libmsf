@@ -72,7 +72,7 @@ void Event::handleEventWithGuard(int receiveTime) {
   }
 
   if (revents_ & EPOLLERR) {
-    if (errorCb_) errorCb_();
+    if (closeCb_) closeCb_();
   }
 
   if (revents_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP)) {
@@ -104,24 +104,16 @@ std::string Event::eventsToString(int fd, int ev) {
 }
 
 void Event::setSuccCallback(const EventCallback& cb) {
-  succCb_ = cb;
-  // succCb_ = std::move(cb);
+  succCb_ = std::move(cb);
 }
 void Event::setReadCallback(const EventCallback& cb) {
-  // readCb_ = std::move(cb);
-  readCb_ = cb;
+  readCb_ = std::move(cb);
 }
 void Event::setWriteCallback(const EventCallback& cb) {
-  // writeCb_ = std::move(cb);
-  writeCb_ = cb;
+  writeCb_ = std::move(cb);
 }
 void Event::setCloseCallback(const EventCallback& cb) {
-  // closeCb_ = std::move(cb);
-  closeCb_ = cb;
-}
-void Event::setErrorCallback(const EventCallback& cb) {
-  // errorCb_ = std::move(cb);
-  errorCb_ = cb;
+  closeCb_ = std::move(cb);
 }
 
 }  // namespace EVENT

@@ -10,13 +10,13 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_COUNTDOWNLATCH_H__
-#define __MSF_COUNTDOWNLATCH_H__
-
-#include <base/Noncopyable.h>
+#ifndef BASE_COUNTDOWNLATCH_H
+#define BASE_COUNTDOWNLATCH_H
 
 #include <condition_variable>
 #include <mutex>
+
+#include <base/Noncopyable.h>
 
 using namespace MSF::BASE;
 

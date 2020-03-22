@@ -32,13 +32,12 @@ namespace BASE {
 
 // std::map<std::string, Logger::LogLevel> ;
 
-static const std::string g_LogLevel[] = {"DEBUG", "INFO", "WARN", "ERROR",
+static const std::string g_LogLevel[] = { "TRACE", "DEBUG", "INFO", "WARN", "ERROR",
                                          "FATAL"};
 
 static const std::string g_logcolor[] = {
-    COLOR_GRAY, COLOR_GREEN,  COLOR_YELLOW, COLOR_BLUE,
-    COLOR_RED,  COLOR_PURPLE, COLOR_BROWN,  COLOR_BLUE,
-    COLOR_CYAN, COLOR_GREEN,  COLOR_GRAY,
+    COLOR_GRAY,COLOR_GRAY, COLOR_GREEN,  COLOR_YELLOW, COLOR_BLUE,
+    COLOR_RED,  COLOR_PURPLE, COLOR_BROWN,  COLOR_BLUE, COLOR_CYAN, COLOR_GREEN,  COLOR_GRAY,
 };
 
 LogStream::~LogStream() {
@@ -147,7 +146,7 @@ bool Logger::openLogFile(const std::string &filename) {
 bool Logger::init(const std::string &logPath) {
   bLogPrint = true;
   bLogFile = true;
-  iLogLevel = LEVEL_DEBUG;
+  iLogLevel = LEVEL_INFO;
 
   // stLogLock = std::unique_lock<std::mutex>(stLogMutex, std::defer_lock);
   std::lock_guard<std::mutex> lock(mutex_);

@@ -49,7 +49,6 @@ bool CountDownLatch::waitFor(const uint32_t ts) {
     // MSF_INFO << "count timeout: " << _count;
     return false;
   }
-  // MSF_INFO << "count ok: " << _count;
   return true;
 }
 

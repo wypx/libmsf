@@ -26,7 +26,7 @@ enum Command {
     CMD_REQ_NODE_UNREGISTER         = 0x00000001;
     CMD_REQ_NODE_HEARTBEAT          = 0x00000002;
     CMD_REQ_NODE_STATUS_REPORT      = 0x00000003;
-    CMD_REQ_NODE_LOGGER             = 0x00000004;   /* Distributed network logger */
+    CMD_REQ_NODE_LOGGER_COLLECT     = 0x00000004;   /* Distributed network logger */
     CMD_REQ_NODE_LOGGER_LEVEL       = 0x00000005;   /* Set one node logger level */
     CMD_REQ_NODE_QUERY              = 0x00000006;   /* Query all nodes infomation */
     CMD_REQ_NODE_NOTIFY             = 0x00000007;   /* Agent server notify all nodes */
@@ -120,42 +120,46 @@ enum NetType {
 }
 
 message LoginRequest {
-    string  name        = 1;
-    uint32  hash        = 2;      /* name and pass do hash */
-    uint32  chap        = 3;
-    NetType net         = 4;
+    bytes   name        = 1;    /* Node name*/
+    uint32  hash        = 2;    /* Node hash of name and pass  */
+    uint32  chap        = 3;    /* Node chap option */
+    NetType net         = 4;    /* Node net type */
+    bytes   token       = 5;    /* App token code */
 };
 
 message LoginReponse {
-    Errno ret_code      = 1;      /* Error happen */
-    bytes ret_msg       = 2;      /* Error message, ascii or utf8 and etc */
-    fixed32 ttl         = 3;
+    bytes  msg          = 1;    /* Error message, ascii or utf8 and etc */
+    fixed32 ttl         = 2;
 };
 
-enum FriendStatus {
-    IDLE = 0;
-    BUSY = 1;
+
+enum NodeStatus {
+    STATUS_ONLINE       = 0;
+    STATUS_OFFLINE      = 1;
+    STATUS_IDLE         = 2;
+    STATUS_BUSY         = 3;
 };
 
-message Friend {
-    bytes name  = 1;
-    bool  online = 2;
-    FriendStatus status = 3;
-}
-message GetFriendsResponse {
-    repeated Friend  friends  = 1;
-}
-message SendMessageRequest {
-    bytes receiver = 1;
-    bytes  text  = 2;
-}
-message FriendNotification {
-    bytes name  = 1;
-    bool online = 2;
-}
+message NodeInfo {
+    bytes   name        = 1;    /* Node name*/
+    AppId   cid         = 2;
+    NodeStatus  status  = 3;
+    NetType net         = 4;
+};
 
-message MessageNotification {
-    bytes sender = 1;
-    bytes text = 2;
-    string timestamp = 3;
-}
+message HeartBeatRequest {
+    bytes   name        = 1;    /* Node name*/
+    AppId   cid         = 2;
+};
+
+message HeartBeatReponse {
+    repeated NodeInfo  nodes = 1;
+};
+
+message AgentPdu {
+    AgentBhs bhs            = 1;
+    LoginRequest reqLogin   = 2;
+    LoginReponse rspLogin   = 3;
+    HeartBeatRequest reqHb  = 4;
+    HeartBeatReponse rspHb  = 5;
+};

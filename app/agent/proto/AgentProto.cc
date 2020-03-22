@@ -12,8 +12,6 @@
  **************************************************************************/
 #include <base/Bitops.h>
 #include <base/Logger.h>
-#include <sock/Socket.h>
-// #include <sock/Connector.h>
 #include "AgentProto.h"
 
 using namespace MSF::AGENT;
@@ -145,95 +143,24 @@ void AgentProto::setPduLen(Agent::AgentBhs &bhs, const uint32_t pduLen) {
 }
 
 void AgentProto::debugBhs(const Agent::AgentBhs &bhs) {
-  MSF_INFO << "Bhs:";
-  MSF_INFO << "magic: " << std::hex << magic(bhs);
-  MSF_INFO << "version: " << (uint32_t)version(bhs);
-  MSF_INFO << "encrypt: " << (uint32_t)encrypt(bhs);
-  MSF_INFO << "checkSum: " << std::hex << checkSum(bhs);
+  MSF_DEBUG << "Bhs:";
+  MSF_DEBUG << "magic: " << std::hex << magic(bhs);
+  MSF_DEBUG << "version: " << (uint32_t)version(bhs);
+  MSF_DEBUG << "encrypt: " << (uint32_t)encrypt(bhs);
+  MSF_DEBUG << "checkSum: " << std::hex << checkSum(bhs);
 
-  MSF_INFO << "srcid: " << srcId(bhs);
-  MSF_INFO << "dstid: " << dstId(bhs);
-  MSF_INFO << "sessno: " << sessNo(bhs);
-  MSF_INFO << "retCode: " << retCode(bhs);
+  MSF_DEBUG << "srcid: " << srcId(bhs);
+  MSF_DEBUG << "dstid: " << dstId(bhs);
+  MSF_DEBUG << "sessno: " << sessNo(bhs);
+  MSF_DEBUG << "retCode: " << retCode(bhs);
 
-  MSF_INFO << "command: " << std::hex << command(bhs);
-  MSF_INFO << "opcode: " << opCode(bhs);
-  MSF_INFO << "pdulen: " << pduLen(bhs);
+  MSF_DEBUG << "command: " << std::hex << command(bhs);
+  MSF_DEBUG << "opcode: " << opCode(bhs);
+  MSF_DEBUG << "pdulen: " << pduLen(bhs);
 
-  MSF_INFO << "command: " << std::hex << bhs.verify();
-  MSF_INFO << "opcode: " << std::hex << bhs.router();
-  MSF_INFO << "pdulen: " << std::hex << bhs.command();
-}
-
-int AgentProto::SendPdu(const Agent::AgentBhs &bhs, const iovec &iov_body) {
-  /* Max protibuf limit */
-  // if (pdu.ByteSizeLong() > 1000000) {
-  //     return -1;
-  // }
-  uint32_t iovCnt = 1;
-  struct iovec iov[2];
-  // 不压缩也不加密
-  if (this->encrypt(bhs) == 0) {
-    void *head = mpool_->alloc(AGENT_HEAD_LEN);
-    assert(head);
-    bhs.SerializeToArray(head, AGENT_HEAD_LEN);
-
-    iov[0].iov_base = head;
-    iov[0].iov_len = AGENT_HEAD_LEN;
-
-    /* 无包体(心跳包等),在proto3的使用上以-1表示包体长度为0 */
-    if (pduLen(bhs) <= 0) {
-      SendMsg(conn_->fd(), iov, iovCnt, MSG_NOSIGNAL | MSG_WAITALL);
-      return 0;
-    }
-
-    // void *body = mpool_->alloc(pdu.ByteSizeLong());
-    // assert(body);
-    // pdu.SerializeToArray(body, AGENT_HEAD_LEN);
-    // iov[1].iov_base = body;
-    // iov[1].iov_len = pdu.ByteSizeLong();
-    // iovCnt++;
-  } else {
-    // zip
-    // gzip
-    // aes
-    // rc5
-  }
-
-  SendMsg(conn_->fd(), iov, iovCnt, MSG_NOSIGNAL | MSG_WAITALL);
-  return 0;
-}
-
-int AgentProto::RecvPdu(Agent::AgentBhs &bhs, AgentPdu &pdu) {
-  // RecvMsg();
-  int len = 0;
-  if (len >= AGENT_HEAD_LEN) {
-    void *head = mpool_->alloc(AGENT_HEAD_LEN);
-    assert(head);
-    bool success = bhs.ParseFromArray(head, AGENT_HEAD_LEN);
-    if (success) {
-      if (pduLen(bhs) <= 0) {
-        // pBuff->SkipBytes(AGENT_HEAD_LEN);
-        return 0;
-      }
-      void *body = mpool_->alloc(1);
-      if (len >= AGENT_HEAD_LEN + pduLen(bhs)) {
-        // success = pdu.ParseFromArray(body, bhs.len());
-        if (success) {
-          // pBuff->SkipBytes(AGENT_HEAD_LEN + bhs->len());
-          return 0;
-        } else {
-          return -1;
-        }
-      } else {
-        return -2;
-      }
-    } else {
-      return -1;
-    }
-  } else {
-    return -2;
-  }
+  MSF_DEBUG << "command: " << std::hex << bhs.verify();
+  MSF_DEBUG << "opcode: " << std::hex << bhs.router();
+  MSF_DEBUG << "pdulen: " << std::hex << bhs.command();
 }
 
 }  // namespace AGENT

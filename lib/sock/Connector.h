@@ -10,12 +10,10 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_Connector_H__
-#define __MSF_Connector_H__
+#ifndef BASE_SOCK_CONNECTOR_H
+#define BASE_SOCK_CONNECTOR_H
 
-#include <base/mem/Buffer.h>
 #include <event/Event.h>
-#include <event/EventLoop.h>
 #include <sock/Socket.h>
 
 #include <deque>
@@ -43,13 +41,13 @@ namespace SOCK {
  */
 
 enum ConnState {
-  CONN_STATE_DEFAULT = 1,
-  CONN_STATE_UNAUTHORIZED = 2,
-  CONN_STATE_AUTHORIZED = 3,
-  CONN_STATE_LOGINED = 4,
-  CONN_STATE_UPGRADE = 5,
-  CONN_STATE_CLOSED = 6,
-  CONN_STATE_BUTT
+  kCONN_STATE_DEFAULT = 1,
+  kCONN_STATE_UNAUTHORIZED = 2,
+  kCONN_STATE_AUTHORIZED = 3,
+  kCONN_STATE_LOGINED = 4,
+  kCONN_STATE_UPGRADE = 5,
+  kCONN_STATE_CLOSED = 6,
+  kCONN_STATE_BUTT
 };
 
 class Connector;
@@ -77,26 +75,15 @@ class Connector : public std::enable_shared_from_this<Connector> {
   }
   void setReadCallback(const EventCallback &cb) {
     event_.setReadCallback(cb);
-    // readCb_ = std::move(cb);
-    // event_.setReadCallback(std::bind(&Connector::bufferReadCb, this));
   }
   void setWriteCallback(const EventCallback &cb) {
     event_.setWriteCallback(cb);
-    // writeCb_ = std::move(cb);
-    // event_.setWriteCallback(std::bind(&Connector::bufferWriteCb, this));
   }
   void setCloseCallback(const EventCallback &cb) {
     event_.setCloseCallback(cb);
-    // closeCb_ = std::move(cb);
-    // event_.setCloseCallback(std::bind(&Connector::bufferCloseCb, this));
-  }
-  void setErrorCallback(const EventCallback &cb) {
-    event_.setErrorCallback(cb);
-    // errorCb_ = std::move(cb);
-    // event_.setErrorCallback(std::bind(&Connector::bufferCloseCb, this));
   }
 
-  void enableEvent() {
+  void enableBaseEvent() {
     event_.enableReading();
     event_.enableClosing();
   }
@@ -107,46 +94,8 @@ class Connector : public std::enable_shared_from_this<Connector> {
   const int fd() const { return fd_; }
   void setCid(const uint32_t cid) { cid_ = cid; }
   const uint32_t cid() const { return cid_; }
-
-  // bool addBuffer(char *data, const uint32_t len)
-  // {
-  //   if (fd_ < 0) {
-  //     MSF_INFO << "Conn has been closed, cannot send buffer";
-  //     return false;
-  //   }
-  //   struct iovec iov = { data, len };
-  //   txIov_.push_back(std::move(iov));
-  // }
-  // bool removeBuffer(void *data, const uint32_t len)
-  // {
-  //   return true;
-  // }
-  // struct iovec peekBuffer()
-  // {
-  //   return rxIov_.front();
-  // }
-  char * peekBuffer()
-  {
-    return buffer;
-  }
-
-  size_t readableBytes() { return readable; }
-
- private:
-  void updateActiveTime();
-  // /* Read all data to buffer ring */
-  // void bufferReadCb();
-  // /* Send all data in buffer ring */
-  // void bufferWriteCb();
-  // void bufferCloseCb();
-
- public:
+ protected:
   Event event_;
-  EventCallback readCb_;
-  EventCallback writeCb_;
-  EventCallback errorCb_;
-  EventCallback closeCb_;
-
   std::string name_;
   std::string key_; /*key is used to find conn by cid*/
   uint32_t cid_;    /* unique identifier given by agent server when login */
@@ -154,23 +103,8 @@ class Connector : public std::enable_shared_from_this<Connector> {
   uint32_t state_;
 
   uint64_t lastActiveTime_;
-
-  char buffer[4096];
-  int readable;
-
-  //不用处理发送和接收,这样处理更简单
-  Buffer readBuffer_;
-  Buffer writeBuffer_;
-
-  // std::vector<struct iovec> rxIov_;
-  struct iovec rxIov_[2]; 
-  uint32_t rxWanted_; /* One len of head or body */
-  uint32_t rxRecved_; /* One len of head or body has recv*/
-
-  // std::vector<struct iovec> txIov_;
-  struct iovec txIov_[2];
-  uint32_t txWanted_;     /* Total len of head and body */
-  uint32_t txSended_;     /* Total len of head and body has send */
+ protected:
+  inline void updateActiveTime();
 };
 
 }  // namespace SOCK

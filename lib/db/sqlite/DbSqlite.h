@@ -14,6 +14,9 @@
 #define __MSF_SQLITE_H__
 
 namespace MSF {
-namespace SQLITE {}
+namespace SQLITE {
+
+  
+}
 }  // namespace MSF
 #endif

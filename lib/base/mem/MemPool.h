@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_MEMPOOL_H__
-#define __MSF_MEMPOOL_H__
+#ifndef BASE_MEM_MEMPOOL_H
+#define BASE_MEM_MEMPOOL_H
 
 #include <base/Atomic.h>
 #include <base/mem/Mem.h>

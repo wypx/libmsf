@@ -67,39 +67,22 @@ class Event {
   void set_revents(int revt) { revents_ = revt; }
 
   void enableReading() {
-    // if (events_ & kReadEvent) {
-    //   return;
-    // }
     events_ |= kReadEvent;
     update();
   }
   void disableReading() {
-    // if (events_ & kReadEvent) {
-    //   events_ &= ~kReadEvent;
-    //   update();
-    // }
     events_ &= ~kReadEvent;
     update();
   }
   void enableWriting() {
-    // if (events_ & kWriteEvent) {
-    //   return;
-    // }
     events_ |= kWriteEvent;
     update();
   }
   void disableWriting() {
-    // if (events_ & kWriteEvent) {
-    //   events_ &= ~kWriteEvent;
-    //   update();
-    // }
     events_ &= ~kWriteEvent;
     update();
   }
   void enableClosing() {
-    // if (events_ & (kCloseEvent | kErrorEvent)) {
-    //   return;
-    // }
     events_ |= kCloseEvent | kErrorEvent;
     update();
   }
@@ -134,7 +117,6 @@ class Event {
   EventCallback writeCb_;
   EventCallback readCb_;
   EventCallback closeCb_;
-  EventCallback errorCb_;
 
   std::mutex mutex_;
 

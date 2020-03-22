@@ -24,7 +24,7 @@
 #include <proto/AgentProto.h>
 #include <proto/Protocol.h>
 #include <sock/Acceptor.h>
-#include <sock/Connector.h>
+#include <client/AgentConn.h>
 
 using namespace MSF::BASE;
 using namespace MSF::SOCK;
@@ -49,19 +49,15 @@ class AgentServer : public Noncopyable {
   void start();
 
  private:
-  bool handleRxIORet(ConnectionPtr c, const int ret);
-  bool handleTxIORet(ConnectionPtr c, const int ret);
-
   bool verifyAgentBhs(const Agent::AgentBhs &bhs);
-  void handleAgentBhs(ConnectionPtr c);
-  void handleAgentLogin(ConnectionPtr c, Agent::AgentBhs &bhs);
-  void handleAgentPayLoad(ConnectionPtr c, Agent::AgentBhs &bhs);
-  void handleAgentRequest(ConnectionPtr c, Agent::AgentBhs &bhs);
+  void handleAgentPdu(AgentConnPtr c, struct iovec & head);
+  void handleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs, struct iovec & head);
+  void handleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs, struct iovec & head);
 
-  void succConn(ConnectionPtr c);
-  void readConn(ConnectionPtr c);
-  void writeConn(ConnectionPtr c);
-  void freeConn(ConnectionPtr c);
+  void succConn(AgentConnPtr c);
+  void readConn(AgentConnPtr c);
+  void writeConn(AgentConnPtr c);
+  void freeConn(AgentConnPtr c);
   void newConn(const int fd, const uint16_t event);
 
   void showUsage();
@@ -121,8 +117,8 @@ class AgentServer : public Noncopyable {
   /* If accept in sigle thread, no need to use mutex guard activeConns_ */
   bool accpetSafe_ = true;
   /* Mutiple connections supported, such as tcp, udp, unix, event fd and etc*/
-  std::map<Agent::AppId, ConnectionPtr> activeConns_;
-  std::list<ConnectionPtr> freeConns_;
+  std::map<Agent::AppId, AgentConnPtr> activeConns_;
+  std::list<AgentConnPtr> freeConns_;
   std::atomic_uint64_t connId_; /* increment connection id for server register*/
 
   bool started_;
@@ -149,7 +145,7 @@ class AgentServer : public Noncopyable {
 
   std::list<AcceptorPtr> actors_;
 
-  std::unique_ptr<AgentProto> proto_;
+  AgentProtoPtr proto_;
 };
 
 }  // namespace AGENT

@@ -157,7 +157,7 @@ bool EPollPoller::delEpEvent(const Event* ev) {
     }
     return false;
   }
-  MSF_INFO << "Epoll Del"
+  MSF_DEBUG << "Epoll Del"
            << " on " << ev->fd() << " succeeded.";
   return true;
 }
@@ -216,7 +216,7 @@ void EPollPoller::fillActiveEvents(int numEvents, EventList* activeEvents) {
 
 void EPollPoller::updateEvent(Event* ev) {
   const int index = ev->index();
-  MSF_INFO << "fd = " << ev->fd() << " events = " << ev->events()
+  MSF_DEBUG << "fd = " << ev->fd() << " events = " << ev->events()
            << " index = " << index;
 
   // Poller::assertInLoopThread();
@@ -253,7 +253,6 @@ void EPollPoller::updateEvent(Event* ev) {
 void EPollPoller::removeEvent(Event* ev) {
   Poller::assertInLoopThread();
   int fd = ev->fd();
-  MSF_INFO << "Remove from epoll, fd: " << fd;
   if (unlikely(_events.find(fd) == _events.end())) {
     MSF_ERROR << "Not found in event map, fd: " << fd;
     return;

@@ -1061,8 +1061,16 @@ bool Connect(const int fd, const struct sockaddr *srvAddr, socklen_t addrLen,
       // https://blog.csdn.net/cmh20161027/article/details/76401884
       err = poll(&pfd, 1, timeOutSec * 1000);
       if (err == 1 && pfd.revents == POLLOUT) {
+        /* test for success, set errno */
+        if (SocketError(fd)) {
+          return false;
+        }
         MSF_INFO << "Nonblock connect success.";
       } else {
+        /* errno is already set if err < 0 */
+        if (err == 0) {
+          errno = ETIMEDOUT;
+        }
         MSF_INFO << "Nonblock connect errno: " << errno;
         return false;
       }
@@ -1436,7 +1444,7 @@ int ConnectUnixServer(const std::string &srvPath, const std::string &cliPath) {
   memset(addr.sun_path, 0, sizeof(addr.sun_path));
   snprintf(addr.sun_path, sizeof(addr.sun_path) - 1, "%s", srvPath.c_str());
 
-  if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+  if (!Connect(fd, (struct sockaddr *)&addr, sizeof(addr), 5)) {
     if (errno == EINPROGRESS) {
       return true;
     } else {

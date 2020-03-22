@@ -13,13 +13,9 @@
 #ifndef AGENT_PROTO_H
 #define AGENT_PROTO_H
 
-#include <base/mem/MemPool.h>
-#include <sock/Connector.h>
-
 #include "Agent.pb.h"
 
 using namespace MSF::BASE;
-using namespace MSF::SOCK;
 
 namespace MSF {
 namespace AGENT {
@@ -71,10 +67,8 @@ const uint32_t kAgentEncryptRC5 = 0x00a0;
 
 class AgentProto {
  public:
-  AgentProto(ConnectionPtr conn, MemPool *mpool) : conn_(conn), mpool_(mpool) {}
+  AgentProto() {}
   ~AgentProto() {}
-
-  void init(ConnectionPtr conn) { conn_ = conn; }
 
   const uint16_t magic(const Agent::AgentBhs &bhs) const;
   const uint8_t version(const Agent::AgentBhs &bhs) const;
@@ -106,12 +100,8 @@ class AgentProto {
   void setPduLen(Agent::AgentBhs &bhs, const uint32_t pduLen);
 
   void debugBhs(const Agent::AgentBhs &bhs);
-  int SendPdu(const Agent::AgentBhs &bhs, const iovec &iov_body);
-  int RecvPdu(Agent::AgentBhs &bhs, AgentPdu &pdu);
 
  private:
-  ConnectionPtr conn_;
-  MemPool *mpool_;
 };
 
 }  // namespace AGENT

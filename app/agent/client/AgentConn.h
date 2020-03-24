@@ -75,11 +75,12 @@ class AgentConn : public Connector
   public:
     void init(MemPool *mpool, EventLoop *loop, const int fd = -1) {
       mpool_ = mpool;
+      loop_ = loop;
       fd_ = fd;
       Connector::init(loop, fd);
     }
     void wakeup() {
-      loop_->wakeup();
+      // loop_->wakeup();
     }
     void doConnRead();
     void doConnWrite();

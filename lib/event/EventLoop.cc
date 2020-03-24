@@ -50,13 +50,13 @@ EventLoop::EventLoop()
   }
 
   // (0, EFD_NONBLOCK | EFD_CLOEXEC | EFD_SEMAPHORE);
-  _wakeupFd = CreateEventFd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-  MSF_DEBUG << "Create event fd: " << _wakeupFd;
-  // _wakeupEvent = std::make_unique<Event>(this, _wakeupFd);
-  _wakeupEvent = new Event(this, _wakeupFd);
-  _wakeupEvent->setReadCallback(std::bind(&EventLoop::handleWakeup, this));
+  wakeupFd_ = CreateEventFd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+  assert(wakeupFd_ > 0);
+  wakeupEvent_ = std::make_unique<Event>(this, wakeupFd_);
+  assert(wakeupEvent_);
+  wakeupEvent_->setReadCallback(std::bind(&EventLoop::handleWakeup, this));
   // we are always reading the wakeupfd
-  _wakeupEvent->enableReading();
+  wakeupEvent_->enableReading();
 
   timer_ = std::make_unique<HeapTimer>(this, 1024);
   assert(timer_);
@@ -65,9 +65,9 @@ EventLoop::EventLoop()
 EventLoop::~EventLoop() {
   MSF_INFO << "EventLoop " << this << " of thread " << _threadId
            << " destructs in thread " << CurrentThread::tid();
-  _wakeupEvent->disableAll();
-  _wakeupEvent->remove();
-  CloseSocket(_wakeupFd);
+  wakeupEvent_->disableAll();
+  wakeupEvent_->remove();
+  CloseSocket(wakeupFd_);
   t_loopInThisThread = NULL;
 
   //清理所有的事件?
@@ -202,16 +202,15 @@ void EventLoop::abortNotInLoopThread() {
 
 void EventLoop::wakeup() {
   uint64_t one = 1;
-  ssize_t n = write(_wakeupFd, &one, sizeof one);
+  ssize_t n = write(wakeupFd_, &one, sizeof one);
   if (n != sizeof one) {
     MSF_ERROR << "EventLoop::wakeup() writes " << n << " bytes instead of 8";
   }
 }
 
 void EventLoop::handleWakeup() {
-  // MSF_INFO << "EventLoop: handleWakeup";
   uint64_t one = 1;
-  ssize_t n = read(_wakeupFd, &one, sizeof one);
+  ssize_t n = read(wakeupFd_, &one, sizeof one);
   if (n != sizeof one) {
     MSF_ERROR << "EventLoop::handleRead() reads " << n << " bytes instead of 8";
   }

@@ -133,10 +133,11 @@ class AgentClient {
   bool loginAgent();
   void handleTxCmd();
   void handleRxCmd();
+  bool verifyAgentBhs(const Agent::AgentBhs &bhs);
   void handleRequest(Agent::AgentBhs& bhs, struct iovec & head);
-  void handleResponce(Agent::AgentBhs& bhs, struct iovec & body);
+  void handleResponce(Agent::AgentBhs& bhs);
   void handleLoginRsp(const Agent::AgentBhs &bhs);
-  void handleBasicRsp(const Agent::AgentBhs &bhs, struct iovec & body);
+  void handleBasicRsp(const Agent::AgentBhs &bhs);
 };
 
 }  // namespace AGENT

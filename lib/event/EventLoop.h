@@ -126,11 +126,10 @@ class EventLoop {
   std::unique_ptr<Poller> _poller;
   std::unique_ptr<HeapTimer> timer_;
 
-  int _wakeupFd;
+  int wakeupFd_;
   // unlike in TimerQueue, which is an internal class,
   // we don't expose Channel to client.
-  // std::unique_ptr<Event> _wakeupEvent;
-  Event* _wakeupEvent;
+  std::unique_ptr<Event> wakeupEvent_;
 
   EventList _activeEvents;
   Event* _currActiveEvent;

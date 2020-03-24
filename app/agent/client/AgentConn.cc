@@ -18,7 +18,8 @@ namespace AGENT {
 AgentConn::AgentConn(/* args */) :
           txQequeSize_(0),
           txNeedSend_(0),
-          pduCount_(0)
+          pduCount_(0),
+          mutex_()
 {
 
 }
@@ -143,10 +144,20 @@ bool AgentConn::writeBuffer(void *data, const uint32_t len)
   return writeBuffer(static_cast<char*>(data), len);
 }
 
+// https://www.icode9.com/content-4-484721.html
+// 
 void AgentConn::updateBusyIov() {
   std::lock_guard<std::mutex> lock(mutex_);
   if (txQequeIov_.size() > 0) {
-    std::move(txQequeIov_.begin(), txQequeIov_.end(), back_inserter(txBusyIov_));
+    MSF_INFO << "txQequeIov_ size1: " << txQequeIov_.size();
+    MSF_INFO << "txBusyIov_ size1: " << txBusyIov_.size();
+    txBusyIov_.insert(txBusyIov_.end(),
+            std::make_move_iterator(txQequeIov_.begin()),
+            std::make_move_iterator(txQequeIov_.end()));
+    // std::move(txQequeIov_.begin(), txQequeIov_.end(), back_inserter(txBusyIov_));
+    txQequeIov_.clear();
+    MSF_INFO << "txQequeIov_ size1: " << txQequeIov_.size();
+    MSF_INFO << "txBusyIov_ size1: " << txBusyIov_.size();
     txNeedSend_ += txQequeSize_;
     txQequeSize_ = 0;
   }
@@ -160,26 +171,28 @@ bool AgentConn::updateTxOffset(const int ret) {
     // https://www.cnblogs.com/dabaopku/p/3912662.html
     /* Half send */
     uint32_t txIovOffset = ret;
+    MSF_INFO << "txBusyIov_ size: " << txBusyIov_.size();
     auto iter = txBusyIov_.begin();
     while (iter != txBusyIov_.end()) {
       if (txIovOffset > iter->iov_len) {
         MSF_INFO << "iter->iov_len1: " << iter->iov_len << " txIovOffset:" << txIovOffset;
         txIovOffset -= iter->iov_len;
         mpool_->free(iter->iov_base);
-        iter = txBusyIov_.erase(iter);
-        ++iter;
+        iter = txBusyIov_.erase(iter);// return next item
       } else if (txIovOffset == iter->iov_len) {
         MSF_INFO << "iter->iov_len2: " << iter->iov_len << " txIovOffset:" << txIovOffset;
         mpool_->free(iter->iov_base);
-        iter = txBusyIov_.erase(iter);
+        iter = txBusyIov_.erase(iter);// return next item
         break;
       } else {
         MSF_INFO << "iter->iov_len3: " << iter->iov_len << " txIovOffset:" << txIovOffset;
         iter->iov_base = static_cast<char*>(iter->iov_base) + txIovOffset;
         iter->iov_len -= txIovOffset;
+        // ++iter;
         break;
       }
     }
+    MSF_INFO << "txBusyIov_ size: " << txBusyIov_.size();
     if (unlikely(txNeedSend_ > 0)) {
       return false;
     }
@@ -223,24 +236,24 @@ void AgentConn::doConnWrite() {
 void AgentConn::doConnClose()
 {
   Connector::close();
+  MSF_INFO << "txBusyIov_ iovcnt: " << txBusyIov_.size();
   auto iter = txBusyIov_.begin();
   while (iter != txBusyIov_.end()) {
     mpool_->free(iter->iov_base);
     iter = txBusyIov_.erase(iter);
-    ++iter;
   }
+  MSF_INFO << "txQequeIov_ iovcnt: " << txQequeIov_.size();
   iter = txQequeIov_.begin();
   while (iter != txQequeIov_.end()) {
     mpool_->free(iter->iov_base);
     iter = txQequeIov_.erase(iter);
-    ++iter;
   }
-  // iter = rxQequeIov_.begin();
-  // while (iter != rxQequeIov_.end()) {
-  //   mpool_->free(iter->iov_base);
-  //   iter = rxQequeIov_.erase(iter);
-  //   ++iter;
-  // }
+  MSF_INFO << "rxQequeIov_ iovcnt: " << rxQequeIov_.size();
+  auto it = rxQequeIov_.begin();
+  while (it != rxQequeIov_.end()) {
+    mpool_->free(it->iov_base);
+    it = rxQequeIov_.erase(it);
+  }
 }
 
 }

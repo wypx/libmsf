@@ -200,7 +200,6 @@ void AgentServer::handleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs, struct 
 
   c->writeIovec(head);
   c->enableWriting();
-  c->wakeup();
 }
 
 void AgentServer::handleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs, struct iovec & head) {
@@ -305,8 +304,9 @@ void AgentServer::freeConn(AgentConnPtr c) {
     return;
   }
   MSF_INFO << "Close conn for fd: " << c->fd();
-  std::lock_guard<std::mutex> lock(mutex_);
   c->doConnClose();
+  std::lock_guard<std::mutex> lock(mutex_);
+  activeConns_.erase(static_cast<Agent::AppId>(c->cid()));
   freeConns_.push_back(c);
 }
 

@@ -147,6 +147,18 @@ void AgentClient::closeAgent() {
   }
 }
 
+bool AgentClient::verifyAgentBhs(const Agent::AgentBhs &bhs) {
+  if (unlikely(proto_->magic(bhs) != kAgentMagic)) {
+    MSF_ERROR << "Unkown agent magic from: " << proto_->srcId(bhs);
+    return false;
+  }
+  if (unlikely(proto_->version(bhs) != kAgentVersion)) {
+    MSF_ERROR << "Unkown agent version from: " << proto_->srcId(bhs);
+    return false;
+  }
+  return true;
+}
+
 bool AgentClient::loginAgent() {
   Agent::LoginRequest login;
   login.set_name(name_);
@@ -215,13 +227,18 @@ void AgentClient::handleRxCmd() {
     Agent::AgentBhs bhs;
     bhs.ParseFromArray(head.iov_base, AGENT_HEAD_LEN);
     proto_->debugBhs(bhs);
+
+    if (!verifyAgentBhs(bhs)) {
+      conn_->doConnClose();
+      return;
+    }
     if (proto_->opCode(bhs) == Agent::Opcode::OP_REQ) {
       handleRequest(bhs, head);
     } else {
-      handleResponce(bhs, head);
+      handleResponce(bhs);
+      mpool_->free(head.iov_base);
     }
-    mpool_->free(head.iov_base);
-      // mpool_->free(pdu.second.iov_base);
+    // mpool_->free(pdu.second.iov_base);
   }
   
 }
@@ -254,7 +271,7 @@ void AgentClient::handleRequest(Agent::AgentBhs &bhs, struct iovec & head) {
   conn_->writeBuffer(body, len);
 
   conn_->enableWriting();
-  loop_->wakeup();
+  // loop_->wakeup();
 }
 
 void AgentClient::handleLoginRsp(const Agent::AgentBhs &bhs) {
@@ -269,11 +286,12 @@ void AgentClient::handleLoginRsp(const Agent::AgentBhs &bhs) {
   }
 }
 
-void AgentClient::handleBasicRsp(const Agent::AgentBhs &bhs, struct iovec & body) {
+void AgentClient::handleBasicRsp(const Agent::AgentBhs &bhs) {
   auto itor = ackCmdMap_.find(proto_->sessNo(bhs));
   if (itor != ackCmdMap_.end()) {
     AgentCmdPtr cmd = static_cast<AgentCmdPtr>(itor->second);
     if (proto_->pduLen(bhs)) {
+      struct iovec body = conn_->readIovec();
       cmd->fillRspData(body);
     }
 
@@ -295,13 +313,13 @@ void AgentClient::handleBasicRsp(const Agent::AgentBhs &bhs, struct iovec & body
   }
 }
 
-void AgentClient::handleResponce(Agent::AgentBhs &bhs, struct iovec & body) {
+void AgentClient::handleResponce(Agent::AgentBhs &bhs) {
   switch (static_cast<Agent::Command>(proto_->command(bhs))) {
     case Agent::Command::CMD_REQ_NODE_REGISTER: 
       handleLoginRsp(bhs);
       break;
     default:
-      handleBasicRsp(bhs, body);
+      handleBasicRsp(bhs);
       break;
   }
 }
@@ -320,6 +338,9 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
 
   Agent::AgentBhs bhs;
   uint16_t sessNo = (++msgSeq_) % UINT16_MAX;
+  proto_->setVersion(bhs, kAgentVersion);
+  proto_->setEncrypt(bhs, kAgentEncryptZip);
+  proto_->setMagic(bhs, kAgentMagic);
   proto_->setSrcId(bhs, cid_);
   proto_->setDstId(bhs, pdu->dstId_);
   proto_->setCommand(bhs, pdu->cmd_);
@@ -344,7 +365,7 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
     conn_->writeBuffer(body, pdu->payLen_);
   }
   conn_->enableWriting();
-  loop_->wakeup();
+  // loop_->wakeup();
 
   if (pdu->timeOut_) {
     AgentCmdPtr cmd = std::make_shared<struct AgentCmd>();

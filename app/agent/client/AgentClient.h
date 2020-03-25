@@ -82,7 +82,6 @@ typedef std::shared_ptr<AgentPdu> AgentPduPtr;
 
 class AgentClient {
  public:
-  AgentClient();
   explicit AgentClient(EventLoop* loop, const std::string& name,
                        const Agent::AppId cid,
                        const std::string& host = "127.0.0.1",
@@ -123,6 +122,8 @@ class AgentClient {
   bool reConnecting_;
 
  private:
+  void init(EventLoop *loop, const std::string &name,
+                       const Agent::AppId cid);
   void connectAgent();
   void connectAgentCb();
   void closeAgent();

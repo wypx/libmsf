@@ -23,10 +23,14 @@ using namespace MSF::AGENT;
 namespace MSF {
 namespace AGENT {
 
-#define DEFAULT_SRVAGENT_IPADDR "127.0.0.1"
-#define DEFAULT_SRVAGENT_PORT 8888
+// https://blog.csdn.net/i_o_fly/article/details/80636146
+void AgentClient::init(EventLoop *loop, const std::string &name, const Agent::AppId cid)  {
+  started_ = false;
+  loop_ = loop;
+  name_ = name;
+  cid_ = cid;
+  reConnect_ = true;
 
-AgentClient::AgentClient() {
   mpool_ = new MemPool();
   assert(mpool_);
   assert(mpool_->init());
@@ -42,50 +46,15 @@ AgentClient::AgentClient() {
 
 AgentClient::AgentClient(EventLoop *loop, const std::string &name,
                          const Agent::AppId cid, const std::string &host,
-                         const uint16_t port)
-    : started_(false),
-      loop_(loop),
-      srvIpAddr_(host),
-      srvPort_(port),
-      name_(name),
-      cid_(cid),
-      reqCb_(),
-      reConnect_(true) {
-  mpool_ = new MemPool();
-  assert(mpool_);
-  assert(mpool_->init());
-
-  proto_ = std::make_unique<AgentProto>();
-  assert(proto_);
-
-  conn_ = std::make_unique<AgentConn>();
-  assert(conn_);
-
-  loop_->runInLoop(std::bind(&AgentClient::connectAgent, this));
+                         const uint16_t port) : srvIpAddr_(host), srvPort_(port) {
+  init(loop, name, cid);
 }
 
 AgentClient::AgentClient(EventLoop *loop, const std::string &name,
                          const Agent::AppId cid, const std::string &srvUnixPath,
-                         const std::string &cliUnixPath)
-    : started_(false),
-      loop_(loop),
-      srvUnixPath_(srvUnixPath),
-      cliUnixPath_(cliUnixPath),
-      name_(name),
-      cid_(cid),
-      reqCb_(),
-      reConnect_(true) {
-  mpool_ = new MemPool();
-  assert(mpool_);
-  assert(mpool_->init());
-
-  proto_ = std::make_unique<AgentProto>();
-  assert(proto_);
-
-  conn_ = std::make_unique<AgentConn>();
-  assert(conn_);
-
-  loop_->runInLoop(std::bind(&AgentClient::connectAgent, this));
+                         const std::string &cliUnixPath)  
+    : srvUnixPath_(srvUnixPath), cliUnixPath_(cliUnixPath) {
+    init(loop, name, cid);
 }
 
 AgentClient::~AgentClient() {
@@ -300,6 +269,7 @@ void AgentClient::handleBasicRsp(const Agent::AgentBhs &bhs) {
         assert(body.iov_len == pdu->rspload_.iov_len);
         memcpy(pdu->rspload_.iov_base, body.iov_base, body.iov_len);
       }
+      mpool_->free(body.iov_base);
     }
     if (pdu->timeOut_) {
       pdu->postAck();
@@ -362,7 +332,6 @@ int AgentClient::sendPdu(const AgentPduPtr pdu) {
     conn_->writeBuffer(body, pdu->payload_.iov_len);
   }
   conn_->enableWriting();
-  // loop_->wakeup();
 
   if (pdu->timeOut_) {
     ackCmdMap_[sessNo] = pdu;
@@ -370,11 +339,7 @@ int AgentClient::sendPdu(const AgentPduPtr pdu) {
       MSF_ERROR << "Wait for ack timeout:" << pdu->timeOut_;
       return Agent::ERR_RECV_TIMEROUT;
     };
-
     MSF_INFO << "Notify peer errcode ===>" << pdu->retCode_;
-    if (Agent::ERR_EXEC_SUCESS == pdu->retCode_) {
-      // memcpy(pdu->restLoad_, pdu->rspload_.iov_base, pdu->rspload_.iov_len);
-    }
     return pdu->retCode_;
   }
   return Agent::ERR_EXEC_SUCESS;

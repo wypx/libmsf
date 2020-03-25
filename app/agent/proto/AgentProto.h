@@ -15,8 +15,6 @@
 
 #include "Agent.pb.h"
 
-using namespace MSF::BASE;
-
 namespace MSF {
 namespace AGENT {
 

@@ -18,7 +18,6 @@
 #include <event/EventLoop.h>
 #include <proto/AgentProto.h>
 #include <client/AgentConn.h>
-#include <sys/socket.h>
 
 using namespace MSF::BASE;
 using namespace MSF::SOCK;
@@ -39,50 +38,47 @@ enum AgentType {
   kAgentNetLink,
 };
 
-#define MAX_CONN_NAME 32
-#define MAX_CONN_IOV_SLOT 8
-#define MAX_CONN_CMD_NUM 64
-
-struct Chap {
-  bool enable;
-  uint32_t phase;
-  uint32_t alg;
-  char user[32];
-  char hash[32];
-} MSF_PACKED_MEMORY;
-
 #define ITEM_PER_ALLOC 4
 #define ITEM_MAX_ALLOC 64
 
-struct AgentCmd : public std::enable_shared_from_this<AgentCmd> {
+struct AgentPdu : public std::enable_shared_from_this<AgentPdu> {
+  Agent::AppId dstId_;
+  Agent::Command cmd_;
+  Agent::Errno retCode_;
+  uint32_t timeOut_;
   CountDownLatch latch_;
   AgentCb doneCb_; /*callback called in thread pool*/
 
-  Agent::Errno retCode_;
-  uint32_t timeOut_;
+  struct iovec payload_;
+  struct iovec rspload_;
 
-  struct iovec buffer_;
-
-  AgentCmd(const AgentCb& cb = AgentCb()) : latch_(1) {
+  AgentPdu(const AgentCb& cb = AgentCb()) : latch_(1) {
+    memset(&payload_, 0, sizeof(struct iovec));
+    memset(&rspload_, 0, sizeof(struct iovec));
     doneCb_ = std::move(cb);
   }
-  ~AgentCmd() {}
+  ~AgentPdu() {}
 
+  void addPayload(char *buffer, const uint32_t len) {
+    payload_.iov_base = buffer;
+    payload_.iov_len = len;
+  }
+  void addRspload(void *buffer, const uint32_t len) {
+    addRspload(static_cast<char*>(buffer), len);
+  }
+  void addRspload(char *buffer, const uint32_t len) {
+    rspload_.iov_base = buffer;
+    rspload_.iov_len = len;
+  }
   bool waitAck(const uint32_t ts) {
     return latch_.waitFor(ts);
   }
-
   void postAck() {
     return latch_.countDown();
   }
-
-  void fillRspData(const struct iovec & iov) {
-    buffer_.iov_base = iov.iov_base;
-    buffer_.iov_len = iov.iov_len;
-  }
 };
 
-typedef std::shared_ptr<AgentCmd> AgentCmdPtr;
+typedef std::shared_ptr<AgentPdu> AgentPduPtr;
 
 class AgentClient {
  public:
@@ -97,7 +93,7 @@ class AgentClient {
   ~AgentClient();
 
   void setRequestCb(const AgentCb& cb) { reqCb_ = std::move(cb); }
-  int sendPdu(const AgentPdu* pdu);
+  int sendPdu(const AgentPduPtr pdu);
   char *allocBuffer(const uint32_t len);
 
  private:
@@ -119,7 +115,7 @@ class AgentClient {
   AgentCb rspCb_;
 
   MemPool* mpool_;
-  std::map<uint32_t, AgentCmdPtr> ackCmdMap_;
+  std::map<uint32_t, AgentPduPtr> ackCmdMap_;
 
   AgentProtoPtr proto_;
   AgentConnPtr conn_;

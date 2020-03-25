@@ -162,8 +162,11 @@ bool AgentClient::verifyAgentBhs(const Agent::AgentBhs &bhs) {
 bool AgentClient::loginAgent() {
   Agent::LoginRequest login;
   login.set_name(name_);
-  login.set_hash(0);
-  login.set_chap(false);
+
+  Agent::Chap *chap = login.mutable_chap();
+  chap->set_hash("abcd");
+  chap->set_alg(1);
+  chap->set_phase(2);
   login.set_net(Agent::NET_ETH);
   login.set_token("token_" + name_);
 
@@ -289,21 +292,17 @@ void AgentClient::handleLoginRsp(const Agent::AgentBhs &bhs) {
 void AgentClient::handleBasicRsp(const Agent::AgentBhs &bhs) {
   auto itor = ackCmdMap_.find(proto_->sessNo(bhs));
   if (itor != ackCmdMap_.end()) {
-    AgentCmdPtr cmd = static_cast<AgentCmdPtr>(itor->second);
+    AgentPduPtr pdu = static_cast<AgentPduPtr>(itor->second);
+    pdu->retCode_ = proto_->retCode(bhs);
     if (proto_->pduLen(bhs)) {
       struct iovec body = conn_->readIovec();
-      cmd->fillRspData(body);
+      if (pdu->retCode_ == Agent::ERR_EXEC_SUCESS) {
+        assert(body.iov_len == pdu->rspload_.iov_len);
+        memcpy(pdu->rspload_.iov_base, body.iov_base, body.iov_len);
+      }
     }
-
-    if (proto_->retCode(bhs) == Agent::ERR_EXEC_SUCESS) {
-      MSF_INFO << "Do cmd successful";
-    } else {
-      MSF_ERROR << "Do cmd failed, retcode:" << proto_->retCode(bhs);
-    }
-    cmd->retCode_ = proto_->retCode(bhs);
-
-    if (cmd->timeOut_) {
-      cmd->postAck();
+    if (pdu->timeOut_) {
+      pdu->postAck();
       ackCmdMap_.erase(itor);
     } else {
       // rspCb_(static_cast<char*>(req->buffer_), bhs->dataLen_, bhs->cmd_);
@@ -324,7 +323,7 @@ void AgentClient::handleResponce(Agent::AgentBhs &bhs) {
   }
 }
 
-int AgentClient::sendPdu(const AgentPdu *pdu) {
+int AgentClient::sendPdu(const AgentPduPtr pdu) {
   if (!started_ || !loop_) {
     // MSF_DEBUG << "Cannot send pdu, agent not start.";
     return Agent::ERR_AGENT_NOT_START;
@@ -346,7 +345,7 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
   proto_->setCommand(bhs, pdu->cmd_);
   proto_->setOpcode(bhs, Agent::Opcode::OP_REQ);
   proto_->setSessNo(bhs, sessNo);
-  proto_->setPduLen(bhs, pdu->payLen_);
+  proto_->setPduLen(bhs, pdu->payload_.iov_len);
 
   proto_->debugBhs(bhs);
   MSF_INFO << "Bhs pb size: " << bhs.ByteSizeLong();
@@ -356,32 +355,27 @@ int AgentClient::sendPdu(const AgentPdu *pdu) {
   bhs.SerializeToArray(head, AGENT_HEAD_LEN);
   conn_->writeBuffer(head, AGENT_HEAD_LEN);
 
-  if (pdu->payLen_) {
-    void *body = mpool_->alloc(pdu->payLen_);
+  if (pdu->payload_.iov_len) {
+    void *body = mpool_->alloc(pdu->payload_.iov_len);
     assert(body);
-    if (pdu->payLen_) {
-      memcpy(body, pdu->payLoad_, pdu->payLen_);
-    }
-    conn_->writeBuffer(body, pdu->payLen_);
+    memcpy(body, pdu->payload_.iov_base, pdu->payload_.iov_len);
+    conn_->writeBuffer(body, pdu->payload_.iov_len);
   }
   conn_->enableWriting();
   // loop_->wakeup();
 
   if (pdu->timeOut_) {
-    AgentCmdPtr cmd = std::make_shared<struct AgentCmd>();
-    assert(cmd);
-    cmd->timeOut_ = pdu->timeOut_;
-    ackCmdMap_[sessNo] = cmd;
-    if (!cmd->waitAck(pdu->timeOut_)) {
+    ackCmdMap_[sessNo] = pdu;
+    if (!pdu->waitAck(pdu->timeOut_)) {
       MSF_ERROR << "Wait for ack timeout:" << pdu->timeOut_;
       return Agent::ERR_RECV_TIMEROUT;
     };
 
-    MSF_INFO << "Notify peer errcode ===>" << cmd->retCode_;
-    if (Agent::ERR_EXEC_SUCESS == cmd->retCode_) {
-      memcpy(pdu->restLoad_, cmd->buffer_.iov_base, cmd->buffer_.iov_len);
+    MSF_INFO << "Notify peer errcode ===>" << pdu->retCode_;
+    if (Agent::ERR_EXEC_SUCESS == pdu->retCode_) {
+      // memcpy(pdu->restLoad_, pdu->rspload_.iov_base, pdu->rspload_.iov_len);
     }
-    return cmd->retCode_;
+    return pdu->retCode_;
   }
   return Agent::ERR_EXEC_SUCESS;
 }

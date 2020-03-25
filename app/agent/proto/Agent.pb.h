@@ -48,7 +48,7 @@ struct TableStruct_Agent_2eproto {
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxillaryParseTableField aux[]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[7]
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[8]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
@@ -62,6 +62,9 @@ extern AgentBhsDefaultTypeInternal _AgentBhs_default_instance_;
 class AgentPdu;
 class AgentPduDefaultTypeInternal;
 extern AgentPduDefaultTypeInternal _AgentPdu_default_instance_;
+class Chap;
+class ChapDefaultTypeInternal;
+extern ChapDefaultTypeInternal _Chap_default_instance_;
 class HeartBeatReponse;
 class HeartBeatReponseDefaultTypeInternal;
 extern HeartBeatReponseDefaultTypeInternal _HeartBeatReponse_default_instance_;
@@ -81,6 +84,7 @@ extern NodeInfoDefaultTypeInternal _NodeInfo_default_instance_;
 PROTOBUF_NAMESPACE_OPEN
 template<> ::Agent::AgentBhs* Arena::CreateMaybeMessage<::Agent::AgentBhs>(Arena*);
 template<> ::Agent::AgentPdu* Arena::CreateMaybeMessage<::Agent::AgentPdu>(Arena*);
+template<> ::Agent::Chap* Arena::CreateMaybeMessage<::Agent::Chap>(Arena*);
 template<> ::Agent::HeartBeatReponse* Arena::CreateMaybeMessage<::Agent::HeartBeatReponse>(Arena*);
 template<> ::Agent::HeartBeatRequest* Arena::CreateMaybeMessage<::Agent::HeartBeatRequest>(Arena*);
 template<> ::Agent::LoginReponse* Arena::CreateMaybeMessage<::Agent::LoginReponse>(Arena*);
@@ -451,6 +455,163 @@ class AgentBhs :
 };
 // -------------------------------------------------------------------
 
+class Chap :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Agent.Chap) */ {
+ public:
+  Chap();
+  virtual ~Chap();
+
+  Chap(const Chap& from);
+  Chap(Chap&& from) noexcept
+    : Chap() {
+    *this = ::std::move(from);
+  }
+
+  inline Chap& operator=(const Chap& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Chap& operator=(Chap&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return GetMetadataStatic().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return GetMetadataStatic().reflection;
+  }
+  static const Chap& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const Chap* internal_default_instance() {
+    return reinterpret_cast<const Chap*>(
+               &_Chap_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    1;
+
+  friend void swap(Chap& a, Chap& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Chap* other) {
+    if (other == this) return;
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline Chap* New() const final {
+    return CreateMaybeMessage<Chap>(nullptr);
+  }
+
+  Chap* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<Chap>(arena);
+  }
+  void CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void CopyFrom(const Chap& from);
+  void MergeFrom(const Chap& from);
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* InternalSerializeWithCachedSizesToArray(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  inline void SharedCtor();
+  inline void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Chap* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "Agent.Chap";
+  }
+  private:
+  inline ::PROTOBUF_NAMESPACE_ID::Arena* GetArenaNoVirtual() const {
+    return nullptr;
+  }
+  inline void* MaybeArenaPtr() const {
+    return nullptr;
+  }
+  public:
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_Agent_2eproto);
+    return ::descriptor_table_Agent_2eproto.file_level_metadata[kIndexInFileMessages];
+  }
+
+  public:
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kHashFieldNumber = 3,
+    kPhaseFieldNumber = 1,
+    kAlgFieldNumber = 2,
+  };
+  // bytes hash = 3;
+  void clear_hash();
+  const std::string& hash() const;
+  void set_hash(const std::string& value);
+  void set_hash(std::string&& value);
+  void set_hash(const char* value);
+  void set_hash(const void* value, size_t size);
+  std::string* mutable_hash();
+  std::string* release_hash();
+  void set_allocated_hash(std::string* hash);
+  private:
+  const std::string& _internal_hash() const;
+  void _internal_set_hash(const std::string& value);
+  std::string* _internal_mutable_hash();
+  public:
+
+  // uint32 phase = 1;
+  void clear_phase();
+  ::PROTOBUF_NAMESPACE_ID::uint32 phase() const;
+  void set_phase(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_phase() const;
+  void _internal_set_phase(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  public:
+
+  // uint32 alg = 2;
+  void clear_alg();
+  ::PROTOBUF_NAMESPACE_ID::uint32 alg() const;
+  void set_alg(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_alg() const;
+  void _internal_set_alg(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:Agent.Chap)
+ private:
+  class _Internal;
+
+  ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr hash_;
+  ::PROTOBUF_NAMESPACE_ID::uint32 phase_;
+  ::PROTOBUF_NAMESPACE_ID::uint32 alg_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_Agent_2eproto;
+};
+// -------------------------------------------------------------------
+
 class LoginRequest :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:Agent.LoginRequest) */ {
  public:
@@ -493,7 +654,7 @@ class LoginRequest :
                &_LoginRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    1;
+    2;
 
   friend void swap(LoginRequest& a, LoginRequest& b) {
     a.Swap(&b);
@@ -559,7 +720,6 @@ class LoginRequest :
   enum : int {
     kNameFieldNumber = 1,
     kTokenFieldNumber = 5,
-    kHashFieldNumber = 2,
     kChapFieldNumber = 3,
     kNetFieldNumber = 4,
   };
@@ -595,22 +755,19 @@ class LoginRequest :
   std::string* _internal_mutable_token();
   public:
 
-  // uint32 hash = 2;
-  void clear_hash();
-  ::PROTOBUF_NAMESPACE_ID::uint32 hash() const;
-  void set_hash(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  // .Agent.Chap chap = 3;
+  bool has_chap() const;
   private:
-  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_hash() const;
-  void _internal_set_hash(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  bool _internal_has_chap() const;
   public:
-
-  // uint32 chap = 3;
   void clear_chap();
-  ::PROTOBUF_NAMESPACE_ID::uint32 chap() const;
-  void set_chap(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  const ::Agent::Chap& chap() const;
+  ::Agent::Chap* release_chap();
+  ::Agent::Chap* mutable_chap();
+  void set_allocated_chap(::Agent::Chap* chap);
   private:
-  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_chap() const;
-  void _internal_set_chap(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  const ::Agent::Chap& _internal_chap() const;
+  ::Agent::Chap* _internal_mutable_chap();
   public:
 
   // .Agent.NetType net = 4;
@@ -629,8 +786,7 @@ class LoginRequest :
   ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr name_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr token_;
-  ::PROTOBUF_NAMESPACE_ID::uint32 hash_;
-  ::PROTOBUF_NAMESPACE_ID::uint32 chap_;
+  ::Agent::Chap* chap_;
   int net_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_Agent_2eproto;
@@ -679,7 +835,7 @@ class LoginReponse :
                &_LoginReponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    2;
+    3;
 
   friend void swap(LoginReponse& a, LoginReponse& b) {
     a.Swap(&b);
@@ -825,7 +981,7 @@ class NodeInfo :
                &_NodeInfo_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    3;
+    4;
 
   friend void swap(NodeInfo& a, NodeInfo& b) {
     a.Swap(&b);
@@ -993,7 +1149,7 @@ class HeartBeatRequest :
                &_HeartBeatRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    4;
+    5;
 
   friend void swap(HeartBeatRequest& a, HeartBeatRequest& b) {
     a.Swap(&b);
@@ -1139,7 +1295,7 @@ class HeartBeatReponse :
                &_HeartBeatReponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    5;
+    6;
 
   friend void swap(HeartBeatReponse& a, HeartBeatReponse& b) {
     a.Swap(&b);
@@ -1276,7 +1432,7 @@ class AgentPdu :
                &_AgentPdu_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    7;
 
   friend void swap(AgentPdu& a, AgentPdu& b) {
     a.Swap(&b);
@@ -1507,6 +1663,110 @@ inline void AgentBhs::set_command(::PROTOBUF_NAMESPACE_ID::uint64 value) {
 
 // -------------------------------------------------------------------
 
+// Chap
+
+// uint32 phase = 1;
+inline void Chap::clear_phase() {
+  phase_ = 0u;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 Chap::_internal_phase() const {
+  return phase_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 Chap::phase() const {
+  // @@protoc_insertion_point(field_get:Agent.Chap.phase)
+  return _internal_phase();
+}
+inline void Chap::_internal_set_phase(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  
+  phase_ = value;
+}
+inline void Chap::set_phase(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  _internal_set_phase(value);
+  // @@protoc_insertion_point(field_set:Agent.Chap.phase)
+}
+
+// uint32 alg = 2;
+inline void Chap::clear_alg() {
+  alg_ = 0u;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 Chap::_internal_alg() const {
+  return alg_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 Chap::alg() const {
+  // @@protoc_insertion_point(field_get:Agent.Chap.alg)
+  return _internal_alg();
+}
+inline void Chap::_internal_set_alg(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  
+  alg_ = value;
+}
+inline void Chap::set_alg(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  _internal_set_alg(value);
+  // @@protoc_insertion_point(field_set:Agent.Chap.alg)
+}
+
+// bytes hash = 3;
+inline void Chap::clear_hash() {
+  hash_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+}
+inline const std::string& Chap::hash() const {
+  // @@protoc_insertion_point(field_get:Agent.Chap.hash)
+  return _internal_hash();
+}
+inline void Chap::set_hash(const std::string& value) {
+  _internal_set_hash(value);
+  // @@protoc_insertion_point(field_set:Agent.Chap.hash)
+}
+inline std::string* Chap::mutable_hash() {
+  // @@protoc_insertion_point(field_mutable:Agent.Chap.hash)
+  return _internal_mutable_hash();
+}
+inline const std::string& Chap::_internal_hash() const {
+  return hash_.GetNoArena();
+}
+inline void Chap::_internal_set_hash(const std::string& value) {
+  
+  hash_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), value);
+}
+inline void Chap::set_hash(std::string&& value) {
+  
+  hash_.SetNoArena(
+    &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:Agent.Chap.hash)
+}
+inline void Chap::set_hash(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  hash_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:Agent.Chap.hash)
+}
+inline void Chap::set_hash(const void* value, size_t size) {
+  
+  hash_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:Agent.Chap.hash)
+}
+inline std::string* Chap::_internal_mutable_hash() {
+  
+  return hash_.MutableNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+}
+inline std::string* Chap::release_hash() {
+  // @@protoc_insertion_point(field_release:Agent.Chap.hash)
+  
+  return hash_.ReleaseNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+}
+inline void Chap::set_allocated_hash(std::string* hash) {
+  if (hash != nullptr) {
+    
+  } else {
+    
+  }
+  hash_.SetAllocatedNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), hash);
+  // @@protoc_insertion_point(field_set_allocated:Agent.Chap.hash)
+}
+
+// -------------------------------------------------------------------
+
 // LoginRequest
 
 // bytes name = 1;
@@ -1569,44 +1829,64 @@ inline void LoginRequest::set_allocated_name(std::string* name) {
   // @@protoc_insertion_point(field_set_allocated:Agent.LoginRequest.name)
 }
 
-// uint32 hash = 2;
-inline void LoginRequest::clear_hash() {
-  hash_ = 0u;
+// .Agent.Chap chap = 3;
+inline bool LoginRequest::_internal_has_chap() const {
+  return this != internal_default_instance() && chap_ != nullptr;
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 LoginRequest::_internal_hash() const {
-  return hash_;
+inline bool LoginRequest::has_chap() const {
+  return _internal_has_chap();
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 LoginRequest::hash() const {
-  // @@protoc_insertion_point(field_get:Agent.LoginRequest.hash)
-  return _internal_hash();
-}
-inline void LoginRequest::_internal_set_hash(::PROTOBUF_NAMESPACE_ID::uint32 value) {
-  
-  hash_ = value;
-}
-inline void LoginRequest::set_hash(::PROTOBUF_NAMESPACE_ID::uint32 value) {
-  _internal_set_hash(value);
-  // @@protoc_insertion_point(field_set:Agent.LoginRequest.hash)
-}
-
-// uint32 chap = 3;
 inline void LoginRequest::clear_chap() {
-  chap_ = 0u;
+  if (GetArenaNoVirtual() == nullptr && chap_ != nullptr) {
+    delete chap_;
+  }
+  chap_ = nullptr;
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 LoginRequest::_internal_chap() const {
-  return chap_;
+inline const ::Agent::Chap& LoginRequest::_internal_chap() const {
+  const ::Agent::Chap* p = chap_;
+  return p != nullptr ? *p : *reinterpret_cast<const ::Agent::Chap*>(
+      &::Agent::_Chap_default_instance_);
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 LoginRequest::chap() const {
+inline const ::Agent::Chap& LoginRequest::chap() const {
   // @@protoc_insertion_point(field_get:Agent.LoginRequest.chap)
   return _internal_chap();
 }
-inline void LoginRequest::_internal_set_chap(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+inline ::Agent::Chap* LoginRequest::release_chap() {
+  // @@protoc_insertion_point(field_release:Agent.LoginRequest.chap)
   
-  chap_ = value;
+  ::Agent::Chap* temp = chap_;
+  chap_ = nullptr;
+  return temp;
 }
-inline void LoginRequest::set_chap(::PROTOBUF_NAMESPACE_ID::uint32 value) {
-  _internal_set_chap(value);
-  // @@protoc_insertion_point(field_set:Agent.LoginRequest.chap)
+inline ::Agent::Chap* LoginRequest::_internal_mutable_chap() {
+  
+  if (chap_ == nullptr) {
+    auto* p = CreateMaybeMessage<::Agent::Chap>(GetArenaNoVirtual());
+    chap_ = p;
+  }
+  return chap_;
+}
+inline ::Agent::Chap* LoginRequest::mutable_chap() {
+  // @@protoc_insertion_point(field_mutable:Agent.LoginRequest.chap)
+  return _internal_mutable_chap();
+}
+inline void LoginRequest::set_allocated_chap(::Agent::Chap* chap) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaNoVirtual();
+  if (message_arena == nullptr) {
+    delete chap_;
+  }
+  if (chap) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena = nullptr;
+    if (message_arena != submessage_arena) {
+      chap = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, chap, submessage_arena);
+    }
+    
+  } else {
+    
+  }
+  chap_ = chap;
+  // @@protoc_insertion_point(field_set_allocated:Agent.LoginRequest.chap)
 }
 
 // .Agent.NetType net = 4;
@@ -2331,6 +2611,8 @@ inline void AgentPdu::set_allocated_rsphb(::Agent::HeartBeatReponse* rsphb) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

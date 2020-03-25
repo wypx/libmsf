@@ -15,16 +15,21 @@
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
 extern PROTOBUF_INTERNAL_EXPORT_Agent_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_AgentBhs_Agent_2eproto;
+extern PROTOBUF_INTERNAL_EXPORT_Agent_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Chap_Agent_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_Agent_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_HeartBeatReponse_Agent_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_Agent_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_HeartBeatRequest_Agent_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_Agent_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_LoginReponse_Agent_2eproto;
-extern PROTOBUF_INTERNAL_EXPORT_Agent_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_LoginRequest_Agent_2eproto;
+extern PROTOBUF_INTERNAL_EXPORT_Agent_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_LoginRequest_Agent_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_Agent_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_NodeInfo_Agent_2eproto;
 namespace Agent {
 class AgentBhsDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<AgentBhs> _instance;
 } _AgentBhs_default_instance_;
+class ChapDefaultTypeInternal {
+ public:
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<Chap> _instance;
+} _Chap_default_instance_;
 class LoginRequestDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<LoginRequest> _instance;
@@ -83,6 +88,20 @@ static void InitDefaultsscc_info_AgentPdu_Agent_2eproto() {
       &scc_info_HeartBeatRequest_Agent_2eproto.base,
       &scc_info_HeartBeatReponse_Agent_2eproto.base,}};
 
+static void InitDefaultsscc_info_Chap_Agent_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::Agent::_Chap_default_instance_;
+    new (ptr) ::Agent::Chap();
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::Agent::Chap::InitAsDefaultInstance();
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_Chap_Agent_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_Chap_Agent_2eproto}, {}};
+
 static void InitDefaultsscc_info_HeartBeatReponse_Agent_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -137,8 +156,9 @@ static void InitDefaultsscc_info_LoginRequest_Agent_2eproto() {
   ::Agent::LoginRequest::InitAsDefaultInstance();
 }
 
-::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_LoginRequest_Agent_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_LoginRequest_Agent_2eproto}, {}};
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_LoginRequest_Agent_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 1, 0, InitDefaultsscc_info_LoginRequest_Agent_2eproto}, {
+      &scc_info_Chap_Agent_2eproto.base,}};
 
 static void InitDefaultsscc_info_NodeInfo_Agent_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -154,7 +174,7 @@ static void InitDefaultsscc_info_NodeInfo_Agent_2eproto() {
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_NodeInfo_Agent_2eproto =
     {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_NodeInfo_Agent_2eproto}, {}};
 
-static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_Agent_2eproto[7];
+static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_Agent_2eproto[8];
 static const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* file_level_enum_descriptors_Agent_2eproto[7];
 static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_service_descriptors_Agent_2eproto = nullptr;
 
@@ -168,12 +188,19 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_Agent_2eproto::offsets[] PROTO
   PROTOBUF_FIELD_OFFSET(::Agent::AgentBhs, router_),
   PROTOBUF_FIELD_OFFSET(::Agent::AgentBhs, command_),
   ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::Agent::Chap, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  PROTOBUF_FIELD_OFFSET(::Agent::Chap, phase_),
+  PROTOBUF_FIELD_OFFSET(::Agent::Chap, alg_),
+  PROTOBUF_FIELD_OFFSET(::Agent::Chap, hash_),
+  ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::Agent::LoginRequest, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   PROTOBUF_FIELD_OFFSET(::Agent::LoginRequest, name_),
-  PROTOBUF_FIELD_OFFSET(::Agent::LoginRequest, hash_),
   PROTOBUF_FIELD_OFFSET(::Agent::LoginRequest, chap_),
   PROTOBUF_FIELD_OFFSET(::Agent::LoginRequest, net_),
   PROTOBUF_FIELD_OFFSET(::Agent::LoginRequest, token_),
@@ -219,16 +246,18 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_Agent_2eproto::offsets[] PROTO
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::Agent::AgentBhs)},
-  { 8, -1, sizeof(::Agent::LoginRequest)},
-  { 18, -1, sizeof(::Agent::LoginReponse)},
-  { 25, -1, sizeof(::Agent::NodeInfo)},
-  { 34, -1, sizeof(::Agent::HeartBeatRequest)},
-  { 41, -1, sizeof(::Agent::HeartBeatReponse)},
-  { 47, -1, sizeof(::Agent::AgentPdu)},
+  { 8, -1, sizeof(::Agent::Chap)},
+  { 16, -1, sizeof(::Agent::LoginRequest)},
+  { 25, -1, sizeof(::Agent::LoginReponse)},
+  { 32, -1, sizeof(::Agent::NodeInfo)},
+  { 41, -1, sizeof(::Agent::HeartBeatRequest)},
+  { 48, -1, sizeof(::Agent::HeartBeatReponse)},
+  { 54, -1, sizeof(::Agent::AgentPdu)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::Agent::_AgentBhs_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::Agent::_Chap_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::Agent::_LoginRequest_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::Agent::_LoginReponse_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::Agent::_NodeInfo_default_instance_),
@@ -240,56 +269,58 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 const char descriptor_table_protodef_Agent_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\013Agent.proto\022\005Agent\";\n\010AgentBhs\022\016\n\006veri"
   "fy\030\001 \001(\006\022\016\n\006router\030\002 \001(\006\022\017\n\007command\030\003 \001("
-  "\006\"d\n\014LoginRequest\022\014\n\004name\030\001 \001(\014\022\014\n\004hash\030"
-  "\002 \001(\r\022\014\n\004chap\030\003 \001(\r\022\033\n\003net\030\004 \001(\0162\016.Agent"
-  ".NetType\022\r\n\005token\030\005 \001(\014\"(\n\014LoginReponse\022"
-  "\013\n\003msg\030\001 \001(\014\022\013\n\003ttl\030\002 \001(\007\"s\n\010NodeInfo\022\014\n"
-  "\004name\030\001 \001(\014\022\031\n\003cid\030\002 \001(\0162\014.Agent.AppId\022!"
-  "\n\006status\030\003 \001(\0162\021.Agent.NodeStatus\022\033\n\003net"
-  "\030\004 \001(\0162\016.Agent.NetType\";\n\020HeartBeatReque"
-  "st\022\014\n\004name\030\001 \001(\014\022\031\n\003cid\030\002 \001(\0162\014.Agent.Ap"
-  "pId\"2\n\020HeartBeatReponse\022\036\n\005nodes\030\001 \003(\0132\017"
-  ".Agent.NodeInfo\"\306\001\n\010AgentPdu\022\034\n\003bhs\030\001 \001("
-  "\0132\017.Agent.AgentBhs\022%\n\010reqLogin\030\002 \001(\0132\023.A"
-  "gent.LoginRequest\022%\n\010rspLogin\030\003 \001(\0132\023.Ag"
-  "ent.LoginReponse\022&\n\005reqHb\030\004 \001(\0132\027.Agent."
-  "HeartBeatRequest\022&\n\005rspHb\030\005 \001(\0132\027.Agent."
-  "HeartBeatReponse*\377\002\n\005Errno\022\023\n\017ERR_EXEC_S"
-  "UCESS\020\000\022\024\n\020ERR_EXEC_FAILURE\020\001\022\024\n\020ERR_LOG"
-  "IN_SUCESS\020\002\022\025\n\021ERR_LOGIN_FAILURE\020\003\022\024\n\020ER"
-  "R_LOGIN_UNAUTH\020\004\022\024\n\020ERR_PEER_OFFLINE\020\005\022\025"
-  "\n\021ERR_SEND_TIMEROUT\020\006\022\025\n\021ERR_RECV_TIMERO"
-  "UT\020\007\022\026\n\022ERR_CANNOT_IN_LOOP\020\010\022\027\n\023ERR_AGEN"
-  "T_NOT_START\020\t\022\026\n\022ERR_ENCODE_FAILURE\020\n\022\026\n"
-  "\022ERR_DECODE_FAILURE\020\013\022\025\n\021ERR_UNKNOWN_MAG"
-  "IC\020\014\022\027\n\023ERR_UNKNOWN_COMMAND\020\r\022\031\n\025ERR_REP"
-  "EAT_REGISTERED\020\016\022\030\n\024ERR_SERVER_INNER_ERR"
-  "\020\017*\374\002\n\007Command\022\031\n\025CMD_REQ_NODE_REGISTER\020"
-  "\000\022\033\n\027CMD_REQ_NODE_UNREGISTER\020\001\022\032\n\026CMD_RE"
-  "Q_NODE_HEARTBEAT\020\002\022\036\n\032CMD_REQ_NODE_STATU"
-  "S_REPORT\020\003\022\037\n\033CMD_REQ_NODE_LOGGER_COLLEC"
-  "T\020\004\022\035\n\031CMD_REQ_NODE_LOGGER_LEVEL\020\005\022\026\n\022CM"
-  "D_REQ_NODE_QUERY\020\006\022\027\n\023CMD_REQ_NODE_NOTIF"
-  "Y\020\007\022 \n\034CMD_REQ_NODE_LEADER_ELECTION\020\010\022\031\n"
-  "\024CMD_REQ_STORAGE_READ\020\200\002\022\032\n\025CMD_REQ_STOR"
-  "AGE_WRITE\020\201\002\022\030\n\023CMD_REQ_MOBILE_READ\020\202\002\022\031"
-  "\n\024CMD_REQ_MOBILE_WRITE\020\203\002*p\n\005AppId\022\017\n\013AP"
-  "P_ONESELF\020\000\022\r\n\tAPP_AGENT\020\001\022\r\n\tAPP_GUARD\020"
-  "\002\022\016\n\nAPP_MOBILE\020\003\022\014\n\010APP_DLNA\020\004\022\014\n\010APP_U"
-  "PNP\020\005\022\014\n\010APP_DDNS\020\006*M\n\010PackType\022\020\n\014PACK_"
-  "BINNARY\020\000\022\r\n\tPACK_JSON\020\001\022\021\n\rPACK_PROTOBU"
-  "F\020\002\022\r\n\tPACK_BUTT\020\003* \n\006Opcode\022\n\n\006OP_REQ\020\000"
-  "\022\n\n\006OP_RSP\020\001*4\n\007NetType\022\013\n\007NET_ETH\020\000\022\014\n\010"
-  "NET_WLAN\020\001\022\016\n\nNET_MOBILE\020\002*U\n\nNodeStatus"
-  "\022\021\n\rSTATUS_ONLINE\020\000\022\022\n\016STATUS_OFFLINE\020\001\022"
-  "\017\n\013STATUS_IDLE\020\002\022\017\n\013STATUS_BUSY\020\003b\006proto"
-  "3"
+  "\006\"0\n\004Chap\022\r\n\005phase\030\001 \001(\r\022\013\n\003alg\030\002 \001(\r\022\014\n"
+  "\004hash\030\003 \001(\014\"c\n\014LoginRequest\022\014\n\004name\030\001 \001("
+  "\014\022\031\n\004chap\030\003 \001(\0132\013.Agent.Chap\022\033\n\003net\030\004 \001("
+  "\0162\016.Agent.NetType\022\r\n\005token\030\005 \001(\014\"(\n\014Logi"
+  "nReponse\022\013\n\003msg\030\001 \001(\014\022\013\n\003ttl\030\002 \001(\007\"s\n\010No"
+  "deInfo\022\014\n\004name\030\001 \001(\014\022\031\n\003cid\030\002 \001(\0162\014.Agen"
+  "t.AppId\022!\n\006status\030\003 \001(\0162\021.Agent.NodeStat"
+  "us\022\033\n\003net\030\004 \001(\0162\016.Agent.NetType\";\n\020Heart"
+  "BeatRequest\022\014\n\004name\030\001 \001(\014\022\031\n\003cid\030\002 \001(\0162\014"
+  ".Agent.AppId\"2\n\020HeartBeatReponse\022\036\n\005node"
+  "s\030\001 \003(\0132\017.Agent.NodeInfo\"\306\001\n\010AgentPdu\022\034\n"
+  "\003bhs\030\001 \001(\0132\017.Agent.AgentBhs\022%\n\010reqLogin\030"
+  "\002 \001(\0132\023.Agent.LoginRequest\022%\n\010rspLogin\030\003"
+  " \001(\0132\023.Agent.LoginReponse\022&\n\005reqHb\030\004 \001(\013"
+  "2\027.Agent.HeartBeatRequest\022&\n\005rspHb\030\005 \001(\013"
+  "2\027.Agent.HeartBeatReponse*\377\002\n\005Errno\022\023\n\017E"
+  "RR_EXEC_SUCESS\020\000\022\024\n\020ERR_EXEC_FAILURE\020\001\022\024"
+  "\n\020ERR_LOGIN_SUCESS\020\002\022\025\n\021ERR_LOGIN_FAILUR"
+  "E\020\003\022\024\n\020ERR_LOGIN_UNAUTH\020\004\022\024\n\020ERR_PEER_OF"
+  "FLINE\020\005\022\025\n\021ERR_SEND_TIMEROUT\020\006\022\025\n\021ERR_RE"
+  "CV_TIMEROUT\020\007\022\026\n\022ERR_CANNOT_IN_LOOP\020\010\022\027\n"
+  "\023ERR_AGENT_NOT_START\020\t\022\026\n\022ERR_ENCODE_FAI"
+  "LURE\020\n\022\026\n\022ERR_DECODE_FAILURE\020\013\022\025\n\021ERR_UN"
+  "KNOWN_MAGIC\020\014\022\027\n\023ERR_UNKNOWN_COMMAND\020\r\022\031"
+  "\n\025ERR_REPEAT_REGISTERED\020\016\022\030\n\024ERR_SERVER_"
+  "INNER_ERR\020\017*\374\002\n\007Command\022\031\n\025CMD_REQ_NODE_"
+  "REGISTER\020\000\022\033\n\027CMD_REQ_NODE_UNREGISTER\020\001\022"
+  "\032\n\026CMD_REQ_NODE_HEARTBEAT\020\002\022\036\n\032CMD_REQ_N"
+  "ODE_STATUS_REPORT\020\003\022\037\n\033CMD_REQ_NODE_LOGG"
+  "ER_COLLECT\020\004\022\035\n\031CMD_REQ_NODE_LOGGER_LEVE"
+  "L\020\005\022\026\n\022CMD_REQ_NODE_QUERY\020\006\022\027\n\023CMD_REQ_N"
+  "ODE_NOTIFY\020\007\022 \n\034CMD_REQ_NODE_LEADER_ELEC"
+  "TION\020\010\022\031\n\024CMD_REQ_STORAGE_READ\020\200\002\022\032\n\025CMD"
+  "_REQ_STORAGE_WRITE\020\201\002\022\030\n\023CMD_REQ_MOBILE_"
+  "READ\020\202\002\022\031\n\024CMD_REQ_MOBILE_WRITE\020\203\002*p\n\005Ap"
+  "pId\022\017\n\013APP_ONESELF\020\000\022\r\n\tAPP_AGENT\020\001\022\r\n\tA"
+  "PP_GUARD\020\002\022\016\n\nAPP_MOBILE\020\003\022\014\n\010APP_DLNA\020\004"
+  "\022\014\n\010APP_UPNP\020\005\022\014\n\010APP_DDNS\020\006*M\n\010PackType"
+  "\022\020\n\014PACK_BINNARY\020\000\022\r\n\tPACK_JSON\020\001\022\021\n\rPAC"
+  "K_PROTOBUF\020\002\022\r\n\tPACK_BUTT\020\003* \n\006Opcode\022\n\n"
+  "\006OP_REQ\020\000\022\n\n\006OP_RSP\020\001*4\n\007NetType\022\013\n\007NET_"
+  "ETH\020\000\022\014\n\010NET_WLAN\020\001\022\016\n\nNET_MOBILE\020\002*U\n\nN"
+  "odeStatus\022\021\n\rSTATUS_ONLINE\020\000\022\022\n\016STATUS_O"
+  "FFLINE\020\001\022\017\n\013STATUS_IDLE\020\002\022\017\n\013STATUS_BUSY"
+  "\020\003b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_Agent_2eproto_deps[1] = {
 };
-static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_Agent_2eproto_sccs[7] = {
+static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_Agent_2eproto_sccs[8] = {
   &scc_info_AgentBhs_Agent_2eproto.base,
   &scc_info_AgentPdu_Agent_2eproto.base,
+  &scc_info_Chap_Agent_2eproto.base,
   &scc_info_HeartBeatReponse_Agent_2eproto.base,
   &scc_info_HeartBeatRequest_Agent_2eproto.base,
   &scc_info_LoginReponse_Agent_2eproto.base,
@@ -299,10 +330,10 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_Age
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_Agent_2eproto_once;
 static bool descriptor_table_Agent_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_Agent_2eproto = {
-  &descriptor_table_Agent_2eproto_initialized, descriptor_table_protodef_Agent_2eproto, "Agent.proto", 1801,
-  &descriptor_table_Agent_2eproto_once, descriptor_table_Agent_2eproto_sccs, descriptor_table_Agent_2eproto_deps, 7, 0,
+  &descriptor_table_Agent_2eproto_initialized, descriptor_table_protodef_Agent_2eproto, "Agent.proto", 1850,
+  &descriptor_table_Agent_2eproto_once, descriptor_table_Agent_2eproto_sccs, descriptor_table_Agent_2eproto_deps, 8, 0,
   schemas, file_default_instances, TableStruct_Agent_2eproto::offsets,
-  file_level_metadata_Agent_2eproto, 7, file_level_enum_descriptors_Agent_2eproto, file_level_service_descriptors_Agent_2eproto,
+  file_level_metadata_Agent_2eproto, 8, file_level_enum_descriptors_Agent_2eproto, file_level_service_descriptors_Agent_2eproto,
 };
 
 // Force running AddDescriptors() at dynamic initialization time.
@@ -678,12 +709,269 @@ void AgentBhs::InternalSwap(AgentBhs* other) {
 
 // ===================================================================
 
-void LoginRequest::InitAsDefaultInstance() {
+void Chap::InitAsDefaultInstance() {
 }
-class LoginRequest::_Internal {
+class Chap::_Internal {
  public:
 };
 
+Chap::Chap()
+  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:Agent.Chap)
+}
+Chap::Chap(const Chap& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      _internal_metadata_(nullptr) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  hash_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (!from._internal_hash().empty()) {
+    hash_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.hash_);
+  }
+  ::memcpy(&phase_, &from.phase_,
+    static_cast<size_t>(reinterpret_cast<char*>(&alg_) -
+    reinterpret_cast<char*>(&phase_)) + sizeof(alg_));
+  // @@protoc_insertion_point(copy_constructor:Agent.Chap)
+}
+
+void Chap::SharedCtor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_Chap_Agent_2eproto.base);
+  hash_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  ::memset(&phase_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&alg_) -
+      reinterpret_cast<char*>(&phase_)) + sizeof(alg_));
+}
+
+Chap::~Chap() {
+  // @@protoc_insertion_point(destructor:Agent.Chap)
+  SharedDtor();
+}
+
+void Chap::SharedDtor() {
+  hash_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+}
+
+void Chap::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+const Chap& Chap::default_instance() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_Chap_Agent_2eproto.base);
+  return *internal_default_instance();
+}
+
+
+void Chap::Clear() {
+// @@protoc_insertion_point(message_clear_start:Agent.Chap)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  hash_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  ::memset(&phase_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&alg_) -
+      reinterpret_cast<char*>(&phase_)) + sizeof(alg_));
+  _internal_metadata_.Clear();
+}
+
+const char* Chap::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
+    switch (tag >> 3) {
+      // uint32 phase = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 8)) {
+          phase_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // uint32 alg = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 16)) {
+          alg_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // bytes hash = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(_internal_mutable_hash(), ptr, ctx);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      default: {
+      handle_unusual:
+        if ((tag & 7) == 4 || tag == 0) {
+          ctx->SetLastTag(tag);
+          goto success;
+        }
+        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
+        CHK_(ptr != nullptr);
+        continue;
+      }
+    }  // switch
+  }  // while
+success:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto success;
+#undef CHK_
+}
+
+::PROTOBUF_NAMESPACE_ID::uint8* Chap::InternalSerializeWithCachedSizesToArray(
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:Agent.Chap)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // uint32 phase = 1;
+  if (this->phase() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt32ToArray(1, this->_internal_phase(), target);
+  }
+
+  // uint32 alg = 2;
+  if (this->alg() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt32ToArray(2, this->_internal_alg(), target);
+  }
+
+  // bytes hash = 3;
+  if (this->hash().size() > 0) {
+    target = stream->WriteBytesMaybeAliased(
+        3, this->_internal_hash(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:Agent.Chap)
+  return target;
+}
+
+size_t Chap::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:Agent.Chap)
+  size_t total_size = 0;
+
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // bytes hash = 3;
+  if (this->hash().size() > 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
+        this->_internal_hash());
+  }
+
+  // uint32 phase = 1;
+  if (this->phase() != 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt32Size(
+        this->_internal_phase());
+  }
+
+  // uint32 alg = 2;
+  if (this->alg() != 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt32Size(
+        this->_internal_alg());
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
+  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void Chap::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:Agent.Chap)
+  GOOGLE_DCHECK_NE(&from, this);
+  const Chap* source =
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<Chap>(
+          &from);
+  if (source == nullptr) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:Agent.Chap)
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:Agent.Chap)
+    MergeFrom(*source);
+  }
+}
+
+void Chap::MergeFrom(const Chap& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:Agent.Chap)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from.hash().size() > 0) {
+
+    hash_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.hash_);
+  }
+  if (from.phase() != 0) {
+    _internal_set_phase(from._internal_phase());
+  }
+  if (from.alg() != 0) {
+    _internal_set_alg(from._internal_alg());
+  }
+}
+
+void Chap::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:Agent.Chap)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void Chap::CopyFrom(const Chap& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:Agent.Chap)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool Chap::IsInitialized() const {
+  return true;
+}
+
+void Chap::InternalSwap(Chap* other) {
+  using std::swap;
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  hash_.Swap(&other->hash_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+    GetArenaNoVirtual());
+  swap(phase_, other->phase_);
+  swap(alg_, other->alg_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata Chap::GetMetadata() const {
+  return GetMetadataStatic();
+}
+
+
+// ===================================================================
+
+void LoginRequest::InitAsDefaultInstance() {
+  ::Agent::_LoginRequest_default_instance_._instance.get_mutable()->chap_ = const_cast< ::Agent::Chap*>(
+      ::Agent::Chap::internal_default_instance());
+}
+class LoginRequest::_Internal {
+ public:
+  static const ::Agent::Chap& chap(const LoginRequest* msg);
+};
+
+const ::Agent::Chap&
+LoginRequest::_Internal::chap(const LoginRequest* msg) {
+  return *msg->chap_;
+}
 LoginRequest::LoginRequest()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
@@ -701,9 +989,12 @@ LoginRequest::LoginRequest(const LoginRequest& from)
   if (!from._internal_token().empty()) {
     token_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.token_);
   }
-  ::memcpy(&hash_, &from.hash_,
-    static_cast<size_t>(reinterpret_cast<char*>(&net_) -
-    reinterpret_cast<char*>(&hash_)) + sizeof(net_));
+  if (from._internal_has_chap()) {
+    chap_ = new ::Agent::Chap(*from.chap_);
+  } else {
+    chap_ = nullptr;
+  }
+  net_ = from.net_;
   // @@protoc_insertion_point(copy_constructor:Agent.LoginRequest)
 }
 
@@ -711,9 +1002,9 @@ void LoginRequest::SharedCtor() {
   ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_LoginRequest_Agent_2eproto.base);
   name_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   token_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  ::memset(&hash_, 0, static_cast<size_t>(
+  ::memset(&chap_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&net_) -
-      reinterpret_cast<char*>(&hash_)) + sizeof(net_));
+      reinterpret_cast<char*>(&chap_)) + sizeof(net_));
 }
 
 LoginRequest::~LoginRequest() {
@@ -724,6 +1015,7 @@ LoginRequest::~LoginRequest() {
 void LoginRequest::SharedDtor() {
   name_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   token_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (this != internal_default_instance()) delete chap_;
 }
 
 void LoginRequest::SetCachedSize(int size) const {
@@ -743,9 +1035,11 @@ void LoginRequest::Clear() {
 
   name_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   token_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  ::memset(&hash_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&net_) -
-      reinterpret_cast<char*>(&hash_)) + sizeof(net_));
+  if (GetArenaNoVirtual() == nullptr && chap_ != nullptr) {
+    delete chap_;
+  }
+  chap_ = nullptr;
+  net_ = 0;
   _internal_metadata_.Clear();
 }
 
@@ -763,17 +1057,10 @@ const char* LoginRequest::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_I
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // uint32 hash = 2;
-      case 2:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 16)) {
-          hash_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
-          CHK_(ptr);
-        } else goto handle_unusual;
-        continue;
-      // uint32 chap = 3;
+      // .Agent.Chap chap = 3;
       case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 24)) {
-          chap_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
+          ptr = ctx->ParseMessage(_internal_mutable_chap(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -824,16 +1111,12 @@ failure:
         1, this->_internal_name(), target);
   }
 
-  // uint32 hash = 2;
-  if (this->hash() != 0) {
+  // .Agent.Chap chap = 3;
+  if (this->has_chap()) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt32ToArray(2, this->_internal_hash(), target);
-  }
-
-  // uint32 chap = 3;
-  if (this->chap() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteUInt32ToArray(3, this->_internal_chap(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessageToArray(
+        3, _Internal::chap(this), target, stream);
   }
 
   // .Agent.NetType net = 4;
@@ -879,18 +1162,11 @@ size_t LoginRequest::ByteSizeLong() const {
         this->_internal_token());
   }
 
-  // uint32 hash = 2;
-  if (this->hash() != 0) {
+  // .Agent.Chap chap = 3;
+  if (this->has_chap()) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt32Size(
-        this->_internal_hash());
-  }
-
-  // uint32 chap = 3;
-  if (this->chap() != 0) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::UInt32Size(
-        this->_internal_chap());
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+        *chap_);
   }
 
   // .Agent.NetType net = 4;
@@ -938,11 +1214,8 @@ void LoginRequest::MergeFrom(const LoginRequest& from) {
 
     token_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.token_);
   }
-  if (from.hash() != 0) {
-    _internal_set_hash(from._internal_hash());
-  }
-  if (from.chap() != 0) {
-    _internal_set_chap(from._internal_chap());
+  if (from.has_chap()) {
+    _internal_mutable_chap()->::Agent::Chap::MergeFrom(from._internal_chap());
   }
   if (from.net() != 0) {
     _internal_set_net(from._internal_net());
@@ -974,7 +1247,6 @@ void LoginRequest::InternalSwap(LoginRequest* other) {
     GetArenaNoVirtual());
   token_.Swap(&other->token_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
-  swap(hash_, other->hash_);
   swap(chap_, other->chap_);
   swap(net_, other->net_);
 }
@@ -2274,6 +2546,9 @@ void AgentPdu::InternalSwap(AgentPdu* other) {
 PROTOBUF_NAMESPACE_OPEN
 template<> PROTOBUF_NOINLINE ::Agent::AgentBhs* Arena::CreateMaybeMessage< ::Agent::AgentBhs >(Arena* arena) {
   return Arena::CreateInternal< ::Agent::AgentBhs >(arena);
+}
+template<> PROTOBUF_NOINLINE ::Agent::Chap* Arena::CreateMaybeMessage< ::Agent::Chap >(Arena* arena) {
+  return Arena::CreateInternal< ::Agent::Chap >(arena);
 }
 template<> PROTOBUF_NOINLINE ::Agent::LoginRequest* Arena::CreateMaybeMessage< ::Agent::LoginRequest >(Arena* arena) {
   return Arena::CreateInternal< ::Agent::LoginRequest >(arena);

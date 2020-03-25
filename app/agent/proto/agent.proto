@@ -119,10 +119,15 @@ enum NetType {
     NET_MOBILE    = 2;
 }
 
+message Chap {
+    uint32 phase = 1;   /* Node neg phase */
+    uint32 alg   = 2;   /* Node hash alg */
+    bytes  hash  = 3;   /* Node hash of name and pass */
+};
+
 message LoginRequest {
     bytes   name        = 1;    /* Node name*/
-    uint32  hash        = 2;    /* Node hash of name and pass  */
-    uint32  chap        = 3;    /* Node chap option */
+    Chap    chap        = 3;    /* Node chap option */
     NetType net         = 4;    /* Node net type */
     bytes   token       = 5;    /* App token code */
 };

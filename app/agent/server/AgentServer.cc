@@ -315,7 +315,7 @@ void AgentServer::newConn(const int fd, const uint16_t event) {
   std::lock_guard<std::mutex> lock(mutex_);
   /* If single thread to handle accept, so no mutex guard */
   if (unlikely(freeConns_.empty())) {
-    for (uint32_t i = 0; i < perConnsAlloc_; ++i) {
+    for (int i = 0; i < perConnsAlloc_; ++i) {
       AgentConnPtr conn = std::make_shared<AgentConn>();
       if (conn == nullptr) {
         MSF_ERROR << "Fail to alloc connection for fd: " << fd;

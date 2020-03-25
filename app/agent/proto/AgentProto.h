@@ -48,16 +48,6 @@ struct tagAgentBhs {
         sessNo_(0) {}
 } MSF_PACKED_MEMORY;
 
-struct AgentPdu {
-  Agent::AppId dstId_;
-  Agent::Command cmd_;
-  uint32_t timeOut_;
-  void *payLoad_;
-  uint32_t payLen_;
-  void *restLoad_;
-  uint32_t restLen_;
-} MSF_PACKED_MEMORY;
-
 const uint32_t kAgentMagic = 0xab00;
 const uint32_t kAgentVersion = 0x0001;
 const uint32_t kAgentEncryptZip = 0x0010;

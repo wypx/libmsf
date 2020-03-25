@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_SOCKET_H__
-#define __MSF_SOCKET_H__
+#ifndef SOCK_SOCKET_H
+#define SOCK_SOCKET_H
 
 #include <base/Noncopyable.h>
 #include <fcntl.h>

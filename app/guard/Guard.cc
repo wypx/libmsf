@@ -60,16 +60,13 @@ struct ApnItem {
 
 void Guard::sendPdu() {
   struct ApnItem item = {0};
-  AgentPdu pdu;
-  pdu.payLoad_ = nullptr;
-  pdu.payLen_ = 0;
-  pdu.restLoad_ = &item;
-  pdu.restLen_ = sizeof(item);
-  pdu.cmd_ = Agent::Command::CMD_REQ_MOBILE_READ;
-  pdu.dstId_ = Agent::AppId::APP_MOBILE;
-  pdu.timeOut_ = 5;
+  AgentPduPtr pdu = std::make_shared<AgentPdu>();
+  pdu->addRspload(&item, sizeof(item));
+  pdu->cmd_ = Agent::Command::CMD_REQ_MOBILE_READ;
+  pdu->dstId_ = Agent::AppId::APP_MOBILE;
+  pdu->timeOut_ = 5;
   while (1) {
-    int ret = agent_->sendPdu(&pdu);
+    int ret = agent_->sendPdu(pdu);
     if (Agent::ERR_AGENT_NOT_START != ret) {
       break;
     }

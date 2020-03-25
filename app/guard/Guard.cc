@@ -13,10 +13,10 @@
 #include "Guard.h"
 
 #include <base/Logger.h>
-#include <base/mem/MemPool.h>
 #include <base/Process.h>
 #include <base/Signal.h>
 #include <base/Version.h>
+#include <base/mem/MemPool.h>
 
 #include <cassert>
 
@@ -38,7 +38,8 @@ Guard::Guard() {
   threadArgs.push_back(std::move(ThreadArg("AgentLoop")));
   assert(stack_->startThreads(threadArgs));
 
-  // agent_ = new AgentClient(stack_->getOneLoop(), "Guard", Agent::APP_GUARD, "luotang.me", 8888);
+  // agent_ = new AgentClient(stack_->getOneLoop(), "Guard", Agent::APP_GUARD,
+  // "luotang.me", 8888);
   agent_ = new AgentClient(stack_->getOneLoop(), "Guard", Agent::APP_GUARD);
   assert(agent_);
 }

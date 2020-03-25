@@ -23,15 +23,15 @@ ssize_t Buffer::ReadFd(int fd, int *savedErrno) {
   char extrabuf[65536];
   struct iovec vec[3];
   const size_t writeable = writeableBytes();
-  uint32_t  idx = 0;
+  uint32_t idx = 0;
   if (readerIndex_ <= writerIndex_) {
-    if (readerIndex_ == 0) { // 尾部要留空一个
+    if (readerIndex_ == 0) {  // 尾部要留空一个
       vec[idx].iov_base = &buffer_[writerIndex_];
       vec[idx].iov_len = capacity_ - 1 - writerIndex_;
     } else {  // 头部有空，尾部写满
       vec[idx].iov_base = &buffer_[writerIndex_];
       vec[idx].iov_len = capacity_ - writerIndex_;
-      if (readerIndex_ > 1) { // 头部大于一个空格，需要加上头部空的区域
+      if (readerIndex_ > 1) {  // 头部大于一个空格，需要加上头部空的区域
         ++idx;
         vec[idx].iov_base = &buffer_[0];
         vec[idx].iov_len = readerIndex_ - 1;
@@ -39,7 +39,7 @@ ssize_t Buffer::ReadFd(int fd, int *savedErrno) {
     }
   } else {
     vec[idx].iov_base = &buffer_[writerIndex_];
-    vec[idx].iov_len = readerIndex_ -1  - writerIndex_;
+    vec[idx].iov_len = readerIndex_ - 1 - writerIndex_;
   }
   // when there is enough space in this buffer, don't read into extrabuf.
   // when extrabuf is used, we read 128k-1 bytes at most.
@@ -60,7 +60,6 @@ ssize_t Buffer::ReadFd(int fd, int *savedErrno) {
   return n;
 }
 
-
 ssize_t Buffer::WriteFd(int fd) {
   struct iovec vec[2];
   uint32_t iovcnt;
@@ -70,7 +69,7 @@ ssize_t Buffer::WriteFd(int fd) {
     iovcnt = 1;
   } else if (readerIndex_ == writerIndex_) {
     return 0;
-  } else { // readerIndex_ > writerIndex_
+  } else {  // readerIndex_ > writerIndex_
     vec[0].iov_base = &buffer_[readerIndex_];
     vec[0].iov_len = capacity_ - readerIndex_;
     iovcnt = 1;
@@ -86,7 +85,6 @@ ssize_t Buffer::WriteFd(int fd) {
   }
   return n;
 }
-
 
 }  // namespace BASE
 }  // namespace MSF

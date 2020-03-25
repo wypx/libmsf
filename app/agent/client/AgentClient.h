@@ -15,9 +15,9 @@
 
 #include <base/CountDownLatch.h>
 #include <base/GccAttr.h>
+#include <client/AgentConn.h>
 #include <event/EventLoop.h>
 #include <proto/AgentProto.h>
-#include <client/AgentConn.h>
 
 using namespace MSF::BASE;
 using namespace MSF::SOCK;
@@ -27,7 +27,8 @@ using namespace MSF::AGENT;
 namespace MSF {
 namespace AGENT {
 
-typedef std::function<void(char** data, uint32_t* len, const Agent::Command cmd)>
+typedef std::function<void(char** data, uint32_t* len,
+                           const Agent::Command cmd)>
     AgentCb;
 
 enum AgentType {
@@ -59,23 +60,19 @@ struct AgentPdu : public std::enable_shared_from_this<AgentPdu> {
   }
   ~AgentPdu() {}
 
-  void addPayload(char *buffer, const uint32_t len) {
+  void addPayload(char* buffer, const uint32_t len) {
     payload_.iov_base = buffer;
     payload_.iov_len = len;
   }
-  void addRspload(void *buffer, const uint32_t len) {
+  void addRspload(void* buffer, const uint32_t len) {
     addRspload(static_cast<char*>(buffer), len);
   }
-  void addRspload(char *buffer, const uint32_t len) {
+  void addRspload(char* buffer, const uint32_t len) {
     rspload_.iov_base = buffer;
     rspload_.iov_len = len;
   }
-  bool waitAck(const uint32_t ts) {
-    return latch_.waitFor(ts);
-  }
-  void postAck() {
-    return latch_.countDown();
-  }
+  bool waitAck(const uint32_t ts) { return latch_.waitFor(ts); }
+  void postAck() { return latch_.countDown(); }
 };
 
 typedef std::shared_ptr<AgentPdu> AgentPduPtr;
@@ -93,7 +90,7 @@ class AgentClient {
 
   void setRequestCb(const AgentCb& cb) { reqCb_ = std::move(cb); }
   int sendPdu(const AgentPduPtr pdu);
-  char *allocBuffer(const uint32_t len);
+  char* allocBuffer(const uint32_t len);
 
  private:
   bool started_;
@@ -122,19 +119,18 @@ class AgentClient {
   bool reConnecting_;
 
  private:
-  void init(EventLoop *loop, const std::string &name,
-                       const Agent::AppId cid);
+  void init(EventLoop* loop, const std::string& name, const Agent::AppId cid);
   void connectAgent();
   void connectAgentCb();
   void closeAgent();
   bool loginAgent();
   void handleTxCmd();
   void handleRxCmd();
-  bool verifyAgentBhs(const Agent::AgentBhs &bhs);
-  void handleRequest(Agent::AgentBhs& bhs, struct iovec & head);
+  bool verifyAgentBhs(const Agent::AgentBhs& bhs);
+  void handleRequest(Agent::AgentBhs& bhs, struct iovec& head);
   void handleResponce(Agent::AgentBhs& bhs);
-  void handleLoginRsp(const Agent::AgentBhs &bhs);
-  void handleBasicRsp(const Agent::AgentBhs &bhs);
+  void handleLoginRsp(const Agent::AgentBhs& bhs);
+  void handleBasicRsp(const Agent::AgentBhs& bhs);
 };
 
 }  // namespace AGENT

@@ -10,9 +10,10 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
+#include "AgentProto.h"
+
 #include <base/Bitops.h>
 #include <base/Logger.h>
-#include "AgentProto.h"
 
 using namespace MSF::AGENT;
 

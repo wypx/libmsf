@@ -13,10 +13,10 @@
 #ifndef BASE_COUNTDOWNLATCH_H
 #define BASE_COUNTDOWNLATCH_H
 
+#include <base/Noncopyable.h>
+
 #include <condition_variable>
 #include <mutex>
-
-#include <base/Noncopyable.h>
 
 using namespace MSF::BASE;
 

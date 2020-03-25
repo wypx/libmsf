@@ -11,6 +11,7 @@
  *
  **************************************************************************/
 #include "AgentClient.h"
+
 #include <base/Logger.h>
 #include <event/Event.h>
 #include <proto/AgentProto.h>
@@ -24,7 +25,8 @@ namespace MSF {
 namespace AGENT {
 
 // https://blog.csdn.net/i_o_fly/article/details/80636146
-void AgentClient::init(EventLoop *loop, const std::string &name, const Agent::AppId cid)  {
+void AgentClient::init(EventLoop *loop, const std::string &name,
+                       const Agent::AppId cid) {
   started_ = false;
   loop_ = loop;
   name_ = name;
@@ -46,15 +48,16 @@ void AgentClient::init(EventLoop *loop, const std::string &name, const Agent::Ap
 
 AgentClient::AgentClient(EventLoop *loop, const std::string &name,
                          const Agent::AppId cid, const std::string &host,
-                         const uint16_t port) : srvIpAddr_(host), srvPort_(port) {
+                         const uint16_t port)
+    : srvIpAddr_(host), srvPort_(port) {
   init(loop, name, cid);
 }
 
 AgentClient::AgentClient(EventLoop *loop, const std::string &name,
                          const Agent::AppId cid, const std::string &srvUnixPath,
-                         const std::string &cliUnixPath)  
+                         const std::string &cliUnixPath)
     : srvUnixPath_(srvUnixPath), cliUnixPath_(cliUnixPath) {
-    init(loop, name, cid);
+  init(loop, name, cid);
 }
 
 AgentClient::~AgentClient() {
@@ -65,8 +68,8 @@ AgentClient::~AgentClient() {
   mpool_ = nullptr;
 }
 
-char * AgentClient::allocBuffer(const uint32_t len) {
-  return static_cast<char*>(mpool_->alloc(len));
+char *AgentClient::allocBuffer(const uint32_t len) {
+  return static_cast<char *>(mpool_->alloc(len));
 }
 
 void AgentClient::connectAgent() {
@@ -184,16 +187,12 @@ bool AgentClient::loginAgent() {
   return true;
 }
 
-void AgentClient::handleTxCmd() {
-  conn_->doConnWrite();
-}
+void AgentClient::handleTxCmd() { conn_->doConnWrite(); }
 
 void AgentClient::handleRxCmd() {
-
   conn_->doConnRead();
 
-  while (conn_->iovCount() > 0)
-  {
+  while (conn_->iovCount() > 0) {
     MSF_INFO << "======> handle iovec: " << conn_->iovCount();
     struct iovec head = conn_->readIovec();
     Agent::AgentBhs bhs;
@@ -210,13 +209,10 @@ void AgentClient::handleRxCmd() {
       handleResponce(bhs);
       mpool_->free(head.iov_base);
     }
-    // mpool_->free(pdu.second.iov_base);
   }
-  
 }
 
-void AgentClient::handleRequest(Agent::AgentBhs &bhs, struct iovec & head) {
-
+void AgentClient::handleRequest(Agent::AgentBhs &bhs, struct iovec &head) {
   if (proto_->pduLen(bhs)) {
     // struct iovec body = conn_->readIovec();
   }
@@ -230,7 +226,7 @@ void AgentClient::handleRequest(Agent::AgentBhs &bhs, struct iovec & head) {
   uint32_t len = 0;
   char *body = nullptr;
   if (reqCb_) {
-    reqCb_(static_cast<char**>(&body), &len,
+    reqCb_(static_cast<char **>(&body), &len,
            static_cast<Agent::Command>(proto_->command(bhs)));
   }
   MSF_INFO << "len: " << len;
@@ -243,7 +239,6 @@ void AgentClient::handleRequest(Agent::AgentBhs &bhs, struct iovec & head) {
   conn_->writeBuffer(body, len);
 
   conn_->enableWriting();
-  // loop_->wakeup();
 }
 
 void AgentClient::handleLoginRsp(const Agent::AgentBhs &bhs) {
@@ -284,7 +279,7 @@ void AgentClient::handleBasicRsp(const Agent::AgentBhs &bhs) {
 
 void AgentClient::handleResponce(Agent::AgentBhs &bhs) {
   switch (static_cast<Agent::Command>(proto_->command(bhs))) {
-    case Agent::Command::CMD_REQ_NODE_REGISTER: 
+    case Agent::Command::CMD_REQ_NODE_REGISTER:
       handleLoginRsp(bhs);
       break;
     default:

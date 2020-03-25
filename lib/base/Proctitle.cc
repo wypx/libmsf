@@ -11,8 +11,8 @@
  *
  **************************************************************************/
 
-#include <base/mem/Mem.h>
 #include <base/Proctitle.h>
+#include <base/mem/Mem.h>
 #include <sys/prctl.h>
 #include <unistd.h>
 

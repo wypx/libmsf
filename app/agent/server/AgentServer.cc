@@ -48,20 +48,27 @@ void AgentServer::showUsage() {
   std::cout << std::endl;
   std::cout << "Agent Server Options:" << std::endl;
   std::cout << " -c, --conf=FILE        The configure file." << std::endl;
-  std::cout << " -s, --host=HOST        The host that server will listen on" << std::endl;
-  std::cout << " -p, --port=PORT        The port that server will listen on" << std::endl;
+  std::cout << " -s, --host=HOST        The host that server will listen on"
+            << std::endl;
+  std::cout << " -p, --port=PORT        The port that server will listen on"
+            << std::endl;
   std::cout << " -d, --daemon           Run as daemon." << std::endl;
   std::cout << " -g, --signal           restart|kill|reload" << std::endl;
-  std::cout << "                        restart: restart process graceful" << std::endl;
-  std::cout << "                        kill: fast shutdown graceful" << std::endl;
-  std::cout << "                        reload: parse config file and reinit" << std::endl;
+  std::cout << "                        restart: restart process graceful"
+            << std::endl;
+  std::cout << "                        kill: fast shutdown graceful"
+            << std::endl;
+  std::cout << "                        reload: parse config file and reinit"
+            << std::endl;
   std::cout << " -v, --version          Print the version." << std::endl;
   std::cout << " -h, --help             Print help info." << std::endl;
   std::cout << std::endl;
 
   std::cout << "Examples:" << std::endl;
-  std::cout << " ./AgentServer -c AgentServer.conf -s 127.0.0.1 -p 8888 -d -g kill"  << std::endl;
-  
+  std::cout
+      << " ./AgentServer -c AgentServer.conf -s 127.0.0.1 -p 8888 -d -g kill"
+      << std::endl;
+
   std::cout << std::endl;
   std::cout << "Reports bugs to <luotang.me>" << std::endl;
   std::cout << "Commit issues to <https://github.com/wypx/libmsf>" << std::endl;
@@ -69,9 +76,9 @@ void AgentServer::showUsage() {
 }
 
 void AgentServer::parseOption(int argc, char **argv) {
- /* 浅谈linux的命令行解析参数之getopt_long函数
-  * https://blog.csdn.net/qq_33850438/article/details/80172275
-  **/
+  /* 浅谈linux的命令行解析参数之getopt_long函数
+   * https://blog.csdn.net/qq_33850438/article/details/80172275
+   **/
   int c;
   while (true) {
     int optIndex = 0;
@@ -176,7 +183,8 @@ void AgentServer::succConn(AgentConnPtr c) {
   MSF_INFO << "Succ conn for fd: " << c->fd();
 }
 
-void AgentServer::handleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs, struct iovec & head) {
+void AgentServer::handleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs,
+                                   struct iovec &head) {
   struct iovec body = c->readIovec();
   Agent::LoginRequest login;
   login.ParseFromArray(body.iov_base, proto_->pduLen(bhs));
@@ -202,7 +210,8 @@ void AgentServer::handleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs, struct 
   c->enableWriting();
 }
 
-void AgentServer::handleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs, struct iovec & head) {
+void AgentServer::handleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs,
+                                     struct iovec &head) {
   // debugAgentBhs(bhs);
   auto itor = activeConns_.find(proto_->dstId(bhs));
   MSF_INFO << "Peer cid: " << proto_->dstId(bhs);
@@ -255,9 +264,7 @@ bool AgentServer::verifyAgentBhs(const Agent::AgentBhs &bhs) {
   return true;
 }
 
-void AgentServer::handleAgentPdu(AgentConnPtr c, struct iovec & head) {
-  
-}
+void AgentServer::handleAgentPdu(AgentConnPtr c, struct iovec &head) {}
 
 void AgentServer::readConn(AgentConnPtr c) {
   if (unlikely(c->fd() <= 0)) {
@@ -268,8 +275,7 @@ void AgentServer::readConn(AgentConnPtr c) {
 
   c->doConnRead();
 
-  while (c->iovCount() > 0)
-  {
+  while (c->iovCount() > 0) {
     MSF_INFO << "======> handle iovec: " << c->iovCount();
     struct iovec head = c->readIovec();
     Agent::AgentBhs bhs;
@@ -325,7 +331,7 @@ void AgentServer::newConn(const int fd, const uint16_t event) {
       freeConns_.push_back(conn);
     }
   }
- 
+
   AgentConnPtr c = freeConns_.front();
   freeConns_.pop_front();
 
@@ -342,8 +348,7 @@ void AgentServer::newConn(const int fd, const uint16_t event) {
 
 bool AgentServer::initListen() {
   for (uint32_t i = 0; i < 1; ++i) {
-    InetAddress addr(ipAddr4_.c_str(), tcpPort_, AF_INET,
-                     SOCK_STREAM);
+    InetAddress addr(ipAddr4_.c_str(), tcpPort_, AF_INET, SOCK_STREAM);
     std::shared_ptr<Acceptor> actor = std::make_shared<Acceptor>(
         stack_->getBaseLoop(), addr,
         std::bind(&AgentServer::newConn, this, std::placeholders::_1,
@@ -369,7 +374,6 @@ bool AgentServer::initListen() {
 }
 
 void AgentServer::init(int argc, char **argv) {
-
   parseOption(argc, argv);
 
   if (!IsFileExist(logFile_)) {

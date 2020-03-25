@@ -14,9 +14,9 @@
 #define __MSF_BUFFER_H__
 
 #include <base/Endian.h>
+#include <base/Logger.h>
 #include <base/Noncopyable.h>
 #include <base/Utils.h>
-#include <base/Logger.h>
 
 #include <algorithm>
 #include <atomic>
@@ -28,7 +28,7 @@
 
 using namespace MSF::BASE;
 
-//https://github.com/lava/linear_ringbuffer/tree/master/include/bev
+// https://github.com/lava/linear_ringbuffer/tree/master/include/bev
 
 namespace MSF {
 namespace BASE {
@@ -38,20 +38,20 @@ class SpinMutex {
  public:
   SpinMutex() = default;
   ~SpinMutex() = default;
-  SpinMutex(const SpinMutex&) = delete;
-  SpinMutex& operator=(const SpinMutex&) = delete;
-  SpinMutex(SpinMutex&&) = delete;
-  SpinMutex& operator=(SpinMutex&&) = delete;
+  SpinMutex(const SpinMutex &) = delete;
+  SpinMutex &operator=(const SpinMutex &) = delete;
+  SpinMutex(SpinMutex &&) = delete;
+  SpinMutex &operator=(SpinMutex &&) = delete;
 
   void lock() {
-    while (flag_.test_and_set(std::memory_order_acquire));
+    while (flag_.test_and_set(std::memory_order_acquire))
+      ;
   }
   void unlock() { flag_.clear(std::memory_order_release); }
 
  private:
   std::atomic_flag flag_ = ATOMIC_FLAG_INIT;
 };
-
 
 /// 0         readerIndex##############writerIndex              capacity
 //  0#########writerIndex              readerIndex##############capacity
@@ -151,7 +151,7 @@ class Buffer {
   }
 
   void append(const void * /*restrict*/ data, size_t len) {
-    const char *_data = static_cast<const char*>(data);
+    const char *_data = static_cast<const char *>(data);
     if (writeableBytes() < len) {
       makeSpace(len);
     }
@@ -211,7 +211,6 @@ class Buffer {
   size_t readerIndex_;
   size_t writerIndex_;
 };
-
 
 }  // namespace BASE
 }  // namespace MSF

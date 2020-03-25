@@ -11,9 +11,9 @@
  *
  **************************************************************************/
 #include <base/Affinity.h>
-#include <base/mem/MemPool.h>
 #include <base/Os.h>
 #include <base/Utils.h>
+#include <base/mem/MemPool.h>
 
 using namespace MSF::BASE;
 

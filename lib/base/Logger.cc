@@ -12,8 +12,8 @@
  **************************************************************************/
 #include <base/GccAttr.h>
 #include <base/Logger.h>
-#include <base/mem/Mem.h>
 #include <base/Time.h>
+#include <base/mem/Mem.h>
 #include <conf/Config.h>
 #include <fcntl.h>
 #include <sys/syscall.h>
@@ -32,12 +32,13 @@ namespace BASE {
 
 // std::map<std::string, Logger::LogLevel> ;
 
-static const std::string g_LogLevel[] = { "TRACE", "DEBUG", "INFO", "WARN", "ERROR",
-                                         "FATAL"};
+static const std::string g_LogLevel[] = {"TRACE", "DEBUG", "INFO",
+                                         "WARN",  "ERROR", "FATAL"};
 
 static const std::string g_logcolor[] = {
-    COLOR_GRAY,COLOR_GRAY, COLOR_GREEN,  COLOR_YELLOW, COLOR_BLUE,
-    COLOR_RED,  COLOR_PURPLE, COLOR_BROWN,  COLOR_BLUE, COLOR_CYAN, COLOR_GREEN,  COLOR_GRAY,
+    COLOR_GRAY, COLOR_GRAY, COLOR_GREEN,  COLOR_YELLOW,
+    COLOR_BLUE, COLOR_RED,  COLOR_PURPLE, COLOR_BROWN,
+    COLOR_BLUE, COLOR_CYAN, COLOR_GREEN,  COLOR_GRAY,
 };
 
 LogStream::~LogStream() {

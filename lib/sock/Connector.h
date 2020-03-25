@@ -70,12 +70,8 @@ class Connector : public std::enable_shared_from_this<Connector> {
     event_.init(loop, fd);
   }
 
-  void setSuccCallback(const EventCallback &cb) { 
-    event_.setSuccCallback(cb);
-  }
-  void setReadCallback(const EventCallback &cb) {
-    event_.setReadCallback(cb);
-  }
+  void setSuccCallback(const EventCallback &cb) { event_.setSuccCallback(cb); }
+  void setReadCallback(const EventCallback &cb) { event_.setReadCallback(cb); }
   void setWriteCallback(const EventCallback &cb) {
     event_.setWriteCallback(cb);
   }
@@ -94,6 +90,7 @@ class Connector : public std::enable_shared_from_this<Connector> {
   const int fd() const { return fd_; }
   void setCid(const uint32_t cid) { cid_ = cid; }
   const uint32_t cid() const { return cid_; }
+
  protected:
   Event event_;
   std::string name_;
@@ -103,6 +100,7 @@ class Connector : public std::enable_shared_from_this<Connector> {
   uint32_t state_;
 
   uint64_t lastActiveTime_;
+
  protected:
   inline void updateActiveTime();
 };

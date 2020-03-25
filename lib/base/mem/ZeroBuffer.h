@@ -104,6 +104,6 @@ class ZeroBuffer
 };
 #endif
 
-}
-}
+}  // namespace BASE
+}  // namespace MSF
 #endif

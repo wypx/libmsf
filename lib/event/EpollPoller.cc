@@ -158,7 +158,7 @@ bool EPollPoller::delEpEvent(const Event* ev) {
     return false;
   }
   MSF_DEBUG << "Epoll Del"
-           << " on " << ev->fd() << " succeeded.";
+            << " on " << ev->fd() << " succeeded.";
   return true;
 }
 
@@ -217,7 +217,7 @@ void EPollPoller::fillActiveEvents(int numEvents, EventList* activeEvents) {
 void EPollPoller::updateEvent(Event* ev) {
   const int index = ev->index();
   MSF_DEBUG << "fd = " << ev->fd() << " events = " << ev->events()
-           << " index = " << index;
+            << " index = " << index;
 
   // Poller::assertInLoopThread();
 

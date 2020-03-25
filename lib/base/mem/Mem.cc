@@ -10,9 +10,9 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include <base/mem/Mem.h>
 #include <base/Os.h>
 #include <base/Utils.h>
+#include <base/mem/Mem.h>
 
 using namespace MSF::BASE;
 

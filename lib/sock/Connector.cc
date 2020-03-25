@@ -16,12 +16,9 @@
 namespace MSF {
 namespace SOCK {
 
-Connector::Connector() : 
-          event_(Event()) {}
+Connector::Connector() : event_(Event()) {}
 
-Connector::~Connector() {
-  close();
-}
+Connector::~Connector() { close(); }
 
 bool Connector::connect(const std::string &host, const uint16_t port,
                         const uint32_t proto) {

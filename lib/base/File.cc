@@ -25,9 +25,9 @@ namespace IO {
 
 #if 0
 #if !defined(_WIN32)
-	#define	_unlink	unlink
-	#define	_rmdir	rmdir
-	#define	_access	access
+#define _unlink unlink
+#define _rmdir rmdir
+#define _access access
 #endif
 
 #if defined(_WIN32)
@@ -95,7 +95,7 @@ int closedir(DIR *d) {
 	free(d);
 	return 0;
 }
-#endif // defined(_WIN32)
+#endif  // defined(_WIN32)
 
 
 namespace toolkit {
@@ -157,7 +157,7 @@ bool File::is_dir(const char *path) {
 			readlink(path, realFile, sizeof(realFile));
 			return File::is_dir(realFile);
 		}
-#endif // !defined(_WIN32)
+#endif  // !defined(_WIN32)
 	}
 	return false;
 }
@@ -175,7 +175,7 @@ bool File::is_file(const char *path) {
 			readlink(path, realFile, sizeof(realFile));
 			return File::is_file(realFile);
 		}
-#endif // !defined(_WIN32)
+#endif  // !defined(_WIN32)
 	}
 	return false;
 }

@@ -14,8 +14,8 @@
 #define BASE_MEM_MEMPOOL_H
 
 #include <base/Atomic.h>
-#include <base/mem/Mem.h>
 #include <base/Noncopyable.h>
+#include <base/mem/Mem.h>
 
 #include <algorithm>
 #include <array>

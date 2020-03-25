@@ -14,17 +14,17 @@
 #define __MSF_AGENT_SERVER_H__
 
 #include <base/Noncopyable.h>
-#include <base/mem/MemPool.h>
 #include <base/Plugin.h>
-#include <base/mem/Buffer.h>
 #include <base/ThreadPool.h>
+#include <base/mem/Buffer.h>
+#include <base/mem/MemPool.h>
+#include <client/AgentConn.h>
 #include <event/Event.h>
 #include <event/EventLoop.h>
 #include <event/EventStack.h>
 #include <proto/AgentProto.h>
 #include <proto/Protocol.h>
 #include <sock/Acceptor.h>
-#include <client/AgentConn.h>
 
 using namespace MSF::BASE;
 using namespace MSF::SOCK;
@@ -50,9 +50,11 @@ class AgentServer : public Noncopyable {
 
  private:
   bool verifyAgentBhs(const Agent::AgentBhs &bhs);
-  void handleAgentPdu(AgentConnPtr c, struct iovec & head);
-  void handleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs, struct iovec & head);
-  void handleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs, struct iovec & head);
+  void handleAgentPdu(AgentConnPtr c, struct iovec &head);
+  void handleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs,
+                        struct iovec &head);
+  void handleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs,
+                          struct iovec &head);
 
   void succConn(AgentConnPtr c);
   void readConn(AgentConnPtr c);
@@ -64,6 +66,7 @@ class AgentServer : public Noncopyable {
   void parseOption(int argc, char **argv);
   bool initConfig();
   bool initListen();
+
  private:
   std::string version_;
   std::string confFile_;
@@ -138,7 +141,7 @@ class AgentServer : public Noncopyable {
   std::list<struct AgentCmd *> freeCmdList_;
 
   PluginManager *pluginMGR_;
- 
+
   MemPool *mpool_;
   ThreadPool *pool;
   EventStack *stack_;

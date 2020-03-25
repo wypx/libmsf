@@ -15,9 +15,5 @@
 using namespace MSF::BASE;
 
 namespace MSF {
-namespace BASE {
-
-
-}
-}
-
+namespace BASE {}
+}  // namespace MSF

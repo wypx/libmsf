@@ -20,7 +20,7 @@ AgentConn::AgentConn(/* args */)
 
 AgentConn::~AgentConn() {}
 
-void AgentConn::doRecvBhs() {
+bool AgentConn::doRecvBhs() {
   MSF_INFO << "Recv msg from fd: " << fd_;
   uint32_t count = 0;
   void *head = mpool_->alloc(AGENT_HEAD_LEN);
@@ -33,13 +33,12 @@ void AgentConn::doRecvBhs() {
     if (ret < 0 &&
         (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {
       if ((++count) > 4) {
-        return;
+        return true;
       }
       // continue;
     }
     MSF_ERROR << "Recv buffer failed for fd: " << fd_;
-    doConnClose();
-    return;
+    return false;
   }
   assert(ret == AGENT_HEAD_LEN);
   rxQequeIov_.push_back(std::move(iov));
@@ -61,13 +60,12 @@ void AgentConn::doRecvBhs() {
       if (ret < 0 &&
           (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {
         if ((++count) > 4) {
-          return;
+          return true;
         }
         // continue;
       }
       MSF_ERROR << "Recv buffer failed for fd: " << fd_;
-      doConnClose();
-      return;
+      return false;
     }
     assert(ret == len);
     rxQequeIov_.push_back(std::move(iov));
@@ -75,16 +73,17 @@ void AgentConn::doRecvBhs() {
   }
   rxState_ = kRecvBhs;
   pduCount_++;
+  return true;
 }
 
-void AgentConn::doRecvPdu() {}
+bool AgentConn::doRecvPdu() { return true; }
 
-void AgentConn::doConnRead() {
+bool AgentConn::doConnRead() {
   if (unlikely(fd_ < 0)) {
     MSF_TRACE << "Conn has been closed, cannot read buffer";
-    return;
+    return false;
   }
-  doRecvBhs();
+  return doRecvBhs();
   // int ret;
   // int count = 0;
   // do {
@@ -189,9 +188,9 @@ bool AgentConn::updateTxOffset(const int ret) {
   return true;
 }
 
-void AgentConn::doConnWrite() {
+bool AgentConn::doConnWrite() {
   if (unlikely(fd_ < 0)) {
-    return;
+    return false;
   }
   updateBusyIov();
 
@@ -207,19 +206,18 @@ void AgentConn::doConnWrite() {
       if (ret < 0 &&
           (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {
         if ((++count) > 4) {
-          return;
+          return true;
         }
         continue;
       }
       MSF_ERROR << "Send buffer failed for fd: " << fd_;
-      doConnClose();
-      return;
+      return false;
     } else {
       if (unlikely(!updateTxOffset(ret))) {
         continue;
       } else {
         disableWriting();
-        return;
+        return true;
       }
     }
   } while (true);

@@ -65,8 +65,8 @@ class AgentConn : public Connector {
   uint32_t txNeedSend_;  /* Current tx need send bytes */
   uint64_t txTotalSend_; /* Statitic bytes */
  private:
-  void doRecvBhs();
-  void doRecvPdu();
+  bool doRecvBhs();
+  bool doRecvPdu();
 
   void updateBusyIov();
   bool updateTxOffset(const int ret);
@@ -81,8 +81,8 @@ class AgentConn : public Connector {
   void wakeup() {
     // loop_->wakeup();
   }
-  void doConnRead();
-  void doConnWrite();
+  bool doConnRead();
+  bool doConnWrite();
   void doConnClose();
   /* Nonelock per one thread */
   bool writeIovec(struct iovec iov);

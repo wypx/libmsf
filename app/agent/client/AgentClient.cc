@@ -190,7 +190,10 @@ bool AgentClient::loginAgent() {
 void AgentClient::handleTxCmd() { conn_->doConnWrite(); }
 
 void AgentClient::handleRxCmd() {
-  conn_->doConnRead();
+  if (!conn_->doConnRead()) {
+    closeAgent();
+    return;
+  }
 
   while (conn_->iovCount() > 0) {
     MSF_INFO << "======> handle iovec: " << conn_->iovCount();
@@ -200,7 +203,7 @@ void AgentClient::handleRxCmd() {
     proto_->debugBhs(bhs);
 
     if (!verifyAgentBhs(bhs)) {
-      conn_->doConnClose();
+      closeAgent();
       return;
     }
     if (proto_->opCode(bhs) == Agent::Opcode::OP_REQ) {

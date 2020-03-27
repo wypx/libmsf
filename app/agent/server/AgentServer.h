@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_AGENT_SERVER_H__
-#define __MSF_AGENT_SERVER_H__
+#ifndef AGENT_SERVER_AGENTSERVER_H
+#define AGENT_SERVER_AGENTSERVER_H
 
 #include <base/Noncopyable.h>
 #include <base/Plugin.h>
@@ -23,7 +23,6 @@
 #include <event/EventLoop.h>
 #include <event/EventStack.h>
 #include <proto/AgentProto.h>
-#include <proto/Protocol.h>
 #include <sock/Acceptor.h>
 
 using namespace MSF::BASE;

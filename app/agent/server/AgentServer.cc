@@ -19,7 +19,6 @@
 #include <base/Utils.h>
 #include <base/Version.h>
 #include <getopt.h>
-#include <proto/Protocol.h>
 #include <sock/Socket.h>
 #include <sys/epoll.h>
 

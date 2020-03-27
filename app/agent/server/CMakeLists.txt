@@ -3,9 +3,6 @@ set(AGENT_SERVER_VERSION 0.1)
 execute_process(COMMAND git log --pretty=format:%h -1 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GITVER)
 add_definitions(-DVERSION_TAG=${AGENT_SERVER_VERSION}-${GITVER})
 
-# https://blog.csdn.net/qq_38410730/article/details/102837401
-set(CMAKE_INSTALL_PREFIX /home/luotang.me)           # 安装路径前缀 $ENV{HOME}/usr: /home/xxx/usr
-
 # 设置debug版本信息 进程生成名字
 if(${CMAKE_BUILD_TYPE} MATCHES "debug")
     file(MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/Debug) 

@@ -35,6 +35,7 @@ CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17 -fPIC -O3 -Wall -g -ggdb")
 
 # 设置安装前缀
+# https://blog.csdn.net/qq_38410730/article/details/102837401
 set(CMAKE_INSTALL_PREFIX /home/luotang.me) 
 
 add_subdirectory (agent AgentServer)

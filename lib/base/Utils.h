@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_UTILS_H__
-#define __MSF_UTILS_H__
+#ifndef BASE_UTILS_H
+#define BASE_UTILS_H
 
 #include <base/Define.h>
 #include <sys/stat.h>

@@ -115,6 +115,9 @@ Logger::~Logger() {
   if (unlikely(iLogFd < 0 || iLogFd == STDERR_FILENO)) {
     return;
   }
+  // Flush remaining items synchronously
+  flush();
+  fsync(iLogFd);
   close(iLogFd);
   iLogFd = MSF_INVALID_SOCKET;
 }

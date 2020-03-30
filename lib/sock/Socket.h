@@ -88,6 +88,23 @@ bool SetIpv6Only(const int fd, bool on);
 #endif
 #endif
 
+/* TTL */
+#define TTL_IGNORE ((int)(-1))
+#define TTL_DEFAULT (64)
+
+/* TOS */
+#define TOS_IGNORE ((int)(-1))
+#define TOS_DEFAULT (0)
+
+#define ADJUST_RAW_TTL(ttl)                      \
+  do {                                           \
+    if (ttl < 0 || ttl > 255) ttl = TTL_DEFAULT; \
+  } while (0)
+#define ADJUST_RAW_TOS(tos)                      \
+  do {                                           \
+    if (tos < 0 || tos > 255) tos = TOS_DEFAULT; \
+  } while (0)
+
 int CreateTcpServer(const std::string &host, const uint16_t port,
                     const uint32_t proto, const uint32_t backlog);
 
@@ -107,6 +124,8 @@ bool SetTcpDeferAccept(const int fd);
 bool SetKeepAlive(const int fd, bool on);
 
 bool SetLinger(const int fd, bool on);
+
+int BindDevice(const int fd, const uint8_t *ifname);
 
 bool GetTcpInfo(const int fd, struct tcp_info *);
 bool GetTcpInfoString(const int fd, char *buf, int len);

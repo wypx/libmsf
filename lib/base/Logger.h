@@ -112,6 +112,8 @@ class Logger : public Noncopyable {
   // https://www.tuicool.com/articles/QbmInyF
   // https://blog.csdn.net/u011726005/article/details/82356538
   /** Using singleton logger instance in one process */
+  // pthread_once
+  // https://blog.csdn.net/sjin_1314/article/details/10934239
   static Logger &getLogger() {
     static std::once_flag onceFlag;
     std::call_once(onceFlag, [&]() { g_Logger.reset(new Logger()); });

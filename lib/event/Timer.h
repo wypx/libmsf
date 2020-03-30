@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_TIMER_H__
-#define __MSF_TIMER_H__
+#ifndef EVENT_TIMER_H
+#define EVENT_TIMER_H
 /*----------------------------------------------------------------
 
 获取当前时间，包含时间精度，使用系统时间还是CPU时间(asio里的deadline_timer和steady_timer的区别)

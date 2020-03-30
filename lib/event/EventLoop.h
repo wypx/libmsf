@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_EVENTLOOP_H__
-#define __MSF_EVENTLOOP_H__
+#ifndef EVENT_EVENTLOOP_H
+#define EVENT_EVENTLOOP_H
 
 #include <event/Timer.h>
 #include <unistd.h>

@@ -13,9 +13,9 @@
 #include <arpa/inet.h>
 #include <base/Logger.h>
 #include <base/Utils.h>
+#include <net/if.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <netinet/tcp.h>
 #include <signal.h>
 #include <sock/Socket.h>
 #include <sys/eventfd.h>
@@ -250,13 +250,13 @@ void DebugSocket(const int fd) {
 }
 
 bool SetReuseAddr(const int fd, bool on) {
+  int flag = on;
 #if defined(SO_REUSEADDR) && !defined(_WIN32)
-  int one = on;
   /* REUSEADDR on Unix means, "don't hang on to this address after the
    * listener is closed."  On Windows, though, it means "don't keep other
    * processes from binding to this address while we're using it. */
-  if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void *)&one, (int)sizeof(one)) <
-      0) {
+  if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (void *)&flag,
+                 (int)sizeof(flag)) < 0) {
     return false;
   }
 #endif
@@ -270,6 +270,16 @@ bool SetReusePort(const int fd, bool on) {
    * threads) can bind to the same port if they each set the option. */
   if (setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &one, (int)sizeof(one)) < 0) {
     return false;
+  }
+#endif
+
+#if defined(SCTP_REUSE_PORT)
+  bool isSctpSock - false;
+  if (isSctpSock) {
+    if (setsockopt(fd, IPPROTO_SCTP, SCTP_REUSE_PORT, (const void *)&flag,
+                   (int)sizeof(flag)) < 0) {
+      return false;
+    }
   }
 #endif
   return true;
@@ -417,6 +427,131 @@ bool SetSendBufferSize(const int fd, const uint32_t n) {
   return true;
 }
 
+int GetRawSocketTTL(const int fd, const int family) {
+  int ttl = 0;
+
+  if (family == AF_INET6) {
+#if !defined(IPV6_UNICAST_HOPS)
+    UNUSED_ARG(fd);
+    do {
+      return TTL_IGNORE;
+    } while (0);
+#else
+    socklen_t slen = (socklen_t)sizeof(ttl);
+    if (getsockopt(fd, IPPROTO_IPV6, IPV6_UNICAST_HOPS, &ttl, &slen) < 0) {
+      perror("get HOPLIMIT on socket");
+      return TTL_IGNORE;
+    }
+#endif
+  } else {
+#if !defined(IP_TTL)
+    UNUSED_ARG(fd);
+    do {
+      return TTL_IGNORE;
+    } while (0);
+#else
+    socklen_t slen = (socklen_t)sizeof(ttl);
+    if (getsockopt(fd, IPPROTO_IP, IP_TTL, &ttl, &slen) < 0) {
+      perror("get TTL on socket");
+      return TTL_IGNORE;
+    }
+#endif
+  }
+  ADJUST_RAW_TTL(ttl);
+  return ttl;
+}
+
+int SetRawSocketTTL(const int fd, const int family, int ttl) {
+  if (family == AF_INET6) {
+#if !defined(IPV6_UNICAST_HOPS)
+    MSF_UNUSED(fd);
+    MSF_UNUSED(ttl);
+#else
+    ADJUST_RAW_TTL(ttl);
+    if (setsockopt(fd, IPPROTO_IPV6, IPV6_UNICAST_HOPS, &ttl, sizeof(ttl)) <
+        0) {
+      perror("set HOPLIMIT on socket");
+      return -1;
+    }
+#endif
+  } else {
+#if !defined(IP_TTL)
+    MSF_UNUSED(fd);
+    MSF_UNUSED(ttl);
+#else
+    ADJUST_RAW_TTL(ttl);
+    if (setsockopt(fd, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)) < 0) {
+      perror("set TTL on socket");
+      return -1;
+    }
+#endif
+  }
+
+  return 0;
+}
+
+int GetRawSocketTOS(const int fd, const int family) {
+  int tos = 0;
+
+  if (family == AF_INET6) {
+#if !defined(IPV6_TCLASS)
+    MSF_UNUSED(fd);
+    do {
+      return TOS_IGNORE;
+    } while (0);
+#else
+    socklen_t slen = (socklen_t)sizeof(tos);
+    if (getsockopt(fd, IPPROTO_IPV6, IPV6_TCLASS, &tos, &slen) < 0) {
+      perror("get TCLASS on socket");
+      return -1;
+    }
+#endif
+  } else {
+#if !defined(IP_TOS)
+    MSF_UNUSED(fd);
+    do {
+      return TOS_IGNORE;
+    } while (0);
+#else
+    socklen_t slen = (socklen_t)sizeof(tos);
+    if (getsockopt(fd, IPPROTO_IP, IP_TOS, &tos, &slen) < 0) {
+      perror("get TOS on socket");
+      return -1;
+    }
+#endif
+  }
+
+  ADJUST_RAW_TOS(tos);
+
+  return tos;
+}
+
+int SetRawSocketTOS(const int fd, const int family, int tos) {
+  if (family == AF_INET6) {
+#if !defined(IPV6_TCLASS)
+    MSF_UNUSED(fd);
+    MSF_UNUSED(tos);
+#else
+    ADJUST_RAW_TOS(tos);
+    if (setsockopt(fd, IPPROTO_IPV6, IPV6_TCLASS, &tos, sizeof(tos)) < 0) {
+      perror("set TCLASS on socket");
+      return -1;
+    }
+#endif
+  } else {
+#if !defined(IP_TOS)
+    MSF_UNUSED(fd);
+    MSF_UNUSED(tos);
+#else
+    if (setsockopt(fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos)) < 0) {
+      perror("set TOS on socket");
+      return -1;
+    }
+#endif
+  }
+  return 0;
+}
+
 /* Sets the DSCP value of socket 'fd' to 'dscp', which must be 63 or less.
  * 'family' must indicate the socket's address family (AF_INET or AF_INET6, to
  * do anything useful). */
@@ -446,6 +581,83 @@ bool SetDcsp(const int fd, const uint32_t family, const uint32_t dscp) {
       return false;
   }
   return retval ? false : true;
+}
+
+// MTU
+int GetSocketMTU(const int fd, int family)
+{
+  int ret = 0;
+
+  #if defined(IP_MTU)
+  int val = 0;
+  socklen_t slen=sizeof(val);
+  if(family == AF_INET) {
+    ret = getsockopt(fd, IPPROTO_IP, IP_MTU, &val, &slen);
+  } else {
+  #if defined(IPPROTO_IPV6) && defined(IPV6_MTU)
+    ret = getsockopt(fd, IPPROTO_IPV6, IPV6_MTU, &val, &slen);
+  #endif
+  }
+
+  ret = val;
+  #endif
+  return ret;
+}
+int SetSocketDF(const int fd, const int family, const int value) {
+  int ret = 0;
+
+#if defined(IP_DONTFRAG) && defined(IPPROTO_IP)  // BSD
+  {
+    const int val = value;
+    /* kernel sets DF bit on outgoing IP packets */
+    if (family == AF_INET) {
+      ret = setsockopt(fd, IPPROTO_IP, IP_DONTFRAG, &val, sizeof(val));
+    } else {
+#if defined(IPV6_DONTFRAG) && defined(IPPROTO_IPV6)
+      ret = setsockopt(fd, IPPROTO_IPV6, IPV6_DONTFRAG, &val, sizeof(val));
+#else
+#error CANNOT SET IPV6 SOCKET DF FLAG (1)
+#endif
+    }
+    if (ret < 0) {
+      int err = errno;
+      perror("set socket df:");
+      // TURN_LOG_FUNC(TURN_LOG_LEVEL_INFO,"%s: set sockopt failed: fd=%d,
+      // err=%d, family=%d\n",__FUNCTION__,fd,err,family);
+    }
+  }
+#elif defined(IPPROTO_IP) && defined(IP_MTU_DISCOVER) && \
+    defined(IP_PMTUDISC_DO) && defined(IP_PMTUDISC_DONT)  // LINUX
+  {
+    /* kernel sets DF bit on outgoing IP packets */
+    if (family == AF_INET) {
+      int val = IP_PMTUDISC_DO;
+      if (!value) val = IP_PMTUDISC_DONT;
+      ret = setsockopt(fd, IPPROTO_IP, IP_MTU_DISCOVER, &val, sizeof(val));
+    } else {
+#if defined(IPPROTO_IPV6) && defined(IPV6_MTU_DISCOVER) && \
+    defined(IPV6_PMTUDISC_DO) && defined(IPV6_PMTUDISC_DONT)
+      int val = IPV6_PMTUDISC_DO;
+      if (!value) val = IPV6_PMTUDISC_DONT;
+      ret = setsockopt(fd, IPPROTO_IPV6, IPV6_MTU_DISCOVER, &val, sizeof(val));
+#else
+#error CANNOT SET IPV6 SOCKET DF FLAG (2)
+#endif
+    }
+    if (ret < 0) {
+      perror("set DF");
+      // TURN_LOG_FUNC(TURN_LOG_LEVEL_INFO, "%s: set sockopt failed\n",
+      //               __FUNCTION__);
+    }
+  }
+#else
+  // CANNOT SET SOCKET DF FLAG (3) : UNKNOWN PLATFORM
+  MSF_UNUSED(fd);
+  MSF_UNUSED(family);
+  MSF_UNUSED(value);
+#endif
+
+  return ret;
 }
 
 /* Reads and discards up to 'n' datagrams from 'fd', stopping as soon as no
@@ -804,6 +1016,13 @@ bool SetKeepAlive(const int fd, bool on) {
   }
 #endif
 
+#ifdef SO_NOSIGPIPE
+  if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &flags,
+                 (socklen_t)sizeof(flags)) < 0) {
+    return false;
+  }
+#endif
+
   return true;
 }
 
@@ -819,6 +1038,28 @@ bool SetLinger(const int fd, bool on) {
     return false;
   }
   return true;
+}
+
+int BindDevice(const int fd, const uint8_t *ifname) {
+  if (fd >= 0 && ifname && ifname[0]) {
+#if defined(SO_BINDTODEVICE)
+    struct ifreq ifr;
+    memset(&ifr, 0, sizeof(ifr));
+    strncpy(ifr.ifr_name, (const char *)ifname, sizeof(ifr.ifr_name));
+    if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr)) <
+        0) {
+      if (errno == EPERM) {
+        MSF_ERROR << "You must obtain superuser privileges to bind a socket to "
+                     "device";
+      } else {
+        MSF_ERROR << "Cannot bind socket to device";
+      }
+      return -1;
+    }
+    return 0;
+#endif
+  }
+  return 0;
 }
 
 int BindAddress(const int fd, const struct sockaddr *addr,

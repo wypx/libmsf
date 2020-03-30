@@ -16,8 +16,8 @@
 #include <base/mem/Buffer.h>
 #include <base/mem/MemPool.h>
 #include <event/EventLoop.h>
-#include <proto/AgentProto.h>
 #include <sock/Connector.h>
+#include <agent/proto/AgentProto.h>
 
 using namespace MSF::BASE;
 using namespace MSF::SOCK;

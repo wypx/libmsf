@@ -18,7 +18,7 @@
 #include <base/ThreadPool.h>
 #include <base/mem/Buffer.h>
 #include <base/mem/MemPool.h>
-#include <client/AgentConn.h>
+#include <agent/client/AgentConn.h>
 #include <event/Event.h>
 #include <event/EventLoop.h>
 #include <event/EventStack.h>

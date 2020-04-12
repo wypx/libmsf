@@ -166,6 +166,7 @@ int IniFile::Load(const string &filePath) {
 
     if (err != 0) {
       ifs.close();
+      MSF_ERROR << "Failed to load config file: " << iniFilePath;
       return err;
     }
 

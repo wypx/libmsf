@@ -43,7 +43,7 @@ AgentServer::AgentServer() {
 
 AgentServer::~AgentServer() {}
 
-void AgentServer::showUsage() {
+void AgentServer::debugInfo() {
   std::cout << std::endl;
   std::cout << "Agent Server Options:" << std::endl;
   std::cout << " -c, --conf=FILE        The configure file." << std::endl;
@@ -119,11 +119,11 @@ void AgentServer::parseOption(int argc, char **argv) {
         MSF::BuildInfo();
         exit(0);
       case 'h':
-        showUsage();
+        debugInfo();
         exit(0);
       case '?':
       default:
-        showUsage();
+        debugInfo();
         exit(1);
     }
   }

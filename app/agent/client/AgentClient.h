@@ -31,7 +31,7 @@ typedef std::function<void(char** data, uint32_t* len,
                            const Agent::Command cmd)>
     AgentCb;
 
-enum AgentType {
+enum AgentNet {
   kAgentUnix,
   kAgentTcp,
   kAgentUdp,

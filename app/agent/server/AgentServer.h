@@ -61,7 +61,7 @@ class AgentServer : public Noncopyable {
   void freeConn(AgentConnPtr c);
   void newConn(const int fd, const uint16_t event);
 
-  void showUsage();
+  void debugInfo();
   void parseOption(int argc, char **argv);
   bool initConfig();
   bool initListen();

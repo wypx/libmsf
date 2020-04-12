@@ -116,7 +116,7 @@ Logger::~Logger() {
     return;
   }
   // Flush remaining items synchronously
-  flush();
+  // flush();
   fsync(iLogFd);
   close(iLogFd);
   iLogFd = MSF_INVALID_SOCKET;

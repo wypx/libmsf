@@ -30,7 +30,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # 设置依赖库
-set(COMMLIBS msf_agent msf_proto msf_event msf_sock msf_base protobuf protoc numa pthread dl)
+set(COMMLIBS msf_agent msf_proto msf_event msf_sock msf_base protobuf.a protoc.a numa.a pthread dl)
 
 # 设置源代码路径
 aux_source_directory (. DIR_SRCS)

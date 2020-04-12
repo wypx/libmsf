@@ -38,9 +38,9 @@ Guard::Guard() {
   threadArgs.push_back(std::move(ThreadArg("AgentLoop")));
   assert(stack_->startThreads(threadArgs));
 
-  agent_ = new AgentClient(stack_->getOneLoop(), "Guard", Agent::APP_GUARD,
-  "luotang.me", 8888);
-  // agent_ = new AgentClient(stack_->getOneLoop(), "Guard", Agent::APP_GUARD);
+  // agent_ = new AgentClient(stack_->getOneLoop(), "Guard", Agent::APP_GUARD,
+  // "luotang.me", 8888);
+  agent_ = new AgentClient(stack_->getOneLoop(), "Guard", Agent::APP_GUARD);
   assert(agent_);
 }
 

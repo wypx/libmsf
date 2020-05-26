@@ -33,7 +33,7 @@ struct ThreadArg {
   EventLoop *loop_;
   Thread *thread_;
 
-  ThreadArg() {}
+  ThreadArg() = default;
   ThreadArg(const std::string &name) : name_(name), options_(0), flags_(0) {}
   ThreadArg(const std::string &name, const uint32_t options)
       : name_(name), options_(options), flags_(0) {}

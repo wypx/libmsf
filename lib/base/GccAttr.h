@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_GCCATTR_H__
-#define __MSF_GCCATTR_H__
+#ifndef BAS_GCCATTR_H
+#define BAS_GCCATTR_H
 
 #include <sys/cdefs.h>
 

@@ -18,7 +18,7 @@ using namespace MSF::BASE;
 namespace MSF {
 namespace BASE {
 
-int setSerialBaud(const int fd, const int speed) {
+int SetSerialBaud(const int fd, const int speed) {
   struct termios opt;
   tcgetattr(fd, &opt);
   cfsetispeed(&opt, speed);
@@ -26,7 +26,7 @@ int setSerialBaud(const int fd, const int speed) {
   return tcsetattr(fd, TCSANOW, &opt);
 }
 
-int setSerialRawMode(const int fd) {
+int SetSerialRawMode(const int fd) {
   struct termios opt;
   tcgetattr(fd, &opt);
   opt.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG); /* input */

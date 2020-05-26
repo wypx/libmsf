@@ -18,8 +18,8 @@
 namespace MSF {
 namespace BASE {
 
-int setSerialBaud(const int fd, const int speed);
-int setSerialRawMode(const int fd);
+int SetSerialBaud(const int fd, const int speed);
+int SetSerialRawMode(const int fd);
 
 }  // namespace BASE
 }  // namespace MSF

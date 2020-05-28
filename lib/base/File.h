@@ -49,7 +49,6 @@
 
 // https://github.com/philipl/pifs/tree/master/src
 
-
 using namespace MSF::IO;
 
 namespace MSF {

@@ -20,18 +20,7 @@ using namespace MSF::BASE;
 namespace MSF {
 namespace BASE {
 
-typedef void (*MSF_SIGHAND_T)(int);
-
-class MSF_DAEMON {
- public:
-  static int msf_redirect_output(const char *dev, int *fd_output,
-                                 int *fd_stdout);
-  static int msf_redirect_output_cancle(int *fd_output, int *fd_stdout);
-  static int msf_daemonize(bool nochdir, bool noclose);
-  static void msf_close_std_fds(void);
-  static int daemonize(bool nochdir, bool noclose);
-  // static int msf_daemonize(bool nochdir, bool noclose);
-};
+void daemonize(bool chdir, bool close);
 
 }  // namespace BASE
 }  // namespace MSF

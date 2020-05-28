@@ -20,6 +20,7 @@ namespace BASE {
 
 //其他属性:
 // https://www.jianshu.com/p/e2dfccc32c80
+// https://www.cnblogs.com/songbingyu/p/3894096.html
 
 /* 两次转换将宏的值转成字符串 */
 #define _MSF_MACROSTR(a) (#a)
@@ -42,14 +43,31 @@ namespace BASE {
 #define unlikely(x) (__builtin_constant_p(x) ? !!(x) : __branch_check__(x, 0))
 #endif
 
+// #define __attribute_noinline__  __attribute__((__noinline__))
+// #define __attribute_cold__  __attribute__((__cold__))
+// #define __attribute_hot__  __attribute__((__hot__))
+// #define __attribute_noreturn__  __attribute__((__noreturn__))
+// #define __attribute_fallthrough__  __attribute__((__fallthrough__));
+// #define __attribute_format__(x)  __attribute__((__format__ x))
+// #define __attribute_pure__  __attribute__((__pure__))
+// #define __attribute_const__  __attribute__((const))
+// #define __attribute_const__  __attribute__((const))
+
 /* 这个表示一个方法的返回值只由参数决定, 如果参数不变的话,
  *  就不再调用此函数，直接返回值.经过我的尝试发现还是调用了,
  *  后又经查资料发现要给gcc加一个-O的参数才可以.
  *  是对函数调用的一种优化*/
 #define MSF_CONST_CALL __attribute__((const))
+
 /* 表示函数的返回值必须被检查或使用,否则会警告*/
 #define MSF_UNUSED_CHECK __attribute__((unused))
 #define MSF_PACKED_MEMORY __attribute__((__packed__))
+
+// #define __attribute_unused__  __attribute__((unused))
+// #define __attribute_packed__ __attribute__((__packed__))
+// #define __attribute_weak__ __attribute__((weak))
+// #define __attribute_noreturn__ __attribute__((__noreturn__))
+// #define __attribute_always_inline__ inline __attribute__((always_inline))
 
 /* Force compiler to use inline*/
 #define MSF_ALWAYS_INLINE inline __attribute__((always_inline))

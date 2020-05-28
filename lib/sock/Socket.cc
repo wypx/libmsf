@@ -85,7 +85,11 @@ bool SocketInit() {
 int CreateSocket(const int domain, const int type, const int protocol) {
   int fd;
 #ifdef SOCK_CLOEXEC
+#ifdef SOCK_NONBLOCK
+  fd = socket(domain, type | SOCK_CLOEXEC | SOCK_NONBLOCK, protocol);
+#else
   fd = socket(domain, type | SOCK_CLOEXEC, protocol);
+#endif
   if (fd == -1) {
     MSF_ERROR << "Failed to open socket:" << strerror(errno);
     return fd;
@@ -343,7 +347,7 @@ bool SetNonBlock(const int fd, bool on) {
   }
   if (!(flags & O_NONBLOCK)) {
     if (on == true) {
-      if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) < 0) {
+      if (fcntl(fd, F_SETFL, flags | O_NONBLOCK | O_RDWR) < 0) {
         MSF_ERROR << "Fail to set nonblocking for socket: " << fd;
         return false;
       }
@@ -584,23 +588,22 @@ bool SetDcsp(const int fd, const uint32_t family, const uint32_t dscp) {
 }
 
 // MTU
-int GetSocketMTU(const int fd, int family)
-{
+int GetSocketMTU(const int fd, int family) {
   int ret = 0;
 
-  #if defined(IP_MTU)
+#if defined(IP_MTU)
   int val = 0;
-  socklen_t slen=sizeof(val);
-  if(family == AF_INET) {
+  socklen_t slen = sizeof(val);
+  if (family == AF_INET) {
     ret = getsockopt(fd, IPPROTO_IP, IP_MTU, &val, &slen);
   } else {
-  #if defined(IPPROTO_IPV6) && defined(IPV6_MTU)
+#if defined(IPPROTO_IPV6) && defined(IPV6_MTU)
     ret = getsockopt(fd, IPPROTO_IPV6, IPV6_MTU, &val, &slen);
-  #endif
+#endif
   }
 
   ret = val;
-  #endif
+#endif
   return ret;
 }
 int SetSocketDF(const int fd, const int family, const int value) {

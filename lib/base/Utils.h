@@ -65,7 +65,7 @@ namespace BASE {
   })
 
 /*Align by number of align*/
-#define MSF_ALGIN_UP(num, align)    (((num)+(align-1)) / (align))q
+#define MSF_ALGIN_UP(num, align) (((num) + (align - 1)) / (align)) q
 #define MSF_ROUNDUP(num, align) ((((num) + (align - 1)) / (align)) * (align))
 #define MSF_ABS(value) (((value) >= 0) ? (value) : -(value))
 

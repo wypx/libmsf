@@ -1043,12 +1043,12 @@ bool SetLinger(const int fd, bool on) {
   return true;
 }
 
-int BindDevice(const int fd, const uint8_t *ifname) {
+int BindDevice(const int fd, const char *ifname) {
   if (fd >= 0 && ifname && ifname[0]) {
 #if defined(SO_BINDTODEVICE)
     struct ifreq ifr;
     memset(&ifr, 0, sizeof(ifr));
-    strncpy(ifr.ifr_name, (const char *)ifname, sizeof(ifr.ifr_name));
+    memcpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
     if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr)) <
         0) {
       if (errno == EPERM) {

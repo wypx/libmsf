@@ -125,7 +125,7 @@ bool SetKeepAlive(const int fd, bool on);
 
 bool SetLinger(const int fd, bool on);
 
-int BindDevice(const int fd, const uint8_t *ifname);
+int BindDevice(const int fd, const char *ifname);
 
 bool GetTcpInfo(const int fd, struct tcp_info *);
 bool GetTcpInfoString(const int fd, char *buf, int len);

@@ -16,7 +16,7 @@ namespace MSF {
 namespace AGENT {
 
 AgentConn::AgentConn(/* args */)
-    : txQequeSize_(0), txNeedSend_(0), pduCount_(0), mutex_() {}
+    :  pduCount_(0), mutex_(), txQequeSize_(0), txNeedSend_(0) {}
 
 AgentConn::~AgentConn() {}
 
@@ -67,7 +67,7 @@ bool AgentConn::doRecvBhs() {
       MSF_ERROR << "Recv buffer failed for fd: " << fd_;
       return false;
     }
-    assert(ret == len);
+    // assert(ret == len);
     rxQequeIov_.push_back(std::move(iov));
     pduCount_++;
   }

@@ -32,10 +32,10 @@ bool mapMem(const uint32_t n) {
   }
 
   // Check for overflow.
-  if (bytes * 2u < bytes) {
-    errno = EINVAL;
-    return -1;
-  }
+  // if (bytes * 2 < bytes) {
+  //   errno = EINVAL;
+  //   return -1;
+  // }
 
   // Use `char*` instead of `void*` because we need to do arithmetic on them.
   uint8_t* addr = nullptr;

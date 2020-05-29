@@ -49,7 +49,7 @@ bool OsInfo::setUser(uid_t user, const std::string& userName) {
   }
 
   if (geteuid() == 0) {
-    gid_t groupId;
+    gid_t groupId = 0;
     if (setgid(groupId) == -1) {
       /* fatal */
       exit(2);
@@ -70,13 +70,13 @@ bool OsInfo::setUser(uid_t user, const std::string& userName) {
       return false;
     }
 
-    uid_t user1 = pwd->pw_uid;
+    // uid_t user1 = pwd->pw_uid;
 
     grp = getgrnam(group);
     if (grp == nullptr) {
       return false;
     }
-    gid_t group1 = grp->gr_gid;
+    // gid_t group1 = grp->gr_gid;
     return true;
   } else {
     MSF_DEBUG << "The \"user\" directive makes sense only "
@@ -147,8 +147,6 @@ bool OsInfo::setMaxOpenFds(const uint64_t maxOpenFds) {
   /* We're unlikely to see an FD much higher than maxconns. */
   int nextFd = dup(1);
   uint32_t headRoom = 10; /* account for extra unexpected open FDs */
-  struct rlimit rl;
-
   uint64_t maxFds = maxOpenFds + headRoom + nextFd;
 
   struct rlimit rlmt;
@@ -450,11 +448,12 @@ bool OsInfo::getMemUsage() {
     } else if (line.find("VmRSS")) {
     }
   }
+  return true;
 }
 
 bool OsInfo::getHddUsage() {
   FILE* fp = NULL;
-  char buffer[80], a[80], d[80], e[80], f[80], buf[256];
+  char a[80], d[80], e[80], f[80], buf[256];
   double c, b;
   double dev_total = 0, dev_used = 0;
 

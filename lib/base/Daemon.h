@@ -20,7 +20,7 @@ using namespace MSF::BASE;
 namespace MSF {
 namespace BASE {
 
-void daemonize(bool chdir, bool close);
+void daemonize(bool chdir = true, bool close = true);
 
 }  // namespace BASE
 }  // namespace MSF

@@ -50,7 +50,7 @@ char *os_argv_last;
 
 static char **old_environ;
 
-static int ClearEnv(void) {
+int ClearEnv(void) {
 #if __GLIBC__
   clearenv();
 

@@ -148,7 +148,7 @@ static int count_device_users(char *syspath) {
   return count;
 };
 
-static void device_in_use(void *data, int host_no, int target, int lun) {
+void device_in_use(void *data, int host_no, int target, int lun) {
   char *syspath = NULL;
   char *devname = NULL;
   int *count = (int *)data;

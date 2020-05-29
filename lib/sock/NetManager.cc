@@ -195,7 +195,7 @@ std::string getMacAddr(const std::string &iface) {
   int fd = -1;
   struct ifreq ifr;
   uint8_t *ptr = nullptr;
-  char macstr[6];
+  char macstr[24];
 
   memset(&ifr, 0, sizeof(struct ifreq));
   if (0 == strcmp(iface.c_str(), "lo")) {
@@ -852,7 +852,8 @@ bool setActiveRoute(const std::string &iface, const std::string &route,
   gateway_addr.sin_family = PF_INET;
   memcpy(&rt.rt_genmask, &gateway_addr, sizeof(struct sockaddr_in));
 
-  rt.rt_dev = "eth0";
+  char * const interface = "eth0";
+  rt.rt_dev = interface;
 
   if (ioctl(fd, SIOCADDRT, &rt) < 0) {
     MSF_ERROR << "set_route ioctl error and errno: " << errno;

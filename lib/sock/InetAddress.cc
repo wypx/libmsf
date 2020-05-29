@@ -31,7 +31,7 @@ InetAddress::InetAddress()
       _proto(SOCK_STREAM) {}
 InetAddress::InetAddress(const std::string &host, const uint16_t port,
                          const sa_family_t family, const int proto)
-    : _host(host), _family(family), _port(port) {
+    : _host(host), _port(port), _family(family) {
   struct in_addr addr4 = {0};
   struct in6_addr addr6 = IN6ADDR_ANY_INIT;
 

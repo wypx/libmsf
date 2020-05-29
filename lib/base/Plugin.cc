@@ -136,8 +136,7 @@ int PluginManager::driverInsmod(const std::string& ko_path) {
   int rc = MSF_ERR;
   char option[2] = {0};
 
-  fd = open(ko_path.c_str(), MSF_FILE_RDONLY, MSF_FILE_TRUNCATE,
-            MSF_FILE_DEFAULT_ACCESS);
+  fd = ::open(ko_path.c_str(), O_RDONLY | O_TRUNC, 0644);
   if (fd < 0) {
     MSF_ERROR << "Fail to open " << ko_path;
     return MSF_ERR;

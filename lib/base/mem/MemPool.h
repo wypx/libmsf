@@ -33,9 +33,12 @@ using namespace MSF::BASE;
 namespace MSF {
 namespace BASE {
 
-#if (__i386__ || __i386)
+// 参考官方判断方法：
+// http://www.opensource.apple.com/source/cctools/cctools-870/include/mach/arm/thread_status.h
+// https://blog.csdn.net/liuqun69/article/details/103041250
+#if (__i386__ || __i386 || __arm__)
 #define MP_CACHE_LINE_ALIGN 4
-#elif (__amd64__ || __amd64 || __x86_64 || __x86_64__)
+#elif (__amd64__ || __amd64 || __x86_64 || __x86_64__ || __arm64__ || __aarch64__)
 #define MP_CACHE_LINE_ALIGN 8
 #else
 #define MP_CACHE_LINE_ALIGN 4

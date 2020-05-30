@@ -13,12 +13,12 @@
 #ifndef AGENT_SERVER_AGENTSERVER_H
 #define AGENT_SERVER_AGENTSERVER_H
 
+#include <agent/client/AgentConn.h>
 #include <base/Noncopyable.h>
 #include <base/Plugin.h>
 #include <base/ThreadPool.h>
 #include <base/mem/Buffer.h>
 #include <base/mem/MemPool.h>
-#include <agent/client/AgentConn.h>
 #include <event/Event.h>
 #include <event/EventLoop.h>
 #include <event/EventStack.h>

@@ -35,7 +35,7 @@ namespace BASE {
 
 #if (__i386__ || __i386)
 #define MP_CACHE_LINE_ALIGN 4
-#elif (__amd64__ || __amd64)
+#elif (__amd64__ || __amd64 || __x86_64 || __x86_64__)
 #define MP_CACHE_LINE_ALIGN 8
 #else
 #define MP_CACHE_LINE_ALIGN 4
@@ -67,91 +67,123 @@ enum MemFlag {
 };
 
 struct MemBlk {
-  enum MemBlkIdx _blkIdx; /* cannot been changed */
+  MemBlkIdx blk_idx_; /* cannot been changed */
   /* https://blog.csdn.net/ubuntu64fan/article/details/17629509 */
   /* ref_cnt aim to solve wildpointer and object, pointer retain */
-  uint32_t _refCnt;
-  uint32_t _usedSize;
-  uint32_t _magic;
-  void* _buffer;
+  uint32_t ref_cnt_;
+  uint32_t used_size_;
+  uint32_t magic_;
+  void *buffer_;
 
   MemBlk() {}
+  MemBlkIdx blk_id() const { return blk_idx_; }
+  void set_blk_id(MemBlkIdx id) { blk_idx_ = id; }
+  uint32_t ref_cnt() const { return ref_cnt_; }
+  void set_ref_cnt(uint32_t cnt) { ref_cnt_ = cnt; }
+  uint32_t used_size() const { return used_size_; }
+  void set_used_size(uint32_t size) { used_size_ = size; }
+  uint32_t magic() const { return magic_; }
+  void set_magic(uint32_t magic) { magic_ = magic; }
+  void *buffer() { return buffer_; }
+  void set_buffer(void *buffer) { buffer_ = buffer; }
 };
 
 /* Per slab config */
 struct MemSlab {
-  enum MemBlkIdx _blkIdx;
-  uint32_t _minBlkNR;
-  uint32_t _maxBlkNR;
-  uint32_t _growBlkNR;
+  MemBlkIdx blk_idx_;
+  uint32_t min_blk_nr_;
+  uint32_t max_blk_nr_;
+  uint32_t grow_blk_nr_;
 
-  uint32_t _padding;
-  uint32_t _usedBlkNR;
-  std::list<struct MemBlk> _freeBlkList;
-  std::list<struct MemBlk> _usedBlkList;
-  uint32_t _flags;
+  uint32_t padding_;
+  uint32_t used_blk_nr_;
+  std::list<MemBlk> free_blk_list_;
+  ;
+  std::list<MemBlk> used_blk_list_;
+  uint32_t flags_;
 
   MemSlab(enum MemBlkIdx blkIdx, uint32_t minBlkNR, uint32_t maxBlkNR,
           uint32_t growBlkNR) {
-    _blkIdx = blkIdx;
-    _minBlkNR = minBlkNR;
-    _maxBlkNR = maxBlkNR;
-    _growBlkNR = growBlkNR;
+    blk_idx_ = blkIdx;
+    min_blk_nr_ = minBlkNR;
+    max_blk_nr_ = maxBlkNR;
+    grow_blk_nr_ = growBlkNR;
+  }
+
+  void set_blk_id(MemBlkIdx id) { blk_idx_ = id; }
+  MemBlkIdx blk_id() const { return blk_idx_; }
+  uint32_t min_blk_nr() const { return min_blk_nr_; }
+  uint32_t max_blk_nr() const { return max_blk_nr_; }
+  uint32_t grow_blk_nr() const { return grow_blk_nr_; }
+  uint32_t used_blk_nr() const { return used_blk_nr_; }
+
+  bool FreeBlkEmpty() const { return free_blk_list_.empty(); }
+  inline void AddFreeBlk(const MemBlk &blk) {
+    free_blk_list_.push_back(std::move(blk));
+  }
+  void *AllocBlkBuffer() {
+    if (free_blk_list_.empty()) {
+      return nullptr;
+    }
+    auto &blk = free_blk_list_.front();
+    free_blk_list_.pop_front();
+    return blk.buffer();
   }
 };
 
 class MemPool : Noncopyable {
  public:
   explicit MemPool()
-      : _numaId(-1),
-        _safeMt(true),
-        _blkAlign(MP_CACHE_LINE_ALIGN),
-        _flags(0),
-        _mutex() {
-    addDefMemSlab();
+      : numa_id_(-1),
+        safe_mt_(true),
+        blk_algin_(MP_CACHE_LINE_ALIGN),
+        flags_(0),
+        mutex_() {
+    AddDefMemSlab();
   }
   explicit MemPool(const int numaId, const uint32_t blkAlign,
                    bool safeMt = true)
-      : _numaId(numaId),
-        _safeMt(safeMt),
-        _blkAlign(blkAlign),
-        _flags(0),
-        _mutex() {
-    addDefMemSlab();
+      : numa_id_(numaId),
+        safe_mt_(safeMt),
+        blk_algin_(blkAlign),
+        flags_(0),
+        mutex_() {
+    AddDefMemSlab();
   }
   ~MemPool();
 
-  void setNumaId(const int numaId) { _numaId = numaId; }
-  const int numaId() const { return _numaId; }
-  void setBlkAlign(const uint32_t blkAlign) { _blkAlign = blkAlign; }
-  const uint32_t blkAlign() const { return _blkAlign; }
+  void set_numa_id(const int numaId) { numa_id_ = numaId; }
+  const int numa_id() const { return numa_id_; }
+  void set_blk_align(const uint32_t blkAlign) { blk_algin_ = blkAlign; }
+  const uint32_t blk_algin() const { return blk_algin_; }
 
-  bool init();
-  void* alloc(const uint32_t size);
-  void free(const void* ptr);
-  void reduceBlk();
+  bool Init();
+  void *Alloc(const uint32_t size);
+  void Free(const void *ptr);
+  void ReduceBlk();
 
  private:
-  int _numaId;
-  bool _safeMt; /* Mutithread support */
+  int numa_id_;
+  bool safe_mt_; /* Mutithread support */
 
-  uint32_t _blkAlign;
-  uint32_t _maxSlabs;
-  std::vector<struct MemSlab> _slabs;
-  uint32_t _flags;
+  uint32_t blk_algin_;
+  uint32_t max_slab_;
+  std::vector<MemSlab> slabs_;
+  uint32_t flags_;
 
   /* Use memblk buffer addr to find slab,
    * then put memblk to freelist */
-  std::map<uint64_t, uint64_t> _slabBuffMap;
-  std::mutex _mutex;
+  std::map<uint64_t, uint64_t> slab_addr_map_;
+  std::mutex mutex_;
 
-  bool createSlab();
-  bool destroySlab();
+  bool CreateSlab();
+  bool DestroySlab();
 
-  inline enum MemBlkIdx getMemBlkIdx(const uint32_t size);
-  void addMemSlab(enum MemBlkIdx blkIdx, uint32_t minBlkNR, uint32_t maxBlkNR,
+  inline MemBlkIdx GetMemBlkIdx(const uint32_t size);
+  void AddMemSlab(MemBlkIdx blkIdx, uint32_t minBlkNR, uint32_t maxBlkNR,
                   uint32_t growBlkNR);
-  void addDefMemSlab();
+  void AddDefMemSlab();
+  inline void MapBufferAddr(const MemSlab &slab, const void *buffer);
 };
 
 #if 0

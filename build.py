@@ -60,9 +60,11 @@ def MakeBuildClean(buildPath):
 
 
 def InstallDependencies():
+# https://github.com/protocolbuffers/protobuf/releases/download/v3.12.2/protobuf-all-3.12.2.tar.gz
     dependLibs = []
     dependLibs.append("gcc")
     dependLibs.append("g++")
+    dependLibs.append("make")
     dependLibs.append("cmake3")
     dependLibs.append("libnuma-dev")
     dependLibs.append("libprotobuf-dev")

@@ -187,7 +187,7 @@ void AgentServer::handleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs,
   struct iovec body = c->readIovec();
   Agent::LoginRequest login;
   login.ParseFromArray(body.iov_base, proto_->pduLen(bhs));
-  mpool_->free(body.iov_base);
+  mpool_->Free(body.iov_base);
 
   MSF_INFO << "\n Login "
            << "\n name: " << login.name() << "\n cid: " << proto_->srcId(bhs);
@@ -389,7 +389,7 @@ void AgentServer::init(int argc, char **argv) {
 
   mpool_ = new MemPool();
   assert(mpool_);
-  assert(mpool_->init());
+  assert(mpool_->Init());
 
   proto_ = std::make_unique<AgentProto>();
   assert(proto_);

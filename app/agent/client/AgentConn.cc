@@ -16,14 +16,14 @@ namespace MSF {
 namespace AGENT {
 
 AgentConn::AgentConn(/* args */)
-    :  pduCount_(0), mutex_(), txQequeSize_(0), txNeedSend_(0) {}
+    : pduCount_(0), mutex_(), txQequeSize_(0), txNeedSend_(0) {}
 
 AgentConn::~AgentConn() {}
 
 bool AgentConn::doRecvBhs() {
   MSF_INFO << "Recv msg from fd: " << fd_;
   uint32_t count = 0;
-  void *head = mpool_->alloc(AGENT_HEAD_LEN);
+  void *head = mpool_->Alloc(AGENT_HEAD_LEN);
   assert(head);
   struct iovec iov = {head, AGENT_HEAD_LEN};
   int ret = RecvMsg(fd_, &iov, 1, MSG_NOSIGNAL | MSG_DONTWAIT);
@@ -49,7 +49,7 @@ bool AgentConn::doRecvBhs() {
 
   uint32_t len = proto_->pduLen(bhs);
   if (len) {
-    void *body = mpool_->alloc(len);
+    void *body = mpool_->Alloc(len);
     assert(body);
     rxState_ = kRecvPdu;
     iov.iov_base = body;
@@ -164,12 +164,12 @@ bool AgentConn::updateTxOffset(const int ret) {
       MSF_INFO << "iter->iov_len1: " << iter->iov_len
                << " txIovOffset:" << txIovOffset;
       txIovOffset -= iter->iov_len;
-      mpool_->free(iter->iov_base);
+      mpool_->Free(iter->iov_base);
       iter = txBusyIov_.erase(iter);  // return next item
     } else if (txIovOffset == iter->iov_len) {
       MSF_INFO << "iter->iov_len2: " << iter->iov_len
                << " txIovOffset:" << txIovOffset;
-      mpool_->free(iter->iov_base);
+      mpool_->Free(iter->iov_base);
       iter = txBusyIov_.erase(iter);  // return next item
       break;
     } else {
@@ -228,19 +228,19 @@ void AgentConn::doConnClose() {
   MSF_INFO << "txBusyIov_ iovcnt: " << txBusyIov_.size();
   auto iter = txBusyIov_.begin();
   while (iter != txBusyIov_.end()) {
-    mpool_->free(iter->iov_base);
+    mpool_->Free(iter->iov_base);
     iter = txBusyIov_.erase(iter);
   }
   MSF_INFO << "txQequeIov_ iovcnt: " << txQequeIov_.size();
   iter = txQequeIov_.begin();
   while (iter != txQequeIov_.end()) {
-    mpool_->free(iter->iov_base);
+    mpool_->Free(iter->iov_base);
     iter = txQequeIov_.erase(iter);
   }
   MSF_INFO << "rxQequeIov_ iovcnt: " << rxQequeIov_.size();
   auto it = rxQequeIov_.begin();
   while (it != rxQequeIov_.end()) {
-    mpool_->free(it->iov_base);
+    mpool_->Free(it->iov_base);
     it = rxQequeIov_.erase(it);
   }
 }

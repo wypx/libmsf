@@ -35,7 +35,7 @@ void AgentClient::init(EventLoop *loop, const std::string &name,
 
   mpool_ = new MemPool();
   assert(mpool_);
-  assert(mpool_->init());
+  assert(mpool_->Init());
 
   proto_ = std::make_unique<AgentProto>();
   assert(proto_);
@@ -69,7 +69,7 @@ AgentClient::~AgentClient() {
 }
 
 char *AgentClient::allocBuffer(const uint32_t len) {
-  return static_cast<char *>(mpool_->alloc(len));
+  return static_cast<char *>(mpool_->Alloc(len));
 }
 
 void AgentClient::connectAgent() {
@@ -169,14 +169,14 @@ bool AgentClient::loginAgent() {
     proto_->debugBhs(bhs);
     MSF_INFO << "Bhs pb size: " << bhs.ByteSizeLong();
 
-    void *head = mpool_->alloc(AGENT_HEAD_LEN);
+    void *head = mpool_->Alloc(AGENT_HEAD_LEN);
     assert(head);
     bhs.SerializeToArray(head, AGENT_HEAD_LEN);
 
     conn_->writeBuffer(head, AGENT_HEAD_LEN);
 
     /* 无包体(心跳包等),在proto3的使用上以-1表示包体长度为0 */
-    void *body = mpool_->alloc(login.ByteSizeLong());
+    void *body = mpool_->Alloc(login.ByteSizeLong());
     assert(body);
     login.SerializeToArray(body, login.ByteSizeLong());
     conn_->writeBuffer(body, login.ByteSizeLong());
@@ -210,7 +210,7 @@ void AgentClient::handleRxCmd() {
       handleRequest(bhs, head);
     } else {
       handleResponce(bhs);
-      mpool_->free(head.iov_base);
+      mpool_->Free(head.iov_base);
     }
   }
 }
@@ -267,7 +267,7 @@ void AgentClient::handleBasicRsp(const Agent::AgentBhs &bhs) {
         assert(body.iov_len == pdu->rspload_.iov_len);
         memcpy(pdu->rspload_.iov_base, body.iov_base, body.iov_len);
       }
-      mpool_->free(body.iov_base);
+      mpool_->Free(body.iov_base);
     }
     if (pdu->timeOut_) {
       pdu->postAck();
@@ -318,13 +318,13 @@ int AgentClient::sendPdu(const AgentPduPtr pdu) {
   proto_->debugBhs(bhs);
   MSF_INFO << "Bhs pb size: " << bhs.ByteSizeLong();
 
-  void *head = mpool_->alloc(AGENT_HEAD_LEN);
+  void *head = mpool_->Alloc(AGENT_HEAD_LEN);
   assert(head);
   bhs.SerializeToArray(head, AGENT_HEAD_LEN);
   conn_->writeBuffer(head, AGENT_HEAD_LEN);
 
   if (pdu->payload_.iov_len) {
-    void *body = mpool_->alloc(pdu->payload_.iov_len);
+    void *body = mpool_->Alloc(pdu->payload_.iov_len);
     assert(body);
     memcpy(body, pdu->payload_.iov_base, pdu->payload_.iov_len);
     conn_->writeBuffer(body, pdu->payload_.iov_len);

@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef BAS_GCCATTR_H
-#define BAS_GCCATTR_H
+#ifndef LIB_BASE_GCCATTR_H_
+#define LIB_BASE_GCCATTR_H_
 
 #include <sys/cdefs.h>
 

@@ -13,11 +13,11 @@
 #ifndef AGENT_CLIENT_AGENTCONN_H
 #define AGENT_CLIENT_AGENTCONN_H
 
-#include <agent/proto/AgentProto.h>
 #include <base/mem/Buffer.h>
 #include <base/mem/MemPool.h>
 #include <event/EventLoop.h>
 #include <sock/Connector.h>
+#include <agent/proto/AgentProto.h>
 
 using namespace MSF::BASE;
 using namespace MSF::SOCK;

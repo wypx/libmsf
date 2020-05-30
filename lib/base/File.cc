@@ -39,7 +39,7 @@ int mkdir(const char *path, int mode) {
 
 DIR *opendir(const char *name) {
 	char namebuf[512];
-	sprintf(namebuf, "%s\\*.*", name);
+	snprintf(namebuf, sizeof(namebuf)-1, "%s\\*.*", name);
 
 	WIN32_FIND_DATAA FindData;
     auto hFind = FindFirstFileA(namebuf, &FindData);

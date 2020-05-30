@@ -28,22 +28,15 @@ namespace MSF {
 namespace AGENT {
 
 AgentServer::AgentServer() {
-  maxBytes_ = 64 * 1024 * 1024; /* default is 64MB */
-  ipAddr4_ = "127.0.0.1";
-  tcpPort_ = 8888;
-  perConnsAlloc_ = 8;
-
-  if (confFile_.empty()) {
-    confFile_ = DEFAULT_CONF_PATH;
-  }
-  if (logFile_.empty()) {
-    logFile_ = DEFAULT_LOG_PATH;
-  }
+  max_bytes_ = 64 * 1024 * 1024; /* default is 64MB */
+  ip_addr4_ = "127.0.0.1";
+  tcp_port_ = 8888;
+  per_alloc_conns_ = 8;
 }
 
 AgentServer::~AgentServer() {}
 
-void AgentServer::debugInfo() {
+void AgentServer::DebugInfo() {
   std::cout << std::endl;
   std::cout << "Agent Server Options:" << std::endl;
   std::cout << " -c, --conf=FILE        The configure file." << std::endl;
@@ -74,7 +67,7 @@ void AgentServer::debugInfo() {
   std::cout << std::endl;
 }
 
-void AgentServer::parseOption(int argc, char **argv) {
+void AgentServer::ParseOption(int argc, char **argv) {
   /* 浅谈linux的命令行解析参数之getopt_long函数
    * https://blog.csdn.net/qq_33850438/article/details/80172275
    **/
@@ -96,43 +89,37 @@ void AgentServer::parseOption(int argc, char **argv) {
     }
     switch (c) {
       case 'c':
-        printf("c: %s\n", optarg);
-        confFile_ = std::string(optarg);
+        config_file_ = std::string(optarg);
         break;
       case 's':
-        printf("s: %s\n", optarg);
-        ipAddr4_ = std::string(optarg);
+        ip_addr4_ = std::string(optarg);
         break;
       case 'p':
-        printf("p: %s\n", optarg);
-        tcpPort_ = atoi(optarg);
+        tcp_port_ = atoi(optarg);
         break;
       case 'g':
-        printf("d: %s\n", optarg);
         break;
       case 'd':
-        printf("d: %s\n", optarg);
-        daemon_ = static_cast<bool>(atoi(optarg));
+        daemon_ = true;
         break;
       case 'v':
-        printf("v: %s\n", optarg);
         MSF::BuildInfo();
         exit(0);
       case 'h':
-        debugInfo();
+        DebugInfo();
         exit(0);
       case '?':
       default:
-        debugInfo();
+        DebugInfo();
         exit(1);
     }
   }
   return;
 }
 
-bool AgentServer::initConfig() {
+bool AgentServer::LoadConfig() {
   IniFile ini;
-  assert(ini.Load(confFile_) == 0);
+  assert(ini.Load(config_file_) == 0);
 
   if (!ini.HasSection("Logger") || !ini.HasSection("System") ||
       !ini.HasSection("Network") || !ini.HasSection("Protocol") ||
@@ -140,30 +127,28 @@ bool AgentServer::initConfig() {
     MSF_ERROR << "Confiure invalid, check sections";
     return false;
   }
-
+#if 0
   assert(ini.GetStringValue("", "Version", &version_) == 0);
-  assert(ini.GetIntValue("Logger", "logLevel", &logLevel_) == 0);
-  assert(ini.GetStringValue("Logger", "logFile", &logFile_) == 0);
+  assert(ini.GetIntValue("Logger", "logLevel", &log_level_) == 0);
+  assert(ini.GetStringValue("Logger", "logFile", &log_dir_) == 0);
 
-  assert(ini.GetStringValue("System", "pidFile", &pidFile_) == 0);
+  assert(ini.GetStringValue("System", "pidFile", &pid_file_) == 0);
   assert(ini.GetBoolValue("System", "daemon", &daemon_) == 0);
-  assert(ini.GetIntValue("System", "maxThread", &maxThread_) == 0);
-  assert(ini.GetIntValue("System", "maxQueue", &maxQueue_) == 0);
+  assert(ini.GetIntValue("System", "maxThread", &work_thread_num_) == 0);
 
-  assert(ini.GetValues("Plugins", "plugins", &pluginsList_) == 0);
+  assert(ini.GetValues("Plugins", "plugins", &plugins_) == 0);
 
-  assert(ini.GetStringValue("Network", "unixPath", &unixPath_) == 0);
-  assert(ini.GetIntValue("Network", "backLog", &backLog_) == 0);
-  assert(ini.GetStringValue("Network", "ipAddr4", &ipAddr4_) == 0);
-  assert(ini.GetStringValue("Network", "ipAddr6", &ipAddr6_) == 0);
-  assert(ini.GetIntValue("Network", "tcpPort", &tcpPort_) == 0);
-  assert(ini.GetIntValue("Network", "udpPort", &udpPort_) == 0);
-  assert(ini.GetStringValue("Network", "unixPath", &unixPath_) == 0);
-  assert(ini.GetStringValue("Network", "unixMask", &unixMask_) == 0);
+  assert(ini.GetIntValue("Network", "backLog", &back_log_) == 0);
+  assert(ini.GetStringValue("Network", "ipAddr4", &ip_addr4_) == 0);
+  assert(ini.GetStringValue("Network", "ipAddr6", &ip_addr6_) == 0);
+  assert(ini.GetIntValue("Network", "tcpPort", &tcp_port_) == 0);
+  assert(ini.GetIntValue("Network", "udpPort", &udp_port_) == 0);
+  assert(ini.GetStringValue("Network", "unixPath", &unix_path_) == 0);
+  assert(ini.GetStringValue("Network", "unixMask", &unix_mask_) == 0);
 
-  assert(ini.GetBoolValue("Protocol", "authChap", &authChap_) == 0);
-  assert(ini.GetStringValue("Protocol", "packType", &packType_) == 0);
-
+  assert(ini.GetBoolValue("Protocol", "authChap", &agent_auth_chap_) == 0);
+  assert(ini.GetStringValue("Protocol", "packType", &agent_pack_type_) == 0);
+#endif
   // ini.setValue("COMMON", "DB", "sys", "数据库");
   // ini.setValue("COMMON", "PASSWD", "root", "数据库密码");
   // ini.setValue("", "NAME", "cxy", "");
@@ -178,11 +163,11 @@ bool AgentServer::initConfig() {
   return true;
 }
 
-void AgentServer::succConn(AgentConnPtr c) {
+void AgentServer::SuccConn(AgentConnPtr c) {
   MSF_INFO << "Succ conn for fd: " << c->fd();
 }
 
-void AgentServer::handleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs,
+void AgentServer::HandleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs,
                                    struct iovec &head) {
   struct iovec body = c->readIovec();
   Agent::LoginRequest login;
@@ -192,7 +177,7 @@ void AgentServer::handleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs,
   MSF_INFO << "\n Login "
            << "\n name: " << login.name() << "\n cid: " << proto_->srcId(bhs);
   c->setCid(static_cast<uint32_t>(proto_->srcId(bhs)));
-  activeConns_[proto_->srcId(bhs)] = c;
+  active_conns_[proto_->srcId(bhs)] = c;
   {
     Agent::AppId tmpId = proto_->srcId(bhs);
     proto_->setSrcId(bhs, proto_->dstId(bhs));
@@ -209,12 +194,12 @@ void AgentServer::handleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs,
   c->enableWriting();
 }
 
-void AgentServer::handleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs,
+void AgentServer::HandleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs,
                                      struct iovec &head) {
   // debugAgentBhs(bhs);
-  auto itor = activeConns_.find(proto_->dstId(bhs));
+  auto itor = active_conns_.find(proto_->dstId(bhs));
   MSF_INFO << "Peer cid: " << proto_->dstId(bhs);
-  if (itor != activeConns_.end()) {
+  if (itor != active_conns_.end()) {
     AgentConnPtr peer = (AgentConnPtr)itor->second;
     MSF_INFO << "\n Send cmd to"
              << "\n cmd: " << proto_->command(bhs) << "\n cid: " << peer->cid();
@@ -251,7 +236,7 @@ void AgentServer::handleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs,
   }
 }
 
-bool AgentServer::verifyAgentBhs(const Agent::AgentBhs &bhs) {
+bool AgentServer::VerifyAgentBhs(const Agent::AgentBhs &bhs) {
   if (unlikely(proto_->magic(bhs) != kAgentMagic)) {
     MSF_ERROR << "Unkown agent magic from: " << proto_->srcId(bhs);
     return false;
@@ -263,9 +248,9 @@ bool AgentServer::verifyAgentBhs(const Agent::AgentBhs &bhs) {
   return true;
 }
 
-void AgentServer::handleAgentPdu(AgentConnPtr c, struct iovec &head) {}
+void AgentServer::HandleAgentPdu(AgentConnPtr c, struct iovec &head) {}
 
-void AgentServer::readConn(AgentConnPtr c) {
+void AgentServer::ReadConn(AgentConnPtr c) {
   if (unlikely(c->fd() <= 0)) {
     return;
   }
@@ -281,22 +266,22 @@ void AgentServer::readConn(AgentConnPtr c) {
     bhs.ParseFromArray(head.iov_base, AGENT_HEAD_LEN);
     proto_->debugBhs(bhs);
 
-    if (!verifyAgentBhs(bhs)) {
+    if (!VerifyAgentBhs(bhs)) {
       c->doConnClose();
       return;
     }
     switch (static_cast<Agent::Command>(proto_->command(bhs))) {
       case Agent::Command::CMD_REQ_NODE_REGISTER:
-        handleAgentLogin(c, bhs, head);
+        HandleAgentLogin(c, bhs, head);
         break;
       default:
-        handleAgentRequest(c, bhs, head);
+        HandleAgentRequest(c, bhs, head);
         break;
     }
   }
 }
 
-void AgentServer::writeConn(AgentConnPtr c) {
+void AgentServer::WriteConn(AgentConnPtr c) {
   if (unlikely(c->fd() <= 0)) {
     return;
   }
@@ -304,53 +289,53 @@ void AgentServer::writeConn(AgentConnPtr c) {
   c->doConnWrite();
 }
 
-void AgentServer::freeConn(AgentConnPtr c) {
+void AgentServer::FreeConn(AgentConnPtr c) {
   if (unlikely(c->fd() <= 0)) {
     return;
   }
   MSF_INFO << "Close conn for fd: " << c->fd();
   c->doConnClose();
   std::lock_guard<std::mutex> lock(mutex_);
-  activeConns_.erase(static_cast<Agent::AppId>(c->cid()));
-  freeConns_.push_back(c);
+  active_conns_.erase(static_cast<Agent::AppId>(c->cid()));
+  free_conns_.push_back(c);
 }
 
 /* Callback when acceptor epoll read event hanppen */
-void AgentServer::newConn(const int fd, const uint16_t event) {
+void AgentServer::NewConn(const int fd, const uint16_t event) {
   std::lock_guard<std::mutex> lock(mutex_);
   /* If single thread to handle accept, so no mutex guard */
-  if (unlikely(freeConns_.empty())) {
-    for (int i = 0; i < perConnsAlloc_; ++i) {
+  if (unlikely(free_conns_.empty())) {
+    for (uint32_t i = 0; i < per_alloc_conns_; ++i) {
       AgentConnPtr conn = std::make_shared<AgentConn>();
       if (conn == nullptr) {
         MSF_ERROR << "Fail to alloc connection for fd: " << fd;
         close(fd);
         return;
       }
-      freeConns_.push_back(conn);
+      free_conns_.push_back(conn);
     }
   }
 
-  AgentConnPtr c = freeConns_.front();
-  freeConns_.pop_front();
+  AgentConnPtr c = free_conns_.front();
+  free_conns_.pop_front();
 
   MSF_INFO << "Alloc connection for fd: " << fd;
 
   c->init(mpool_, stack_->getHashLoop(), fd);
-  c->setSuccCallback(std::bind(&AgentServer::succConn, this, c));
-  c->setReadCallback(std::bind(&AgentServer::readConn, this, c));
-  c->setWriteCallback(std::bind(&AgentServer::writeConn, this, c));
-  c->setCloseCallback(std::bind(&AgentServer::freeConn, this, c));
+  c->setSuccCallback(std::bind(&AgentServer::SuccConn, this, c));
+  c->setReadCallback(std::bind(&AgentServer::ReadConn, this, c));
+  c->setWriteCallback(std::bind(&AgentServer::WriteConn, this, c));
+  c->setCloseCallback(std::bind(&AgentServer::FreeConn, this, c));
   c->enableBaseEvent();
   return;
 }
 
-bool AgentServer::initListen() {
+bool AgentServer::InitNetwork() {
   for (uint32_t i = 0; i < 1; ++i) {
-    InetAddress addr(ipAddr4_.c_str(), tcpPort_, AF_INET, SOCK_STREAM);
+    InetAddress addr(ip_addr4_.c_str(), tcp_port_, AF_INET, SOCK_STREAM);
     std::shared_ptr<Acceptor> actor = std::make_shared<Acceptor>(
         stack_->getBaseLoop(), addr,
-        std::bind(&AgentServer::newConn, this, std::placeholders::_1,
+        std::bind(&AgentServer::NewConn, this, std::placeholders::_1,
                   std::placeholders::_2));
     if (!actor) {
       MSF_INFO << "Fail to alloc acceptor for " << addr.hostPort2String();
@@ -372,20 +357,20 @@ bool AgentServer::initListen() {
   return true;
 }
 
-void AgentServer::init(int argc, char **argv) {
-  parseOption(argc, argv);
+void AgentServer::Init(int argc, char **argv) {
+  ParseOption(argc, argv);
 
-  if (!IsFileExist(logFile_)) {
-    std::string logDIR = GetRealPath(logFile_);
-    if (!IsDirsExist(logDIR)) {
-      MSF_INFO << "Logger dir " << logDIR << " not exist";
-      assert(CreateFullDir(logDIR));
-    }
-  }
+  // if (!IsFileExist(log_dir_)) {
+  //   std::string logDIR = GetRealPath(log_dir_);
+  //   if (!IsDirsExist(logDIR)) {
+  //     MSF_INFO << "Logger dir " << logDIR << " not exist";
+  //     assert(CreateFullDir(logDIR));
+  //   }
+  // }
 
-  assert(Logger::getLogger().init(logFile_.c_str()));
+  assert(Logger::getLogger().init(log_dir_.c_str()));
 
-  assert(initConfig());
+  assert(LoadConfig());
 
   mpool_ = new MemPool();
   assert(mpool_);
@@ -401,10 +386,10 @@ void AgentServer::init(int argc, char **argv) {
   threadArgs.push_back(std::move(ThreadArg("AgentLoop")));
   assert(stack_->startThreads(threadArgs));
 
-  assert(initListen());
+  assert(InitNetwork());
 }
 
-void AgentServer::start() {
+void AgentServer::Start() {
   stack_->start();
   return;
 }
@@ -414,7 +399,7 @@ void AgentServer::start() {
 
 int main(int argc, char *argv[]) {
   AgentServer srv = AgentServer();
-  srv.init(argc, argv);
-  srv.start();
+  srv.Init(argc, argv);
+  srv.Start();
   return 0;
 }

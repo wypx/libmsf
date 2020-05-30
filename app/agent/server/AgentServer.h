@@ -34,77 +34,76 @@ using namespace MSF::AGENT;
 namespace MSF {
 namespace AGENT {
 
-#define DEFAULT_QUEUE_SIZE (32)
-#define DEFAULT_UNIX_PATH "/var/tmp/AgentServer.sock"
-#define DEFAULT_CONF_PATH "/home/luotang.me/conf/AgentServer.conf"
-#define DEFAULT_LOG_PATH "/home/luotang.me/log/AgentServer.log"
+static const std::string kDefaultUnixPath = "/var/tmp/AgentServer.sock";
+static const std::string kDefaultConfPath = "/home/luotang.me/conf/AgentServer.conf";
+static const std::string kDefaultLogDirPath = "/home/luotang.me/log/";
 
 class AgentServer : public Noncopyable {
  public:
   AgentServer();
   ~AgentServer();
 
-  void init(int argc, char **argv);
-  void start();
+  void Init(int argc, char **argv);
+  void Start();
 
  private:
-  bool verifyAgentBhs(const Agent::AgentBhs &bhs);
-  void handleAgentPdu(AgentConnPtr c, struct iovec &head);
-  void handleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs,
+  bool VerifyAgentBhs(const Agent::AgentBhs &bhs);
+  void HandleAgentPdu(AgentConnPtr c, struct iovec &head);
+  void HandleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs,
                         struct iovec &head);
-  void handleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs,
+  void HandleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs,
                           struct iovec &head);
 
-  void succConn(AgentConnPtr c);
-  void readConn(AgentConnPtr c);
-  void writeConn(AgentConnPtr c);
-  void freeConn(AgentConnPtr c);
-  void newConn(const int fd, const uint16_t event);
+  void SuccConn(AgentConnPtr c);
+  void ReadConn(AgentConnPtr c);
+  void WriteConn(AgentConnPtr c);
+  void FreeConn(AgentConnPtr c);
+  void NewConn(const int fd, const uint16_t event);
 
-  void debugInfo();
-  void parseOption(int argc, char **argv);
-  bool initConfig();
-  bool initListen();
+  void DebugInfo();
+  void ParseOption(int argc, char **argv);
+  bool LoadConfig();
+  bool InitNetwork();
 
  private:
   std::string version_;
-  std::string confFile_;
+  std::string config_file_;
   bool daemon_;
-  int logLevel_;
-  std::string logFile_;
-  std::string pidFile_;
-  std::vector<std::string> pluginsList_;
+  int log_level_;
+  std::string log_dir_;
+  std::string pid_file_;
+  std::vector<std::string> plugins_;
 
-  std::string ipAddr4_;
-  std::string ipAddr6_;
-  int tcpPort_;
-  int udpPort_;
-  int backLog_;
-  int maxConns_; /* Max online client, different from backlog */
-  int perConnsAlloc_;
-  std::string unixPath_;
-  std::string unixMask_;
+  std::string ip_addr4_;
+  std::string ip_addr6_;
+  uint16_t tcp_port_;
+  uint16_t udp_port_;
+  uint32_t back_log_;
+  uint32_t max_conns_; /* Max online client, different from backlog */
+  uint32_t per_alloc_conns_;
+  std::string unix_path_;
+  uint32_t unix_mask_;
 
   struct {
     bool timeout_ : 1;
     bool close_ : 1; /*conn closed state*/
-    bool sendFile_ : 1;
-    bool sndLowat_ : 1;
-    bool tcpNoDelay_ : 2; /* Unix socket default disable */
-    bool tcpNoPush_ : 2;
-    bool keepAlive_ : 1;
+    bool send_file_ : 1;
+    bool ssnd_lowat_ : 1;
+    bool tcp_nodelay_ : 2; /* Unix socket default disable */
+    bool tcp_nopush_ : 2;
+    bool keep_alive_ : 1;
   } opt;
-  std::string zkAddr_;
-  int zkPort_;
+  std::string zk_addr_;
+  uint16_t zk_port_;
 
   /*
    * Each thread instance has a wakeup pipe, which other threads
    * can use to signal that they've put a new connection on its queue.
    */
   int maxQueue_;
-  int maxThread_;
-  bool authChap_;
-  std::string packType_;
+  uint32_t work_thread_num_;
+  bool agent_auth_chap_;
+  std::string agent_pack_type_;
 
   enum SocketFdType {
     UNIX_SOCKET,
@@ -112,34 +111,34 @@ class AgentServer : public Noncopyable {
     TCP_SOCKET_V6,
     UDP_SOCKET_V4,
     UDP_SOCKET_V6,
-    SOCKET_TYPEMAX,
+    SOCKET_TYPE_MAX
   };
 
   std::mutex mutex_;
   /* If accept in sigle thread, no need to use mutex guard activeConns_ */
-  bool accpetSafe_ = true;
+  bool accpet_safe_ = true;
   /* Mutiple connections supported, such as tcp, udp, unix, event fd and etc*/
-  std::map<Agent::AppId, AgentConnPtr> activeConns_;
-  std::list<AgentConnPtr> freeConns_;
-  std::atomic_uint64_t connId_; /* increment connection id for server register*/
+  std::map<Agent::AppId, AgentConnPtr> active_conns_;
+  std::list<AgentConnPtr> free_conns_;
+  std::atomic_uint64_t conn_id_; /* increment connection id for server register*/
 
   bool started_;
   bool exiting_;
 
   pid_t pid_;
 
-  uint32_t maxFds_;
-  uint32_t maxBytes_; /* 64*1024*1025 64MB */
-  uint32_t maxCores_;
-  uint32_t usedCores_;
+  uint32_t max_fds_;
+  uint32_t max_bytes_; /* 64*1024*1025 64MB */
+  uint32_t max_cores_;
+  uint32_t used_cores_;
 
-  uint32_t maxCmds_;
-  uint32_t activeCmds_;
-  uint32_t failCmds_;
+  uint32_t max_cmds_;
+  uint32_t active_cmds_;
+  uint32_t fail_cmds_;
 
-  std::list<struct AgentCmd *> freeCmdList_;
+  std::list<struct AgentCmd *> free_cmd_list_;
 
-  PluginManager *pluginMGR_;
+  PluginManager *plugin_manager_;
 
   MemPool *mpool_;
   ThreadPool *pool;

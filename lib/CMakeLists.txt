@@ -1,12 +1,12 @@
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)      # 指定 cmake 的最小版本
-cmake_policy(VERSION 3.15)
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)      # 指定 cmake 的最小版本
+cmake_policy(VERSION 3.10.2)
 project(MSF_LIB_PROJECT)                                    # 设置项目名称
 
 # 加入一个配置头文件,用于处理 CMake 对源码的设置
 configure_file (
-    "${PROJECT_SOURCE_DIR}/conf/Config.h.in"
-    "${PROJECT_SOURCE_DIR}/conf/Config.h"
-    )
+    "${PROJECT_SOURCE_DIR}/Base/Config.h.in"
+    "${PROJECT_SOURCE_DIR}/Base/Config.h"
+)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../cmake)
 include (${CMAKE_MODULE_PATH}/FindNUMA.cmake)
@@ -28,12 +28,18 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17 -fPIC -O3 -Wall -g -ggdb")
 # 宏定义
 add_definitions(-DMSF_UNIX_IPC)
 
+message(STATUS "===> ${CMAKE_CURRENT_SOURCE_DIR}")
 # 设置包含的头文件目录
 # 其他方式: set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/lib/
+    ${CMAKE_CURRENT_SOURCE_DIR}/
+    ${CMAKE_CURRENT_SOURCE_DIR}/Base
+    ${CMAKE_CURRENT_SOURCE_DIR}/Network
+    ${CMAKE_CURRENT_SOURCE_DIR}/Network/Event
+    ${CMAKE_CURRENT_SOURCE_DIR}/Network/Sock
+    ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/incubator-brpc/src/
 )
 
 #set(CMAKE_VERBOSE_MAKEFILE ON)
@@ -52,10 +58,24 @@ else()
     SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -fPIC -O3 -Wall")
 endif()
 
-add_subdirectory (base msf_base)
-add_subdirectory (encrypt msf_encrypt)
-add_subdirectory (sock msf_sock)
-add_subdirectory (event msf_event)
+aux_source_directory(Base DIR_SRCS)
+aux_source_directory(Network/Event DIR_SRCS)
+aux_source_directory(Network/Sock DIR_SRCS)
+
+add_library(MSF STATIC ${DIR_SRCS})
+
+#msf_redefine_file(msf_base)
+#add_definitions(-Wno-builtin-macro-redefined)
+
+#install(TARGETS MSF LIBRARY DESTINATION lib)
+#install(FILES * DESTINATION include/msf/)
+
+INSTALL(
+  TARGETS MSF
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  COMPONENT library
+)
 
 # $ENV{HOME}/usr
 set(CMAKE_INSTALL_PREFIX /home/luotang.me)                      # 安装路径前缀 /home/xxx/usr

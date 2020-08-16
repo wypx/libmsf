@@ -35,28 +35,28 @@ const char *stunMethodName(const enum StunMethod method)
 void Stun::debugNatType(const enum StunNatType type) {
   switch (type) {
     case StunTypeOpen:
-      MSF_INFO << "No NAT detected - P2P should work";
+      LOG(INFO) << "No NAT detected - P2P should work";
       break;
     case StunTypeConeNat:
-      MSF_INFO << "NAT type: Full Cone Nat detect - P2P will work with STUN";
+      LOG(INFO) << "NAT type: Full Cone Nat detect - P2P will work with STUN";
       break;
     case StunTypeRestrictedNat:
-      MSF_INFO << "NAT type: Address restricted - P2P will work with STUN";
+      LOG(INFO) << "NAT type: Address restricted - P2P will work with STUN";
       break;
     case StunTypePortRestrictedNat:
-      MSF_INFO << "NAT type: Port restricted - P2P will work with STUN";
+      LOG(INFO) << "NAT type: Port restricted - P2P will work with STUN";
       break;
     case StunTypeSymNat:
-      MSF_INFO << "NAT type: Symetric - P2P will NOT work";
+      LOG(INFO) << "NAT type: Symetric - P2P will NOT work";
       break;
     case StunTypeBlocked:
-      MSF_INFO << "Could not reach the stun server - check server name is correct";
+      LOG(INFO) << "Could not reach the stun server - check server name is correct";
       break;
     case StunTypeFailure:
-      MSF_INFO << "Local network is not work!";
+      LOG(INFO) << "Local network is not work!";
       break;
     default:
-      MSF_INFO << "Unkown NAT type";
+      LOG(INFO) << "Unkown NAT type";
       break;
   }
 }

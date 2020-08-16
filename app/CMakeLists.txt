@@ -1,23 +1,28 @@
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)      # 指定 cmake 的最小版本
-cmake_policy(VERSION 3.15)
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)      # 指定 cmake 的最小版本
+cmake_policy(VERSION 3.10.2)
 project(MSF_LIB_PROJECT)                                    # 设置项目名称
 
+message(STATUS "==>${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Agent
+    ${CMAKE_CURRENT_SOURCE_DIR}/Agent/Proto
+    ${CMAKE_CURRENT_SOURCE_DIR}/Agent/Client
     ${CMAKE_CURRENT_SOURCE_DIR}/../lib/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../app/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../app/agent
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/Base
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/Network
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/Network/Event
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/Network/Sock
+    ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/incubator-brpc/src/
 )
 
 # 设置链接库搜索目录
 link_directories(
-    ${PROJECT_SOURCE_DIR}/../build/lib/msf_base/
-    ${PROJECT_SOURCE_DIR}/../build/lib/msf_sock/
-    ${PROJECT_SOURCE_DIR}/../build/lib/msf_event/
-    ${PROJECT_SOURCE_DIR}/../build/app/msf_proto/
-    ${PROJECT_SOURCE_DIR}/../build/app/msf_agent/
     ${PROJECT_SOURCE_DIR}/../build/lib/
+    ${PROJECT_SOURCE_DIR}/../build/app/AgentProto/
+    ${PROJECT_SOURCE_DIR}/../build/app/AgentClient
+    ${PROJECT_SOURCE_DIR}/../thirdparty/incubator-brpc
 )
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../cmake)
@@ -36,9 +41,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17 -fPIC -O3 -Wall -g -ggdb")
 
 # 设置安装前缀
 # https://blog.csdn.net/qq_38410730/article/details/102837401
-set(CMAKE_INSTALL_PREFIX /home/luotang.me) 
+set(CMAKE_INSTALL_PREFIX /home/luotang.me)
 
-add_subdirectory (agent AgentServer)
-add_subdirectory (guard Guard)
-add_subdirectory (shell Shell)
-add_subdirectory (mobile Mobile)
+add_subdirectory (Agent AgentServer)
+add_subdirectory (Guard Guard)
+add_subdirectory (Shell Shell)
+#add_subdirectory (Mobile Mobile)

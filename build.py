@@ -66,6 +66,7 @@ def InstallDependencies():
     dependLibs.append("g++")
     dependLibs.append("make")
     dependLibs.append("cmake3")
+    # sudo apt-get install libaio-dev 
     dependLibs.append("libnuma-dev")
     dependLibs.append("libprotobuf-dev")
     dependLibs.append("protobuf-compiler")

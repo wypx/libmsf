@@ -15,15 +15,14 @@
 
 #pragma once
 
-#include <base/Uio.h>
-
 #include <algorithm>
 #include <cerrno>
+
+#include "Uio.h"
 
 using namespace MSF::IO;
 
 namespace MSF {
-namespace IO {
 
 /**
  * Helper functions and templates for FileUtil.cpp.  Declared here so
@@ -108,6 +107,5 @@ ssize_t wrapvFull(F f, int fd, iovec* iov, int count, Offset... offset) {
   return totalBytes;
 }
 
-}  // namespace IO
 }  // namespace MSF
 #endif

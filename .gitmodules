@@ -31,3 +31,9 @@
 [submodule "thirdparty/baidu/braft"]
 	path = thirdparty/baidu/braft
 	url = https://github.com/baidu/braft.git
+[submodule "thirdparty/tcpdump"]
+	path = thirdparty/tcpdump
+	url = https://github.com/the-tcpdump-group/tcpdump.git
+[submodule "thirdparty/libpcap"]
+	path = thirdparty/libpcap
+	url = https://github.com/the-tcpdump-group/libpcap.git

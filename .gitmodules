@@ -37,3 +37,6 @@
 [submodule "thirdparty/libpcap"]
 	path = thirdparty/libpcap
 	url = https://github.com/the-tcpdump-group/libpcap.git
+[submodule "thirdparty/iperf"]
+	path = thirdparty/iperf
+	url = https://github.com/esnet/iperf.git

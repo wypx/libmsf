@@ -25,3 +25,9 @@
 [submodule "thirdparty/libaio"]
 	path = thirdparty/libaio
 	url = https://github.com/leitao/libaio.git
+[submodule "thirdparty/baidu/incubator-brpc"]
+	path = thirdparty/baidu/incubator-brpc
+	url = https://github.com/wypx/incubator-brpc.git
+[submodule "thirdparty/baidu/braft"]
+	path = thirdparty/baidu/braft
+	url = https://github.com/baidu/braft.git

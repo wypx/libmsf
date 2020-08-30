@@ -7,6 +7,7 @@ import os
 # import pymongo
 import subprocess
 import re
+import commands
 
 
 def help():
@@ -14,6 +15,19 @@ def help():
 
 def write_result(f, set_id, ip, cnt):
   f.write(set_id + " " + ip + " " + str(cnt) + "\n")
+
+
+def check_process_exist(self, name):
+  cmd = 'ps -aux | grep -v grep | grep -w %s | egrep -v \"grep|vim|vi|less|bash\" | wc -l' % name
+  status, output = commands.getstatusoutput(cmd)
+  # 获取失败不算
+  if status != 0:
+    return  True
+  process_num = int(output.split()[0].strip())
+  if process_num > 0:
+    return True
+  else:
+    return False
 
 def get_process_cnt(ip):
   cmd = 'ssh root@%s \"ps -aux | grep -v grep | grep -w metaserver | grep -v grep | wc -l\"' % ip

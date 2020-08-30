@@ -1,4 +1,7 @@
+#include "Process.h"
+
 #include <assert.h>
+#include <butil/logging.h>
 #include <dirent.h>
 #include <pwd.h>
 #include <stdio.h>  // snprintf
@@ -6,11 +9,8 @@
 #include <sys/resource.h>
 #include <sys/times.h>
 #include <unistd.h>
+
 #include <algorithm>
-#include <butil/logging.h>
-
-#include "Process.h"
-
 
 using namespace MSF;
 
@@ -518,7 +518,7 @@ pid_t write_pid (const char *pidfile)
       close(fd);
       return 0;
   }
-  
+
 #ifdef HAVE_FLOCK
   if (flock(fd, LOCK_EX|LOCK_NB) == -1) {
       fclose(f);

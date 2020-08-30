@@ -10,16 +10,17 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef LIB_THREAD_H_
-#define LIB_THREAD_H_
+#ifndef BASE_THREAD_H_
+#define BASE_THREAD_H_
+
+#include <pthread.h>  // std::thread
+#include <sys/syscall.h>
 
 #include <atomic>  // std::atomic_flag
 #include <condition_variable>
 #include <functional>
 #include <iostream>
 #include <thread>  // std::thread
-#include <pthread.h>  // std::thread
-#include <sys/syscall.h>
 
 #include "CountDownLatch.h"
 #include "GccAttr.h"

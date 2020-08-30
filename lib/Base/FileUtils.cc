@@ -10,13 +10,13 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
+#include "FileUtils.h"
+
 #include <sys/file.h>
 #include <unistd.h>
 
-#include "FileUtils.h"
 #include "FileDetails.h"
 #include "Uio.h"
-
 
 using namespace MSF;
 

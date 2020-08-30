@@ -10,21 +10,22 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include <unistd.h>
-#include <stdio.h>
-#include <iostream>
+#include "Thread.h"
+
 #include <assert.h>
+#include <butil/logging.h>
 #include <errno.h>
 #include <signal.h>
+#include <stdio.h>
 #include <sys/prctl.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
+#include <unistd.h>
+
+#include <iostream>
 #include <type_traits>
 
-#include <butil/logging.h>
-
 #include "Exception.h"
-#include "Thread.h"
 
 using namespace MSF;
 using namespace MSF::THREAD;
@@ -188,7 +189,7 @@ void* Thread::threadLoop(ThreadFunc initFunc) {
   _tid = CurrentThread::tid();
   CurrentThread::t_threadName = _name.c_str();
   LOG(INFO) << "Thread name: " << CurrentThread::t_threadName
-           << " name:" << _name;
+            << " name:" << _name;
   prctl(PR_SET_NAME, CurrentThread::t_threadName);
 
   _latch.countDown();
@@ -200,12 +201,13 @@ void* Thread::threadLoop(ThreadFunc initFunc) {
   } catch (const Exception& ex) {
     CurrentThread::t_threadName = "crashed";
     LOG(FATAL) << "exception caught in ThreadPool " << _name.c_str()
-              << ",reason: " << ex.what() << "stack trace: " << ex.stackTrace();
+               << ",reason: " << ex.what()
+               << "stack trace: " << ex.stackTrace();
     abort();
   } catch (const std::exception& ex) {
     CurrentThread::t_threadName = "crashed";
     LOG(FATAL) << "exception caught in ThreadPool " << _name.c_str()
-              << ",reason: " << ex.what();
+               << ",reason: " << ex.what();
     abort();
   } catch (...) {
     CurrentThread::t_threadName = "crashed";
@@ -239,17 +241,18 @@ void Thread::start(const ThreadFunc& initFunc) {
   } catch (const Exception& ex) {
     CurrentThread::t_threadName = "crashed";
     LOG(FATAL) << "Fail to create thread ThreadPool " << _name.c_str()
-              << ",reason: " << ex.what() << "stack trace: " << ex.stackTrace();
+               << ",reason: " << ex.what()
+               << "stack trace: " << ex.stackTrace();
     _started = false;
   } catch (const std::exception& ex) {
     CurrentThread::t_threadName = "crashed";
     LOG(FATAL) << "Fail to create thread ThreadPool " << _name.c_str()
-              << ",reason: " << ex.what();
+               << ",reason: " << ex.what();
     _started = false;
   } catch (...) {
     CurrentThread::t_threadName = "crashed";
     LOG(FATAL) << "Fail to create thread ThreadPool, unkown exception "
-              << _name.c_str();
+               << _name.c_str();
     _started = false;
     throw;  // rethrow
   }

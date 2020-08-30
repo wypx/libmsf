@@ -18,7 +18,7 @@
 #include "ConfigParser.h"
 #include "Utils.h"
 #include "Version.h"
-#include "Socket.h"
+#include "SockUtils.h"
 #include "Daemon.h"
 #include "AgentServer.h"
 
@@ -175,7 +175,7 @@ void AgentServer::HandleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs,
 
   LOG(INFO) << "\n Login "
            << "\n name: " << login.name() << "\n cid: " << proto_->srcId(bhs);
-  c->setCid(static_cast<uint32_t>(proto_->srcId(bhs)));
+  c->set_cid(static_cast<uint32_t>(proto_->srcId(bhs)));
   active_conns_[proto_->srcId(bhs)] = c;
   {
     Agent::AppId tmpId = proto_->srcId(bhs);
@@ -190,7 +190,7 @@ void AgentServer::HandleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs,
   proto_->debugBhs(bhs);
 
   c->writeIovec(head);
-  c->enableWriting();
+  c->EnableWriting();
 }
 
 void AgentServer::HandleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs,
@@ -214,7 +214,7 @@ void AgentServer::HandleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs,
     if (proto_->pduLen(bhs) > 0) {
       peer->writeIovec(c->readIovec());
     }
-    peer->enableWriting();
+    peer->EnableWriting();
     peer->wakeup();
   } else {
     LOG(INFO) << "\n Peer offline"
@@ -230,7 +230,7 @@ void AgentServer::HandleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs,
 
     bhs.SerializeToArray(head.iov_base, AGENT_HEAD_LEN);
     c->writeIovec(head);
-    c->enableWriting();
+    c->EnableWriting();
     c->wakeup();
   }
 }
@@ -320,12 +320,12 @@ void AgentServer::NewConn(const int fd, const uint16_t event) {
 
   LOG(INFO) << "Alloc connection for fd: " << fd;
 
-  c->init(mpool_, stack_->getHashLoop(), fd);
-  c->setSuccCallback(std::bind(&AgentServer::SuccConn, this, c));
-  c->setReadCallback(std::bind(&AgentServer::ReadConn, this, c));
-  c->setWriteCallback(std::bind(&AgentServer::WriteConn, this, c));
-  c->setCloseCallback(std::bind(&AgentServer::FreeConn, this, c));
-  c->enableBaseEvent();
+  c->Init(stack_->getHashLoop(), fd);
+  c->SetSuccCallback(std::bind(&AgentServer::SuccConn, this, c));
+  c->SetReadCallback(std::bind(&AgentServer::ReadConn, this, c));
+  c->SetWriteCallback(std::bind(&AgentServer::WriteConn, this, c));
+  c->SetCloseCallback(std::bind(&AgentServer::FreeConn, this, c));
+  c->EnableBaseEvent();
   return;
 }
 
@@ -333,7 +333,7 @@ bool AgentServer::InitNetwork() {
   for (uint32_t i = 0; i < 1; ++i) {
     InetAddress addr(ip_addr4_.c_str(), tcp_port_, AF_INET, SOCK_STREAM);
     std::shared_ptr<Acceptor> actor = std::make_shared<Acceptor>(
-        stack_->getBaseLoop(), addr,
+        addr,
         std::bind(&AgentServer::NewConn, this, std::placeholders::_1,
                   std::placeholders::_2));
     if (!actor) {
@@ -345,8 +345,8 @@ bool AgentServer::InitNetwork() {
       LOG(INFO) << "Fail to alloc event for " << addr.hostPort2String();
       return false;
     }
-    e->setReadCallback(std::bind(&Acceptor::acceptCb, actor));
-    e->setCloseCallback(std::bind(&Acceptor::errorCb, actor));
+    e->setReadCallback(std::bind(&Acceptor::AcceptCb, actor));
+    e->setCloseCallback(std::bind(&Acceptor::ErrorCb, actor));
     e->disableWriting();
     e->enableClosing();
     e->enableReading();
@@ -360,7 +360,7 @@ void AgentServer::Init(int argc, char **argv) {
   ParseOption(argc, argv);
 
   if (daemon_) {
-    daemonize();
+    Daemonize();
   }
   // if (!IsFileExist(log_dir_)) {
   //   std::string logDIR = GetRealPath(log_dir_);

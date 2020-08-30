@@ -13,9 +13,9 @@
 #ifndef AGENT_CLIENT_AGENTCLIENT_H
 #define AGENT_CLIENT_AGENTCLIENT_H
 
-#include <Base/CountDownLatch.h>
-#include <Base/GccAttr.h>
-#include <Event/EventLoop.h>
+#include <base/CountDownLatch.h>
+#include <base/GccAttr.h>
+#include <event/EventLoop.h>
 #include "AgentConn.h"
 #include "AgentProto.h"
 

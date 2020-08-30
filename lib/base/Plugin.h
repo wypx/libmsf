@@ -55,10 +55,11 @@
 #ifndef BASE_PLUGIN_H_
 #define BASE_PLUGIN_H_
 
+#include <dlfcn.h>
 #include <stdint.h>
 #include <unistd.h>
+
 #include <iostream>
-#include <dlfcn.h>
 #include <list>
 #include <map>
 #include <memory>

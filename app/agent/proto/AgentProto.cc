@@ -14,7 +14,7 @@
 
 #include <butil/logging.h>
 
-#include <Base/Bitops.h>
+#include <base/Bitops.h>
 
 using namespace MSF;
 

@@ -10,11 +10,10 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef LIB_DEF_H_
-#define LIB_DEF_H_
+#ifndef BASE_DEF_H_
+#define BASE_DEF_H_
 
 namespace MSF {
-namespace BASE {
 
 #define MSF_OK (0)
 #define MSF_ERR (-1)
@@ -27,6 +26,5 @@ namespace BASE {
 #define MSF_INT32_LEN (sizeof("-2147483648") - 1)
 #define MSF_INT64_LEN (sizeof("-9223372036854775808") - 1)
 
-}  // namespace BASE
 }  // namespace MSF
 #endif

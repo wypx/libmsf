@@ -10,11 +10,12 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/Agent/Proto
     ${CMAKE_CURRENT_SOURCE_DIR}/Agent/Client
     ${CMAKE_CURRENT_SOURCE_DIR}/../lib/
-    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/Base
-    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/Network
-    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/Network/Event
-    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/Network/Sock
-    ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/incubator-brpc/src/
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/base
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/conf
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/net
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/net/sock
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/net/event
+    ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/baidu/incubator-brpc/src/
 )
 
 # 设置链接库搜索目录
@@ -22,7 +23,7 @@ link_directories(
     ${PROJECT_SOURCE_DIR}/../build/lib/
     ${PROJECT_SOURCE_DIR}/../build/app/AgentProto/
     ${PROJECT_SOURCE_DIR}/../build/app/AgentClient
-    ${PROJECT_SOURCE_DIR}/../thirdparty/incubator-brpc
+    ${PROJECT_SOURCE_DIR}/../thirdparty/baidu/incubator-brpc
 )
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../cmake)
@@ -46,4 +47,4 @@ set(CMAKE_INSTALL_PREFIX /home/luotang.me)
 add_subdirectory (Agent AgentServer)
 add_subdirectory (Guard Guard)
 add_subdirectory (Shell Shell)
-#add_subdirectory (Mobile Mobile)
+add_subdirectory (Mobile Mobile)

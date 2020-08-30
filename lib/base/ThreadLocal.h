@@ -14,6 +14,7 @@
 #define LIB_THREADLOCAL_H_
 
 #include <pthread.h>
+
 #include "Noncopyable.h"
 
 namespace MSF {

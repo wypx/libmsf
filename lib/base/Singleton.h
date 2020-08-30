@@ -20,7 +20,6 @@
 #include "Noncopyable.h"
 
 namespace MSF {
-namespace BASE {
 
 // https://blog.csdn.net/sai_j/article/details/82766225
 
@@ -34,7 +33,7 @@ struct has_no_destroy {
   static int32_t test(...);
   const static bool value = sizeof(test<T>(0)) == 1;
 };
-}  // namespace BASE
+}  // namespace MSF
 
 template <typename T>
 class Singleton : Noncopyable {
@@ -42,34 +41,34 @@ class Singleton : Noncopyable {
   Singleton() = delete;
   ~Singleton() = delete;
 
-  // 1. 
+  // 1.
   static T& instance() {
     pthread_once(&ponce_, &Singleton::init);
     assert(value_ != NULL);
     return *value_;
   }
 
-  private:
-    static std::unique_ptr<Singleton> g_Singleton;
+ private:
+  static std::unique_ptr<Singleton> g_Singleton;
 
-  public:
-    // https://blog.csdn.net/xijiacun/article/details/71023777
-    // https://www.tuicool.com/articles/QbmInyF
-    // https://blog.csdn.net/u011726005/article/details/82356538
-    /** Using singleton Singleton instance in one process */
-    // pthread_once
-    // https://blog.csdn.net/sjin_1314/article/details/10934239
-    // 2.
-    static Singleton &GetSingleton() {
-      static std::once_flag onceFlag;
-      std::call_once(onceFlag, [&]() { g_Singleton.reset(new Singleton()); });
-      return *g_Singleton;
-    }
-    // 3.
-    static Singleton &GetInstance() {
-      static Singleton intance;
-      return intance;
-    }
+ public:
+  // https://blog.csdn.net/xijiacun/article/details/71023777
+  // https://www.tuicool.com/articles/QbmInyF
+  // https://blog.csdn.net/u011726005/article/details/82356538
+  /** Using singleton Singleton instance in one process */
+  // pthread_once
+  // https://blog.csdn.net/sjin_1314/article/details/10934239
+  // 2.
+  static Singleton& GetSingleton() {
+    static std::once_flag onceFlag;
+    std::call_once(onceFlag, [&]() { g_Singleton.reset(new Singleton()); });
+    return *g_Singleton;
+  }
+  // 3.
+  static Singleton& GetInstance() {
+    static Singleton intance;
+    return intance;
+  }
 
  private:
   static void init() {
@@ -98,7 +97,5 @@ pthread_once_t Singleton<T>::ponce_ = PTHREAD_ONCE_INIT;
 
 template <typename T>
 T* Singleton<T>::value_ = NULL;
-
-}  // namespace MSF
-} /**************************** end namespace MSF  ****************************/
+}
 #endif

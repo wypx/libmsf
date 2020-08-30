@@ -10,13 +10,12 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef LIB_BASE_GCCATTR_H_
-#define LIB_BASE_GCCATTR_H_
+#ifndef BASE_GCCATTR_H_
+#define BASE_GCCATTR_H_
 
 #include <sys/cdefs.h>
 
 namespace MSF {
-namespace BASE {
 
 //其他属性:
 // https://www.jianshu.com/p/e2dfccc32c80
@@ -75,7 +74,7 @@ namespace BASE {
   static void func(void) __attribute__((constructor(level))); \
   static void func(void)
 
-// static void __attribute__((constructor, used)) 
+// static void __attribute__((constructor, used))
 
 // https://www.it1352.com/463497.html
 // https://www.icode9.com/content-4-501004.html
@@ -126,11 +125,10 @@ namespace BASE {
 
 /* deprecated attribute support since gcc 3.1 */
 #if defined __GNUC__ && (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
-# define MSF_DEPRECATED __attribute__((__deprecated__))
+#define MSF_DEPRECATED __attribute__((__deprecated__))
 #else
-# define MSF_DEPRECATED
+#define MSF_DEPRECATED
 #endif
 
-}  // namespace BASE
 }  // namespace MSF
 #endif

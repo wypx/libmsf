@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include "AgentConn.h"
 #include <butil/logging.h>
+#include "AgentConn.h"
 
 namespace MSF {
 
@@ -216,7 +216,7 @@ bool AgentConn::doConnWrite() {
       if (unlikely(!updateTxOffset(ret))) {
         continue;
       } else {
-        disableWriting();
+        DisableWriting();
         return true;
       }
     }
@@ -224,7 +224,7 @@ bool AgentConn::doConnWrite() {
 }
 
 void AgentConn::doConnClose() {
-  Connector::close();
+  Connector::CloseConn();
   LOG(INFO) << "txBusyIov_ iovcnt: " << txBusyIov_.size();
   auto iter = txBusyIov_.begin();
   while (iter != txBusyIov_.end()) {

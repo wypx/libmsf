@@ -27,14 +27,15 @@
  */
 
 #include "ConfigParser.h"
+
+#include <butil/logging.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <fstream>
 #include <iostream>
 
-#include <butil/logging.h>
- 
 using namespace MSF;
 
 namespace MSF {
@@ -48,7 +49,8 @@ bool ConfigParser::parse(const string &content, string *key, string *value) {
 }
 
 int ConfigParser::UpdateSection(const string &cleanLine, const string &comment,
-                           const string &rightComment, IniSection **section) {
+                                const string &rightComment,
+                                IniSection **section) {
   IniSection *newSection;
   // 查找右中括号
   size_t index = cleanLine.find_first_of(']');
@@ -90,8 +92,10 @@ int ConfigParser::UpdateSection(const string &cleanLine, const string &comment,
   return 0;
 }
 
-int ConfigParser::AddKeyValuePair(const string &cleanLine, const string &comment,
-                             const string &rightComment, IniSection *section) {
+int ConfigParser::AddKeyValuePair(const string &cleanLine,
+                                  const string &comment,
+                                  const string &rightComment,
+                                  IniSection *section) {
   string key, value;
 
   if (!parse(cleanLine, &key, &value)) {
@@ -249,12 +253,12 @@ int ConfigParser::GetSections(vector<string> *sections) {
 int ConfigParser::GetSectionNum() { return sections_vt.size(); }
 
 int ConfigParser::GetStringValue(const string &section, const string &key,
-                            string *value) {
+                                 string *value) {
   return getValue(section, key, value);
 }
 
 int ConfigParser::GetIntValue(const string &section, const string &key,
-                         int *intValue) {
+                              int *intValue) {
   int err;
   string strValue;
 
@@ -266,7 +270,7 @@ int ConfigParser::GetIntValue(const string &section, const string &key,
 }
 
 int ConfigParser::GetDoubleValue(const string &section, const string &key,
-                            double *value) {
+                                 double *value) {
   int err;
   string strValue;
 
@@ -278,7 +282,7 @@ int ConfigParser::GetDoubleValue(const string &section, const string &key,
 }
 
 int ConfigParser::GetBoolValue(const string &section, const string &key,
-                          bool *value) {
+                               bool *value) {
   int err;
   string strValue;
 
@@ -296,9 +300,9 @@ int ConfigParser::GetBoolValue(const string &section, const string &key,
 }
 
 /* 获取section段第一个键为key的string值，成功返回获取的值，否则返回默认值 */
-void ConfigParser::GetStringValueOrDefault(const string &section, const string &key,
-                                      string *value,
-                                      const string &defaultValue) {
+void ConfigParser::GetStringValueOrDefault(const string &section,
+                                           const string &key, string *value,
+                                           const string &defaultValue) {
   if (GetStringValue(section, key, value) != 0) {
     *value = defaultValue;
   }
@@ -307,8 +311,9 @@ void ConfigParser::GetStringValueOrDefault(const string &section, const string &
 }
 
 /* 获取section段第一个键为key的int值，成功返回获取的值，否则返回默认值 */
-void ConfigParser::GetIntValueOrDefault(const string &section, const string &key,
-                                   int *value, int defaultValue) {
+void ConfigParser::GetIntValueOrDefault(const string &section,
+                                        const string &key, int *value,
+                                        int defaultValue) {
   if (GetIntValue(section, key, value) != 0) {
     *value = defaultValue;
   }
@@ -317,8 +322,9 @@ void ConfigParser::GetIntValueOrDefault(const string &section, const string &key
 }
 
 /* 获取section段第一个键为key的double值，成功返回获取的值，否则返回默认值 */
-void ConfigParser::GetDoubleValueOrDefault(const string &section, const string &key,
-                                      double *value, double defaultValue) {
+void ConfigParser::GetDoubleValueOrDefault(const string &section,
+                                           const string &key, double *value,
+                                           double defaultValue) {
   if (GetDoubleValue(section, key, value) != 0) {
     *value = defaultValue;
   }
@@ -327,8 +333,9 @@ void ConfigParser::GetDoubleValueOrDefault(const string &section, const string &
 }
 
 /* 获取section段第一个键为key的bool值，成功返回获取的值，否则返回默认值 */
-void ConfigParser::GetBoolValueOrDefault(const string &section, const string &key,
-                                    bool *value, bool defaultValue) {
+void ConfigParser::GetBoolValueOrDefault(const string &section,
+                                         const string &key, bool *value,
+                                         bool defaultValue) {
   if (GetBoolValue(section, key, value) != 0) {
     *value = defaultValue;
   }
@@ -338,7 +345,7 @@ void ConfigParser::GetBoolValueOrDefault(const string &section, const string &ke
 
 /* 获取注释，如果key=""则获取段注释 */
 int ConfigParser::GetComment(const string &section, const string &key,
-                        string *comment) {
+                             string *comment) {
   IniSection *sect = getSection(section);
 
   if (sect == NULL) {
@@ -364,7 +371,7 @@ int ConfigParser::GetComment(const string &section, const string &key,
 
 /* 获取行尾注释，如果key=""则获取段的行尾注释 */
 int ConfigParser::GetRightComment(const string &section, const string &key,
-                             string *rightComment) {
+                                  string *rightComment) {
   IniSection *sect = getSection(section);
 
   if (sect == NULL) {
@@ -387,13 +394,14 @@ int ConfigParser::GetRightComment(const string &section, const string &key,
   return ERR_NOT_FOUND_KEY;
 }
 
-int ConfigParser::getValue(const string &section, const string &key, string *value) {
+int ConfigParser::getValue(const string &section, const string &key,
+                           string *value) {
   string comment;
   return getValue(section, key, value, &comment);
 }
 
-int ConfigParser::getValue(const string &section, const string &key, string *value,
-                      string *comment) {
+int ConfigParser::getValue(const string &section, const string &key,
+                           string *value, string *comment) {
   IniSection *sect = getSection(section);
 
   if (sect == NULL) {
@@ -414,13 +422,13 @@ int ConfigParser::getValue(const string &section, const string &key, string *val
 }
 
 int ConfigParser::GetValues(const string &section, const string &key,
-                       vector<string> *values) {
+                            vector<string> *values) {
   vector<string> comments;
   return GetValues(section, key, values, &comments);
 }
 
 int ConfigParser::GetValues(const string &section, const string &key,
-                       vector<string> *values, vector<string> *comments) {
+                            vector<string> *values, vector<string> *comments) {
   string value, comment;
 
   values->clear();
@@ -470,7 +478,7 @@ bool ConfigParser::HasKey(const string &section, const string &key) {
 }
 
 int ConfigParser::setValue(const string &section, const string &key,
-                      const string &value, const string &comment /*=""*/) {
+                           const string &value, const string &comment /*=""*/) {
   IniSection *sect = getSection(section);
 
   string comt = comment;
@@ -516,25 +524,26 @@ int ConfigParser::setValue(const string &section, const string &key,
 }
 
 int ConfigParser::SetStringValue(const string &section, const string &key,
-                            const string &value) {
+                                 const string &value) {
   return setValue(section, key, value);
 }
 
-int ConfigParser::SetIntValue(const string &section, const string &key, int value) {
+int ConfigParser::SetIntValue(const string &section, const string &key,
+                              int value) {
   char buf[64] = {0};
   snprintf(buf, sizeof(buf), "%d", value);
   return setValue(section, key, buf);
 }
 
 int ConfigParser::SetDoubleValue(const string &section, const string &key,
-                            double value) {
+                                 double value) {
   char buf[64] = {0};
   snprintf(buf, sizeof(buf), "%f", value);
   return setValue(section, key, buf);
 }
 
 int ConfigParser::SetBoolValue(const string &section, const string &key,
-                          bool value) {
+                               bool value) {
   if (value) {
     return setValue(section, key, "true");
   } else {
@@ -543,7 +552,7 @@ int ConfigParser::SetBoolValue(const string &section, const string &key,
 }
 
 int ConfigParser::SetComment(const string &section, const string &key,
-                        const string &comment) {
+                             const string &comment) {
   IniSection *sect = getSection(section);
 
   if (sect == NULL) {
@@ -568,7 +577,7 @@ int ConfigParser::SetComment(const string &section, const string &key,
 }
 
 int ConfigParser::SetRightComment(const string &section, const string &key,
-                             const string &rightComment) {
+                                  const string &rightComment) {
   IniSection *sect = getSection(section);
 
   if (sect == NULL) {
@@ -763,7 +772,7 @@ void ConfigParser::trim(string &str) {
  */
 /*--------------------------------------------------------------------------*/
 bool ConfigParser::split(const string &str, const string &sep, string *pleft,
-                    string *pright) {
+                         string *pright) {
   size_t pos = str.find(sep);
   string left, right;
 

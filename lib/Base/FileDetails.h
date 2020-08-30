@@ -10,17 +10,15 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_FILE_DETAILS_H__
-#define __MSF_FILE_DETAILS_H__
-
-#pragma once
+#ifndef BASE_FILE_DETAILS_H_
+#define BASE_FILE_DETAILS_H_
 
 #include <algorithm>
 #include <cerrno>
 
 #include "Uio.h"
 
-using namespace MSF::IO;
+using namespace MSF;
 
 namespace MSF {
 

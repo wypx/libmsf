@@ -10,12 +10,13 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
+#include "ThreadPool.h"
+
 #include <assert.h>
 #include <butil/logging.h>
 
 #include "Exception.h"
 #include "Thread.h"
-#include "ThreadPool.h"
 
 using namespace MSF;
 using namespace MSF::CurrentThread;
@@ -125,11 +126,12 @@ void ThreadPool::runInThread() {
     }
   } catch (const MSF::Exception& ex) {
     LOG(FATAL) << "exception caught in ThreadPool " << _name.c_str()
-              << ",reason: " << ex.what() << "stack trace: " << ex.stackTrace();
+               << ",reason: " << ex.what()
+               << "stack trace: " << ex.stackTrace();
     abort();
   } catch (const std::exception& ex) {
     LOG(FATAL) << "exception caught in ThreadPool " << _name.c_str()
-              << ",reason: " << ex.what();
+               << ",reason: " << ex.what();
     abort();
   } catch (...) {
     LOG(FATAL) << "unknown exception caught in ThreadPool " << _name.c_str();

@@ -11,11 +11,11 @@
  *
  **************************************************************************/
 #include "File.h"
-#include "GccAttr.h"
 
 #include <cstdio>
 #include <queue>
 
+#include "GccAttr.h"
 
 using namespace MSF;
 
@@ -733,7 +733,7 @@ pid_t ReadPidFile(const std::string& pid_file) {
   } else {
     if (errno != ENOENT) {
       LOG(ERROR) << "error: could not read pid file, " << pid_file << ":"
-                << strerror(errno);
+                 << strerror(errno);
       exit(1);
     }
   }

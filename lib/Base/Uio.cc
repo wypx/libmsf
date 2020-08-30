@@ -10,14 +10,14 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include <errno.h>
-#include <unistd.h>
 #include "Uio.h"
 
-using namespace MSF::IO;
+#include <errno.h>
+#include <unistd.h>
+
+using namespace MSF;
 
 namespace MSF {
-namespace IO {
 
 template <class F, class... Args>
 static int wrapPositional(F f, int fd, off_t offset, Args... args) {
@@ -50,5 +50,4 @@ extern "C" ssize_t pwritev(int fd, const iovec* iov, int count, off_t offset) {
   return wrapPositional(writev, fd, offset, iov, count);
 }
 
-}  // namespace IO
 }  // namespace MSF

@@ -10,6 +10,9 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
+#include "Os.h"
+
+#include <butil/logging.h>
 #include <cxxabi.h>
 #include <execinfo.h>
 #include <fcntl.h>
@@ -20,10 +23,8 @@
 #include <algorithm>
 #include <fstream>
 #include <thread>
-#include <butil/logging.h>
 
 #include "Affinity.h"
-#include "Os.h"
 #include "Define.h"
 
 using namespace MSF;
@@ -38,7 +39,6 @@ uint32_t OsInfo::getSuggestThreadNum() {
   LOG(TRACE) << n << " concurrent threads are supported.";
   return n;
 }
-
 
 bool OsInfo::setUser(uid_t user, const std::string& userName) {
   char* group = NULL;
@@ -82,8 +82,8 @@ bool OsInfo::setUser(uid_t user, const std::string& userName) {
     return true;
   } else {
     LOG(TRACE) << "The \"user\" directive makes sense only "
-                 "if the master process runs "
-                 "with super-user privileges, ignored.";
+                  "if the master process runs "
+                  "with super-user privileges, ignored.";
     return true;
   }
 }
@@ -140,7 +140,7 @@ uint32_t OsInfo::getMaxOpenFds() {
     maxFds = rl.rlim_max;
   } else {
     LOG(ERROR) << "Failed to query maximum file descriptor; "
-                 "falling back to maxconns.";
+                  "falling back to maxconns.";
   }
   return maxFds;
 }
@@ -180,7 +180,7 @@ bool OsInfo::EnableCoredump() {
   struct rlimit rlim;
   if (getrlimit(RLIMIT_CORE, &rlim) == 0) {
     LOG(TRACE) << "Coredump curr: " << rlim.rlim_cur
-             << " max is: " << rlim.rlim_max;
+               << " max is: " << rlim.rlim_max;
     rlim.rlim_cur = rlim.rlim_max;
     if (setrlimit(RLIMIT_CORE, &rlim) < 0) {
       LOG(ERROR) << "Enable coredump faild:" << strerror(errno);
@@ -236,8 +236,7 @@ bool OsInfo::setCoreUsePid() {
 bool OsInfo::setCorePath(const std::string& path) {
   std::string cmdCorePath =
       "echo \"/home/core/core-%h-%s-%e-%p-%t\" > /proc/sys/kernel/core_pattern";
-  system(cmdCorePath.c_str());
-  return true;
+  return ::system(cmdCorePath.c_str()) == 0 ? true : false;
 }
 
 /* Display a buffer into a HEXA formated output */
@@ -463,7 +462,9 @@ bool OsInfo::getHddUsage() {
     return false;
   }
 
-  fgets(buf, sizeof(buf), fp);
+  if (!fgets(buf, sizeof(buf), fp)) {
+    return false;
+  }
   while (6 == fscanf(fp, "%s %lf %lf %s %s %s", a, &b, &c, d, e, f)) {
     dev_total += b;
     dev_used += c;

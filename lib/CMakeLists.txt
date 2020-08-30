@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)      # 指定 cmake 的最小版本
+cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 cmake_policy(VERSION 3.10.2)
-project(MSF_LIB_PROJECT)                                    # 设置项目名称
+project(MSF_LIB_PROJECT)
 
 # 加入一个配置头文件,用于处理 CMake 对源码的设置
 configure_file (
-    "${PROJECT_SOURCE_DIR}/Base/Config.h.in"
-    "${PROJECT_SOURCE_DIR}/Base/Config.h"
+    "${PROJECT_SOURCE_DIR}/conf/Config.h.in"
+    "${PROJECT_SOURCE_DIR}/conf/Config.h"
 )
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../cmake)
@@ -28,18 +28,17 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17 -fPIC -O3 -Wall -g -ggdb")
 # 宏定义
 add_definitions(-DMSF_UNIX_IPC)
 
-message(STATUS "===> ${CMAKE_CURRENT_SOURCE_DIR}")
 # 设置包含的头文件目录
 # 其他方式: set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories(
-    ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/
-    ${CMAKE_CURRENT_SOURCE_DIR}/Base
-    ${CMAKE_CURRENT_SOURCE_DIR}/Network
-    ${CMAKE_CURRENT_SOURCE_DIR}/Network/Event
-    ${CMAKE_CURRENT_SOURCE_DIR}/Network/Sock
-    ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/incubator-brpc/src/
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/conf
+    ${CMAKE_CURRENT_SOURCE_DIR}/base
+    ${CMAKE_CURRENT_SOURCE_DIR}/net
+    ${CMAKE_CURRENT_SOURCE_DIR}/net/sock
+    ${CMAKE_CURRENT_SOURCE_DIR}/net/event
+    ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/baidu/incubator-brpc/src/
 )
 
 #set(CMAKE_VERBOSE_MAKEFILE ON)
@@ -58,11 +57,12 @@ else()
     SET(CMAKE_CXX_FLAGS_RELEASE "$ENV{CXXFLAGS} -fPIC -O3 -Wall")
 endif()
 
-aux_source_directory(Base DIR_SRCS)
-aux_source_directory(Network/Event DIR_SRCS)
-aux_source_directory(Network/Sock DIR_SRCS)
+aux_source_directory(base DIR_SRCS)
+aux_source_directory(net/sock DIR_SRCS)
+aux_source_directory(net/event DIR_SRCS)
 
 add_library(MSF STATIC ${DIR_SRCS})
+
 
 #msf_redefine_file(msf_base)
 #add_definitions(-Wno-builtin-macro-redefined)

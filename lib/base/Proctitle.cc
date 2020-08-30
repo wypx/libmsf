@@ -10,10 +10,11 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include <unistd.h>
-#include <sys/prctl.h>
-
 #include "Proctitle.h"
+
+#include <sys/prctl.h>
+#include <unistd.h>
+
 #include "Mem.h"
 
 using namespace MSF;

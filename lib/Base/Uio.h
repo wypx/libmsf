@@ -10,15 +10,14 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef LIB_UIO_H_
-#define LIB_UIO_H_
+#ifndef BASE_UIO_H_
+#define BASE_UIO_H_
 
 #include <limits.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 
 namespace MSF {
-namespace IO {
 
 extern "C" ssize_t preadv(int fd, const iovec* iov, int count, off_t offset);
 extern "C" ssize_t pwritev(int fd, const iovec* iov, int count, off_t offset);
@@ -30,6 +29,5 @@ extern "C" ssize_t writev(int fd, const iovec* iov, int count);
 
 constexpr size_t kIovMax = IOV_MAX;
 
-}  // namespace IO
 }  // namespace MSF
 #endif

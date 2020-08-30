@@ -26,8 +26,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef LIB_ConfigParser_H_
-#define LIB_ConfigParser_H_
+#ifndef BASE_CONFIG_PARSER_H_
+#define BASE_CONFIG_PARSER_H_
 
 /* libiray from https://github.com/Winnerhust/ConfigParser2 */
 
@@ -84,8 +84,7 @@ struct IniSection {
       items;  // 键值项数组，一个段可以有多个键值，所有用vector来储存
 };
 
-class 
-ConfigParser {
+class ConfigParser {
  public:
   ConfigParser();
   ~ConfigParser() { release(); }

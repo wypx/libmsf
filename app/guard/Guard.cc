@@ -12,10 +12,10 @@
  **************************************************************************/
 #include "Guard.h"
 
-#include <Base/Process.h>
-#include <Base/Signal.h>
-#include <Base/Version.h>
-#include <Base/MemPool.h>
+#include <base/Process.h>
+#include <base/SignalManager.h>
+#include <base/Version.h>
+#include <base/MemPool.h>
 
 #include <cassert>
 

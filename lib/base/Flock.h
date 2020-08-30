@@ -5,7 +5,6 @@
 #include <unistd.h>
 
 #include <iostream>
-using namespace MSF;
 
 /*Linux/Unix文件系统中，有一种排它锁：WRLCK，
     只允许一次加锁成功，而且当进程无论主动退出还是被动退出,

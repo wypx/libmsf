@@ -13,10 +13,10 @@
 #ifndef AGENT_CLIENT_AGENTCONN_H
 #define AGENT_CLIENT_AGENTCONN_H
 
-#include <Base/Buffer.h>
-#include <Base/MemPool.h>
-#include <Event/EventLoop.h>
-#include <Sock/Connector.h>
+#include <base/Buffer.h>
+#include <base/MemPool.h>
+#include <event/EventLoop.h>
+#include <sock/Connector.h>
 
 #include "AgentProto.h"
 
@@ -75,7 +75,7 @@ class AgentConn : public Connector {
     mpool_ = mpool;
     loop_ = loop;
     fd_ = fd;
-    Connector::init(loop, fd);
+    Connector::Init(loop, fd);
   }
   void wakeup() {
     // loop_->wakeup();

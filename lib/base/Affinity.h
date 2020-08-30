@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef LIB_AFFINITY_H_
-#define LIB_AFFINITY_H_
+#ifndef BASE_AFFINITY_H_
+#define BASE_AFFINITY_H_
 
 #include <stdint.h>
 

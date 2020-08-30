@@ -11,10 +11,10 @@
  *
  **************************************************************************/
 #include <cassert>
+#include <butil/logging.h>
 #include "AgentClient.h"
 #include "Event.h"
 #include "AgentProto.h"
-#include <butil/logging.h>
 
 using namespace MSF;
 
@@ -77,9 +77,9 @@ void AgentClient::connectAgent() {
 
   bool success = false;
   if (!srvIpAddr_.empty()) {
-    success = conn_->connect(srvIpAddr_.c_str(), srvPort_, SOCK_STREAM);
+    success = conn_->Connect(srvIpAddr_.c_str(), srvPort_, SOCK_STREAM);
   } else if (!srvUnixPath_.empty() && !cliUnixPath_.empty()) {
-    success = conn_->connect(srvUnixPath_.c_str(), cliUnixPath_.c_str());
+    success = conn_->Connect(srvUnixPath_.c_str(), cliUnixPath_.c_str());
   }
 
   if (!success) {
@@ -88,12 +88,12 @@ void AgentClient::connectAgent() {
     return;
   }
 
-  conn_->init(mpool_, loop_, conn_->fd());
-  conn_->setSuccCallback(std::bind(&AgentClient::connectAgentCb, this));
-  conn_->setReadCallback(std::bind(&AgentClient::handleRxCmd, this));
-  conn_->setWriteCallback(std::bind(&AgentClient::handleTxCmd, this));
-  conn_->setCloseCallback(std::bind(&AgentClient::closeAgent, this));
-  conn_->enableBaseEvent();
+  conn_->Init(loop_, conn_->fd());
+  conn_->SetSuccCallback(std::bind(&AgentClient::connectAgentCb, this));
+  conn_->SetReadCallback(std::bind(&AgentClient::handleRxCmd, this));
+  conn_->SetWriteCallback(std::bind(&AgentClient::handleTxCmd, this));
+  conn_->SetCloseCallback(std::bind(&AgentClient::closeAgent, this));
+  conn_->EnableBaseEvent();
 
   if (!loginAgent()) {
     reConnecting_ = false;
@@ -177,7 +177,7 @@ bool AgentClient::loginAgent() {
     login.SerializeToArray(body, login.ByteSizeLong());
     conn_->writeBuffer(body, login.ByteSizeLong());
 
-    conn_->enableWriting();
+    conn_->EnableWriting();
     loop_->wakeup();
   }
   return true;
@@ -237,7 +237,7 @@ void AgentClient::handleRequest(Agent::AgentBhs &bhs, struct iovec &head) {
   conn_->writeIovec(head);
   conn_->writeBuffer(body, len);
 
-  conn_->enableWriting();
+  conn_->EnableWriting();
 }
 
 void AgentClient::handleLoginRsp(const Agent::AgentBhs &bhs) {
@@ -325,7 +325,7 @@ int AgentClient::sendPdu(const AgentPduPtr pdu) {
     memcpy(body, pdu->payload_.iov_base, pdu->payload_.iov_len);
     conn_->writeBuffer(body, pdu->payload_.iov_len);
   }
-  conn_->enableWriting();
+  conn_->EnableWriting();
 
   if (pdu->timeOut_) {
     ackCmdMap_[sessNo] = pdu;

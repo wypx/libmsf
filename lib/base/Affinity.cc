@@ -10,11 +10,12 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
+#include <butil/logging.h>
+#include <pthread.h>
 #include <sched.h>
 #include <unistd.h>
-#include <pthread.h>
+
 #include <algorithm>
-#include <butil/logging.h>
 
 #include "Os.h"
 

@@ -10,13 +10,14 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_ATOMIC_H__
-#define __MSF_ATOMIC_H__
+#ifndef BASE_ATOMIC_H_
+#define BASE_ATOMIC_H_
 
+#include <stdint.h>
+
+#include "Config.h"
 #include "Define.h"
 #include "Utils.h"
-#include "Config.h"
-#include <stdint.h>
 
 using namespace MSF;
 

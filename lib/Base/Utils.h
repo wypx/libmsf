@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef BASE_UTILS_H
-#define BASE_UTILS_H
+#ifndef BASE_UTILS_H_
+#define BASE_UTILS_H_
 
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -68,12 +68,11 @@ namespace MSF {
 #define MSF_ABS(value) (((value) >= 0) ? (value) : -(value))
 
 #ifndef roundup
-#define roundup(x, y) (                   \
-{                                         \
-	typeof(y) __y = y;                      \
-	(((x) + (__y - 1)) / __y) * __y;        \
-}                                         \
-)
+#define roundup(x, y)                \
+  ({                                 \
+    typeof(y) __y = y;               \
+    (((x) + (__y - 1)) / __y) * __y; \
+  })
 #endif
 
 /*Align by number of 2 times*/

@@ -1,8 +1,9 @@
-#include <sys/syscall.h>
+#include "Plugin.h"
+
 #include <butil/logging.h>
+#include <sys/syscall.h>
 
 #include "File.h"
-#include "Plugin.h"
 
 using namespace MSF;
 
@@ -27,7 +28,7 @@ bool PluginManager::load(const std::string& pluginPath) {
   MSF_DLHANDLE handle = MSF_DLOPEN_N(realPath.c_str());
   if (!handle) {
     LOG(ERROR) << "Fail to open plugin :" << pluginPath
-              << " error:" << MSF_DLERROR();
+               << " error:" << MSF_DLERROR();
     return false;
   }
 
@@ -42,7 +43,7 @@ bool PluginManager::load(const std::string& pluginPath) {
   Plugin* plug = (Plugin*)MSF_DLSYM(handle, plugName.c_str());
   if (!plug) {
     LOG(ERROR) << "Fail to load plugin :" << pluginPath
-              << "error:" << MSF_DLERROR();
+               << "error:" << MSF_DLERROR();
     return false;
   }
 

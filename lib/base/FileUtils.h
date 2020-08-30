@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef LIN_FILE_UTILS_H_
-#define LIN_FILE_UTILS_H_
+#ifndef BASE_FILE_UTILS_H_
+#define BASE_FILE_UTILS_H_
 
 #pragma once
 

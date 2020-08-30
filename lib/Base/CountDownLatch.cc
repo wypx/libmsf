@@ -11,6 +11,7 @@
  *
  **************************************************************************/
 #include "CountDownLatch.h"
+
 #include <butil/logging.h>
 
 using namespace MSF;

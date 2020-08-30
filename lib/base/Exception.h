@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_EXCEPTION_H__
-#define __MSF_EXCEPTION_H__
+#ifndef BASE_EXCEPTION_H_
+#define BASE_EXCEPTION_H_
 
 #include <iostream>
 

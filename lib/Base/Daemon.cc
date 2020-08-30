@@ -10,16 +10,16 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include "Utils.h"
 #include "Daemon.h"
 
 #include <fcntl.h>
 #include <signal.h>
-#include <unistd.h>
 
-#include <butil/logging.h>
+#include "Utils.h"
 
 using namespace MSF;
+
+// #include <butil/logging.h>
 
 namespace MSF {
 
@@ -78,7 +78,7 @@ int OpenDevNull(void) {
 // glibc: daemon(0, 0)
 
 /* if we want to ensure our ability to dump core, don't chdir to / */
-void daemonize(bool chdir, bool close) {
+void Daemonize(bool chdir, bool close) {
 #if 1
   // 屏蔽一些有关控制终端操作的信号,
   // 防止守护进程没有正常运作之前控制终端受到干扰退出或挂起
@@ -187,7 +187,7 @@ void daemonize(bool chdir, bool close) {
       exit(EXIT_FAILURE);
     }
     // if (dup2(fd, STDERR_FILENO) < 0) {
-      // LOG(ERROR) << "daemon process dup2 stderr failed, exit";
+    // LOG(ERROR) << "daemon process dup2 stderr failed, exit";
     //   exit(EXIT_FAILURE);
     // }
 

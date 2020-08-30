@@ -10,11 +10,11 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
+#include "Serial.h"
+
+#include <butil/logging.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-#include <butil/logging.h>
-
-#include "Serial.h"
 
 using namespace MSF;
 
@@ -26,9 +26,9 @@ int32_t OpenSerialPort(const char *port) {
   // do not allocate the device as the
   // controlling terminal for this process
   // can use O_NONBLOCK instead of O_NDELAY
-  //fd = ::open(port, O_RDWR | O_NOCTTY | O_NDELAY);
+  // fd = ::open(port, O_RDWR | O_NOCTTY | O_NDELAY);
   fd = ::open(port, O_RDWR);
-  if  (fd < 0) {
+  if (fd < 0) {
     LOG(ERROR) << "Open serial port failed, port: " << port;
     return -1;
   }
@@ -40,7 +40,7 @@ int32_t OpenSerialPort(const char *port) {
   // set non blocking
   /* 2. read out */
   // uint8_t nr = 0;
-	// char buf[64];
+  // char buf[64];
   // while (::read(fd, buf, sizeof(buf)) > 0) {
   //   if (++nr == 10) {
   //     nr = 0;
@@ -73,8 +73,7 @@ int SetSerialBits(const int fd, const int bits = 8) {
     LOG(ERROR) << "Tcgetattr failed, fd: " << fd;
     return -1;
   }
-  switch(bits)
-  {
+  switch (bits) {
     case 5:
       opt.c_cflag |= CS5;
       break;
@@ -90,38 +89,39 @@ int SetSerialBits(const int fd, const int bits = 8) {
     default:
       opt.c_cflag |= CS8;
       break;
-  } 
+  }
   return tcsetattr(fd, TCSANOW, &opt);
 }
 
 struct serl_attr {
-	int databits; /* 5 6 7 8 */
-	int stopbits; /* 1 or 2 */
-	int baudrate; /* 38400, or 9600 , or others. */
-	int parity;  /* 0-> no, 1->odd, 2->even */
+  int databits; /* 5 6 7 8 */
+  int stopbits; /* 1 or 2 */
+  int baudrate; /* 38400, or 9600 , or others. */
+  int parity;   /* 0-> no, 1->odd, 2->even */
 };
-struct serl_attr attr = 
-{
-  8,1,115200,0,
+struct serl_attr attr = {
+    8,
+    1,
+    115200,
+    0,
 };
 
-static void __set_parity(struct termios *io, struct serl_attr *attr)
-{
-	switch (attr->parity) {
-		case 0:
-			io->c_cflag &= ~PARENB;  /* Clear parity enable */
-			io->c_iflag &= ~INPCK;   /* disable parity checking */
-			break;
-		case 1:
-			io->c_cflag |= (PARODD | PARENB); 
-			io->c_iflag |= INPCK;    /* odd parity checking */
-			break;
-		case 2:
-			io->c_cflag |= PARENB;   /* Enable parity */
-			io->c_cflag &= ~PARODD;
-			io->c_iflag |= INPCK;    /*enable parity checking */
-			break;
-	}
+void __set_parity(struct termios *io, struct serl_attr *attr) {
+  switch (attr->parity) {
+    case 0:
+      io->c_cflag &= ~PARENB; /* Clear parity enable */
+      io->c_iflag &= ~INPCK;  /* disable parity checking */
+      break;
+    case 1:
+      io->c_cflag |= (PARODD | PARENB);
+      io->c_iflag |= INPCK; /* odd parity checking */
+      break;
+    case 2:
+      io->c_cflag |= PARENB; /* Enable parity */
+      io->c_cflag &= ~PARODD;
+      io->c_iflag |= INPCK; /*enable parity checking */
+      break;
+  }
 }
 
 int SetSerialEvent(const int fd, const int events = 'N') {
@@ -130,26 +130,25 @@ int SetSerialEvent(const int fd, const int events = 'N') {
     LOG(ERROR) << "Tcgetattr failed, fd: " << fd;
     return -1;
   }
-  switch(events)
-  {
+  switch (events) {
     case 'O':
     case 'o':
-      opt.c_cflag|=PARENB;
-      opt.c_cflag|=PARODD;
-      opt.c_iflag|=(INPCK|ISTRIP);
-      break;		
+      opt.c_cflag |= PARENB;
+      opt.c_cflag |= PARODD;
+      opt.c_iflag |= (INPCK | ISTRIP);
+      break;
     case 'E':
     case 'e':
-      opt.c_iflag|=(INPCK|ISTRIP);
-      opt.c_cflag|=PARENB;
-      opt.c_cflag&=~PARODD;
-      break;			
+      opt.c_iflag |= (INPCK | ISTRIP);
+      opt.c_cflag |= PARENB;
+      opt.c_cflag &= ~PARODD;
+      break;
     case 'N':
     case 'n':
-      opt.c_cflag&=~PARENB;
-      break;		
+      opt.c_cflag &= ~PARENB;
+      break;
     default:
-      opt.c_cflag&=~PARENB;
+      opt.c_cflag &= ~PARENB;
       break;
   }
   return tcsetattr(fd, TCSANOW, &opt);
@@ -161,16 +160,15 @@ int SetSerialStop(const int fd, const int stop = 1) {
     LOG(ERROR) << "Tcgetattr failed, fd: " << fd;
     return -1;
   }
-  switch(stop)
-  {
+  switch (stop) {
     case 1:
-      opt.c_cflag &=~CSTOPB;
+      opt.c_cflag &= ~CSTOPB;
       break;
     case 2:
       opt.c_cflag |= CSTOPB;
       break;
     default:
-      opt.c_cflag &=~CSTOPB;
+      opt.c_cflag &= ~CSTOPB;
       break;
   }
   return tcsetattr(fd, TCSANOW, &opt);
@@ -188,23 +186,20 @@ int SetSerialRawMode(const int fd) {
   opt.c_oflag &= ~OPOST; /* output */
 
   opt.c_cc[VTIME] = 2;
-  opt.c_cc[VMIN] = 0; // 0 non-block ; > 0 block
-  tcflush(fd, TCIFLUSH); 
+  opt.c_cc[VMIN] = 0;  // 0 non-block ; > 0 block
+  tcflush(fd, TCIFLUSH);
   // tcflush(fd, TCIOFLUSH);
-  // This function returns OK if it was able to perform any of the requested actions, 
-  // even if it couldn’t perform all the requested actions. 
-  // If the function returns OK, it is our responsibility to
-  // see whether all the requested actions were performed. This means that after we call
-  // tcsetattr to set the desired attributes, we need to call tcgetattr and compare the
-  // actual terminal’s attributes to the desired attributes to detect any differences.
+  // This function returns OK if it was able to perform any of the requested
+  // actions, even if it couldn’t perform all the requested actions. If the
+  // function returns OK, it is our responsibility to see whether all the
+  // requested actions were performed. This means that after we call tcsetattr
+  // to set the desired attributes, we need to call tcgetattr and compare the
+  // actual terminal’s attributes to the desired attributes to detect any
+  // differences.
   return tcsetattr(fd, TCSANOW, &opt);
 }
 
-
-void send_break(int fd)
-{
-	tcsendbreak(fd, 0);
-}
+void send_break(int fd) { tcsendbreak(fd, 0); }
 
 // https://blog.csdn.net/yasi_xi/article/details/8246446
 /* PeekFd - return amount of data ready to read */

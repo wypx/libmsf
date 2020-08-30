@@ -10,12 +10,12 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef LIB_DAEMON_H_
-#define LIB_DAEMON_H_
+#ifndef BASE_DAEMON_H_
+#define BASE_DAEMON_H_
 
 namespace MSF {
 
-void daemonize(bool chdir = true, bool close = true);
+void Daemonize(bool chdir = true, bool close = true);
 
 }  // namespace MSF
 #endif

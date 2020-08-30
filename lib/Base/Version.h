@@ -10,15 +10,15 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef LIB_VERSION_H_
-#define LIB_VERSION_H_
+#ifndef BASE_VERSION_H_
+#define BASE_VERSION_H_
 
 #include <iomanip>
 #include <iostream>
 
 #include "Utils.h"
 
-using namespace MSF::BASE;
+using namespace MSF;
 
 namespace MSF {
 
@@ -64,16 +64,17 @@ std::string GetCompileTime() {
 
 static void BuildProject() {
   std::cout << "\n"
-            << "          Build systime  : " << GetCompileTime() <<  "\n"
+            << "          Build systime  : " << GetCompileTime() << "\n"
             << "          Build version  : " << kVersionTag << "\n"
             << "          Project github : " << kGithubProject << "\n"
             << "          Welcome to join the conference at http://luotang.me "
             << "\n";
 }
 
-static void BuildProject(const std::string &version, const std::string &project) {
+static void BuildProject(const std::string &version,
+                         const std::string &project) {
   std::cout << "\n"
-            << "          Build systime  : " << GetCompileTime() <<  "\n"
+            << "          Build systime  : " << GetCompileTime() << "\n"
             << "          Build version  : " << version << "\n"
             << "          Project github : " << project << "\n"
             << "          Welcome to join the conference at http://luotang.me "
@@ -83,42 +84,43 @@ static void BuildProject(const std::string &version, const std::string &project)
 static void BuildLogo(void) {
   std::cout << "\n"
             << "                       .::::.                                  "
-            "\n"
+               "\n"
             << "                     .::::::::.                                "
-            "\n"
+               "\n"
             << "                    :::::::::::                                "
-            "\n"
+               "\n"
             << "                 ..:::::::::::'                                "
-            "\n"
+               "\n"
             << "               '::::::::::::'                                  "
-            "\n"
+               "\n"
             << "                .::::::::::                                    "
-            "\n"
+               "\n"
             << "           '::::::::::::::..                                   "
-            "\n"
+               "\n"
             << "                ..::::::::::::.                                "
-            "\n"
+               "\n"
             << "              ``::::::::::::::::                               "
-            "\n"
+               "\n"
             << "               ::::``:::::::::'        .:::.                   "
-            "\n"
+               "\n"
             << "              ::::'   ':::::'       .::::::::.                 "
-            "\n"
+               "\n"
             << "            .::::'      ::::     .:::::::'::::.                "
-            "\n"
+               "\n"
             << "           .:::'       :::::  .:::::::::' ':::::.              "
-            "\n"
+               "\n"
             << "          .::'        :::::.:::::::::'      ':::::.            "
-            "\n"
+               "\n"
             << "         .::'         ::::::::::::::'         ``::::.          "
-            "\n"
+               "\n"
             << "     ...:::           ::::::::::::'              ``::.         "
-            "\n"
+               "\n"
             << "    ```` ':.          ':::::::::'                  ::::..      "
-            "\n"
+               "\n"
             << "                       '.:::::'                    ':'````..   "
-            "\n"
-            "\n" << std::endl;
+               "\n"
+               "\n"
+            << std::endl;
 }
 
 static void BuildInfo(void) {

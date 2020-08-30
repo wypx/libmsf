@@ -13,28 +13,25 @@
 #ifndef BASE_FILE_H_
 #define BASE_FILE_H_
 
-#include <fcntl.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/uio.h>
-
-#include <string>
-#include <unistd.h>
-#include <iostream>
 #include <dirent.h>
+#include <fcntl.h>
 #include <glob.h>
+#include <signal.h>
 #include <sys/file.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/statfs.h>
+#include <sys/time.h> /* for utimes */
+#include <sys/types.h>
+#include <sys/uio.h>
 #include <sys/vfs.h>
+#include <unistd.h>
+#include <utime.h> /* for utime */
 
 #include <algorithm>
-#include <signal.h>
-#include <sys/mman.h>
-#include <sys/time.h> /* for utimes */
-#include <utime.h>    /* for utime */
-
+#include <iostream>
 #include <list>
+#include <string>
 
 #ifdef WIN32
 #include <direct.h>

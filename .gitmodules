@@ -1,6 +1,6 @@
-[submodule "app/mobile"]
-	path = app/mobile
-	url = https://github.com/wypx/mobile
+[submodule "app/Mobile"]
+	path = app/Mobile
+	url = https://github.com/wypx/Mobile
 [submodule "thirdparty/numactl"]
 	path = thirdparty/numactl
 	url = https://github.com/numactl/numactl.git

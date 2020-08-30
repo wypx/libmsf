@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)      # 指定 cmake 的最小
 cmake_policy(VERSION 3.10.2)
 project(MSF_LIB_PROJECT)                                    # 设置项目名称
 
-message(STATUS "==>${CMAKE_CURRENT_SOURCE_DIR}")
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}

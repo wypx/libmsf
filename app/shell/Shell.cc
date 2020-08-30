@@ -8,7 +8,7 @@
 #include <cassert>
 #include <butil/logging.h>
 
-#include <Event/Timer.h>
+#include <event/Timer.h>
 
 using namespace MSF;
 

@@ -13,7 +13,7 @@
 #ifndef BASE_TIME_STAMP_H_
 #define BASE_TIME_STAMP_H_
 
-#include <Base/Noncopyable.h>
+#include <base/Noncopyable.h>
 #include <stdint.h>
 
 #include <string>

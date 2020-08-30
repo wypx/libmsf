@@ -50,7 +50,7 @@ def MakeBuildApp(BuildRoot):
     os.system("make install")
 
 def MakeBuildProto(BuildRoot):
-    os.chdir(BuildRoot + "/app/agent/proto")
+    os.chdir(BuildRoot + "/app/Agent/Proto")
     os.system("protoc -I=./ --cpp_out=./ *.proto")
     
 def MakeBuildClean(buildPath):

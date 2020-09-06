@@ -40,3 +40,6 @@
 [submodule "thirdparty/iperf"]
 	path = thirdparty/iperf
 	url = https://github.com/esnet/iperf.git
+[submodule "thirdparty/snappy"]
+	path = thirdparty/snappy
+	url = https://github.com/google/snappy.git

@@ -1562,6 +1562,51 @@ bool SetTcpFastOpen(const int fd) {
   return true;
 }
 
+inline bool SetTcpSyncnt(const int fd, int syncnt) {
+  if (::setsockopt(fd, IPPROTO_TCP, TCP_SYNCNT, &syncnt, sizeof(int)) < 0) {
+    LOG(ERROR) << "Could not set TCP_SYNCNT.";
+    return false;
+  }
+  return true;
+}
+
+inline bool SeTcpQuickAck(const int fd) {
+  int flag = 1;
+  if (::setsockopt(fd, IPPROTO_TCP, TCP_QUICKACK, &flag, sizeof(flag)) < 0) {
+    LOG(ERROR) << "Could not set TCP_QUICKACK.";
+    return false;
+  }
+  return true;
+}
+
+// https://github.com/kklis/proxy/blob/master/proxy.c
+// https://github.com/zfl9/ipt2socks/blob/master/netutils.c
+inline void SetIPTransparent(const int fd, const int family) {
+  int flag = 1;
+  if (family == AF_INET) {
+    if (::setsockopt(fd, IPPROTO_IP, IP_TRANSPARENT, &flag, sizeof(flag)) < 0) {
+        return;
+    }
+  } else {
+    if (::setsockopt(fd, IPPROTO_IPV6, IPV6_TRANSPARENT, &flag, sizeof(flag)) < 0) {
+        return;
+    }
+  }
+}
+
+inline void SetRecvOrigdstAddr(const int fd, const int family) {
+  int flag = 1;
+  if (family == AF_INET) {
+    if (::setsockopt(fd, IPPROTO_IP, IP_RECVORIGDSTADDR, &flag, sizeof(flag)) < 0) {
+      return;
+    }
+  } else {
+    if (::setsockopt(fd, IPPROTO_IPV6, IPV6_RECVORIGDSTADDR, &flag, sizeof(flag)) < 0) {
+      return;
+    }
+  }
+}
+
 /*
  * TCP_DEFER_ACCEPT:
  * 优化使用TCP_DEFER_ACCEPT可以减少用户程序hold的连接数,
@@ -1634,7 +1679,6 @@ int TFOSendMsg(const int fd, struct iovec *iov, int cnt, int flag) {
  * https://blog.csdn.net/zhangyu627836411/article/details/80215746
  * http://blog.chinaunix.net/uid-29110326-id-4749991.html
  * */
-#if 0
 bool GetTcpInfo(const int fd, struct tcp_info *tcpi) {
   socklen_t len = sizeof(*tcpi);
   ::memset(tcpi, 0, len);
@@ -1674,7 +1718,6 @@ bool GetTcpInfoString(const int fd, char *buf, int len) {
   }
   return succ;
 }
-#endif
 
 // not support in windows
 int SetTcpMSS(const int fd, const int size) {

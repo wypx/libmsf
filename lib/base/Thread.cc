@@ -21,6 +21,8 @@
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <sys/syscall.h>
+#define gettid() syscall(__NR_gettid)
 
 #include <iostream>
 #include <type_traits>
@@ -190,7 +192,7 @@ void* Thread::threadLoop(ThreadFunc initFunc) {
   CurrentThread::t_threadName = _name.c_str();
   LOG(INFO) << "Thread name: " << CurrentThread::t_threadName
             << " name:" << _name;
-  prctl(PR_SET_NAME, CurrentThread::t_threadName);
+  ::prctl(PR_SET_NAME, CurrentThread::t_threadName);
 
   _latch.countDown();
 
@@ -216,9 +218,6 @@ void* Thread::threadLoop(ThreadFunc initFunc) {
   }
   return nullptr;
 }
-
-#include <sys/syscall.h>
-#define gettid() syscall(__NR_gettid)
 
 void Thread::setDefaultName() {
   // int num = _numCreated.fetch_add(1);

@@ -52,6 +52,8 @@ def MakeBuildApp(BuildRoot):
 def MakeBuildProto(BuildRoot):
     os.chdir(BuildRoot + "/app/Agent/Proto")
     os.system("protoc -I=./ --cpp_out=./ *.proto")
+    os.chdir(BuildRoot + "/app/Mobile/src")
+    os.system("protoc -I=./ --cpp_out=./ *.proto")
     
 def MakeBuildClean(buildPath):
     #os.removedirs(buildPath)

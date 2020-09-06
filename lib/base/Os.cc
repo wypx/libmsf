@@ -19,6 +19,7 @@
 #include <numaif.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+// #include <grp.h>
 
 #include <algorithm>
 #include <fstream>
@@ -239,6 +240,81 @@ bool OsInfo::setCorePath(const std::string& path) {
   return ::system(cmdCorePath.c_str()) == 0 ? true : false;
 }
 
+void run_as_user(const char *username, char *argv[]) {
+  if (::geteuid() != 0) return; /* ignore if current user is not root */
+
+  const struct passwd *userinfo = ::getpwnam(username);
+  if (!userinfo) {
+    // LOGERR("[run_as_user] user:'%s' does not exist in this system", username);
+    return;
+  }
+
+  if (userinfo->pw_uid == 0) return; /* ignore if target user is root */
+
+  if (::setgid(userinfo->pw_gid) < 0) {
+    // LOGERR("[run_as_user] change to gid:%u of user:'%s': %s", userinfo->pw_gid, userinfo->pw_name, strerror(errno));
+    ::exit(errno);
+  }
+
+  // initgroups()用来从组文件(/etc/group)中读取一项组数据,
+  // 若该组数据的成员中有参数user 时,便将参数group 组识别码加入到此数据中
+  if (::initgroups(userinfo->pw_name, userinfo->pw_gid) < 0) {
+    // LOGERR("[run_as_user] initgroups(%u) of user:'%s': %s", userinfo->pw_gid, userinfo->pw_name, strerror(errno));
+    ::exit(errno);
+  }
+
+  if (::setuid(userinfo->pw_uid) < 0) {
+    // LOGERR("[run_as_user] change to uid:%u of user:'%s': %s", userinfo->pw_uid, userinfo->pw_name, strerror(errno));
+    ::exit(errno);
+  }
+
+  static char execfile_abspath[PATH_MAX] = {0};
+  if (::readlink("/proc/self/exe", execfile_abspath, PATH_MAX - 1) < 0) {
+    // LOGERR("[run_as_user] readlink('/proc/self/exe'): %s", strerror(errno));
+    ::exit(errno);
+  }
+
+  if (execv(execfile_abspath, argv) < 0) {
+    // LOGERR("[run_as_user] execv('%s', args): %s", execfile_abspath, strerror(errno));
+    ::exit(errno);
+  }
+}
+
+void PrintBuffer(void *pBuff, unsigned int nLen) {
+  if (NULL == pBuff || 0 == nLen) {
+    return;
+  }
+
+  const int nBytePerLine = 16;
+  unsigned char *p = (unsigned char *)pBuff;
+  char szHex[3 * nBytePerLine + 1] = {0};
+
+  printf("-----------------begin-------------------\n");
+  for (unsigned int i = 0; i < nLen; ++i) {
+    int idx = 3 * (i % nBytePerLine);
+    if (0 == idx) {
+      memset(szHex, 0, sizeof(szHex));
+    }
+#ifdef WIN32
+    sprintf_s(&szHex[idx], 4, "%02x ", p[i]);  // buff长度要多传入1个字节
+#else
+    snprintf(&szHex[idx], 4, "%02x ", p[i]);  // buff长度要多传入1个字节
+#endif
+
+    // 以16个字节为一行，进行打印
+    if (0 == ((i + 1) % nBytePerLine)) {
+      printf("%s\n", szHex);
+    }
+  }
+
+  // 打印最后一行未满16个字节的内容
+  if (0 != (nLen % nBytePerLine)) {
+    printf("%s\n", szHex);
+  }
+
+  printf("------------------end-------------------\n");
+}
+
 /* Display a buffer into a HEXA formated output */
 void OsInfo::dumpBuffer(const char* buff, size_t count, FILE* fp) {
   size_t i, j, c;
@@ -284,16 +360,16 @@ void OsInfo::dumpBuffer(const char* buff, size_t count, FILE* fp) {
 
 // https://www.cnblogs.com/mickole/p/3246702.html
 void OsInfo::writeStackTrace(const std::string& filePath) {
-  int fd = open(filePath.c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
+  int fd = ::open(filePath.c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
   void* buffer[100];
   int nptrs;
 
   nptrs = backtrace(buffer, 100);
   backtrace_symbols_fd(buffer, nptrs, fd);
-  if (write(fd, "\n", 1) != 1) {
+  if (::write(fd, "\n", 1) != 1) {
     /* We don't care, but this stops a warning on Ubuntu */
   }
-  close(fd);
+  ::close(fd);
 }
 
 const std::string OsInfo::stackTrace(bool demangle) {

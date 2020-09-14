@@ -43,3 +43,15 @@
 [submodule "thirdparty/snappy"]
 	path = thirdparty/snappy
 	url = https://github.com/google/snappy.git
+[submodule "thirdparty/libvma"]
+	path = thirdparty/libvma
+	url = https://github.com/Mellanox/libvma.git
+[submodule "thirdparty/qemu"]
+	path = thirdparty/qemu
+	url = https://github.com/qemu/qemu.git
+[submodule "thirdparty/vpp"]
+	path = thirdparty/vpp
+	url = https://github.com/FDio/vpp.git
+[submodule "thirdparty/seastar"]
+	path = thirdparty/seastar
+	url = https://github.com/scylladb/seastar.git

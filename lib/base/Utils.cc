@@ -74,14 +74,14 @@ static inline void EncodeBigEndian(char *buf, uint64_t value) {
 }
 
 static inline uint64_t DecodeBigEndian64(const char *buf) {
-  return ((static_cast<uint64_t>(static_cast<unsigned char>(buf[0]))) << 56 |
-          (static_cast<uint64_t>(static_cast<unsigned char>(buf[1])) << 48) |
-          (static_cast<uint64_t>(static_cast<unsigned char>(buf[2])) << 40) |
-          (static_cast<uint64_t>(static_cast<unsigned char>(buf[3])) << 32) |
-          (static_cast<uint64_t>(static_cast<unsigned char>(buf[4])) << 24) |
-          (static_cast<uint64_t>(static_cast<unsigned char>(buf[5])) << 16) |
-          (static_cast<uint64_t>(static_cast<unsigned char>(buf[6])) << 8) |
-          (static_cast<uint64_t>(static_cast<unsigned char>(buf[7]))));
+  return ((static_cast<uint64_t>(static_cast<uint8_t>(buf[0]))) << 56 |
+          (static_cast<uint64_t>(static_cast<uint8_t>(buf[1])) << 48) |
+          (static_cast<uint64_t>(static_cast<uint8_t>(buf[2])) << 40) |
+          (static_cast<uint64_t>(static_cast<uint8_t>(buf[3])) << 32) |
+          (static_cast<uint64_t>(static_cast<uint8_t>(buf[4])) << 24) |
+          (static_cast<uint64_t>(static_cast<uint8_t>(buf[5])) << 16) |
+          (static_cast<uint64_t>(static_cast<uint8_t>(buf[6])) << 8) |
+          (static_cast<uint64_t>(static_cast<uint8_t>(buf[7]))));
 }
 
 static inline void EncodeBigEndian(char *buf, uint32_t value) {
@@ -92,10 +92,10 @@ static inline void EncodeBigEndian(char *buf, uint32_t value) {
 }
 
 static inline uint32_t DecodeBigEndian32(const char *buf) {
-  return ((static_cast<uint64_t>(static_cast<unsigned char>(buf[0])) << 24) |
-          (static_cast<uint64_t>(static_cast<unsigned char>(buf[1])) << 16) |
-          (static_cast<uint64_t>(static_cast<unsigned char>(buf[2])) << 8) |
-          (static_cast<uint64_t>(static_cast<unsigned char>(buf[3]))));
+  return ((static_cast<uint64_t>(static_cast<uint8_t>(buf[0])) << 24) |
+          (static_cast<uint64_t>(static_cast<uint8_t>(buf[1])) << 16) |
+          (static_cast<uint64_t>(static_cast<uint8_t>(buf[2])) << 8) |
+          (static_cast<uint64_t>(static_cast<uint8_t>(buf[3]))));
 }
 
 void msf_nsleep(int ns) {
@@ -294,21 +294,23 @@ std::string exeName() {
 //     return std::move(str);
 // }
 
-std::vector<std::string> split(const std::string &s, const char *delim) {
-  std::vector<std::string> ret;
-  uint32_t last = 0;
-  uint32_t index = s.find(delim, last);
-  while (index != std::string::npos) {
-    if (index > last) {
-      ret.push_back(s.substr(last, index - last));
+std::vector<std::string> StringSplit(const std::string &s,
+                                     const std::string &delim = " ") {
+  std::vector<std::string> elems;
+  size_t pos = 0;
+  size_t len = s.length();
+  size_t delim_len = delim.length();
+  if (delim_len == 0) return elems;
+  while (pos < len) {
+    int find_pos = s.find(delim, pos);
+    if (find_pos < 0) {
+      elems.push_back(s.substr(pos, len - pos));
+      break;
     }
-    last = index + strlen(delim);
-    index = s.find(delim, last);
+    elems.push_back(s.substr(pos, find_pos - pos));
+    pos = find_pos + delim_len;
   }
-  if (!s.size() || s.size() - last > 0) {
-    ret.push_back(s.substr(last));
-  }
-  return ret;
+  return elems;
 }
 
 #if 0

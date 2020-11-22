@@ -117,7 +117,7 @@ int process_pin_to_cpu(uint32_t cpu_id) {
   return rc;
 }
 
-#elif (MSF_HAVE_SCHED_SETAFFINITY)
+#elif(MSF_HAVE_SCHED_SETAFFINITY)
 
 int process_pin_to_cpu(uint32_t cpu_id) {
   s32 rc = -1;

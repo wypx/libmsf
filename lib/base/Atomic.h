@@ -48,10 +48,10 @@ typedef volatile uint32_t msf_atomic_t;
 #define msf_cpu_pause()
 #endif
 
-#elif (__amd64__ || __amd64)
+#elif(__amd64__ || __amd64)
 
 #define MSF_SMP_LOCK "lock;" /
-#define msf_memory_barrier() __asm__ volatile("" ::: "memory")
+#define msf_memory_barrier() __asm__ volatile("" :: : "memory")
 #define msf_cpu_pause() __asm__("pause")
 
 //#define msf_cpu_pause()       _mm_pause();
@@ -111,7 +111,7 @@ inline msf_atomic_int_t msf_atomic_fetch_add(msf_atomic_t *value,
   return add;
 }
 
-#elif (__i386__ || __i386) /* x86*/
+#elif(__i386__ || __i386) /* x86*/
 
 /*
  * "cmpxchgl  r, [m]":
@@ -174,13 +174,10 @@ inline msf_atomic_uint_t msf_atomic_cmp_set(msf_atomic_t *lock,
 
 inline msf_atomic_int_t msf_atomic_fetch_add(msf_atomic_t *value,
                                              msf_atomic_int_t add) {
-  __asm__ volatile(
-
-      MSF_SMP_LOCK "    xaddl  %0, %1;   "
-
-      : "+r"(add)
-      : "m"(*value)
-      : "cc", "memory");
+  __asm__ volatile(MSF_SMP_LOCK "    xaddl  %0, %1;   "
+                   : "+r"(add)
+                   : "m"(*value)
+                   : "cc", "memory");
 
   return add;
 }
@@ -198,7 +195,6 @@ inline msf_atomic_int_t msf_atomic_fetch_add(msf_atomic_t *value,
   msf_atomic_uint_t old;
 
   __asm__ volatile(MSF_SMP_LOCK "    xaddl  %2, %1;   "
-
                    : "=a"(old)
                    : "m"(*value), "a"(add)
                    : "cc", "memory");
@@ -213,14 +209,13 @@ inline msf_atomic_int_t msf_atomic_fetch_add(msf_atomic_t *value,
  * to disable the gcc reorder optimizations
  */
 
-#define msf_memory_barrier() __asm__ volatile("" ::: "memory")
+#define msf_memory_barrier() __asm__ volatile("" :: : "memory")
 /* old "as" does not support "pause" opcode */
 #define msf_cpu_pause() __asm__(".byte 0xf3, 0x90")
 
 #elif !defined(__ATOMIC_VAR_FORCE_SYNC_MACROS) && defined(__ATOMIC_RELAXED) && \
-    !defined(__sun) &&                                                         \
-    (!defined(__clang__) || !defined(__APPLE__) ||                             \
-     __apple_build_version__ > 4210057)
+    !defined(__sun) && (!defined(__clang__) || !defined(__APPLE__) ||          \
+                        __apple_build_version__ > 4210057)
 /* Implementation using __atomic macros. */
 #define msf_atomic_fetch_add(var, count) \
   __atomic_add_fetch(&var, (count), __ATOMIC_RELAXED)

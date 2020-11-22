@@ -167,8 +167,7 @@ static const uint64_t crc64_tab[256] = {
     UINT64_C(0x66e7a46c27f3aa2c), UINT64_C(0x1c3fd4a417c62355),
     UINT64_C(0x935745fc4798b8de), UINT64_C(0xe98f353477ad31a7),
     UINT64_C(0xa6df411fbfb21ca3), UINT64_C(0xdc0731d78f8795da),
-    UINT64_C(0x536fa08fdfd90e51), UINT64_C(0x29b7d047efec8728),
-};
+    UINT64_C(0x536fa08fdfd90e51), UINT64_C(0x29b7d047efec8728), };
 
 uint64_t crc64(uint64_t crc, const unsigned char *s, uint64_t l) {
   uint64_t j;

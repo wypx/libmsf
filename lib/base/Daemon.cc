@@ -177,6 +177,13 @@ void Daemonize(bool chdir, bool close) {
       // LOG(ERROR) << "daemon process open /dev/null failed, exit";
       exit(EXIT_FAILURE);
     }
+    /* Redirect standard files to /dev/null */
+    // if (freopen("/dev/null", "r", stdin) == NULL)
+    //   std::exit(EXIT_FAILURE);
+    // if (freopen("/dev/null", "w", stdout) == NULL)
+    //   std::exit(EXIT_FAILURE);
+    // if (freopen("/dev/null", "w", stderr) == NULL)
+    //   std::exit(EXIT_FAILURE);
 
     if (dup2(fd, STDIN_FILENO) < 0) {
       // LOG(ERROR) << "daemon process dup2 stdin failed, exit";

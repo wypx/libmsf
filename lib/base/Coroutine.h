@@ -62,7 +62,8 @@ class Coroutine {
                 std::is_void<typename std::result_of<F(Args...)>::type>::value,
                 void>::type,
             typename Dummy = void>
-  Coroutine(F&& f, Args&&... args) : Coroutine(kDefaultStackSize) {
+  Coroutine(F&& f, Args&&... args)
+      : Coroutine(kDefaultStackSize) {
     func_ = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
   }
 
@@ -71,7 +72,8 @@ class Coroutine {
             typename = typename std::enable_if<
                 !std::is_void<typename std::result_of<F(Args...)>::type>::value,
                 void>::type>
-  Coroutine(F&& f, Args&&... args) : Coroutine(kDefaultStackSize) {
+  Coroutine(F&& f, Args&&... args)
+      : Coroutine(kDefaultStackSize) {
     using ResultType = typename std::result_of<F(Args...)>::type;
 
     auto me = this;

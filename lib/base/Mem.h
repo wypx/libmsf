@@ -47,8 +47,8 @@ namespace MSF {
  * while ZeroMemory() and bzero() are the calls.
  * icc7 may also inline several mov's of a zeroed register for small blocks.
  */
-#define MSF_MEMZERO(buf, n) (void)memset(buf, 0, n)
-#define MSF_MEMSET(buf, c, n) (void)memset(buf, c, n)
+#define MSF_MEMZERO(buf, n) (void) memset(buf, 0, n)
+#define MSF_MEMSET(buf, c, n) (void) memset(buf, c, n)
 #define MSF_MEMCPY(dst, src, n) memcpy(dst, src, n)
 #define MSF_MEMMOOVE(dst, src, n) memmove(dst, src, n)
 

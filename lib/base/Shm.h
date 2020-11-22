@@ -26,28 +26,73 @@ sizeof(ngx_slab_page_t)(slots_m[]) + pages * sizeof(ngx_slab_page_t)(pages_m[])
 */
 //见ngx_init_zone_pool共享内存的起始地址开始的sizeof(ngx_slab_pool_t)字节是用来存储管理共享内存的slabpoll的
 
-class MSF_SHM {
+class ShmManager {
  public:
-  MSF_SHM() = default;
-  explicit MSF_SHM(const std::string &name, uint64_t size);
-  virtual ~MSF_SHM() { ShmFree(); }
-
-  enum ShmStrategy {
-    ALLOC_BY_MAPPING_FILE,
-    ALLOC_BY_UNMAPPING_FILE,
-    ALLOC_BY_MAPPING_DEVZERO,
-    ALLOC_BY_SHMGET,
+  enum AllocateMethod {
+    kAllocateMethodInvalid = 0,
+    kAllocateMappingFile,
+    kAllocateMappingMem,
+    kAllocateMappingDevZero,
+    kAllocateSysvShmget,
+    kAllocatePosixShmopen
   };
 
-  int ShmAlloc();
-  void ShmFree();
+ public:
+  ShmManager() = default;
+  explicit ShmManager(const std::string &name, uint64_t size);
+  virtual ~ShmManager() { Free(); }
+
+  void set_alloc_method(AllocateMethod method) noexcept {
+    alloc_method_ = method;
+  }
+  const AllocateMethod alloc_method() const { return alloc_method_; }
+
+  bool Initialize();
+  bool Allocate();
+  bool Free();
+
+  bool ReadLock() const;
+  bool WriteLock() const;
+  bool TryReadLock() const;
+  bool TryWriteLock() const;
+  bool UnReadLock() const;
+  bool UnWriteLock() const;
+
+  bool PosixShmLock(const void *ptr, size_t size);
+  bool PosixShmUnLock(const void *ptr, size_t size);
+
+  bool LockReadWrite() const;
+  bool UnLockReadWrite() const;
+  bool TryLockReadWrite() const;
+
+  static bool MemLock(const void *ptr, size_t size);
+  static bool MemUnLock(const void *ptr, size_t size);
+  static bool MemProtect(void *ptr, size_t size, int flag);
+  static bool MemSync(void *ptr, size_t size, int flag);
+  static bool MemLockAll(int flags);
+  static bool MemUnLockAll(int flags);
 
  private:
   std::string mapfile;
   std::string name;
   uint64_t size;
-  uint8_t *addr;
-  enum ShmStrategy strategy;
+  char *map_addr_;
+  AllocateMethod alloc_method_;
+
+  int sem_id_;
+  key_t shm_key_;
+
+  int region_size_ = 0;
+  std::string shm_name_ = "posix_shm";
+  void *posix_shm_addr_ = nullptr;
+
+  bool InitializeSysv();
+  bool InitializePosix();
+  bool AllocateMappingFile();
+  bool AllocateMappingMem();
+  bool AllocateMappingDevZero();
+  bool AllocateShmget();
+  bool AllocateShmopen();
   int ShmAllocByMapFile(const std::string &filename);
 };
 

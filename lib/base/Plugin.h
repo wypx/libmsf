@@ -90,7 +90,7 @@ namespace MSF {
 #define MSF_LIB_EXTENSION "dll"
 static std::string dynamicLibraryExtension("dll");
 #else
-#define MSF_DLHANDLE void*
+#define MSF_DLHANDLE void *
 #define MSF_DLOPEN_L(name) dlopen((name), RTLD_LAZY | RTLD_GLOBAL)
 #define MSF_DLOPEN_N(name) dlopen((name), RTLD_NOW)
 #define MSF_DLSYM(handle, symbol) dlsym((handle), (symbol))
@@ -122,7 +122,7 @@ typedef int (*PluginFunc)(void* data, const uint32_t len);
 
 class Plugin
     : public Noncopyable /* : public std::enable_shared_from_this<Plugin>  */
-{
+      {
  public:
   uint32_t getPlugState() const { return _state; }
   std::string getPluginName() const { return _name; }

@@ -124,7 +124,7 @@ namespace MSF {
 #endif
 
 /* deprecated attribute support since gcc 3.1 */
-#if defined __GNUC__ && (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
+#if defined __GNUC__&&(__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
 #define MSF_DEPRECATED __attribute__((__deprecated__))
 #else
 #define MSF_DEPRECATED

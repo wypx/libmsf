@@ -41,7 +41,8 @@ void CountDownLatch::wait() {
 // wait_for: std::cv_status::timeout
 bool CountDownLatch::waitFor(const uint32_t ts) {
   std::unique_lock<std::mutex> lock(_mutex);
-  if (_condition.wait_for(lock, std::chrono::seconds(ts)) == std::cv_status::timeout /*,
+  if (_condition.wait_for(lock, std::chrono::seconds(ts)) ==
+      std::cv_status::timeout /*,
      [this]() { 
        LOG(INFO) << "count wait: " << _count;
        return (_count == 0);

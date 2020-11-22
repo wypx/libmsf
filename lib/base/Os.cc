@@ -13,6 +13,7 @@
 #include "Os.h"
 
 #include <butil/logging.h>
+
 #include <cxxabi.h>
 #include <execinfo.h>
 #include <fcntl.h>
@@ -20,6 +21,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 // #include <grp.h>
+#include <sys/reboot.h>
 
 #include <algorithm>
 #include <fstream>
@@ -169,7 +171,7 @@ bool OsInfo::setMaxOpenFds(const uint64_t maxOpenFds) {
 
 /* allow coredump after setuid() in Linux 2.4.x */
 bool OsInfo::EnableCoredump() {
-#if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
+#if HAVE_PRCTL&& defined(PR_SET_DUMPABLE)
   /* Set Linux DUMPABLE flag */
   if (prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) != 0) {
     LOG(ERROR) << "prctl: " << strerror(errno);
@@ -240,31 +242,35 @@ bool OsInfo::setCorePath(const std::string& path) {
   return ::system(cmdCorePath.c_str()) == 0 ? true : false;
 }
 
-void run_as_user(const char *username, char *argv[]) {
+void run_as_user(const char* username, char* argv[]) {
   if (::geteuid() != 0) return; /* ignore if current user is not root */
 
-  const struct passwd *userinfo = ::getpwnam(username);
+  const struct passwd* userinfo = ::getpwnam(username);
   if (!userinfo) {
-    // LOGERR("[run_as_user] user:'%s' does not exist in this system", username);
+    // LOGERR("[run_as_user] user:'%s' does not exist in this system",
+    // username);
     return;
   }
 
   if (userinfo->pw_uid == 0) return; /* ignore if target user is root */
 
   if (::setgid(userinfo->pw_gid) < 0) {
-    // LOGERR("[run_as_user] change to gid:%u of user:'%s': %s", userinfo->pw_gid, userinfo->pw_name, strerror(errno));
+    // LOGERR("[run_as_user] change to gid:%u of user:'%s': %s",
+    // userinfo->pw_gid, userinfo->pw_name, strerror(errno));
     ::exit(errno);
   }
 
   // initgroups()用来从组文件(/etc/group)中读取一项组数据,
   // 若该组数据的成员中有参数user 时,便将参数group 组识别码加入到此数据中
   if (::initgroups(userinfo->pw_name, userinfo->pw_gid) < 0) {
-    // LOGERR("[run_as_user] initgroups(%u) of user:'%s': %s", userinfo->pw_gid, userinfo->pw_name, strerror(errno));
+    // LOGERR("[run_as_user] initgroups(%u) of user:'%s': %s", userinfo->pw_gid,
+    // userinfo->pw_name, strerror(errno));
     ::exit(errno);
   }
 
   if (::setuid(userinfo->pw_uid) < 0) {
-    // LOGERR("[run_as_user] change to uid:%u of user:'%s': %s", userinfo->pw_uid, userinfo->pw_name, strerror(errno));
+    // LOGERR("[run_as_user] change to uid:%u of user:'%s': %s",
+    // userinfo->pw_uid, userinfo->pw_name, strerror(errno));
     ::exit(errno);
   }
 
@@ -275,18 +281,19 @@ void run_as_user(const char *username, char *argv[]) {
   }
 
   if (execv(execfile_abspath, argv) < 0) {
-    // LOGERR("[run_as_user] execv('%s', args): %s", execfile_abspath, strerror(errno));
+    // LOGERR("[run_as_user] execv('%s', args): %s", execfile_abspath,
+    // strerror(errno));
     ::exit(errno);
   }
 }
 
-void PrintBuffer(void *pBuff, unsigned int nLen) {
+void PrintBuffer(void* pBuff, unsigned int nLen) {
   if (NULL == pBuff || 0 == nLen) {
     return;
   }
 
   const int nBytePerLine = 16;
-  unsigned char *p = (unsigned char *)pBuff;
+  unsigned char* p = (unsigned char*)pBuff;
   char szHex[3 * nBytePerLine + 1] = {0};
 
   printf("-----------------begin-------------------\n");
@@ -358,6 +365,21 @@ void OsInfo::dumpBuffer(const char* buff, size_t count, FILE* fp) {
   }
 }
 
+// https://blog.csdn.net/feizhijiang/article/details/36187909
+// https://www.cnblogs.com/cobbliu/articles/9239710.html
+bool OsInfo::Reboot() {
+  // 同步磁盘数据,将缓存数据回写到硬盘,以防数据丢失
+  ::sync();
+  return ::reboot(RB_AUTOBOOT) == 0;
+}
+
+bool OsInfo::set_hostname_persist(const std::string& hostname) {
+  hostname_ = hostname;
+  std::string cmd = "sudo hostnamectl set-hostname " + hostname;
+  ::system(cmd.c_str());
+  return Reboot();
+}
+
 // https://www.cnblogs.com/mickole/p/3246702.html
 void OsInfo::writeStackTrace(const std::string& filePath) {
   int fd = ::open(filePath.c_str(), O_WRONLY | O_APPEND | O_CREAT, 0644);
@@ -371,6 +393,10 @@ void OsInfo::writeStackTrace(const std::string& filePath) {
   }
   ::close(fd);
 }
+
+// 认识ptrace函数
+// https://www.cnblogs.com/heixiang/p/10988992.html
+// https://www.cnblogs.com/axiong/p/6184638.html?utm_source=itdadao&utm_medium=referral
 
 const std::string OsInfo::stackTrace(bool demangle) {
   std::string stack;
@@ -592,15 +618,12 @@ void OsInfo::cpuId(uint32_t i, uint32_t* buf) {
    */
   __asm__(
       "    mov    %%ebx, %%esi;  "
-
       "    cpuid;                "
       "    mov    %%eax, (%1);   "
       "    mov    %%ebx, 4(%1);  "
       "    mov    %%edx, 8(%1);  "
       "    mov    %%ecx, 12(%1); "
-
       "    mov    %%esi, %%ebx;  "
-
       :
       : "a"(i), "D"(buf)
       : "ecx", "edx", "esi", "memory");

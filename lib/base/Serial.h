@@ -51,7 +51,8 @@ typedef enum {
 
 int32_t OpenSerialPort(const char *port);
 int SetSerialBaud(const int fd, const int speed);
-int SetSerialRawMode(const int fd, SerialFlowControl flowcontrol = FlowControlHardware);
+int SetSerialRawMode(const int fd,
+                     SerialFlowControl flowcontrol = FlowControlHardware);
 
 }  // namespace MSF
 #endif

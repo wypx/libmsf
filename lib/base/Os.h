@@ -165,6 +165,11 @@ class OsInfo {
     return intance;
   }
 
+  bool Reboot();
+  void set_hostname(const std::string &hostname) { hostname_ = hostname; }
+  bool set_hostname_persist(const std::string &hostname);
+  const std::string hostname() const { return hostname_; }
+
  private:
   std::string sysName_;
   std::string nodeName_;
@@ -172,6 +177,8 @@ class OsInfo {
   std::string version_;
   std::string machine_;
   std::string domainName_; /* _UTSNAME_DOMAIN_LENGTH */
+
+  std::string hostname_;
 
   /*
    * 如果能知道CPU cache行的大小,那么就可以有针对性地设置内存的对齐值,

@@ -6,7 +6,8 @@
  * Distributed under the terms of the GNU General Public License v2.
  *
  * This software is provided 'as is' with no explicit or implied warranties
- * in respect of its properties, including, but not limited to, correctneLOG(ERROR)
+ * in respect of its properties, including, but not limited to,
+ *correctneLOG(ERROR)
  * and/or fitneLOG(ERROR) for purpose.
  *
  **************************************************************************/
@@ -69,11 +70,11 @@ int SetSerialBaud(const int fd, const int speed) {
     return -1;
   }
 
-  // https://www.cnblogs.com/schips/p/10265178.html
-  #if defined(__linux__) && defined (TIOCSSERIAL)
+// https://www.cnblogs.com/schips/p/10265178.html
+#if defined(__linux__) && defined(TIOCSSERIAL)
   struct serial_struct ser;
 
-  if (::ioctl (fd, TIOCGSERIAL, &ser) < 0) {
+  if (::ioctl(fd, TIOCGSERIAL, &ser) < 0) {
     return -1;
   }
 
@@ -83,10 +84,10 @@ int SetSerialBaud(const int fd, const int speed) {
   ser.flags &= ~ASYNC_SPD_MASK;
   ser.flags |= ASYNC_SPD_CUST;
 
-  if (::ioctl (fd, TIOCSSERIAL, &ser) < 0) {
+  if (::ioctl(fd, TIOCSSERIAL, &ser) < 0) {
     return -1;
   }
-  #endif
+#endif
 
   // set up raw mode / no echo / binary
   // memset(&opt, 0, sizeof(opt));
@@ -97,8 +98,6 @@ int SetSerialBaud(const int fd, const int speed) {
 
   return tcsetattr(fd, TCSANOW, &opt);
 }
-
-
 
 int SetSerialBits(const int fd, SerialByteSize bytesize = EightBits) {
   struct termios opt;
@@ -126,32 +125,25 @@ struct serl_attr {
   int baudrate; /* 38400, or 9600 , or others. */
   int parity;   /* 0-> no, 1->odd, 2->even */
 };
-struct serl_attr attr = {
-    8,
-    1,
-    115200,
-    0,
-};
+struct serl_attr attr = {8, 1, 115200, 0, };
 
 void SetParity(struct termios *options, SerialParity parity = ParityNone) {
   options->c_iflag &= (tcflag_t) ~(INPCK | ISTRIP);
   switch (parity) {
     case ParityNone: {
-        options->c_cflag &= (tcflag_t) ~(PARENB | PARODD);/* Clear parity enable */
-        options->c_iflag &= ~INPCK;  /* disable parity checking */
-      }
-      break;
+      options->c_cflag &=
+          (tcflag_t) ~(PARENB | PARODD); /* Clear parity enable */
+      options->c_iflag &= ~INPCK;        /* disable parity checking */
+    } break;
     case ParityOdd: {
-        options->c_cflag |=  (PARENB | PARODD);
-        options->c_iflag |= INPCK; /* odd parity checking */
-      }
-      break;
+      options->c_cflag |= (PARENB | PARODD);
+      options->c_iflag |= INPCK; /* odd parity checking */
+    } break;
     case ParityEven: {
-        options->c_cflag &= (tcflag_t) ~(PARODD);
-        options->c_cflag |=  (PARENB); /* Enable parity */
-        options->c_iflag |= INPCK; /*enable parity checking */
-      }
-      break;
+      options->c_cflag &= (tcflag_t) ~(PARODD);
+      options->c_cflag |= (PARENB); /* Enable parity */
+      options->c_iflag |= INPCK;    /*enable parity checking */
+    } break;
     default:
       break;
   }
@@ -217,7 +209,8 @@ int SetSerialRawMode(const int fd, SerialFlowControl flowcontrol) {
     return -1;
   }
   // cfmakeraw(&opt);
-  opt.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG | ECHOK | ECHONL | IEXTEN); /* input ECHOPRT */
+  opt.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG | ECHOK | ECHONL |
+                   IEXTEN); /* input ECHOPRT */
   opt.c_iflag &= ~(IXON | IXOFF | ICRNL | INLCR | IGNCR | IGNBRK);
   opt.c_oflag &= ~OPOST; /* output */
 
@@ -228,7 +221,7 @@ int SetSerialRawMode(const int fd, SerialFlowControl flowcontrol) {
   opt.c_iflag &= (tcflag_t) ~PARMRK;
 #endif
 
- // setup flow control
+  // setup flow control
   if (flowcontrol == FlowControlNone) {
     xonxoff_ = false;
     rtscts_ = false;
@@ -241,29 +234,29 @@ int SetSerialRawMode(const int fd, SerialFlowControl flowcontrol) {
     xonxoff_ = false;
     rtscts_ = true;
   }
-  // xonxoff
+// xonxoff
 #ifdef IXANY
   if (xonxoff_)
-    opt.c_iflag |=  (IXON | IXOFF); //|IXANY)
+    opt.c_iflag |= (IXON | IXOFF);  //|IXANY)
   else
     opt.c_iflag &= (tcflag_t) ~(IXON | IXOFF | IXANY);
 #else
   if (xonxoff_)
-    opt.c_iflag |=  (IXON | IXOFF);
+    opt.c_iflag |= (IXON | IXOFF);
   else
     opt.c_iflag &= (tcflag_t) ~(IXON | IXOFF);
 #endif
-  // rtscts
+// rtscts
 #ifdef CRTSCTS
   if (rtscts_)
-    opt.c_cflag |=  (CRTSCTS);
+    opt.c_cflag |= (CRTSCTS);
   else
-    opt.c_cflag &= (unsigned long) ~(CRTSCTS);
+    opt.c_cflag &= (unsigned long)~(CRTSCTS);
 #elif defined CNEW_RTSCTS
   if (rtscts_)
-    opt.c_cflag |=  (CNEW_RTSCTS);
+    opt.c_cflag |= (CNEW_RTSCTS);
   else
-    opt.c_cflag &= (unsigned long) ~(CNEW_RTSCTS);
+    opt.c_cflag &= (unsigned long)~(CNEW_RTSCTS);
 #else
 #error "OS Support seems wrong."
 #endif
@@ -300,18 +293,11 @@ int PeekFd(const int fd) {
 #endif
 }
 
-void FlushInput(const int fd)
-{
-  ::tcflush(fd, TCIFLUSH);
-}
+void FlushInput(const int fd) { ::tcflush(fd, TCIFLUSH); }
 
-void FlushOutput(const int fd)
-{
-  ::tcflush(fd, TCOFLUSH);
-}
+void FlushOutput(const int fd) { ::tcflush(fd, TCOFLUSH); }
 
-void SendBreak(const int fd, int duration)
-{
+void SendBreak(const int fd, int duration) {
   ::tcsendbreak(fd, static_cast<int>(duration / 4));
 }
 
@@ -321,7 +307,7 @@ void SetBreak(const int fd, bool level) {
       LOG(ERROR) << "setBreak failed on a call to ioctl(TIOCSBRK): " << errno;
     }
   } else {
-    if (::ioctl(fd, TIOCCBRK) <  0){
+    if (::ioctl(fd, TIOCCBRK) < 0) {
       LOG(ERROR) << "setBreak failed on a call to ioctl(TIOCCBRK): " << errno;
     }
   }
@@ -334,7 +320,7 @@ void SetRTS(const int fd, bool level) {
       LOG(ERROR) << "setRTS failed on a call to ioctl(TIOCMBIS): " << errno;
     }
   } else {
-    if (::ioctl(fd, TIOCMBIC, &command) <  0) {
+    if (::ioctl(fd, TIOCMBIC, &command) < 0) {
       LOG(ERROR) << "setRTS failed on a call to ioctl(TIOCMBIC): " << errno;
     }
   }
@@ -343,28 +329,26 @@ void SetRTS(const int fd, bool level) {
 void SetDTR(const int fd, bool level) {
   int command = TIOCM_DTR;
   if (level) {
-    if (::ioctl (fd, TIOCMBIS, &command) < 0) {
+    if (::ioctl(fd, TIOCMBIS, &command) < 0) {
       LOG(ERROR) << "setDTR failed on a call to ioctl(TIOCMBIS): " << errno;
     }
   } else {
-    if (::ioctl (fd, TIOCMBIC, &command) < 0) {
+    if (::ioctl(fd, TIOCMBIC, &command) < 0) {
       LOG(ERROR) << "setDTR failed on a call to ioctl(TIOCMBIC): " << errno;
     }
   }
 }
 
-
-bool WaitForChange (const int fd, bool is_open) {
+bool WaitForChange(const int fd, bool is_open) {
 #ifndef TIOCMIWAIT
   while (is_open == true) {
     int status;
     if (::ioctl(fd, TIOCMGET, &status) < 0) {
-      LOG(ERROR) << "waitForChange failed on a call to ioctl(TIOCMGET): " << errno;
+      LOG(ERROR) << "waitForChange failed on a call to ioctl(TIOCMGET): "
+                 << errno;
     } else {
-      if (0 != (status & TIOCM_CTS)
-        || 0 != (status & TIOCM_DSR)
-        || 0 != (status & TIOCM_RI)
-        || 0 != (status & TIOCM_CD)) {
+      if (0 != (status & TIOCM_CTS) || 0 != (status & TIOCM_DSR) ||
+          0 != (status & TIOCM_RI) || 0 != (status & TIOCM_CD)) {
         return true;
       }
     }
@@ -372,36 +356,33 @@ bool WaitForChange (const int fd, bool is_open) {
   }
   return false;
 #else
-  int command = (TIOCM_CD|TIOCM_DSR|TIOCM_RI|TIOCM_CTS);
-  if (::ioctl (fd, TIOCMIWAIT, &command) < 0) {
+  int command = (TIOCM_CD | TIOCM_DSR | TIOCM_RI | TIOCM_CTS);
+  if (::ioctl(fd, TIOCMIWAIT, &command) < 0) {
     LOG(ERROR) << "waitForDSR failed on a call to ioctl(TIOCMIWAIT): " << errno;
   }
   return true;
 #endif
 }
 
-bool GetCTS(const int fd)
-{
+bool GetCTS(const int fd) {
   int status;
-  if (::ioctl (fd, TIOCMGET, &status) < 0) {
+  if (::ioctl(fd, TIOCMGET, &status) < 0) {
     LOG(ERROR) << "GetCTS failed on a call to ioctl(TIOCMGET): " << errno;
   } else {
     return 0 != (status & TIOCM_CTS);
   }
 }
 
-bool GetDSR(const int fd)
-{
+bool GetDSR(const int fd) {
   int status;
   if (::ioctl(fd, TIOCMGET, &status) < 0) {
-    LOG(ERROR) << "GetDSR failed on a call to ioctl(TIOCMGET): "<< errno;
+    LOG(ERROR) << "GetDSR failed on a call to ioctl(TIOCMGET): " << errno;
   } else {
     return 0 != (status & TIOCM_DSR);
   }
 }
 
-bool GetRI(const int fd)
-{
+bool GetRI(const int fd) {
   int status;
   if (::ioctl(fd, TIOCMGET, &status) < 0) {
     LOG(ERROR) << "getRI failed on a call to ioctl(TIOCMGET): " << errno;
@@ -412,17 +393,16 @@ bool GetRI(const int fd)
 
 bool GetCD(const int fd) {
   int status;
-  if (::ioctl (fd, TIOCMGET, &status) < 0) {
+  if (::ioctl(fd, TIOCMGET, &status) < 0) {
     LOG(ERROR) << "getCD failed on a call to ioctl(TIOCMGET): " << errno;
   } else {
     return 0 != (status & TIOCM_CD);
   }
 }
 
-
 size_t Available(const int fd) {
   int count = 0;
-  if (::ioctl (fd, TIOCINQ, &count) < 0) {
+  if (::ioctl(fd, TIOCINQ, &count) < 0) {
     return -1;
   } else {
     return static_cast<size_t>(count);

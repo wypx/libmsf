@@ -35,22 +35,12 @@ static struct MemSlab kDefaultMemSlab[] = {
     MemSlab(MEMBLK_512B, 4, 1024, 8), MemSlab(MEMBLK_1K, 4, 1024, 8),
     MemSlab(MEMBLK_2K, 4, 1024, 8),   MemSlab(MEMBLK_4K, 4, 1024, 8),
     MemSlab(MEMBLK_8K, 4, 1024, 8),   MemSlab(MEMBLK_1M, 0, 1024, 8),
-    MemSlab(MEMBLK_2M, 0, 1024, 8),   MemSlab(MEMBLK_1G, 0, 1, 0),
-};
+    MemSlab(MEMBLK_2M, 0, 1024, 8),   MemSlab(MEMBLK_1G, 0, 1, 0), };
 
 /* every block size in cmd mem pool */
-static const uint32_t kMemBlkSizeArray[MEMBLK_MAX] = {32,
-                                                      64,
-                                                      128,
-                                                      256,
-                                                      512,
-                                                      1024,
-                                                      2048,
-                                                      4096,
-                                                      8096,
-                                                      1024 * 1024 * 1,
-                                                      1024 * 1024 * 2,
-                                                      1024 * 1024 * 1024};
+static const uint32_t kMemBlkSizeArray[MEMBLK_MAX] = {
+    32,   64,   128,  256,             512,             1024,
+    2048, 4096, 8096, 1024 * 1024 * 1, 1024 * 1024 * 2, 1024 * 1024 * 1024};
 
 enum MemBlkIdx MemPool::GetMemBlkIdx(const uint32_t size) {
   if (unlikely(size == 0)) {

@@ -98,7 +98,7 @@ uint64_t CurrentMilliTime() {
   extern "C" std::uint64_t __rdtsc();
 #pragma intrinsic(__rdtsc)
   return __rdtsc();
-#elif __GNUC__ && (__i386__ || __x86_64__)
+#elif __GNUC__ &&(__i386__ || __x86_64__)
   return __builtin_ia32_rdtsc();
 #else
   /* use steady_clock::now() as an approximation for the timestamp counter on
@@ -133,8 +133,7 @@ static inline uint64_t getCurrentMicrosecondOrigin() {
   return tv.tv_sec * 1000000LL + tv.tv_usec;
 #else
   return std::chrono::duration_cast<std::chrono::microseconds>(
-             std::chrono::system_clock::now().time_since_epoch())
-      .count();
+      std::chrono::system_clock::now().time_since_epoch()).count();
 #endif
 }
 

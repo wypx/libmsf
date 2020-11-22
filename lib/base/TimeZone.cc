@@ -160,7 +160,8 @@ bool readTimeZoneFile(const char* zonefile, struct TimeZone::Data* data) {
       // FIXME
       (void)isstdcnt;
       (void)isgmtcnt;
-    } catch (std::logic_error& e) {
+    }
+    catch (std::logic_error& e) {
       fprintf(stderr, "%s\n", e.what());
     }
   }

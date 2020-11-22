@@ -149,6 +149,7 @@ void Acceptor::AcceptCb() {
       if (errno == EAGAIN || errno == EWOULDBLOCK || errno == ECONNABORTED) {
         stop = true;
       } else if (errno == EMFILE || errno == ENFILE) {
+        // http://blog.qiusuo.im/blog/2014/04/28/epoll-emfile/
         //系统的上限ENFILE 进程的上限EMFILE
         LOG(ERROR) << "Too many open connections, give up accept.";
         /* Read the section named "The special problem of

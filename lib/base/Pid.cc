@@ -114,6 +114,17 @@ int killall(const char *name, int sig) {
   return -2;
 }
 
+bool IsProcessRunning(long pid) {
+#if defined(WIN32)
+  HANDLE process = OpenProcess(SYNCHRONIZE, FALSE, pid);
+  DWORD ret = WaitForSingleObject(process, 0);
+  CloseHandle(process);
+  return (ret == WAIT_TIMEOUT);
+#else
+  return (::kill(pid, 0) == 0);
+#endif
+}
+
 int kill_pid(int pid) {
   int deadcnt = 20;
   struct stat s;

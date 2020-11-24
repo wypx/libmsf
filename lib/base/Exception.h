@@ -27,6 +27,19 @@ class Exception : public std::exception {
 
   const char* stackTrace() const noexcept { return stack_.c_str(); }
 
+  /** Dump current stack trace to a stream.
+    * Thanks to http://stackoverflow.com/questions/77005.
+     * \code
+    * #include <iostream>
+    * std::cerr << zypp::dumpBacktrace << std::endl;
+    * \endcode
+    * \code
+    * #include <zypp/base/String.h>
+    * std::string trace( str::Str() << zypp::dumpBacktrace );
+    * \endcode
+    */
+  std::ostream& DumpBacktrace(std::ostream& stream_r);
+
  private:
   std::string message_;
   std::string stack_;

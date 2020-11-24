@@ -1,4 +1,4 @@
-set(GUARD_SERVER_VERSION 0.1)
+set(WATCHDOG_SERVER_VERSION 0.1)
 
 execute_process(COMMAND git log --pretty=format:%h -1 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} OUTPUT_VARIABLE GITVER)
 add_definitions(-DVERSION_TAG=${AGENT_SERVER_VERSION}-${GITVER})
@@ -19,7 +19,7 @@ else()
         file(MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/Linux) 
     endif()
 endif()
-set(EXECUTABLE_NAME "Guard")
+set(EXECUTABLE_NAME "WatchDog")
 
 include (${PROJECT_SOURCE_DIR}/../cmake/utils.cmake)
 #include (${PROJECT_SOURCE_DIR}/cmake/FindNUMA.cmake)
@@ -50,7 +50,7 @@ aux_source_directory (. DIR_SRCS)
 add_executable(${EXECUTABLE_NAME} ${DIR_SRCS})
 add_definitions(-Wno-builtin-macro-redefined)
 msf_redefine_file(${EXECUTABLE_NAME})
-#set_target_properties(${EXECUTABLE_NAME} PROPERTIES VERSION ${GUARD_SERVER_VERSION})
+#set_target_properties(${EXECUTABLE_NAME} PROPERTIES VERSION ${WATCHDOG_SERVER_VERSION})
 target_link_libraries(${EXECUTABLE_NAME} ${COMMLIBS})
 
 # https://blog.csdn.net/qq_38410730/article/details/102837401

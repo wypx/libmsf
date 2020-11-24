@@ -132,15 +132,15 @@ int process_pin_to_cpu(uint32_t cpu_id) {
 
   if (CPU_COUNT(&mask) == 1) return 0;
 
-  if (sched_setaffinity(0, sizeof(mask), &mask) < 0) {
+  if (::sched_setaffinity(0, sizeof(mask), &mask) < 0) {
     LOG(ERROR) << "Could not set CPU affinity, continuing.";
   }
 
   /* guaranteed to take effect immediately */
-  sched_yield();
+  ::sched_yield();
 
   CPU_ZERO(&get);
-  if (sched_getaffinity(0, sizeof(get), &get) == -1) {
+  if (::sched_getaffinity(0, sizeof(get), &get) == -1) {
     LOG(ERROR) << "Could not get CPU affinity, continuing.";
   }
 
@@ -153,6 +153,31 @@ int process_pin_to_cpu(uint32_t cpu_id) {
   return rc;
 }
 #else
+
+/*
+ * If any process is being supervised/subscribed, and watchdogd is
+ * enabled, we raise the RT priority to 98 (just below the kernel WDT in
+ * prio).  This to ensure that system monitoring goes before anything
+ * else in the system.
+ */
+static void set_priority(int enabled = 0, int rtprio = 0) {
+  int result = 0;
+  struct sched_param prio;
+
+  if (enabled) {
+    // DEBUG("Setting SCHED_RR rtprio %d", rtprio);
+    prio.sched_priority = rtprio;
+    result = ::sched_setscheduler(getpid(), SCHED_RR, &prio);
+  } else {
+    // DEBUG("Setting SCHED_OTHER prio %d", 0);
+    prio.sched_priority = 0;
+    result = ::sched_setscheduler(getpid(), SCHED_OTHER, &prio);
+  }
+
+  if (result) {
+    LOG(ERROR) << "Failed to set scheduler priority enabled: " << enabled;
+  }
+}
 
 int process_pin_to_cpu(uint32_t cpu_id) { return 0; }
 #endif

@@ -45,6 +45,7 @@ class Acceptor : public Noncopyable {
   void CloseIdleFd();
   void OpenIdleFd();
   void DiscardAccept();
+
  private:
   bool started_;
   int idle_fd_;

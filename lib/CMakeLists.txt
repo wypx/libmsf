@@ -64,8 +64,8 @@ aux_source_directory(net/event DIR_SRCS)
 add_library(MSF STATIC ${DIR_SRCS})
 
 
-#msf_redefine_file(msf_base)
-#add_definitions(-Wno-builtin-macro-redefined)
+msf_redefine_file(MSF)
+add_definitions(-Wno-builtin-macro-redefined)
 
 #install(TARGETS MSF LIBRARY DESTINATION lib)
 #install(FILES * DESTINATION include/msf/)

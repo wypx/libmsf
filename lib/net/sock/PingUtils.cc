@@ -209,9 +209,11 @@ std::string PingResult(int result) {
   return STR_PING_UNKNOWN;
 }
 
-enum { ARP_MSG_SIZE = 0x2a };
+enum {
+  ARP_MSG_SIZE = 0x2a
+};
 
-#define MAC_BCAST_ADDR (uint8_t *)"/xff/xff/xff/xff/xff/xff"
+#define MAC_BCAST_ADDR (uint8_t *) "/xff/xff/xff/xff/xff/xff"
 #define ETH_INTERFACE "eth0"
 
 struct arpMsg {

@@ -165,6 +165,8 @@ class OsInfo {
     return intance;
   }
 
+  void GetLoadAverage();
+
   bool Reboot();
   void set_hostname(const std::string &hostname) { hostname_ = hostname; }
   bool set_hostname_persist(const std::string &hostname);

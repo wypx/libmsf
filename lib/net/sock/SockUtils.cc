@@ -28,6 +28,8 @@
 #include <sys/socket.h>
 #include <sys/timerfd.h>
 #include <sys/un.h>
+#include <linux/netfilter_ipv4.h>
+// #include <linux/netfilter_ipv6/ip6_tables.h>
 
 #include <butil/logging.h>
 
@@ -60,6 +62,51 @@ namespace MSF {
  * eventfd2(EFD_SEMAPHORE)  Linux 2.6.30, glibc 2.10.
  * EPOLLEXCLUSIVE           Linux 4.5, glibc 2.24.
  */
+
+#if defined(__linux__)
+// Sometimes these flags are not present in the headers,
+// so define them if not present.
+#if !defined(MSG_FASTOPEN)
+#define MSG_FASTOPEN 0x20000000
+#endif
+
+#if !defined(TCP_FASTOPEN)
+#define TCP_FASTOPEN 23
+#endif
+
+#if !defined(TCPI_OPT_SYN_DATA)
+#define TCPI_OPT_SYN_DATA 32
+#endif
+
+#ifndef SO_REUSEPORT
+#define SO_REUSEPORT 15
+#endif
+
+#ifndef IP_TRANSPARENT
+#define IP_TRANSPARENT 19
+#endif
+
+#ifndef IPV6_TRANSPARENT
+#define IPV6_TRANSPARENT 75
+#endif
+
+#ifndef IP_RECVORIGDSTADDR
+#define IP_RECVORIGDSTADDR 20
+#endif
+
+#ifndef IPV6_RECVORIGDSTADDR
+#define IPV6_RECVORIGDSTADDR 74
+#endif
+
+#ifndef SO_ORIGINAL_DST
+#define SO_ORIGINAL_DST 80
+#endif
+
+/* obtain original address if REDIRECT'd connection */
+#ifndef IP6T_SO_ORIGINAL_DST
+#define IP6T_SO_ORIGINAL_DST 80
+#endif
+#endif
 
 bool SocketInit() {
   char *errstr;
@@ -415,7 +462,7 @@ bool SetReuseAddr(const int fd, bool on) {
 }
 
 bool SetReusePort(const int fd, bool on) {
-#if defined __linux__ && defined(SO_REUSEPORT)
+#if defined __linux__ &&defined(SO_REUSEPORT)
   int one = on;
   /* REUSEPORT on Linux 3.9+ means, "Multiple servers (processes or
    * threads) can bind to the same port if they each set the option. */
@@ -503,6 +550,12 @@ bool SetLinger(const int fd, bool on) {
     return false;
   }
   return true;
+}
+
+/* set so_linger(delay=0) and call close(sockfd) */
+void SetTcpCloseByRst(int fd) {
+  SetLinger(fd, true);
+  CloseSocket(fd);
 }
 
 bool SetSegBufferSize(const int fd, const uint32_t n) {
@@ -1124,7 +1177,7 @@ int SendFdMessage(int sockfd, char *buf, int buflen, int *fds, int fd_num) {
     ::memcpy(CMSG_DATA(cmsg), fds, CMSG_SPACE(fdsize));
 #else
     /* do not support muti transfer socket rights now*/
-    cmsg.msg_accrights = (caddr_t)&fds[0];
+    cmsg.msg_accrights = (caddr_t) & fds[0];
     cmsg.msg_accrightslen = sizeof(int);
 #endif
 
@@ -1579,32 +1632,95 @@ inline bool SeTcpQuickAck(const int fd) {
   return true;
 }
 
+// https://github.com/zfl9/ipt2socks
 // https://github.com/kklis/proxy/blob/master/proxy.c
 // https://github.com/zfl9/ipt2socks/blob/master/netutils.c
 inline void SetIPTransparent(const int fd, const int family) {
   int flag = 1;
   if (family == AF_INET) {
     if (::setsockopt(fd, IPPROTO_IP, IP_TRANSPARENT, &flag, sizeof(flag)) < 0) {
-        return;
+      return;
     }
   } else {
-    if (::setsockopt(fd, IPPROTO_IPV6, IPV6_TRANSPARENT, &flag, sizeof(flag)) < 0) {
-        return;
+    if (::setsockopt(fd, IPPROTO_IPV6, IPV6_TRANSPARENT, &flag, sizeof(flag)) <
+        0) {
+      return;
     }
   }
 }
 
+// http://codingdict.com/questions/46157
 inline void SetRecvOrigdstAddr(const int fd, const int family) {
   int flag = 1;
   if (family == AF_INET) {
-    if (::setsockopt(fd, IPPROTO_IP, IP_RECVORIGDSTADDR, &flag, sizeof(flag)) < 0) {
+    if (::setsockopt(fd, IPPROTO_IP, IP_RECVORIGDSTADDR, &flag, sizeof(flag)) <
+        0) {
       return;
     }
   } else {
-    if (::setsockopt(fd, IPPROTO_IPV6, IPV6_RECVORIGDSTADDR, &flag, sizeof(flag)) < 0) {
+    if (::setsockopt(fd, IPPROTO_IPV6, IPV6_RECVORIGDSTADDR, &flag,
+                     sizeof(flag)) < 0) {
       return;
     }
   }
+}
+
+// https://blog.csdn.net/maijian/article/details/9835977
+// https://www.jianshu.com/p/5393fb5e2c87
+// https://www.jianshu.com/p/76cea3ef249d
+bool GetTcpOrigDstaddr(int family, int fd, void *dstaddr, bool is_tproxy) {
+  socklen_t addrlen =
+      (family == AF_INET) ? sizeof(sockaddr_in) : sizeof(sockaddr_in6);
+  if (is_tproxy) {
+    if (::getsockname(fd, (struct sockaddr *)dstaddr, &addrlen) < 0) {
+      // LOGERR("[get_tcp_orig_dstaddr] addr_family:%s, getsockname(%d): %s",
+      //        (family == AF_INET) ? "inet" : "inet6", sockfd,
+      // strerror(errno));
+      return false;
+    }
+  } else {
+    if (family == AF_INET) {
+      if (::getsockopt(fd, IPPROTO_IP, SO_ORIGINAL_DST, dstaddr, &addrlen) <
+          0) {
+        // LOGERR("[get_tcp_orig_dstaddr] getsockopt(%d, SO_ORIGINAL_DST): %s",
+        //        sockfd, strerror(errno));
+        return false;
+      }
+    } else {
+      if (::getsockopt(fd, IPPROTO_IPV6, IP6T_SO_ORIGINAL_DST, dstaddr,
+                       &addrlen) < 0) {
+        // LOGERR(
+        //     "[get_tcp_orig_dstaddr] getsockopt(%d, IP6T_SO_ORIGINAL_DST):
+        // %s",
+        //     sockfd, strerror(errno));
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+bool GetUdpOrigDstaddr(int family, struct msghdr *msg, void *dstaddr) {
+  if (family == AF_INET) {
+    for (struct cmsghdr *cmsg = CMSG_FIRSTHDR(msg); cmsg;
+         cmsg = CMSG_NXTHDR(msg, cmsg)) {
+      if (cmsg->cmsg_level == IPPROTO_IP &&
+          cmsg->cmsg_type == IP_RECVORIGDSTADDR) {
+        ::memcpy(dstaddr, CMSG_DATA(cmsg), sizeof(sockaddr_in));
+        return true;
+      }
+    }
+  } else {
+    for (struct cmsghdr *cmsg = CMSG_FIRSTHDR(msg); cmsg;
+         cmsg = CMSG_NXTHDR(msg, cmsg)) {
+      if (cmsg->cmsg_level == IPPROTO_IPV6 &&
+          cmsg->cmsg_type == IPV6_RECVORIGDSTADDR) {
+        ::memcpy(dstaddr, CMSG_DATA(cmsg), sizeof(sockaddr_in6));
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 /*
@@ -1648,22 +1764,6 @@ bool SetTcpDeferAccept(const int fd) {
   return true;
 }
 
-#if defined(__linux__)
-// Sometimes these flags are not present in the headers,
-// so define them if not present.
-#if !defined(MSG_FASTOPEN)
-#define MSG_FASTOPEN 0x20000000
-#endif
-
-#if !defined(TCP_FASTOPEN)
-#define TCP_FASTOPEN 23
-#endif
-
-#if !defined(TCPI_OPT_SYN_DATA)
-#define TCPI_OPT_SYN_DATA 32
-#endif
-#endif
-
 /**
  * 参考:
  * https://blog.csdn.net/u011130578/article/details/44515165
@@ -1671,6 +1771,14 @@ bool SetTcpDeferAccept(const int fd) {
 int TFOSendMsg(const int fd, struct iovec *iov, int cnt, int flag) {
   flag |= MSG_FASTOPEN;
   return SendMsg(fd, iov, cnt, flag);
+}
+
+int TFOSendTo(int fd, const void *addr, const void *data, size_t len) {
+  socklen_t addrlen = ((sockaddr_in *)addr)->sin_family == AF_INET
+                          ? sizeof(sockaddr_in)
+                          : sizeof(sockaddr_in6);
+  return ::sendto(fd, data, len, MSG_FASTOPEN, (struct sockaddr *)addr,
+                  addrlen);
 }
 
 /**
@@ -1708,8 +1816,7 @@ bool GetTcpInfoString(const int fd, char *buf, int len) {
         tcpi.tcpi_retransmits,  // Number of unrecovered [RTO] timeouts
         tcpi.tcpi_rto,          // Retransmit timeout in usec
         tcpi.tcpi_ato,          // Predicted tick of soft clock in usec
-        tcpi.tcpi_snd_mss, tcpi.tcpi_rcv_mss,
-        tcpi.tcpi_lost,     // Lost packets
+        tcpi.tcpi_snd_mss, tcpi.tcpi_rcv_mss, tcpi.tcpi_lost,  // Lost packets
         tcpi.tcpi_retrans,  // Retransmitted packets out
         tcpi.tcpi_rtt,      // Smoothed round trip time in usec
         tcpi.tcpi_rttvar,   // Medium deviation

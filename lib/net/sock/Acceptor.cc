@@ -118,9 +118,9 @@ void Acceptor::AcceptCb() {
 
   do {
     ::memset(&addr, 0, sizeof(struct sockaddr_storage));
-    /* NOTE: we aren't using static inline function here; because accept4
-     * requires defining _GNU_SOURCE and we don't want users to be forced to
-     * define it in their application */
+/* NOTE: we aren't using static inline function here; because accept4
+ * requires defining _GNU_SOURCE and we don't want users to be forced to
+ * define it in their application */
 #if defined(HAVE_ACCEPT4) && defined(SOCK_CLOEXEC) && defined(SOCK_NONBLOCK)
     new_fd = ::accept4(_sfd_, (struct sockaddr *)&addr, addrlen, SOCK_NONBLOCK);
     if (new_fd >= 0 || (errno != EINVAL && errno != ENOSYS)) {

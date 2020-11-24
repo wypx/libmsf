@@ -1,0 +1,47 @@
+syntax="proto3";
+package WatchDog;
+
+option cc_generic_services = true;
+
+enum WatchDogCommand {
+  WATCHDOG_CMD_UNKNOWN = 0;
+  WATCHDOG_SUBSCRIBE = 1;
+  WATCHDOG_UNSUBSCRIBE = 2;
+  WATCHDOG_KICK_PING = 3;
+  WATCHDOG_SET_LOGLEVEL = 4;
+  WATCHDOG_RESTART_PROCESS = 5;
+  WATCHDOG_RELOAD_CONFIGURE = 6;
+  WATCHDOG_START_PROCESS = 7;
+  WATCHDOG_STOP_PROCESS = 8;
+}
+
+message WatchdogPing {
+  string name = 1; // process name
+  int32 pid = 2; // process id
+  uint32 id = 3; // registered id
+  uint32 ts = 4; // timestamp
+}
+
+message WatchdogStartProcess {
+  string name = 1; // process name
+  string path = 2; // process path
+  bool is_persistent = 3; // is persistent
+};
+
+message WatchdogStopProcess {
+  string name = 1; // process name
+  string path = 2; // process path
+  bool is_persistent = 3; // is persistent
+};
+
+message WatchdogHeader {
+  uint32 magic = 1;
+  uint32 version = 2;
+  uint32 command = 3;
+};
+
+message WatchdogMessage {
+  WatchdogPing ping = 1;
+  WatchdogStartProcess start = 2;
+  WatchdogStopProcess stop = 3;
+};

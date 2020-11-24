@@ -10,7 +10,7 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include "Guard.h"
+#include "WatchDog.h"
 
 #include <base/Process.h>
 #include <base/SignalManager.h>

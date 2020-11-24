@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 // #include <grp.h>
 #include <sys/reboot.h>
+#include <sys/sysinfo.h>
 
 #include <algorithm>
 #include <fstream>
@@ -365,6 +366,56 @@ void OsInfo::dumpBuffer(const char* buff, size_t count, FILE* fp) {
   }
 }
 
+/* Default: disabled -- recommended 0.8, 0.9 */
+static double warning = 0.0;
+static double critical = 0.0;
+
+static int above_watermark(double avg, struct sysinfo* si) {
+  /* Expect loadavg to be out of wack first five mins after boot. */
+  if (si->uptime < 300) return 0;
+
+  /* High watermark alert disabled */
+  if (critical == 0.0) return 0;
+
+  if (avg <= critical) return 0;
+
+  return 1;
+}
+
+void OsInfo::GetLoadAverage() {
+  double avg, load[3];
+  struct sysinfo si;
+
+  if (::sysinfo(&si)) {
+    // ERROR("Failed reading system loadavg");
+    return;
+  }
+
+  for (int i = 0; i < 3; i++) {
+    load[i] = (double)si.loads[i] / (1 << SI_LOAD_SHIFT);
+  }
+  // LOG(INFO) << "Loadavg: %.2f, %.2f, %.2f (1, 5, 15 min)", load[0], load[1],
+  // load[2];
+
+  avg = (load[0] + load[1]) / 2.0;
+  // DEBUG("System load: %.2f, %.2f, %.2f (1, 5, 15 min), avg: %.2f (1 + 5),
+  // warning: %.2f, reboot: %.2f",  load[0], load[1], load[2], avg, warning,
+  // critical);
+
+  if (avg > warning) {
+    if (above_watermark(avg, &si)) {
+      // EMERG("System load too high, %.2f > %0.2f, rebooting system ...", avg,
+      // critical);
+      // if (checker_exec(exec, "loadavg", 1, avg, warning, critical)) {
+      //   // wdt_forced_reset(w->ctx, getpid(), PACKAGE ":loadavg", 0);
+    }
+    return;
+
+    // WARN("System load average very high, %.2f > %0.2f!", avg, warning);
+    // checker_exec(exec, "loadavg", 0, avg, warning, critical);
+  }
+}
+
 // https://blog.csdn.net/feizhijiang/article/details/36187909
 // https://www.cnblogs.com/cobbliu/articles/9239710.html
 bool OsInfo::Reboot() {
@@ -397,12 +448,16 @@ void OsInfo::writeStackTrace(const std::string& filePath) {
 // 认识ptrace函数
 // https://www.cnblogs.com/heixiang/p/10988992.html
 // https://www.cnblogs.com/axiong/p/6184638.html?utm_source=itdadao&utm_medium=referral
-
 const std::string OsInfo::stackTrace(bool demangle) {
+  // get void*'s for all entries on the stack
   std::string stack;
   const int max_frames = 200;
   void* frame[max_frames];
   int nptrs = ::backtrace(frame, max_frames);
+
+  // Print out all frames to stderr. Separate sigsegvHandler stack
+  // [dumpBacktrace][sigsegvHandler][libc throwing] from actual
+  // code stack.
   char** strings = ::backtrace_symbols(frame, nptrs);
   if (strings) {
     size_t len = 256;
@@ -579,11 +634,20 @@ bool OsInfo::getHddUsage() {
   return true;
 }
 
+/*
+  * $ cat /proc/meminfo
+  * MemTotal:        8120568 kB
+  * MemFree:         2298932 kB
+  * Cached:          1907240 kB
+  * SwapCached:            0 kB
+  * SwapTotal:      15859708 kB
+  * SwapFree:       15859708 kB
+  */
 bool OsInfo::getMemInfo(struct MemInfo& mem) {
   // https://www.cnblogs.com/JCSU/articles/1190685.html
   std::ifstream fin("/proc/meminfo");
   if (!fin) {
-    LOG(ERROR) << "Error opening /proc/meminfo for input";
+    LOG(ERROR) << "Cannot read /proc/meminfo, maybe /proc is not mounted yet";
     return false;
   }
 

@@ -1,15 +1,10 @@
-// Use of this source code is governed by a BSD-style license
-// that can be found in the License file.
-//
-// Author: Shuo Chen (chenshuo at chenshuo dot com)
-
 #ifndef BASE_DATE_H_
 #define BASE_DATE_H_
 
 #include <string>
 #include <utility>
 
-#include "Noncopyable.h"
+#include "noncopyable.h"
 
 struct tm;
 
@@ -91,4 +86,4 @@ inline bool operator==(Date x, Date y) {
 
 }  // namespace MSF
 
-#endif  // MUDUO_BASE_DATE_H
+#endif

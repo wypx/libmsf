@@ -22,7 +22,7 @@
 #include <functional>
 #include <string>
 
-#include "Atomic.h"
+#include "atomic.h"
 
 using namespace MSF;
 

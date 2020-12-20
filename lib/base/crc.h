@@ -3,6 +3,7 @@
 #define LIB_CRC_H
 
 #include <stdint.h>
+
 #include <functional>
 
 #define HAVE_CRC32_HARDWARE 1

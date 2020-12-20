@@ -1,3 +1,4 @@
+
 #ifndef BASE_SHA1_H_
 #define BASE_SHA1_H_
 

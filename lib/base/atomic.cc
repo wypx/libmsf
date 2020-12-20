@@ -15,7 +15,6 @@
 #include <thread>
 
 namespace MSF {
-namespace BASE {
 
 // https://blog.csdn.net/hzhsan/article/details/25124901
 //#define refcount_incr(it) ++(it->refcount)
@@ -57,5 +56,4 @@ uint32_t refcount_decr(uint32_t *refcount) {
 #endif
 }
 
-}  // namespace BASE
 }  // namespace MSF

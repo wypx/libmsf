@@ -209,7 +209,6 @@ int PluginManager::driverRmmod(const std::string& ko_path, const int mode) {
 当然, 单独使用 dummy.o 链接的话使用的是那个“不做事”的函数.
 如果test2.o 中的 foo 不是 weak symbol 的话,在链接时会产生冲突,这就是我们要使用
 weak 的原因。
-
 glibc 的实现里面经常用 weak alias,比如它的 socket 函数，
 在 C 文件里面你会看到一个 __socket
 函数，它几乎什么都没有做,只是设置了一些错误代码,返回些东西而已. 在同一个 C
@@ -218,7 +217,6 @@ glibc 的实现里面经常用 weak alias,比如它的 socket 函数，
 执行 sysenter 或者 int 等动作去请求系统调用.
 以前看 glibc 里面系统调用的实现的时候郁闷过很久,就是那个时候才知道了 weak alias
 这个东西。
-
 看来weak修饰符的原本含义是让weak弱类型的函数可以被其它同名函数覆盖（即不会发生冲突），
 如果没有其它同名函数，就使用该weak函数，类似于是默认函数；
 但是，受到“库”这一特别存在的影响，weak弱类型对库变得“不太可靠”了，
@@ -248,17 +246,14 @@ int __foo() {
     它前面的标记是
    W。给函数加上weak属性时,即使函数没定义，函数被调用也可以编译成功。 00000000 T
    __foo 00000000 W foo U puts
-
     而 alias 则使 foo 是 __foo 的一个别名,__foo 和 foo
    必须在同一个编译单元中定义,否则会编译出错。
-
     /总结weak属性
     //（1）asm(".weak symbol1\n\t .set symbol1, symbol222\n\t");与
     //     void symbol1() __attribute__ ((weak,alias("symbol222")));等效。
     //（2）给函数加上weak属性时，即使函数没定义，函数被调用也可以编译成功。
     //（3）当有两个函数同名时，则使用强符号（也叫全局符号,即没有加weak的函数）来代替弱符号（加weak的函数）。
     //（4）当函数没有定义，但如果是“某个函数”的别名时，如果该函数被调用，就间接调用“某个函数”。
-
     */
 // https://www.cnblogs.com/fly-narrow/p/4629253.html
 }  // namespace MSF

@@ -15,11 +15,7 @@
 
 #include <stdint.h>
 
-#include "Config.h"
-#include "Define.h"
-#include "Utils.h"
-
-using namespace MSF;
+#include "utils.h"
 
 namespace MSF {
 

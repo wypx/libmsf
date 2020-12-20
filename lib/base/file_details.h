@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <cerrno>
 
-#include "Uio.h"
+#include "uio.h"
 
 using namespace MSF;
 

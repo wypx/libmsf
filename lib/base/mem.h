@@ -27,7 +27,6 @@
 #include <numaif.h>
 
 #include "bitops.h"
-#include "define.h"
 #include "gcc_attr.h"
 
 using namespace MSF;

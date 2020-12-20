@@ -30,7 +30,6 @@
 #include <regex>
 
 #include "affinity.h"
-#include "define.h"
 
 using namespace MSF;
 
@@ -52,7 +51,7 @@ bool OsInfo::setUser(uid_t user, const std::string& userName) {
   struct passwd* pwd = NULL;
   struct group* grp = NULL;
 
-  if (user != (uid_t)MSF_CONF_UNSET_UINT) {
+  if (user != (uid_t)UINT_MAX) {
     LOG(TRACE) << "User is duplicate.";
     return true;
   }

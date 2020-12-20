@@ -23,9 +23,9 @@
 #include <vector>
 // #include <barrier>
 
-#include "ByteOder.h"
-#include "Noncopyable.h"
-#include "Utils.h"
+#include "byteoder.h"
+#include "noncopyable.h"
+#include "utils.h"
 
 using namespace MSF;
 

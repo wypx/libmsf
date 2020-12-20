@@ -19,8 +19,8 @@
 #include <mutex>
 #include <vector>
 
-#include "Noncopyable.h"
-#include "Thread.h"
+#include "noncopyable.h"
+#include "thread.h"
 
 using namespace MSF::THREAD;
 using namespace MSF;

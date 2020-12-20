@@ -14,8 +14,8 @@
 #define GUARD_GUARD_H
 
 #include <Client/AgentClient.h>
-#include <event/EventLoop.h>
-#include <event/EventStack.h>
+#include <event/event_loop.h>
+#include <event/event_stack.h>
 
 #include <list>
 

@@ -13,18 +13,17 @@
 #ifndef AGENT_CLIENT_AGENTCLIENT_H
 #define AGENT_CLIENT_AGENTCLIENT_H
 
-#include <base/CountDownLatch.h>
-#include <base/GccAttr.h>
-#include <event/EventLoop.h>
+#include <base/latch.h>
+#include <base/gcc_attr.h>
+#include <event/event_loop.h>
 #include "AgentConn.h"
 #include "AgentProto.h"
 
 using namespace MSF;
 namespace MSF {
 
-typedef std::function<void(char** data, uint32_t* len,
-                           const Agent::Command cmd)>
-    AgentCb;
+typedef std::function<
+    void(char** data, uint32_t* len, const Agent::Command cmd)> AgentCb;
 
 enum AgentNetType {
   kAgentUnix,

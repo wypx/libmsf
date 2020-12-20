@@ -43,7 +43,7 @@ struct tagAgentBhs {
         cmd_(0),
         bodyLen_(0),
         sessNo_(0) {}
-} MSF_PACKED_MEMORY;
+} __attribute_packed__;
 
 const uint32_t kAgentMagic = 0xab00;
 const uint32_t kAgentVersion = 0x0001;

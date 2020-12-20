@@ -14,12 +14,12 @@
 #include <getopt.h>
 #include <sys/epoll.h>
 
-#include "File.h"
-#include "ConfigParser.h"
-#include "Utils.h"
-#include "Version.h"
-#include "SockUtils.h"
-#include "Daemon.h"
+#include "file.h"
+#include "config_parser.h"
+#include "utils.h"
+#include "version.h"
+#include "sock_utils.h"
+#include "daemon.h"
 #include "AgentServer.h"
 
 using namespace MSF;
@@ -174,7 +174,7 @@ void AgentServer::HandleAgentLogin(AgentConnPtr c, Agent::AgentBhs &bhs,
   mpool_->Free(body.iov_base);
 
   LOG(INFO) << "\n Login "
-           << "\n name: " << login.name() << "\n cid: " << proto_->srcId(bhs);
+            << "\n name: " << login.name() << "\n cid: " << proto_->srcId(bhs);
   c->set_cid(static_cast<uint32_t>(proto_->srcId(bhs)));
   active_conns_[proto_->srcId(bhs)] = c;
   {
@@ -201,7 +201,8 @@ void AgentServer::HandleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs,
   if (itor != active_conns_.end()) {
     AgentConnPtr peer = (AgentConnPtr)itor->second;
     LOG(INFO) << "\n Send cmd to"
-             << "\n cmd: " << proto_->command(bhs) << "\n cid: " << peer->cid();
+              << "\n cmd: " << proto_->command(bhs)
+              << "\n cid: " << peer->cid();
     assert(proto_->dstId(bhs) == static_cast<Agent::AppId>(peer->cid()));
     // http://blog.chinaunix.net/uid-14949191-id-3967282.html
     // std::swap(bhs->srcId_, bhs->dstId_);
@@ -218,7 +219,7 @@ void AgentServer::HandleAgentRequest(AgentConnPtr c, Agent::AgentBhs &bhs,
     peer->wakeup();
   } else {
     LOG(INFO) << "\n Peer offline"
-             << "\n cmd: " << proto_->command(bhs);
+              << "\n cmd: " << proto_->command(bhs);
     {
       Agent::AppId tmpId = proto_->srcId(bhs);
       proto_->setSrcId(bhs, proto_->dstId(bhs));
@@ -333,9 +334,8 @@ bool AgentServer::InitNetwork() {
   for (uint32_t i = 0; i < 1; ++i) {
     InetAddress addr(ip_addr4_.c_str(), tcp_port_, AF_INET, SOCK_STREAM);
     std::shared_ptr<Acceptor> actor = std::make_shared<Acceptor>(
-        addr,
-        std::bind(&AgentServer::NewConn, this, std::placeholders::_1,
-                  std::placeholders::_2));
+        addr, std::bind(&AgentServer::NewConn, this, std::placeholders::_1,
+                        std::placeholders::_2));
     if (!actor) {
       LOG(INFO) << "Fail to alloc acceptor for " << addr.hostPort2String();
       return false;

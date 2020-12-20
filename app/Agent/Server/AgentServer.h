@@ -14,22 +14,23 @@
 #define AGENT_SERVER_AGENTSERVER_H
 
 #include "AgentConn.h"
-#include "Noncopyable.h"
-#include "Plugin.h"
-#include "ThreadPool.h"
-#include "Buffer.h"
-#include "MemPool.h"
-#include "EventLoop.h"
-#include "EventStack.h"
+#include "noncopyable.h"
+#include "plugin.h"
+#include "thread_pool.h"
+#include "buffer.h"
+#include "mem_pool.h"
+#include "event_loop.h"
+#include "event_stack.h"
 #include "AgentProto.h"
-#include "Acceptor.h"
+#include "acceptor.h"
 
 using namespace MSF;
 
 namespace MSF {
 
 static const std::string kDefaultUnixPath = "/var/tmp/AgentServer.sock";
-static const std::string kDefaultConfPath = "/home/luotang.me/conf/AgentServer.conf";
+static const std::string kDefaultConfPath =
+    "/home/luotang.me/conf/AgentServer.conf";
 static const std::string kDefaultLogDirPath = "/home/luotang.me/log/";
 
 class AgentServer {
@@ -114,7 +115,8 @@ class AgentServer {
   /* Mutiple connections supported, such as tcp, udp, unix, event fd and etc*/
   std::map<Agent::AppId, AgentConnPtr> active_conns_;
   std::list<AgentConnPtr> free_conns_;
-  std::atomic_uint64_t conn_id_; /* increment connection id for server register*/
+  std::atomic_uint64_t conn_id_; /* increment connection id for server
+                                    register*/
 
   bool started_;
   bool exiting_;

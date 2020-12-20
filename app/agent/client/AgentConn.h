@@ -13,10 +13,10 @@
 #ifndef AGENT_CLIENT_AGENTCONN_H
 #define AGENT_CLIENT_AGENTCONN_H
 
-#include <base/Buffer.h>
-#include <base/MemPool.h>
-#include <event/EventLoop.h>
-#include <sock/Connector.h>
+#include <base/buffer.h>
+#include <base/mem_pool.h>
+#include <event/event_loop.h>
+#include <sock/connector.h>
 
 #include "AgentProto.h"
 

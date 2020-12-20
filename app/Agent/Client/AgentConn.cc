@@ -162,19 +162,19 @@ bool AgentConn::updateTxOffset(const int ret) {
   while (iter != txBusyIov_.end()) {
     if (txIovOffset > iter->iov_len) {
       LOG(INFO) << "iter->iov_len1: " << iter->iov_len
-               << " txIovOffset:" << txIovOffset;
+                << " txIovOffset:" << txIovOffset;
       txIovOffset -= iter->iov_len;
       mpool_->Free(iter->iov_base);
       iter = txBusyIov_.erase(iter);  // return next item
     } else if (txIovOffset == iter->iov_len) {
       LOG(INFO) << "iter->iov_len2: " << iter->iov_len
-               << " txIovOffset:" << txIovOffset;
+                << " txIovOffset:" << txIovOffset;
       mpool_->Free(iter->iov_base);
       iter = txBusyIov_.erase(iter);  // return next item
       break;
     } else {
       LOG(INFO) << "iter->iov_len3: " << iter->iov_len
-               << " txIovOffset:" << txIovOffset;
+                << " txIovOffset:" << txIovOffset;
       iter->iov_base = static_cast<char *>(iter->iov_base) + txIovOffset;
       iter->iov_len -= txIovOffset;
       // ++iter;

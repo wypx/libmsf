@@ -11,9 +11,9 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/../lib/
     ${CMAKE_CURRENT_SOURCE_DIR}/../lib/base
     ${CMAKE_CURRENT_SOURCE_DIR}/../lib/conf
-    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/net
-    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/net/sock
-    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/net/event
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/network
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/network/sock
+    ${CMAKE_CURRENT_SOURCE_DIR}/../lib/network/event
     ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/baidu/incubator-brpc/src/
 )
 

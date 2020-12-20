@@ -9,6 +9,35 @@
 Component (module, plugin, process  (like dbus)) rpc server daemon and client library，
 make component communicating easier,using epoll event with unix socket and internet tcp/udp socket and etc.
 
+### libagent
+Agent 是高性能的分布式分组消息系统，支持局域网以及广域网通讯. 
+
+Agent 可以作为一个分布式应用的消息总线，并且具有高度的灵活性，
+
+可以做到多播，分组，以及点对点饿消息传递，消息保序，投递保证，可重启
+
+libAgent 包括一个消息服务器 AgentServer，
+
+包含一个用户需要连接的library，一个守护进程运行在每台计算机。
+
+以及多种语言的api C/C++ libraries (with and without thread support),
+ a Java Perl, Python, and Ruby. 还有很多其他语言的第三方扩展。
+
+消息的可靠性和可扩展性和组通信
+强大而简单的API，简化了分布式的架构
+很容易使用部署和维护
+很容易从局域网拓展到广域网
+支持上千个组和多个集合的member
+支持消息可靠性和保序，down机，进程崩溃和恢复，网络自动融合和分割
+全分布式模式没有中心节点down机危险
+局域网每秒处理80000条1kb的消息
+多平台支持性较差，支持c++ java python
+需要支持持久化?
+
+在一个典型的环境中，通常每台服务器上运行一个AgentServer, 客户端的程序本地连接server，
+发送信息，而这台服务器上的server会传递信息给其他订阅了这条消息的应用。
+当然也可以只有一个agent server，而其他的客户端分布在整个网络中
+
 ### __主要特性包括:__
  * 支持模块间，进程间，跨网络的主机的远程调用，让通信方式更加简单，不用关注底层通信的实现
  * 支持客户端服务注册认证，目前暂时支持CHAP认证方式，保证远程调用的客户端是可信的一方

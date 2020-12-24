@@ -5,9 +5,9 @@ import os
 import sys
 import pymongo
 
-def main(udisk_id):
+def main(db_host, db_port, udisk_id):
   print("=====> Start to get clone task info")
-  client = pymongo.MongoClient(host='172.27.37.69', port=37019)
+  client = pymongo.MongoClient(db_host, db_port)
   db = client['udisk']
   coll_list = db.list_collection_names(session=None)
   print("===================== Start to debug coll info ==========================")
@@ -18,7 +18,7 @@ def main(udisk_id):
   start_clone_task = coll.find_one({"dst_extern_id":udisk_id})
   print("\n")
   print("First clone task status: %d" % start_clone_task['status'])
-  start_tick = start_clone_task['hela_info']['start_tick'] - 100
+  start_tick = start_clone_task['hela_info']['start_tick']
   # 1594973761
   # start_tick = 1594796471 
   # start_tick = 1594973761 - 100
@@ -57,4 +57,7 @@ def main(udisk_id):
   print("\n")
 if __name__ == "__main__":
   # 第一个盘
-  main("bsi-1pq1s3i3")
+  # main("172.27.24.98", 27019, "bsi-5xg22swl")
+  # main("10.66.128.13", 20731, "bsi-dvvpumx5")
+  # main("172.27.24.98", 27019, "bsi-uwx0t55m")
+  main("172.27.39.115", 27035, "windows_hn02_bk_820")

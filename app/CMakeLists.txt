@@ -5,9 +5,9 @@ project(MSF_LIB_PROJECT)                                    # 设置项目名称
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Agent
-    ${CMAKE_CURRENT_SOURCE_DIR}/Agent/Proto
-    ${CMAKE_CURRENT_SOURCE_DIR}/Agent/Client
+    ${CMAKE_CURRENT_SOURCE_DIR}/agent
+    ${CMAKE_CURRENT_SOURCE_DIR}/agent/proto
+    ${CMAKE_CURRENT_SOURCE_DIR}/agent/client
     ${CMAKE_CURRENT_SOURCE_DIR}/../lib/
     ${CMAKE_CURRENT_SOURCE_DIR}/../lib/base
     ${CMAKE_CURRENT_SOURCE_DIR}/../lib/conf
@@ -43,7 +43,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17 -fPIC -O3 -Wall -g -ggdb")
 # https://blog.csdn.net/qq_38410730/article/details/102837401
 set(CMAKE_INSTALL_PREFIX /home/luotang.me)
 
-add_subdirectory (Agent AgentServer)
-add_subdirectory (WatchDog WatchDog)
-add_subdirectory (Shell Shell)
+add_subdirectory (agent AgentServer)
+add_subdirectory (watchdog WatchDog)
+add_subdirectory (shell Shell)
 add_subdirectory (Mobile Mobile)

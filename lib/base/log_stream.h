@@ -16,8 +16,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
-#include <Base/Utils.h>
-#include <Base/Noncopyable.h>
+#include "utils.h"
+#include "noncopyable.h"
 
 namespace MSF {
 

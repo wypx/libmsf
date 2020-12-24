@@ -16,18 +16,42 @@
 #include <map>
 #include <string>
 #include <vector>
-// #include <uuid/uuid.h>
+
 #include "utils.h"
+
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#else
+#include <uuid/uuid.h>
+#endif
 
 namespace MSF {
 
-// std::string NewUuid() {
-//   uuid_t sUuid;
-//   char szTemp[64];
-//   uuid_generate(sUuid);
-//   uuid_unparse(sUuid, szTemp);
-//   return szTemp;
-// }
+// uuid of system
+// cat /proc/sys/kernel/random/uuid
+#if 0
+std::string NewUuid()
+{
+    std::string res;
+#ifdef WIN32
+    UUID uuid;
+    ::UuidCreate(&uuid);
+    char* uuid_cstr = nullptr;
+    ::UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR*>(&uuid_cstr));
+    res = std::string(uuid_cstr);
+    ::RpcStringFreeA(reinterpret_cast<RPC_CSTR*>(&uuid_cstr));
+#else
+    uuid_t uuid;
+    char uuid_cstr[37]; // 36 byte uuid plus null.
+    ::uuid_generate(uuid);
+    ::uuid_unparse(uuid, uuid_cstr);
+    res = std::string(uuid_cstr);
+#endif
+
+    return res;
+}
+#endif
 
 static const uint32_t kMaxHostNameSize = 255;
 static inline std::string GetLocalHostName() {

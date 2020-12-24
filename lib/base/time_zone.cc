@@ -205,9 +205,12 @@ TimeZone::TimeZone(int eastOfUtc, const char* name)
   data_->abbreviation = name;
 }
 
+// https://blog.csdn.net/rain_qingtian/article/details/11008779
+// https://blog.csdn.net/u010507799/article/details/52288190
+// https://blog.csdn.net/rain_qingtian/article/details/11008779
 struct tm TimeZone::toLocalTime(time_t seconds) const {
   struct tm localTime;
-  memset(&localTime, 0, sizeof(localTime));
+  ::memset(&localTime, 0, sizeof(localTime));
   assert(data_ != NULL);
   const Data& data(*data_);
 

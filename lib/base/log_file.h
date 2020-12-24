@@ -17,16 +17,15 @@
 #include <mutex>
 #include <memory>
 
-namespace MSF {
+#include "file_utils.h"
 
-namespace FileUtil {
-class AppendFile;
-}
+namespace MSF {
 
 class LogFile {
  public:
   LogFile(const std::string& filePath, off_t rollSize = 2048 * 1000,
-          bool threadSafe = true, int flushInterval = 3, int checkEveryN = 1024);
+          bool threadSafe = true, int flushInterval = 3,
+          int checkEveryN = 1024);
   ~LogFile();
 
   void append(const char* logline, int len);
@@ -38,24 +37,24 @@ class LogFile {
 
   static std::string GetLogFileName(const std::string& basename, time_t* now);
 
-  const std::string basename_;
-  const int64_t roll_size_;
-  const int checkEveryN_;
- 
-  int count_;
-
   const std::string file_path_;
   const int flush_interval_;
+  const int checkEveryN_;
+  const int64_t roll_size_;
 
-  int rollCnt_;
+  const std::string basename_;
+
+  int count_;
+
+  int rollCnt_ = -1;
 
   std::unique_ptr<std::mutex> mutex_;
-  time_t startOfPeriod_;
-  time_t lastRoll_;
-  time_t lastFlush_;
-  std::unique_ptr<FileUtil::AppendFile> file_;
+  time_t startOfPeriod_ = 0;
+  time_t lastRoll_ = 0;
+  time_t lastFlush_ = 0;
+  std::unique_ptr<AppendFile> file_;
 
-  const static int kRollPerSeconds_ = 60*60*24;
+  const static int kRollPerSeconds_ = 60 * 60 * 24;
 };
 
 }  // namespace MSF

@@ -14,8 +14,8 @@
 #define LIB_LOGGER_H_
 
 #include <string.h>
-#include "LogStream.h"
-#include "../Base/TimeStamp.h"
+#include "log_stream.h"
+#include "time_stamp.h"
 
 using namespace MSF;
 
@@ -54,11 +54,9 @@ namespace MSF {
 
 class TimeZone;
 
-class Logger
-{
+class Logger {
  public:
-  enum LogLevel
-  {
+  enum LogLevel {
     TRACE,
     L_DEBUG,
     INFO,
@@ -69,28 +67,21 @@ class Logger
   };
 
   // compile time calculation of basename of source file
-  class SourceFile
-  {
+  class SourceFile {
    public:
-    template<int N>
+    template <int N>
     SourceFile(const char (&arr)[N])
-      : data_(arr),
-        size_(N-1)
-    {
-      const char* slash = strrchr(data_, '/'); // builtin function
-      if (slash)
-      {
+        : data_(arr), size_(N - 1) {
+      const char* slash = strrchr(data_, '/');  // builtin function
+      if (slash) {
         data_ = slash + 1;
         size_ -= static_cast<int>(data_ - arr);
       }
     }
 
-    explicit SourceFile(const char* filename)
-      : data_(filename)
-    {
+    explicit SourceFile(const char* filename) : data_(filename) {
       const char* slash = strrchr(filename, '/');
-      if (slash)
-      {
+      if (slash) {
         data_ = slash + 1;
       }
       size_ = static_cast<int>(strlen(data_));
@@ -118,9 +109,8 @@ class Logger
   static void setTimeZone(const TimeZone& tz);
 
  private:
-  class Impl
-  {
-  public:
+  class Impl {
+   public:
     typedef Logger::LogLevel LogLevel;
     Impl(LogLevel level, int old_errno, const SourceFile& file, int line);
     void formatTime();
@@ -134,15 +124,11 @@ class Logger
   };
 
   Impl impl_;
-
 };
 
 extern Logger::LogLevel g_logLevel;
 
-inline Logger::LogLevel Logger::logLevel()
-{
-  return g_logLevel;
-}
+inline Logger::LogLevel Logger::logLevel() { return g_logLevel; }
 
 //
 // CAUTION: do not write:
@@ -160,17 +146,21 @@ inline Logger::LogLevel Logger::logLevel()
 //   else
 //     logWarnStream << "Bad news";
 //
-#define LOG_TRACE if (Logger::logLevel() <= Logger::TRACE) \
+#define LOG_TRACE                          \
+  if (Logger::logLevel() <= Logger::TRACE) \
   Logger(__FILE__, __LINE__, Logger::TRACE, __func__).stream()
-#define LOG_DEBUG if (Logger::logLevel() <= Logger::L_DEBUG) \
+#define LOG_DEBUG                            \
+  if (Logger::logLevel() <= Logger::L_DEBUG) \
   Logger(__FILE__, __LINE__, Logger::L_DEBUG, __func__).stream()
-#define LOG_INFO if (Logger::logLevel() <= Logger::INFO) \
-  Logger(__FILE__, __LINE__).stream()
+#define LOG_INFO \
+  if (Logger::logLevel() <= Logger::INFO) Logger(__FILE__, __LINE__).stream()
 #define LOG_WARN Logger(__FILE__, __LINE__, Logger::WARN).stream()
 #define LOG_ERROR Logger(__FILE__, __LINE__, Logger::ERROR).stream()
 #define LOG_FATAL Logger(__FILE__, __LINE__, Logger::FATAL).stream()
 #define LOG_SYSERR Logger(__FILE__, __LINE__, false).stream()
 #define LOG_SYSFATAL Logger(__FILE__, __LINE__, true).stream()
+
+#define LOG(level) Logger(__FILE__, __LINE__，level).stream()
 
 const char* strerror_tl(int savedErrno);
 
@@ -184,16 +174,13 @@ const char* strerror_tl(int savedErrno);
 
 // A small helper for CHECK_NOTNULL().
 template <typename T>
-T* CheckNotNull(Logger::SourceFile file, int line, const char *names, T* ptr)
-{
-  if (ptr == NULL)
-  {
-   Logger(file, line, Logger::FATAL).stream() << names;
+T* CheckNotNull(Logger::SourceFile file, int line, const char* names, T* ptr) {
+  if (ptr == NULL) {
+    Logger(file, line, Logger::FATAL).stream() << names;
   }
   return ptr;
 }
 
 }  // namespace MSF
-
 
 #endif

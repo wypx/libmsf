@@ -10,8 +10,8 @@
 
 #include <memory>
 
-#include "Date.h"
-#include "Noncopyable.h"
+#include "date.h"
+#include "noncopyable.h"
 
 namespace MSF {
 

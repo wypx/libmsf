@@ -105,6 +105,11 @@ bool OsInfo::disablePageOut() {
   return true;
 }
 
+// https://zhuanlan.zhihu.com/p/160832179
+// https://blog.csdn.net/mango_song/article/details/21827903
+// https://blog.csdn.net/run_for_belief/article/details/83446344?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.control&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-1.control
+// https://blog.csdn.net/liubo2012/article/details/18903867?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-3.control&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-3.control
+// https://blog.csdn.net/wzb56_earl/article/details/25423591?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-2.control&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromMachineLearnPai2-2.control
 /* oom-killer will not kill us at the night... */
 bool OsInfo::oomAdjust() {
   int fd;

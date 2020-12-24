@@ -18,9 +18,12 @@
 #include <string>
 #include <condition_variable>
 
-#include <Atomic/CountDownLatch.h>
-#include "Thread.h"
-#include "LogStream.h"
+#include "latch.h"
+#include "thread.h"
+#include "log_stream.h"
+
+using namespace MSF;
+using namespace MSF::THREAD;
 
 namespace MSF {
 
@@ -46,8 +49,8 @@ class AsyncLogging : Noncopyable {
 
   void append(const char* logline, int len);
   void flush_notify();
- private:
 
+ private:
   void threadRoutine();
 
   typedef FixedBuffer<kLargeBuffer> Buffer;

@@ -62,9 +62,10 @@ void Daemonize(bool chdir, bool close) {
 
   /* this is loosely based off of glibc's daemon () implementation
    * http://sourceware.org/git/?p=glibc.git;a=blob_plain;f=misc/daemon.c */
+  /* 1st fork detaches child from terminal */
   pid = ::fork();
   if (pid < 0) {
-    // LOG(ERROR) << "fork son process failed, exit";
+    LOG(ERROR) << "fork son process failed, exit";
     ::exit(EXIT_FAILURE);
   }
   if (pid > 0) {
@@ -80,9 +81,10 @@ void Daemonize(bool chdir, bool close) {
 
     if (bytes <= 0) {
       /* closed fd (without writing) == failure in grandchild */
-      // LOG(ERROR) << "failed to daemonize";
-      exit(EXIT_FAILURE);
+      LOG(ERROR) << "failed to daemonize";
+      ::exit(EXIT_FAILURE);
     }
+    /* parent terminates */
     ::exit(EXIT_SUCCESS);
   }
   ::close(pipefd[0]);
@@ -94,12 +96,13 @@ void Daemonize(bool chdir, bool close) {
    *        这是调用setsid的必要条件.
    */
   /* try to detach from parent's process group */
+  /* 1st child continues and becomes the session and process group leader */
   if (::setsid() < 0) {
     // LOG(ERROR) << "setsid process failed, exit";
     ::exit(EXIT_FAILURE);
   }
 
-  /* set files mask */
+  /* clear file mode creation mask */
   umask(0);
 
   ::signal(SIGCHLD, SIG_IGN);
@@ -112,9 +115,10 @@ void Daemonize(bool chdir, bool close) {
    *        会话首进程退出时可能会给所有会话内的进程发送SIGHUP，而该
    *        信号默认是结束进程,故需要忽略该信号来防止孙子进程意外结束。
    */
+  /* 2nd fork turns child into a non-session leader: cannot acquire terminal */
   pid = ::fork();
   if (pid < 0) {
-    // LOG(ERROR) << "fork grandson process failed, exit";
+    LOG(ERROR) << "fork grandson process failed, exit";
     ::exit(EXIT_FAILURE);
   }
   if (pid > 0) ::exit(EXIT_SUCCESS);
@@ -122,12 +126,13 @@ void Daemonize(bool chdir, bool close) {
   /* 步骤4: 改变工作目录到根目录
    *       进程活动时,其工作目录所在的文件系统不能被umount
    */
+  /* add option to change directory to root */
   if (chdir) {
     char path_dir[256] = {0};
     char *p = ::getcwd(path_dir, 256);
     MSF_UNUSED(p);
     if (::chdir(path_dir) != 0) {
-      // LOG(ERROR) << "daemon process chdir failed, exit";
+      LOG(ERROR) << "daemon process chdir failed, exit";
       ::exit(EXIT_FAILURE);
     }
   }
@@ -135,10 +140,11 @@ void Daemonize(bool chdir, bool close) {
   /* 步骤5: 重定向标准输入输出到/dev/null
    *        但是不关闭012的fd避免被分配
    */
+  /* redirect stdin, stdout and stderr to "/dev/null" */
   if (close) {
     int fd = OpenDevNull(true);
     if (fd < 0) {
-      // LOG(ERROR) << "daemon process open /dev/null failed, exit";
+      LOG(ERROR) << "daemon process open /dev/null failed, exit";
       ::exit(EXIT_FAILURE);
     }
     /* Redirect standard files to /dev/null */
@@ -150,11 +156,11 @@ void Daemonize(bool chdir, bool close) {
     //   std::exit(EXIT_FAILURE);
 
     if (::dup2(fd, STDIN_FILENO) < 0) {
-      // LOG(ERROR) << "daemon process ::dup2 stdin failed, exit";
+      LOG(ERROR) << "daemon process ::dup2 stdin failed, exit";
       ::exit(EXIT_FAILURE);
     }
     if (::dup2(fd, STDOUT_FILENO) < 0) {
-      // LOG(ERROR) << "daemon process ::dup2 stdout failed, exit";
+      LOG(ERROR) << "daemon process ::dup2 stdout failed, exit";
       ::exit(EXIT_FAILURE);
     }
     // if (::dup2(fd, STDERR_FILENO) < 0) {
@@ -164,8 +170,8 @@ void Daemonize(bool chdir, bool close) {
 
     if (fd > STDERR_FILENO) {
       if (::close(fd) < 0) {
-        // LOG(ERROR) << "daemon process close fd failed, exit";
-        exit(EXIT_FAILURE);
+        LOG(ERROR) << "daemon process close fd failed, exit";
+        ::exit(EXIT_FAILURE);
       }
     }
   }
@@ -175,7 +181,7 @@ void Daemonize(bool chdir, bool close) {
    * do this before any further forking is done (workers)
    */
   if (::write(pipefd[1], "", 1) < 0) {
-    exit(EXIT_FAILURE);
+    ::exit(EXIT_FAILURE);
   }
   ::close(pipefd[1]);
 #endif

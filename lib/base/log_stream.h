@@ -22,28 +22,18 @@
 namespace MSF {
 
 const int kSmallBuffer = 4000;
-const int kLargeBuffer = 4000*1000;
+const int kLargeBuffer = 4000 * 1000;
 
-template<int SIZE>
-class FixedBuffer : Noncopyable
-{
+template <int SIZE>
+class FixedBuffer : Noncopyable {
  public:
-  FixedBuffer()
-    : cur_(data_)
-  {
-    setCookie(cookieStart);
-  }
+  FixedBuffer() : cur_(data_) { setCookie(cookieStart); }
 
-  ~FixedBuffer()
-  {
-    setCookie(cookieEnd);
-  }
+  ~FixedBuffer() { setCookie(cookieEnd); }
 
-  void append(const char* /*restrict*/ buf, size_t len)
-  {
+  void append(const char* /*restrict*/ buf, size_t len) {
     // FIXME: append partially
-    if (implicit_cast<size_t>(avail()) > len)
-    {
+    if (implicit_cast<size_t>(avail()) > len) {
       ::memcpy(cur_, buf, len);
       cur_ += len;
     }
@@ -77,15 +67,13 @@ class FixedBuffer : Noncopyable
   char* cur_;
 };
 
-
-class LogStream : Noncopyable
-{
+class LogStream : Noncopyable {
   typedef LogStream self;
+
  public:
   typedef FixedBuffer<kSmallBuffer> Buffer;
 
-  self& operator<<(bool v)
-  {
+  self& operator<<(bool v) {
     buffer_.append(v ? "1" : "0", 1);
     return *this;
   }
@@ -101,16 +89,14 @@ class LogStream : Noncopyable
 
   self& operator<<(const void*);
 
-  self& operator<<(float v)
-  {
+  self& operator<<(float v) {
     *this << static_cast<double>(v);
     return *this;
   }
   self& operator<<(double);
   // self& operator<<(long double);
 
-  self& operator<<(char v)
-  {
+  self& operator<<(char v) {
     buffer_.append(&v, 1);
     return *this;
   }
@@ -118,26 +104,20 @@ class LogStream : Noncopyable
   // self& operator<<(signed char);
   // self& operator<<(unsigned char);
 
-  self& operator<<(const char* str)
-  {
-    if (str)
-    {
+  self& operator<<(const char* str) {
+    if (str) {
       buffer_.append(str, strlen(str));
-    }
-    else
-    {
+    } else {
       buffer_.append("(null)", 6);
     }
     return *this;
   }
 
-  self& operator<<(const unsigned char* str)
-  {
+  self& operator<<(const unsigned char* str) {
     return operator<<(reinterpret_cast<const char*>(str));
   }
 
-  self& operator<<(const std::string& v)
-  {
+  self& operator<<(const std::string& v) {
     buffer_.append(v.c_str(), v.size());
     return *this;
   }
@@ -149,7 +129,7 @@ class LogStream : Noncopyable
  private:
   void staticCheck();
 
-  template<typename T>
+  template <typename T>
   void formatInteger(T);
 
   Buffer buffer_;
@@ -157,10 +137,10 @@ class LogStream : Noncopyable
   static const int kMaxNumericSize = 32;
 };
 
-class Fmt // : noncopyable
-{
+class Fmt  // : noncopyable
+    {
  public:
-  template<typename T>
+  template <typename T>
   Fmt(const char* fmt, T val);
 
   const char* data() const { return buf_; }
@@ -171,8 +151,7 @@ class Fmt // : noncopyable
   int length_;
 };
 
-inline LogStream& operator<<(LogStream& s, const Fmt& fmt)
-{
+inline LogStream& operator<<(LogStream& s, const Fmt& fmt) {
   s.append(fmt.data(), fmt.length());
   return s;
 }

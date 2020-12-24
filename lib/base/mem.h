@@ -140,9 +140,9 @@ long long msf_numa_node_size(int node, long long *freep);
 int msf_numa_distance(int node1, int node2);
 
 //! Total RAM in bytes
-static int64_t RamTotal();
+int64_t RamTotal();
 //! Free RAM in bytes
-static int64_t RamFree();
+int64_t RamFree();
 
 }  // namespace MSF
 #endif

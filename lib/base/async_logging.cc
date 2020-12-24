@@ -1,5 +1,5 @@
-#include "AsyncLogging.h"
-#include "LogFile.h"
+#include "async_logging.h"
+#include "log_file.h"
 #include <assert.h>
 #include <stdio.h>
 
@@ -20,8 +20,7 @@ AsyncLogging::AsyncLogging(const std::string filePath, off_t rollSize,
       buffers_() {}
 
 AsyncLogging::~AsyncLogging() {
-  if (running_)
-  {
+  if (running_) {
     stop();
   }
 }
@@ -46,7 +45,7 @@ void AsyncLogging::append(const char* logline, int len) {
 
 void AsyncLogging::flush_notify() {
   std::unique_lock<std::mutex> lock(mutex_);
-  cond_.notify_all(); // 保证日志及时输出
+  cond_.notify_all();  // 保证日志及时输出
 }
 
 void AsyncLogging::threadRoutine() {
@@ -59,8 +58,7 @@ void AsyncLogging::threadRoutine() {
   newBuffer2->bzero();
   BufferVector buffersToWrite;
   buffersToWrite.reserve(16);
-  while (running_)
-  {
+  while (running_) {
     assert(newBuffer1 && newBuffer1->length() == 0);
     assert(newBuffer2 && newBuffer2->length() == 0);
     assert(buffersToWrite.empty());
@@ -77,18 +75,17 @@ void AsyncLogging::threadRoutine() {
       buffers_.push_back(std::move(current_buffer_));
       current_buffer_ = std::move(newBuffer1);
       buffersToWrite.swap(buffers_);
-      if (!next_buffer_)
-      {
+      if (!next_buffer_) {
         next_buffer_ = std::move(newBuffer2);
       }
     }
 
     assert(!buffersToWrite.empty());
 
-    if (buffersToWrite.size() > 25)
-    {
+    if (buffersToWrite.size() > 25) {
       // char buf[256];
-      // snprintf(buf, sizeof buf, "Dropped log messages at %s, %zd larger buffers\n",
+      // snprintf(buf, sizeof buf, "Dropped log messages at %s, %zd larger
+      // buffers\n",
       //          Timestamp::now().toFormattedString().c_str(),
       //          buffersToWrite.size()-2);
       // fputs(buf, stderr);
@@ -96,28 +93,24 @@ void AsyncLogging::threadRoutine() {
       // buffersToWrite.erase(buffersToWrite.begin()+2, buffersToWrite.end());
     }
 
-    for (const auto& buffer : buffersToWrite)
-    {
+    for (const auto& buffer : buffersToWrite) {
       // FIXME: use unbuffered stdio FILE ? or use ::writev ?
       output.append(buffer->data(), buffer->length());
     }
 
-    if (buffersToWrite.size() > 2)
-    {
+    if (buffersToWrite.size() > 2) {
       // drop non-bzero-ed buffers, avoid trashing
       buffersToWrite.resize(2);
     }
 
-    if (!newBuffer1)
-    {
+    if (!newBuffer1) {
       assert(!buffersToWrite.empty());
       newBuffer1 = std::move(buffersToWrite.back());
       buffersToWrite.pop_back();
       newBuffer1->reset();
     }
 
-    if (!newBuffer2)
-    {
+    if (!newBuffer2) {
       assert(!buffersToWrite.empty());
       newBuffer2 = std::move(buffersToWrite.back());
       buffersToWrite.pop_back();

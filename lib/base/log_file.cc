@@ -1,5 +1,4 @@
-#include "LogFile.h"
-#include "FileUtil.h"
+#include "log_file.h"
 #include <time.h>
 #include <string.h>
 #include <dirent.h>
@@ -8,18 +7,14 @@
 
 using namespace MSF;
 
-LogFile::LogFile(const std::string& file_path_, int64_t rollSize, bool threadSafe,
-                 int flushInterval,int checkEveryN)
+LogFile::LogFile(const std::string& file_path_, int64_t rollSize,
+                 bool threadSafe, int flushInterval, int checkEveryN)
     : file_path_(file_path_),
       flush_interval_(flushInterval),
       checkEveryN_(checkEveryN),
-      rollCnt_(-1),
       roll_size_(rollSize),
       mutex_(threadSafe ? new std::mutex : NULL),
-      file_(new FileUtil::AppendFile(file_path_)),
-      startOfPeriod_(0),
-      lastRoll_(0),
-      lastFlush_(0) {
+      file_(new AppendFile(file_path_)) {
   // assert(file_path_.find('/') == std::string::npos);
   rollFile();
 }
@@ -69,12 +64,11 @@ bool LogFile::rollFile() {
   std::string filename = GetLogFileName(basename_, &now);
   time_t start = now / kRollPerSeconds_ * kRollPerSeconds_;
 
-  if (now > lastRoll_)
-  {
+  if (now > lastRoll_) {
     lastRoll_ = now;
     lastFlush_ = now;
     startOfPeriod_ = start;
-    file_.reset(new FileUtil::AppendFile(filename));
+    file_.reset(new AppendFile(filename));
     return true;
   }
   return false;
@@ -88,7 +82,7 @@ std::string LogFile::GetLogFileName(const std::string& basename, time_t* now) {
   char timebuf[32];
   struct tm tm;
   *now = time(NULL);
-  gmtime_r(now, &tm); // FIXME: localtime_r ?
+  gmtime_r(now, &tm);  // FIXME: localtime_r ?
   strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S.", &tm);
   filename += timebuf;
 

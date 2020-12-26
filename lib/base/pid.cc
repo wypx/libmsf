@@ -21,6 +21,14 @@
 #include <termios.h>
 #include <unistd.h>
 
+int32_t get_pid() {
+#if (defined(WIN32) || defined(_WIN32))
+  return static_cast<int32_t>(::GetCurrentProcessId());
+#else
+  return static_cast<int32_t>(::getpid());
+#endif
+}
+
 int f_read(const char *path, void *buffer, int max) {
   int f;
   int n;

@@ -43,6 +43,10 @@ class Console {
   Console& operator=(const Console&) = delete;
   Console& operator=(Console&&) = delete;
 
+  // Returns true if stdout appears to be a terminal that supports colored
+  // output, false otherwise.
+  bool IsColorTerminal();
+
   //! Set console text color
   /*!
       \param color - Console text color

@@ -35,11 +35,15 @@ namespace MSF {
  * 进程被内核再次调度时,在for循环代码中可以期望其他进程释放锁
  * 注意,不同的内核版本对于sched_yield系统调用的实现可能是不同的,
  * 但它们的目的都是暂时"让出"处理器*/
-#if (MSF_HAVE_SCHED_YIELD)
-#define msf_sched_yield() sched_yield()
+inline void thread_yield() {
+#if defined(WIN32) || defined(_WIN32)
+  ::SwitchToThread();
+#elif defined(__linux__)
+  ::sched_yield();
 #else
-#define msf_sched_yield() usleep(1)
+  ::usleep(1);
 #endif
+}
 
 namespace CurrentThread {
 int tid();

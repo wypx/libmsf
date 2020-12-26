@@ -108,6 +108,46 @@ namespace MSF {
 #endif
 #endif
 
+bool SplitHostPort(const char *address, std::string &host, int &port) {
+  std::string a = address;
+  if (a.empty()) {
+    return false;
+  }
+
+  size_t index = a.rfind(':');
+  if (index == std::string::npos) {
+    LOG(ERROR) << "Address specified error <" << address
+               << ">. Cannot find ':'";
+    return false;
+  }
+
+  if (index == a.size() - 1) {
+    return false;
+  }
+
+  port = std::atoi(&a[index + 1]);
+
+  host = std::string(address, index);
+  if (host[0] == '[') {
+    if (*host.rbegin() != ']') {
+      LOG(ERROR) << "Address specified error <" << address
+                 << ">. '[' ']' is not pair.";
+      return false;
+    }
+
+    // trim the leading '[' and trail ']'
+    host = std::string(host.data() + 1, host.size() - 2);
+  }
+
+  // Compatible with "fe80::886a:49f3:20f3:add2]:80"
+  if (*host.rbegin() == ']') {
+    // trim the trail ']'
+    host = std::string(host.data(), host.size() - 1);
+  }
+
+  return true;
+}
+
 bool SocketInit() {
   char *errstr;
 #ifdef WIN32
@@ -1569,6 +1609,17 @@ int RecvMsg(const int fd, struct iovec *iov, int cnt, int flag) {
   msg.msg_iovlen = cnt;
   return ::recvmsg(fd, &msg, flag);
 }
+
+#if defined(WIN32) || defined(WIN64) || defined(__MINGW32__)
+int readv(const int fd, struct iovec *iov, int iovcnt) {
+  DWORD readn = 0;
+  DWORD flags = 0;
+  if (::WSARecv(sockfd, iov, iovcnt, &readn, &flags, nullptr, nullptr) == 0) {
+    return readn;
+  }
+  return -1;
+}
+#endif
 
 int SendTo(const int fd, const char *buf, const int len) {
   struct sockaddr_in sa;

@@ -429,6 +429,22 @@ void OsInfo::GetLoadAverage() {
   }
 }
 
+std::vector<double> GetLoadAvg() {
+#if defined(OS_FREEBSD) || defined(OS_LINUX) || defined(OS_APPLE)
+  constexpr int kMaxSamples = 3;
+  std::vector<double> res(kMaxSamples, 0.0);
+  const int nelem = ::getloadavg(res.data(), kMaxSamples);
+  if (nelem < 1) {
+    res.clear();
+  } else {
+    res.resize(nelem);
+  }
+  return res;
+#else
+  return {};
+#endif
+}
+
 // https://blog.csdn.net/feizhijiang/article/details/36187909
 // https://www.cnblogs.com/cobbliu/articles/9239710.html
 bool OsInfo::Reboot() {
@@ -627,6 +643,31 @@ void OsInfo::vnodeInit(void) {
 #endif
 }
 
+std::string OsInfo::GetSystemName() {
+#if defined(WIN32) || defined(WIN64) || defined(_WIN32) || defined(__CYGWIN__)
+  std::string str;
+  const unsigned COUNT = MAX_COMPUTERNAME_LENGTH + 1;
+  TCHAR hostname[COUNT] = {'\0'};
+  DWORD DWCOUNT = COUNT;
+  if (!::GetComputerName(hostname, &DWCOUNT)) return std::string("");
+#ifndef UNICODE
+  str = std::string(hostname, DWCOUNT);
+#else
+  // Using wstring_convert, Is deprecated in C++17
+  using convert_type = std::codecvt_utf8<wchar_t>;
+  std::wstring_convert<convert_type, wchar_t> converter;
+  std::wstring wStr(hostname, DWCOUNT);
+  str = converter.to_bytes(wStr);
+#endif
+  return str;
+#else
+  char hostname[HOST_NAME_MAX];
+  int ret = ::gethostname(hostname, HOST_NAME_MAX);
+  if (ret != 0) return std::string("");
+  return std::string(hostname);
+#endif  // Catch-all POSIX block.
+}
+
 bool OsInfo::sysInit() {
   struct rlimit rlmt;
   struct utsname u;
@@ -664,18 +705,17 @@ bool OsInfo::sysInit() {
 #endif
 
 #ifdef WIN32
-  SYSTEM_INFO TRACE;
-  GetSystemInfo(&TRACE);
-  cpuOnline_ = TRACE.dwNumberOfProcessors;
+  SYSTEM_INFO sysinfo;
+  ::GetSystemInfo(&sysinfo);
+  cpuOnline_ = sysinfo.dwNumberOfProcessors;
 #else
   cpuOnline_ = sysconf(_SC_NPROCESSORS_ONLN);
-#endif
   maxFileFds_ = sysconf(_SC_OPEN_MAX);
   tickSpersec_ = sysconf(_SC_CLK_TCK);
   maxHostName_ = sysconf(_SC_HOST_NAME_MAX);
   maxLoginName_ = sysconf(_SC_LOGIN_NAME_MAX);
-
-  if (getrlimit(RLIMIT_NOFILE, &rlmt) == -1) {
+#endif
+  if (::getrlimit(RLIMIT_NOFILE, &rlmt) == -1) {
     LOG(ERROR) << "Getrlimit failed, errno:" << errno;
     return false;
   }

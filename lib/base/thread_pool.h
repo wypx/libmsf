@@ -32,6 +32,10 @@ namespace MSF {
  * https://blog.csdn.net/zhangxiao93/article/details/72677704
  * https://blog.csdn.net/zhangxiao93/article/details/52027302
  *
+ * 目前是一个无限长度的Queue的版本
+ * TODO:
+ * 1 改成有限长度的Queue
+ * 2 增加一个future/promise的选项
  * */
 
 class ThreadPool final : public Noncopyable {

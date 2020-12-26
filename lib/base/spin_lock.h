@@ -72,7 +72,7 @@ inline void yield(unsigned k) {
 /// Spinlock
 ////////////////////////////////////////////////////////////////
 
-class spin_lock {
+class SpinLock {
   std::atomic_flag lc_ = ATOMIC_FLAG_INIT;
 
  public:

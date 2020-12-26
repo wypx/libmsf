@@ -7,6 +7,10 @@
 
 using namespace MSF;
 
+#ifdef __APPLE__
+#define fwrite_unlocked fwrite
+#endif
+
 LogFile::LogFile(const std::string& file_path_, int64_t rollSize,
                  bool threadSafe, int flushInterval, int checkEveryN)
     : file_path_(file_path_),
@@ -19,7 +23,9 @@ LogFile::LogFile(const std::string& file_path_, int64_t rollSize,
   rollFile();
 }
 
-LogFile::~LogFile() = default;
+LogFile::~LogFile() {
+  flush();
+};
 
 void LogFile::append(const char* logline, int len) {
   if (mutex_) {
@@ -30,13 +36,25 @@ void LogFile::append(const char* logline, int len) {
   }
 }
 
-void LogFile::append_unlocked(const char* logline, int len) {
-  file_->append(logline, len);
+void LogFile::appendBatch(const std::vector<T>& buffers) {
+  constexpr size_t batch = 32;
+  int len = buffers.size();
+
+  int i = 0;
+  for (; i + batch < len; i += batch) {
+    file_->appendBatch(buffers.begin(), buffers.begin() + batch);
+  }
+
+  file_->appendBatch(buffers.begin() + i, buffers.end());
+
+  afterAppend();
+}
+
+void LogFile::afterAppend() {
   if (file_->writtenBytes() > roll_size_) {
     rollFile();
   } else {
-    ++count_;
-    if (count_ >= checkEveryN_) {
+    if (count_ > kCheckTimeRoll_) {
       count_ = 0;
       time_t now = ::time(NULL);
       time_t thisPeriod_ = now / kRollPerSeconds_ * kRollPerSeconds_;
@@ -46,8 +64,15 @@ void LogFile::append_unlocked(const char* logline, int len) {
         lastFlush_ = now;
         file_->flush();
       }
+    } else {
+      ++count_;
     }
   }
+}
+
+void LogFile::append_unlocked(const char* logline, int len) {
+  file_->append(logline, len);
+  afterAppend();
 }
 
 void LogFile::flush() {
@@ -93,6 +118,22 @@ std::string LogFile::GetLogFileName(const std::string& basename, time_t* now) {
   // filename += pidbuf;
 
   filename += ".log";
+
+  // std::string filename;
+  // filename.reserve(basename.size() + 32);
+  // filename = basename;
+
+  // char timebuf[32];
+  // char pidbuf[32];
+  // struct tm tm;
+  // *now = time(NULL);
+  // gmtime_r(now, &tm); // FIXME: localtime_r ?
+  // strftime(timebuf, sizeof timebuf, ".%Y%m%d-%H%M%S", &tm);
+  // filename += timebuf;
+  // snprintf(pidbuf, sizeof pidbuf, ".%d", ::getpid()); // FIXME:
+  // ProcessInfo::pid();
+  // filename += pidbuf;
+  // filename += ".log";
 
   return filename;
 }

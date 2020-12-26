@@ -6,6 +6,13 @@
 
 using namespace MSF;
 
+// 定义FmtMicroSeconds的静态变量
+pthread_once_t FmtMicroSeconds::ponce_ =
+    PTHREAD_ONCE_INIT;  //初始化pthread_once
+char FmtMicroSeconds::strArray[1000][3];
+char FmtMicroSeconds::chr[10] = {'0', '1', '2', '3', '4',
+                                 '5', '6', '7', '8', '9'};
+
 const char digits[] = "9876543210123456789";
 const char* zero = digits + 9;
 static_assert(sizeof(digits) == 20, "wrong number of digits");
@@ -52,6 +59,55 @@ size_t convertHex(char buf[], uintptr_t value) {
 
 template class FixedBuffer<kSmallBuffer>;
 template class FixedBuffer<kLargeBuffer>;
+
+/*
+bool CircularBuffer::append(const char *data, size_t len) {
+    // 将data压入,成功或者失败
+    assert(data != nullptr && len > 0);
+
+    // 这里不能使用 alloc -
+write来判断剩余容量,原因是那不是一次原子操作,write值获取之后read可能会变化
+    // 多写单读的队列,所以这里只有一个读者,但是多个写者
+    // 写入只有在前面的都写完的情况下才会进行返回,目的是
+
+    auto idle = idle_count.fetch_sub(len);
+
+    // 注意,这里存在溢出的风险
+    if(idle >= 0 && idle >= len){
+        auto alloc_start = alloc_count.fetch_add(len);
+        auto alloc_end = alloc_start + len;
+
+        auto real_start = alloc_start & capacity_mask;
+        auto real_end = alloc_end & capacity_mask;
+        if(real_start < real_end){
+            //memcpy(static_cast<void*>(buffer + real_start), static_cast<const
+void *>(data),  len);
+        }else{
+            size_t first_len = capacity - real_start;
+            //memcpy(static_cast<void*>(buffer + real_start), static_cast<const
+void*>(data),  first_len);
+            //memcpy(static_cast<void*>(buffer + 0), static_cast<const
+void*>(data + first_len),  real_end);
+        }
+
+        // todo 这个地方需要优化性能
+        while(true){
+            //
+compare_exchange_weak这个操作会改变expected的值,所以每次需要重新设置
+            auto tmp = alloc_start;
+            if(write_count.compare_exchange_weak(tmp, alloc_end)){
+                break;
+            }
+        }
+
+        return true;
+    }else{
+        // 空间不够了,push失败,交给外界来处理
+        idle_count.fetch_add(len);
+        return false;
+    }
+}
+ */
 
 /*
  Format a number with 5 characters, including SI units.

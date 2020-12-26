@@ -16,6 +16,7 @@
 #include <string>
 #include <mutex>
 #include <memory>
+#include <vector>
 
 #include "file_utils.h"
 
@@ -31,9 +32,9 @@ class LogFile {
   void append(const char* logline, int len);
   void flush();
   bool rollFile();
-
- private:
+  void appendBatch(const std::vector<T>& buffers);
   void append_unlocked(const char* logline, int len);
+  void afterAppend();
 
   static std::string GetLogFileName(const std::string& basename, time_t* now);
 
@@ -54,6 +55,7 @@ class LogFile {
   time_t lastFlush_ = 0;
   std::unique_ptr<AppendFile> file_;
 
+  const static int kCheckTimeRoll_ = 1024;
   const static int kRollPerSeconds_ = 60 * 60 * 24;
 };
 

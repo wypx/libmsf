@@ -7,6 +7,7 @@
 #include <string.h>
 #include "time_stamp.h"
 #include "time_zone.h"
+#include "thread.h"
 #include "logging.h"
 
 using namespace MSF;
@@ -28,7 +29,7 @@ __thread time_t t_lastSecond;
 // }
 
 const char* strerror_tl(int savedErrno) {
-  return strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf);
+  return ::strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf);
 }
 
 Logger::LogLevel initLogLevel() {
@@ -61,11 +62,6 @@ inline LogStream& operator<<(LogStream& s, T v) {
   return s;
 }
 
-inline LogStream& operator<<(LogStream& s, const Logger::SourceFile& v) {
-  s.append(v.data_, v.size_);
-  return s;
-}
-
 void defaultOutput(const char* msg, int len) {
   size_t n = fwrite(msg, 1, len, stdout);
   // FIXME check n
@@ -78,16 +74,33 @@ Logger::OutputFunc g_output = defaultOutput;
 Logger::FlushFunc g_flush = defaultFlush;
 TimeZone g_logTimeZone;
 
-Logger::Impl::Impl(LogLevel level, int savedErrno, const SourceFile& file,
-                   int line)
-    : time_(TimeStamp::now()),
-      stream_(),
-      level_(level),
-      line_(line),
-      basename_(file) {
+inline char* GetCachedBasename(const char* file) {
+  // 这个应该是thread-safe的,原因是file在运行起来的时候就不会变化了,而且是一个常量
+  static __thread char* basename_ = nullptr;
+  static __thread char* fullname_ = nullptr;
+  static __thread char* slash = nullptr;
+
+  if (fullname_ == nullptr) {
+    fullname_ = const_cast<char*>(file);
+    slash = ::strrchr(fullname_, '/');
+    basename_ = (slash != nullptr) ? slash + 1 : fullname_;
+  }
+  // const char* slash = ::strrchr(filename, '/');
+  // if (slash) {
+  //     data_ = slash + 1;
+  //   }
+  //   size_ = static_cast<int>(strlen(data_));
+  // }
+
+  return basename_;
+}
+
+Logger::Impl::Impl(LogLevel level, int savedErrno, const char* file, int line)
+    : time_(TimeStamp::now()), stream_(), level_(level), line_(line) {
+  basename_ = GetCachedBasename(file);
   formatTime();
-  // CurrentThread::tid();
-  // stream_ << T(CurrentThread::tidString(), CurrentThread::tidStringLength());
+  CurrentThread::tid();
+  stream_ << T(CurrentThread::tidString(), CurrentThread::tidStringLength());
   stream_ << T(LogLevelName[level], 6);
   if (savedErrno != 0) {
     stream_ << strerror_tl(savedErrno) << " (errno=" << savedErrno << ") ";
@@ -137,7 +150,12 @@ void Logger::Impl::formatTime() {
     assert(us.length() == 8);
     stream_ << T(t_time, 17) << T(us.data(), 8);
   } else {
-    Fmt us(".%06dZ ", microseconds);
+    // Fmt us(".%06dZ ", microseconds);
+    // assert(us.length() == 9);
+    // stream_ << T(t_time, 17) << T(us.data(), 9);
+
+    // 这里是计算毫秒,但是在要求较高性能的时候可以忽略,现在考虑如何降低
+    FmtMicroSeconds us(microseconds);
     assert(us.length() == 9);
     stream_ << T(t_time, 17) << T(us.data(), 9);
   }
@@ -147,17 +165,17 @@ void Logger::Impl::finish() {
   stream_ << " - " << basename_ << ':' << line_ << '\n';
 }
 
-Logger::Logger(SourceFile file, int line) : impl_(INFO, 0, file, line) {}
+Logger::Logger(const char* file, int line) : impl_(INFO, 0, file, line) {}
 
-Logger::Logger(SourceFile file, int line, LogLevel level, const char* func)
+Logger::Logger(const char* file, int line, LogLevel level, const char* func)
     : impl_(level, 0, file, line) {
   impl_.stream_ << func << ' ';
 }
 
-Logger::Logger(SourceFile file, int line, LogLevel level)
+Logger::Logger(const char* file, int line, LogLevel level)
     : impl_(level, 0, file, line) {}
 
-Logger::Logger(SourceFile file, int line, bool toAbort)
+Logger::Logger(const char* file, int line, bool toAbort)
     : impl_(toAbort ? FATAL : ERROR, errno, file, line) {}
 
 Logger::~Logger() {

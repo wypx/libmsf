@@ -23,6 +23,7 @@
 #include <sys/uio.h>
 
 #include <limits>
+#include <vector>
 #include <system_error>
 
 namespace MSF {
@@ -222,6 +223,14 @@ class StringArg {
   const char* m_str;
 };
 
+class T {
+ public:
+  T(const char* str, int len) : str_(str), len_(len) {}
+
+  const char* str_;
+  const size_t len_;
+};
+
 class AppendFile {
  public:
   explicit AppendFile(StringArg filePath);
@@ -231,6 +240,9 @@ class AppendFile {
   void append(const char* logline, const size_t len);
 
   size_t write(const char* logline, const size_t len);
+
+  void appendBatch(std::vector<T>::const_iterator buffer1,
+                   std::vector<T>::const_iterator end);
 
   void flush();
 

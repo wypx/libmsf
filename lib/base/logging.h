@@ -66,35 +66,10 @@ class Logger {
     NUM_LOG_LEVELS,
   };
 
-  // compile time calculation of basename of source file
-  class SourceFile {
-   public:
-    template <int N>
-    SourceFile(const char (&arr)[N])
-        : data_(arr), size_(N - 1) {
-      const char* slash = strrchr(data_, '/');  // builtin function
-      if (slash) {
-        data_ = slash + 1;
-        size_ -= static_cast<int>(data_ - arr);
-      }
-    }
-
-    explicit SourceFile(const char* filename) : data_(filename) {
-      const char* slash = strrchr(filename, '/');
-      if (slash) {
-        data_ = slash + 1;
-      }
-      size_ = static_cast<int>(strlen(data_));
-    }
-
-    const char* data_;
-    int size_;
-  };
-
-  Logger(SourceFile file, int line);
-  Logger(SourceFile file, int line, LogLevel level);
-  Logger(SourceFile file, int line, LogLevel level, const char* func);
-  Logger(SourceFile file, int line, bool toAbort);
+  Logger(const char* file, int line);
+  Logger(const char* file, int line, LogLevel level);
+  Logger(const char* file, int line, LogLevel level, const char* func);
+  Logger(const char* file, int line, bool toAbort);
   ~Logger();
 
   LogStream& stream() { return impl_.stream_; }
@@ -112,7 +87,7 @@ class Logger {
   class Impl {
    public:
     typedef Logger::LogLevel LogLevel;
-    Impl(LogLevel level, int old_errno, const SourceFile& file, int line);
+    Impl(LogLevel level, int old_errno, const char* file, int line);
     void formatTime();
     void finish();
 
@@ -120,7 +95,8 @@ class Logger {
     LogStream stream_;
     LogLevel level_;
     int line_;
-    SourceFile basename_;
+    const char* fullname_;
+    const char* basename_;
   };
 
   Impl impl_;
@@ -174,7 +150,7 @@ const char* strerror_tl(int savedErrno);
 
 // A small helper for CHECK_NOTNULL().
 template <typename T>
-T* CheckNotNull(Logger::SourceFile file, int line, const char* names, T* ptr) {
+T* CheckNotNull(const char* file, int line, const char* names, T* ptr) {
   if (ptr == NULL) {
     Logger(file, line, Logger::FATAL).stream() << names;
   }

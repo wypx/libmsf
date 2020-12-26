@@ -155,7 +155,7 @@ void AppendFile::append(const char* logline, const size_t len) {
   while (remain > 0) {
     n = write(logline + n, remain);
     if (0 == n) {
-      int err = ferror(m_fp);
+      int err = ::ferror(m_fp);
       if (err) {
         fprintf(stderr, "AppendFile::append failed : %s\n", strerror(err));
       }
@@ -170,6 +170,23 @@ void AppendFile::append(const char* logline, const size_t len) {
 
 size_t AppendFile::write(const char* logline, const size_t len) {
   return ::fwrite_unlocked(logline, 1, len, m_fp);
+}
+
+void AppendFile::appendBatch(std::vector<T>::const_iterator buffer1,
+                             std::vector<T>::const_iterator end) {
+  int i = 0;
+  size_t shouldWrite = 0;
+  struct iovec iov[32];
+  while (buffer1 != end) {
+    iov[i].iov_base = const_cast<char*>(buffer1->str_);
+    iov[i].iov_len = buffer1->len_;
+    shouldWrite += buffer1->len_;
+    buffer1++;
+    i++;
+  }
+
+  size_t writed = ::writev(fileno(m_fp), iov, i);
+  assert(writed == shouldWrite);
 }
 
 void AppendFile::flush() { ::fflush(m_fp); }

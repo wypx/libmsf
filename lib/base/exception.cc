@@ -64,7 +64,7 @@ int Exception::GetLastSystemError() {
 #endif
 }
 
-static std::string SystemErrorDescription(int error) {
+std::string SystemErrorDescription(int error) {
   const int capacity = 1024;
 #if defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
   char buffer[capacity];

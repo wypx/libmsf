@@ -148,6 +148,25 @@ bool SplitHostPort(const char *address, std::string &host, int &port) {
   return true;
 }
 
+#ifdef WIN32
+class WinsockInitializer {
+ public:
+  WinsockInitializer() {
+    WSADATA wsaData;
+    WORD wVersionRequested = MAKEWORD(2, 0);
+    err_ = WSAStartup(wVersionRequested, &wsaData);
+  }
+  ~WinsockInitializer() {
+    if (!err_)
+      WSACleanup();
+  }
+  int error() { return err_; }
+
+ private:
+  int err_;
+};
+#endif
+
 bool SocketInit() {
   char *errstr;
 #ifdef WIN32

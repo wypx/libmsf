@@ -38,6 +38,8 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/network
     ${CMAKE_CURRENT_SOURCE_DIR}/network/sock
     ${CMAKE_CURRENT_SOURCE_DIR}/network/event
+    ${CMAKE_CURRENT_SOURCE_DIR}/protocol/turn
+    ${CMAKE_CURRENT_SOURCE_DIR}/protocol/stun
     ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/baidu/incubator-brpc/src/
 )
 
@@ -60,7 +62,8 @@ endif()
 aux_source_directory(base DIR_SRCS)
 aux_source_directory(network/sock DIR_SRCS)
 aux_source_directory(network/event DIR_SRCS)
-#aux_source_directory(protocol DIR_SRCS)
+#aux_source_directory(protocol/turn DIR_SRCS)
+aux_source_directory(protocol/stun DIR_SRCS)
 
 add_library(MSF STATIC ${DIR_SRCS})
 

@@ -12,7 +12,8 @@
 
 // #include <cassert>
 
-// #if (defined(unix) || defined(__unix) || defined(__unix__)) && !defined(__APPLE__)
+// #if (defined(unix) || defined(__unix) || defined(__unix__)) &&
+// !defined(__APPLE__)
 // #include "errors/fatal.h"
 // #include <pthread.h>
 // #elif defined(__APPLE__) || defined(__MINGW32__) || defined(__MINGW64__)
@@ -31,27 +32,33 @@
 // public:
 //     explicit Impl(int threads) : _threads(threads)
 //     {
-//         assert((threads > 0) && "Barrier threads counter must be greater than zero!");
+//         assert((threads > 0) && "Barrier threads counter must be greater than
+// zero!");
 
-// #if (defined(unix) || defined(__unix) || defined(__unix__)) && !defined(__APPLE__)
+// #if (defined(unix) || defined(__unix) || defined(__unix__)) &&
+// !defined(__APPLE__)
 //         int result = pthread_barrier_init(&_barrier, nullptr, threads);
 //         if (result != 0)
-//             throwex SystemException("Failed to initialize a synchronization barrier!", result);
+//             throwex SystemException("Failed to initialize a synchronization
+// barrier!", result);
 // #elif defined(__APPLE__) || defined(__MINGW32__) || defined(__MINGW64__)
 //         _counter = threads;
 //         _generation = 0;
 // #elif defined(_WIN32) || defined(_WIN64)
 //         if (!InitializeSynchronizationBarrier(&_barrier, threads, -1))
-//             throwex SystemException("Failed to initialize a synchronization barrier!");
+//             throwex SystemException("Failed to initialize a synchronization
+// barrier!");
 // #endif
 //     }
 
 //     ~Impl()
 //     {
-// #if (defined(unix) || defined(__unix) || defined(__unix__)) && !defined(__APPLE__)
+// #if (defined(unix) || defined(__unix) || defined(__unix__)) &&
+// !defined(__APPLE__)
 //         int result = pthread_barrier_destroy(&_barrier);
 //         if (result != 0)
-//             fatality(SystemException("Failed to destroy a synchronization barrier!", result));
+//             fatality(SystemException("Failed to destroy a synchronization
+// barrier!", result));
 // #elif defined(__APPLE__) || defined(__MINGW32__) || defined(__MINGW64__)
 //         // Do nothing here...
 // #elif defined(_WIN32) || defined(_WIN64)
@@ -66,10 +73,12 @@
 
 //     bool Wait()
 //     {
-// #if (defined(unix) || defined(__unix) || defined(__unix__)) && !defined(__APPLE__)
+// #if (defined(unix) || defined(__unix) || defined(__unix__)) &&
+// !defined(__APPLE__)
 //         int result = pthread_barrier_wait(&_barrier);
 //         if ((result != PTHREAD_BARRIER_SERIAL_THREAD) && (result != 0))
-//             throwex SystemException("Failed to wait at a synchronization barrier!", result);
+//             throwex SystemException("Failed to wait at a synchronization
+// barrier!", result);
 //         return (result == PTHREAD_BARRIER_SERIAL_THREAD);
 // #elif defined(__APPLE__) || defined(__MINGW32__) || defined(__MINGW64__)
 //         std::unique_lock<std::mutex> lock(_mutex);
@@ -105,7 +114,8 @@
 
 // private:
 //     int _threads;
-// #if (defined(unix) || defined(__unix) || defined(__unix__)) && !defined(__APPLE__)
+// #if (defined(unix) || defined(__unix) || defined(__unix__)) &&
+// !defined(__APPLE__)
 //     pthread_barrier_t _barrier;
 // #elif defined(__APPLE__) || defined(__MINGW32__) || defined(__MINGW64__)
 //     std::mutex _mutex;
@@ -122,9 +132,12 @@
 // Barrier::Barrier(int threads)
 // {
 //     // Check implementation storage parameters
-//     [[maybe_unused]] ValidateAlignedStorage<sizeof(Impl), alignof(Impl), StorageSize, StorageAlign> _;
-//     static_assert((StorageSize >= sizeof(Impl)), "Barrier::StorageSize must be increased!");
-//     static_assert(((StorageAlign % alignof(Impl)) == 0), "Barrier::StorageAlign must be adjusted!");
+//     [[maybe_unused]] ValidateAlignedStorage<sizeof(Impl), alignof(Impl),
+// StorageSize, StorageAlign> _;
+//     static_assert((StorageSize >= sizeof(Impl)), "Barrier::StorageSize must
+// be increased!");
+//     static_assert(((StorageAlign % alignof(Impl)) == 0),
+// "Barrier::StorageAlign must be adjusted!");
 
 //     // Create the implementation instance
 //     new(&_storage)Impl(threads);

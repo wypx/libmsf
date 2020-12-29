@@ -23,7 +23,7 @@
 
 #include <iostream>
 
-#include "Noncopyable.h"
+#include "noncopyable.h"
 
 using namespace MSF;
 
@@ -71,6 +71,21 @@ struct ipv6_mreq {
 
 class InetAddress : public Copyable {
  public:
+  enum NetworkType {
+    UNIX,
+    TCP,
+    UDP,
+    SCTP,
+    NETLINK,
+    MUTICAST,
+    Undefined
+  };
+  enum AddrFamily {
+    IPV4,
+    IPV6,
+    UNKNOWN
+  };
+ public:
   InetAddress();
   explicit InetAddress(const std::string& host = DEFAULT_IPANY,
                        const uint16_t port = DEFAULT_PORT,
@@ -92,9 +107,9 @@ class InetAddress : public Copyable {
 
   // https://blog.csdn.net/lxj434368832/article/details/78874108
   std::string hostPort2String() const {
-    return _host + ":" + std::to_string(_port);
+    return host_ + ":" + std::to_string(port_);
   }
-  std::string host() const { return _host; }
+  std::string host() const { return host_; }
   uint16_t port() const {
     if (AF_INET == _sa.sa_family) {
       return ntohs(_addr4.sin_port);
@@ -104,9 +119,11 @@ class InetAddress : public Copyable {
     return 0;
   }
 
-  sa_family_t family() const { return _addr4.sin_family; }
-  int type() const { return _type; }
-  int proto() const { return _proto; }
+  int family() const { return family_; }
+
+  int proto() const { return proto_; }
+
+  AddrFamily net_type() const { return net_type_; }
 
   const char* ip() const;
 
@@ -129,11 +146,11 @@ class InetAddress : public Copyable {
   }
 
  private:
-  std::string _host;
-  uint16_t _port;
-  sa_family_t _family;
-  int _type;
-  int _proto;
+  std::string host_;
+  uint16_t port_;
+  int family_;
+  int proto_;
+  AddrFamily net_type_;
 
   union {
     struct sockaddr _sa;

@@ -38,9 +38,9 @@ void LogFile::append(const char* logline, int len) {
 
 void LogFile::appendBatch(const std::vector<T>& buffers) {
   constexpr size_t batch = 32;
-  int len = buffers.size();
+  size_t len = buffers.size();
 
-  int i = 0;
+  size_t i = 0;
   for (; i + batch < len; i += batch) {
     file_->appendBatch(buffers.begin(), buffers.begin() + batch);
   }

@@ -29,6 +29,17 @@
 
 namespace MSF {
 
+// Shared library exports
+#if defined(WIN32) && defined(MSF_SHARED_LIBRARY)
+#if defined(MSF_EXPORTS)
+#define MSF_API __declspec(dllexport)
+#else
+#define MSF_API __declspec(dllimport)
+#endif
+#else
+#define MSF_API  // nothing
+#endif
+
 // https://blog.csdn.net/ccmmfit/article/details/45440537
 // https://www.cnblogs.com/didiaodidiao/p/9398361.html
 /* Notice: var pointer is need */

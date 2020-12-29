@@ -160,7 +160,7 @@ int process_pin_to_cpu(uint32_t cpu_id) {
  * prio).  This to ensure that system monitoring goes before anything
  * else in the system.
  */
-static void set_priority(int enabled = 0, int rtprio = 0) {
+void set_priority(int enabled = 0, int rtprio = 0) {
   int result = 0;
   struct sched_param prio;
 

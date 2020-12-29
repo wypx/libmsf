@@ -26,10 +26,10 @@
 
 using namespace MSF;
 
+namespace MSF {
+
 bool xonxoff_;
 bool rtscts_;
-
-namespace MSF {
 
 int32_t OpenSerialPort(const char *port) {
   int32_t fd = -1;

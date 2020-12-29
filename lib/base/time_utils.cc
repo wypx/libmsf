@@ -57,14 +57,14 @@ static uint32_t msf_monotonic_time(time_t sec, uint32_t msec) {
 }
 
 static inline int msf_clock_gettime(struct timespec *ts) {
-  return clock_gettime(CLOCK_MONOTONIC, ts);
+  return ::clock_gettime(CLOCK_MONOTONIC, ts);
 }
 
 #define NS_PER_S 1000000000
 void SetTimespecRelative(struct timespec *p_ts, long long msec) {
   struct timeval tv;
 
-  gettimeofday(&tv, (struct timezone *)nullptr);
+  ::gettimeofday(&tv, (struct timezone *)nullptr);
 
   p_ts->tv_sec = tv.tv_sec + (msec / 1000);
   p_ts->tv_nsec = (tv.tv_usec + (msec % 1000) * 1000L) * 1000L;
@@ -83,13 +83,13 @@ void SleepMsec(long long msec) {
   ts.tv_nsec = (msec % 1000) * 1000 * 1000;
 
   do {
-    err = nanosleep(&ts, &ts);
+    err = ::nanosleep(&ts, &ts);
   } while (err < 0 && errno == EINTR);
 }
 
 uint64_t GetNanoTime() {
   struct timespec now;
-  clock_gettime(CLOCK_MONOTONIC, &now);
+  ::clock_gettime(CLOCK_MONOTONIC, &now);
   return now.tv_sec * 1000000000LL + now.tv_nsec;
 }
 
@@ -113,6 +113,14 @@ uint64_t CurrentMilliTime() {
       tp.time_since_epoch());
   return tmp.count();
 #endif
+}
+
+std::time_t now() {
+#if 0  // no need for chrono here yet
+    std::chrono::time_point<std::chrono::system_clock> system_now = std::chrono::system_clock::now();
+    return std::chrono::system_clock::to_time_t(system_now);
+#endif
+  return std::time(0);
 }
 
 TimePoint CurrentMilliTimePoint() {
@@ -248,6 +256,27 @@ void msf_time_init(void) {
   msf_time_update();
 }
 
+std::tm toLocal(const std::time_t &time) {
+  std::tm tm_snapshot;
+#if defined(WIN32) || defined(WIN64)
+  ::localtime_s(&tm_snapshot, &time);  // thread-safe?
+#else
+  ::localtime_r(&time, &tm_snapshot);  // POSIX
+#endif
+  return tm_snapshot;
+}
+
+std::tm toUTC(const std::time_t &time) {
+  // TODO: double check thread safety of native methods
+  std::tm tm_snapshot;
+#if defined(WIN32)
+  ::gmtime_s(&tm_snapshot, &time);  // thread-safe?
+#else
+  ::gmtime_r(&time, &tm_snapshot);     // POSIX
+#endif
+  return tm_snapshot;
+}
+
 std::string getTimeStr(const char *fmt, time_t time) {
   std::tm tm_snapshot;
   if (!time) {
@@ -256,7 +285,7 @@ std::string getTimeStr(const char *fmt, time_t time) {
 #if defined(_WIN32)
   localtime_s(&tm_snapshot, &time);  // thread-safe
 #else
-  localtime_r(&time, &tm_snapshot);  // POSIX
+  localtime_r(&time, &tm_snapshot);    // POSIX
 #endif
   char buffer[1024];
   auto success = std::strftime(buffer, sizeof(buffer), fmt, &tm_snapshot);

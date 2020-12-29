@@ -16,8 +16,6 @@
 #include <stdio.h>
 #include <sys/inotify.h>
 
-#include "redblack.h"
-
 namespace MSF {
 
 #ifdef __FreeBSD__

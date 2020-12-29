@@ -23,14 +23,13 @@ static const in_addr_t g_anyLoopIpAddr = INADDR_LOOPBACK;
 static const in6_addr_t g_any6IpAddr = IN6ADDR_ANY_INIT;
 
 InetAddress::InetAddress()
-    : _host(DEFAULT_IPANY),
-      _port(DEFAULT_PORT),
-      _family(AF_INET),
-      _type(0),
-      _proto(SOCK_STREAM) {}
+    : host_(DEFAULT_IPANY),
+      port_(DEFAULT_PORT),
+      family_(AF_INET),
+      proto_(SOCK_STREAM) {}
 InetAddress::InetAddress(const std::string &host, const uint16_t port,
                          const sa_family_t family, const int proto)
-    : _host(host), _port(port), _family(family) {
+    : host_(host), port_(port), family_(family) {
   struct in_addr addr4 = {0};
   struct in6_addr addr6 = IN6ADDR_ANY_INIT;
 
@@ -39,13 +38,13 @@ InetAddress::InetAddress(const std::string &host, const uint16_t port,
     sock_addr.sin_family = AF_INET;
     sock_addr.sin_addr = addr4;
     memcpy(&sock_addr.sin_addr, &addr4, sizeof addr4);
-    sock_addr.sin_port = htons(_port);
+    sock_addr.sin_port = htons(port_);
     initAddress((sockaddr *)&sock_addr);
   } else if (inet_pton(AF_INET6, host.c_str(), &addr6)) {
     sockaddr_in6 sock_addr = {0};
     sock_addr.sin6_family = AF_INET6;
     memcpy(&sock_addr.sin6_addr, &addr6, sizeof addr6);
-    sock_addr.sin6_port = htons(_port);
+    sock_addr.sin6_port = htons(port_);
     sock_addr.sin6_scope_id = 64;
     initAddress((sockaddr *)&sock_addr);
   } else if (family == AF_UNIX || family == AF_LOCAL) {
@@ -62,7 +61,7 @@ InetAddress::InetAddress(const std::string &host, const uint16_t port,
     sock_addr.sa_family = AF_UNSPEC;
     initAddress((sockaddr *)&sock_addr);
   }
-  _proto = proto;
+  proto_ = proto;
 }
 InetAddress::InetAddress(const struct sockaddr *addr) { initAddress(addr); }
 InetAddress::InetAddress(const struct sockaddr_in &addr) : _addr4(addr) {
@@ -118,11 +117,11 @@ void InetAddress::initAddress(const struct sockaddr *addr) {
   if (AF_INET == addr->sa_family) {
     (sockaddr_in &)_addr4 = *(sockaddr_in *)addr;
     inet_ntop(_addr4.sin_family, &(_addr4.sin_addr), _ip, sizeof(_ip));
-    snprintf(_url, sizeof(_url), "%s:%u", _ip, _port);
+    snprintf(_url, sizeof(_url), "%s:%u", _ip, port_);
   } else if (AF_INET6 == addr->sa_family) {
     (sockaddr_in6 &)_addr6 = *(sockaddr_in6 *)addr;
     inet_ntop(_addr6.sin6_family, &(_addr6.sin6_addr), _ip, sizeof(_ip));
-    snprintf(_url, sizeof(_url), "[%s]:%u", _ip, _port);
+    snprintf(_url, sizeof(_url), "[%s]:%u", _ip, port_);
   } else {
     _sa.sa_family = AF_UNSPEC;
   }

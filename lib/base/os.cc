@@ -456,7 +456,9 @@ bool OsInfo::Reboot() {
 bool OsInfo::set_hostname_persist(const std::string& hostname) {
   hostname_ = hostname;
   std::string cmd = "sudo hostnamectl set-hostname " + hostname;
-  ::system(cmd.c_str());
+  if (::system(cmd.c_str()) < 0) {
+    return false;
+  }
   return Reboot();
 }
 
@@ -765,7 +767,8 @@ bool OsInfo::getHddUsage() {
   struct HddInfo hdd;
   hdd.total = dev_total / MB;
   hdd.used_rate = dev_used / dev_total * 100;
-  pclose(fp);
+  ::pclose(fp);
+  (void)hdd;
   return true;
 }
 

@@ -55,6 +55,7 @@ bool CountDownLatch::waitFor(const uint32_t ts) {
 
 bool CountDownLatch::WaitUntil() {
   // return condition_.wait_until(std::chrono::steady_clock::now() + rel_time);
+  return true;
 }
 
 void CountDownLatch::countDown() {

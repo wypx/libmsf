@@ -15,6 +15,14 @@
 
 #include <sys/cdefs.h>
 
+// Borrowed from
+// https://code.google.com/p/gperftools/source/browse/src/base/thread_annotations.h
+// but adapted for clang attributes instead of the gcc.
+//
+// This header file contains the macro definitions for thread safety
+// annotations that allow the developers to document the locking policies
+// of their multi-threaded code. The annotations can also help program
+// analysis tools to identify potential thread safety issues.
 namespace MSF {
 
 //其他属性:
@@ -296,8 +304,13 @@ namespace MSF {
 #define MSF_ATTRIBUTE_NORETURN
 #endif
 
+#if defined(_MSC_VER)
+// Note: Deprecation warnings seem to fail to trigger on Windows
+// (https://bugs.chromium.org/p/webrtc/issues/detail?id=5368).
+#define MSF_DEPRECATED __declspec(deprecated)
 /* deprecated attribute support since gcc 3.1 */
-#if defined __GNUC__&&(__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
+#elif defined(__GNUC__) && \
+    (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 1))
 #define MSF_DEPRECATED __attribute__((__deprecated__))
 #else
 #define MSF_DEPRECATED

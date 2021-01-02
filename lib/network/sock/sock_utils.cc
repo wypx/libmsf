@@ -31,6 +31,8 @@
 #include <linux/netfilter_ipv4.h>
 // #include <linux/netfilter_ipv6/ip6_tables.h>
 
+#include <linux/sockios.h>  // SIOCGSTAMP
+
 #include <butil/logging.h>
 
 #include "gcc_attr.h"
@@ -157,8 +159,7 @@ class WinsockInitializer {
     err_ = WSAStartup(wVersionRequested, &wsaData);
   }
   ~WinsockInitializer() {
-    if (!err_)
-      WSACleanup();
+    if (!err_) WSACleanup();
   }
   int error() { return err_; }
 
@@ -1693,6 +1694,19 @@ int SocketReadQueue(const int fd, int *read_q) {
   *read_q = -1;
   return 0;
 #endif
+}
+
+// http://www.cocoachina.com/articles/155411
+// https://blog.csdn.net/jiang1013nan/article/details/19041225
+int64_t GetSocketRecvTimestamp(int fd) {
+  static const int64_t kNumMicrosecsPerSec = INT64_C(1000000);
+  struct timeval tv_ioctl;
+  int ret = ::ioctl(fd, SIOCGSTAMP, &tv_ioctl);
+  if (ret != 0) return -1;
+  int64_t timestamp =
+      kNumMicrosecsPerSec * static_cast<int64_t>(tv_ioctl.tv_sec) +
+      static_cast<int64_t>(tv_ioctl.tv_usec);
+  return timestamp;
 }
 
 /**

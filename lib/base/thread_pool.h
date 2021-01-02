@@ -22,7 +22,6 @@
 #include "noncopyable.h"
 #include "thread.h"
 
-using namespace MSF::THREAD;
 using namespace MSF;
 
 namespace MSF {

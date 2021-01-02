@@ -21,7 +21,6 @@
 #include "thread.h"
 
 using namespace MSF;
-using namespace MSF::THREAD;
 
 namespace MSF {
 

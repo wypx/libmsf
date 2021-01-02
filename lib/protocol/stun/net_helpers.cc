@@ -38,8 +38,19 @@ bool HasIPv4Enabled() {
 enum WindowsMajorVersions {
   kWindows2000 = 5,
   kWindowsVista = 6,
+  kWindows10 = 10,
 };
-bool GetOsVersion(int* major, int* minor, int* build);
+bool GetOsVersion(int* major, int* minor, int* build) {
+  OSVERSIONINFO info = {0};
+  info.dwOSVersionInfoSize = sizeof(info);
+  if (::GetVersionEx(&info)) {
+    if (major) *major = info.dwMajorVersion;
+    if (minor) *minor = info.dwMinorVersion;
+    if (build) *build = info.dwBuildNumber;
+    return true;
+  }
+  return false;
+}
 
 inline bool IsWindowsVistaOrLater() {
   int major;

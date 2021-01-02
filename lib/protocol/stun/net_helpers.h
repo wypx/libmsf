@@ -1,6 +1,5 @@
-
-#ifndef __RTCBASE_NET_HELPERS_H_
-#define __RTCBASE_NET_HELPERS_H_
+#ifndef RTC_BASE_NET_HELPERS_H_
+#define RTC_BASE_NET_HELPERS_H_
 
 #include <list>
 

@@ -21,6 +21,8 @@
 
 namespace MSF {
 
+https:  // blog.csdn.net/ynshi57/article/details/108083019
+
 // https://blog.csdn.net/sai_j/article/details/82766225
 
 // This doesn't detect inherited member functions!
@@ -48,9 +50,6 @@ class Singleton : Noncopyable {
     return *value_;
   }
 
- private:
-  static std::unique_ptr<Singleton> g_Singleton;
-
  public:
   // https://blog.csdn.net/xijiacun/article/details/71023777
   // https://www.tuicool.com/articles/QbmInyF
@@ -60,8 +59,11 @@ class Singleton : Noncopyable {
   // https://blog.csdn.net/sjin_1314/article/details/10934239
   // 2.
   static Singleton& GetSingleton() {
-    static std::once_flag onceFlag;
-    std::call_once(onceFlag, [&]() { g_Singleton.reset(new Singleton()); });
+    static std::unique_ptr<Singleton> g_Singleton;
+    if (!g_Singleton) {
+      static std::once_flag onceFlag;
+      std::call_once(onceFlag, [&]() { g_Singleton.reset(new Singleton()); });
+    }
     return *g_Singleton;
   }
   // 3.

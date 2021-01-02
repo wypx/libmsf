@@ -85,6 +85,7 @@ class InetAddress : public Copyable {
     IPV6,
     UNKNOWN
   };
+
  public:
   InetAddress();
   explicit InetAddress(const std::string& host = DEFAULT_IPANY,

@@ -29,21 +29,21 @@ using namespace MSF;
 
 namespace MSF {
 
-/*
- * 当前进程仍然处于可执行状态,但暂时"让出"处理器,
- * 使得处理器优先调度其他可执行状态的进程, 这样在
- * 进程被内核再次调度时,在for循环代码中可以期望其他进程释放锁
- * 注意,不同的内核版本对于sched_yield系统调用的实现可能是不同的,
- * 但它们的目的都是暂时"让出"处理器*/
-inline void thread_yield() {
-#if defined(WIN32) || defined(_WIN32)
-  ::SwitchToThread();
-#elif defined(__linux__)
-  ::sched_yield();
+enum ThreadPriority {
+#if defined(WIN32) || defined(WIN64)
+  kLowPriority = THREAD_PRIORITY_BELOW_NORMAL,
+  kNormalPriority = THREAD_PRIORITY_NORMAL,
+  kHighPriority = THREAD_PRIORITY_ABOVE_NORMAL,
+  kHighestPriority = THREAD_PRIORITY_HIGHEST,
+  kRealtimePriority = THREAD_PRIORITY_TIME_CRITICAL
 #else
-  ::usleep(1);
+  kLowPriority = 1,
+  kNormalPriority = 2,
+  kHighPriority = 3,
+  kHighestPriority = 4,
+  kRealtimePriority = 5
 #endif
-}
+};
 
 namespace CurrentThread {
 int tid();
@@ -56,40 +56,68 @@ void sleepUsec(int64_t usec);
 
 }  // namespace CurrentThread
 
-namespace THREAD {
-
 typedef std::function<void()> ThreadFunc;
 
 int pthreadSpawn(pthread_t* tid, void* (*pfn)(void*), void* arg);
 
+// Represents a simple worker thread.  The implementation must be assumed
+// to be single threaded, meaning that all methods of the class, must be
+// called from the same thread, including instantiation.
 class Thread {
  public:
-  explicit Thread(ThreadFunc func, const std::string& name = std::string());
+  explicit Thread(ThreadFunc func, const std::string& name = std::string(),
+                  ThreadPriority priority = kNormalPriority);
   ~Thread();
+
+  // Spawns a thread and tries to set thread priority according to the priority
+  // from when CreateThread was called.
+  void Start();
+  bool IsRunning() const;
+  // Stops (joins) the spawned thread.
+  void Stop();
 
   void start(const ThreadFunc& initFunc = ThreadFunc());
   void join();
 
-  bool started() const { return _started; }
+  bool started() const { return started_; }
   // pthread_t pthreadId() const {
   //     std::thread::id this_id = std::this_thread::get_id();
   //     return this_id;
   // }
-  pid_t tid() const { return _tid; }
-  const std::string& name() const { return _name; }
+  pid_t tid() const { return tid_; }
+  const std::string& name() const { return name_; }
 
   // static int numCreated() { return numCreated_.fetch_and(); }
 
+  // Yield the current thread so another thread can be scheduled.
+  static void YieldCurrentThread();
+
  private:
+  void Run();
+  bool SetPriority(ThreadPriority priority);
   void setDefaultName();
-  std::thread _thread;
+  // Sets the thread name visible to debuggers/tools. This has no effect
+  // otherwise. This name pointer is not copied internally. Thus, it must stay
+  // valid until the thread ends.
+  void SetCurrentThreadName(const char* name);
+  std::thread thread_;
+  bool started_;
+  const ThreadPriority priority_ = kNormalPriority;
 
-  bool _started;
-  pid_t _tid;
-  ThreadFunc _func;
-  std::string _name;
+#if defined(WIN32) || defined(WIN64)
+  static DWORD WINAPI StartThread(void* param);
+  HANDLE th_ = nullptr;
+  DWORD thread_id_ = 0;
+#else
+  // static void* StartThread(void* param);
+  pthread_t th_ = 0;
+#endif  // defined(WEBRTC_WIN)
+  pid_t tid_;
 
-  CountDownLatch _latch;
+  ThreadFunc func_;
+  std::string name_;
+
+  CountDownLatch latch_;
   void* threadLoop(ThreadFunc initFunc);
 };
 
@@ -99,6 +127,5 @@ class ThreadFactory {
   // virtual std::thread newThread(Func&& func) = 0;
 };
 
-}  // namespace THREAD
 }  // namespace MSF
 #endif

@@ -30,10 +30,8 @@
 #include "exception.h"
 
 using namespace MSF;
-using namespace MSF::THREAD;
 
 namespace MSF {
-
 namespace CurrentThread {
 
 /**
@@ -63,7 +61,7 @@ static_assert(std::is_same<int, pid_t>::value, "pid_t should be int");
  */
 inline uint64_t getCurrentThreadID() {
 #if __APPLE__
-  return uint64_t(pthread_mach_thread_np(pthread_self()));
+  return uint64_t(::pthread_mach_thread_np(::pthread_self()));
 #elif defined(_WIN32)
   return uint64_t(GetCurrentThreadId());
 #else
@@ -76,11 +74,13 @@ inline uint64_t getCurrentThreadID() {
  * so to get unique tis, using SYS_gettid.
  */
 inline uint64_t getOSThreadID() {
+// Pthreads doesn't have the concept of a thread ID, so we have to reach down
+// into the kernel.
 #if __APPLE__
   uint64_t tid;
-  pthread_threadid_np(nullptr, &tid);
+  ::pthread_threadid_np(nullptr, &tid);
   return tid;
-#elif defined(_WIN32)
+#elif defined(WIN32)
   return uint64_t(GetCurrentThreadId());
 #else
   return uint64_t(syscall(__NR_gettid));
@@ -124,8 +124,6 @@ void sleepUsec(int64_t usec) {
 
 }  // namespace CurrentThread
 
-namespace THREAD {
-
 int pthreadSpawn(pthread_t* tid, void* (*pfn)(void*), void* arg) {
   int rc;
   pthread_attr_t thread_attr;
@@ -150,6 +148,15 @@ int pthreadSpawn(pthread_t* tid, void* (*pfn)(void*), void* arg) {
   return 0;
 }
 
+#if !defined(WIN32) && !defined(WIN64)
+struct ThreadAttributes {
+  ThreadAttributes() { pthread_attr_init(&attr); }
+  ~ThreadAttributes() { pthread_attr_destroy(&attr); }
+  pthread_attr_t* operator&() { return &attr; }
+  pthread_attr_t attr;
+};
+#endif  // defined(WIN)
+
 class ThreadNameInitializer {
  public:
   static void afterFork() {
@@ -167,8 +174,14 @@ class ThreadNameInitializer {
 
 ThreadNameInitializer init;
 
-Thread::Thread(ThreadFunc func, const std::string& name)
-    : _started(false), _tid(0), _func(std::move(func)), _name(name), _latch(1) {
+Thread::Thread(ThreadFunc func, const std::string& name,
+               ThreadPriority priority)
+    : started_(false),
+      priority_(priority),
+      tid_(0),
+      func_(std::move(func)),
+      name_(name),
+      latch_(1) {
   setDefaultName();
 }
 
@@ -178,55 +191,180 @@ Thread::Thread(ThreadFunc func, const std::string& name)
  * pthread_detach(_pthreadId);
  * */
 Thread::~Thread() {
-  if (_started && !_thread.joinable()) {
-    _thread.detach();
+  if (started_ && !thread_.joinable()) {
+    thread_.detach();
   }
-  _started = false;
+  started_ = false;
 }
 
 void* Thread::threadLoop(ThreadFunc initFunc) {
   if (initFunc) {
     initFunc();
   }
-  _tid = CurrentThread::tid();
-  CurrentThread::t_threadName = _name.c_str();
+  tid_ = CurrentThread::tid();
+  CurrentThread::t_threadName = name_.c_str();
   LOG(INFO) << "Thread name: " << CurrentThread::t_threadName
-            << " name:" << _name;
-  ::prctl(PR_SET_NAME, CurrentThread::t_threadName);
+            << " name:" << name_;
+  SetCurrentThreadName(CurrentThread::t_threadName);
+  SetPriority(priority_);
 
-  _latch.countDown();
+  latch_.countDown();
 
   try {
-    _func();
-    _started = false;
+    func_();
+    started_ = false;
     CurrentThread::t_threadName = "finished";
   }
   catch (const Exception& ex) {
     CurrentThread::t_threadName = "crashed";
-    LOG(FATAL) << "exception caught in ThreadPool " << _name.c_str()
+    LOG(FATAL) << "exception caught in ThreadPool " << name_.c_str()
                << ",reason: " << ex.what()
                << "stack trace: " << ex.stackTrace();
     abort();
   }
   catch (const std::exception& ex) {
     CurrentThread::t_threadName = "crashed";
-    LOG(FATAL) << "exception caught in ThreadPool " << _name.c_str()
+    LOG(FATAL) << "exception caught in ThreadPool " << name_.c_str()
                << ",reason: " << ex.what();
     abort();
   }
   catch (...) {
     CurrentThread::t_threadName = "crashed";
-    LOG(FATAL) << "unknown exception caught in ThreadPool " << _name.c_str();
+    LOG(FATAL) << "unknown exception caught in ThreadPool " << name_.c_str();
     throw;  // rethrow
   }
   return nullptr;
 }
 
+void Thread::SetCurrentThreadName(const char* name) {
+#if defined(WIN32) || defined(WIN64)
+// For details see:
+// https://docs.microsoft.com/en-us/visualstudio/debugger/how-to-set-a-thread-name-in-native-code
+#pragma pack(push, 8)
+  struct {
+    DWORD dwType;
+    LPCSTR szName;
+    DWORD dwThreadID;
+    DWORD dwFlags;
+  } threadname_info = {0x1000, name, static_cast<DWORD>(-1), 0};
+#pragma pack(pop)
+
+#pragma warning(push)
+#pragma warning(disable : 6320 6322)
+  __try {
+    ::RaiseException(0x406D1388, 0, sizeof(threadname_info) / sizeof(ULONG_PTR),
+                     reinterpret_cast<ULONG_PTR*>(&threadname_info));
+  }
+  __except(EXCEPTION_EXECUTE_HANDLER) {  // NOLINT
+  }
+#pragma warning(pop)
+#elif defined(__linux__)
+  ::prctl(PR_SET_NAME, reinterpret_cast<unsigned long>(name));  // NOLINT
+#elif defined(__APPLE__)
+  ::pthread_setname_np(name);
+#endif
+}
+
+/*
+ * 当前进程仍然处于可执行状态,但暂时"让出"处理器,
+ * 使得处理器优先调度其他可执行状态的进程, 这样在
+ * 进程被内核再次调度时,在for循环代码中可以期望其他进程释放锁
+ * 注意,不同的内核版本对于sched_yield系统调用的实现可能是不同的,
+ * 但它们的目的都是暂时"让出"处理器*/
+void Thread::YieldCurrentThread() {
+#if defined(WIN32) || defined(WIN64)
+  ::SwitchToThread();
+#elif defined(__linux__)
+  ::sched_yield();
+#else
+  ::usleep(1);
+#endif
+}
+
+bool Thread::SetPriority(ThreadPriority priority) {
+#if defined(WIN32) || defined(WIN64)
+  return ::SetThreadPriority(th_, priority) != FALSE;
+#else
+  const int policy = SCHED_FIFO;
+  const int min_prio = ::sched_get_priority_min(policy);
+  const int max_prio = ::sched_get_priority_max(policy);
+  if (min_prio == -1 || max_prio == -1) {
+    return false;
+  }
+
+  if (max_prio - min_prio <= 2) return false;
+
+  // Convert webrtc priority to system priorities:
+  sched_param param;
+  const int top_prio = max_prio - 1;
+  const int low_prio = min_prio + 1;
+  switch (priority) {
+    case kLowPriority:
+      param.sched_priority = low_prio;
+      break;
+    case kNormalPriority:
+      // The -1 ensures that the kHighPriority is always greater or equal to
+      // kNormalPriority.
+      param.sched_priority = (low_prio + top_prio - 1) / 2;
+      break;
+    case kHighPriority:
+      param.sched_priority = std::max(top_prio - 2, low_prio);
+      break;
+    case kHighestPriority:
+      param.sched_priority = std::max(top_prio - 1, low_prio);
+      break;
+    case kRealtimePriority:
+      param.sched_priority = top_prio;
+      break;
+  }
+  return ::pthread_setschedparam(th_, policy, &param) == 0;
+#endif
+}
+
 void Thread::setDefaultName() {
   // int num = _numCreated.fetch_add(1);
-  if (_name.empty()) {
-    _name = "Thread_" + std::to_string(gettid());
+  if (name_.empty()) {
+    name_ = "Thread_" + std::to_string(gettid());
   }
+}
+
+void Thread::Start() {
+#if defined(WIN32) || defined(WIN64)
+  // See bug 2902 for background on STACK_SIZE_PARAM_IS_A_RESERVATION.
+  // Set the reserved stack stack size to 1M, which is the default on Windows
+  // and Linux.
+  th_ = ::CreateThread(nullptr, 1024 * 1024, &StartThread, this,
+                       STACK_SIZE_PARAM_IS_A_RESERVATION, &thread_id_);
+  // assert(th_) << "CreateThread failed";
+  assert(thread_id_);
+#else
+  ThreadAttributes attr;
+  // Set the stack stack size to 1M.
+  ::pthread_attr_setstacksize(&attr, 1024 * 1024);
+// assert(0 == pthread_create(&th_, &attr, &StartThread, this));
+#endif
+}
+
+bool Thread::IsRunning() const {
+#if defined(WIN32)
+  return th_ != nullptr;
+#else
+  return th_ != 0;
+#endif
+}
+
+void Thread::Stop() {
+  if (!IsRunning()) return;
+
+#if defined(WIN32)
+  WaitForSingleObject(th_, INFINITE);
+  CloseHandle(th_);
+  th_ = nullptr;
+  thread_id_ = 0;
+#else
+  assert(0 == ::pthread_join(th_, nullptr));
+  th_ = 0;
+#endif
 }
 
 /**
@@ -234,31 +372,31 @@ void Thread::setDefaultName() {
  * pthreadSpawn(&_pthreadId, startThread, data)
  * */
 void Thread::start(const ThreadFunc& initFunc) {
-  assert(!_started);
-  _started = true;
+  assert(!started_);
+  started_ = true;
 
   try {
-    _thread = std::thread(std::bind(&Thread::threadLoop, this, initFunc));
-    _latch.wait();
+    thread_ = std::thread(std::bind(&Thread::threadLoop, this, initFunc));
+    latch_.wait();
   }
   catch (const Exception& ex) {
     CurrentThread::t_threadName = "crashed";
-    LOG(FATAL) << "Fail to create thread ThreadPool " << _name.c_str()
+    LOG(FATAL) << "Fail to create thread ThreadPool " << name_.c_str()
                << ",reason: " << ex.what()
                << "stack trace: " << ex.stackTrace();
-    _started = false;
+    started_ = false;
   }
   catch (const std::exception& ex) {
     CurrentThread::t_threadName = "crashed";
-    LOG(FATAL) << "Fail to create thread ThreadPool " << _name.c_str()
+    LOG(FATAL) << "Fail to create thread ThreadPool " << name_.c_str()
                << ",reason: " << ex.what();
-    _started = false;
+    started_ = false;
   }
   catch (...) {
     CurrentThread::t_threadName = "crashed";
     LOG(FATAL) << "Fail to create thread ThreadPool, unkown exception "
-               << _name.c_str();
-    _started = false;
+               << name_.c_str();
+    started_ = false;
     throw;  // rethrow
   }
 }
@@ -269,17 +407,16 @@ void Thread::start(const ThreadFunc& initFunc) {
  * pthread_join(_pthreadId, NULL)
  * */
 void Thread::join() {
-  if (!_started) {
+  if (!started_) {
     LOG(ERROR) << "Thread already started";
     return;
   }
 
-  if (!_thread.joinable()) {
+  if (!thread_.joinable()) {
     LOG(WARNING) << "Thread not allow to join";
     return;
   }
-  _thread.join();
+  thread_.join();
 }
 
-}  // namespace THREAD
 }  // namespace MSF

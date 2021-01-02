@@ -191,22 +191,21 @@ bool SetNetmask(const std::string &iface, const std::string &netmask) {
 }
 
 std::string GetMacAddr(const std::string &iface) {
-  std::string macaddr = "";
-
   int fd = -1;
   struct ifreq ifr = {0};
   uint8_t *ptr = nullptr;
-  char macstr[8];
+  char macstr[30];
   // if (0 == strcmp(iface.c_str(), "lo")) {
   //   return macaddr;
   // }
   if (iface == "lo") {
-    return macaddr;
+    return "";
   }
 
   if ((fd = ::socket(PF_INET, SOCK_STREAM, 0)) < 0) {
     LOG(ERROR) << "create socket failed, errno :" << errno;
-    return macaddr;
+    return "";
+    ;
   }
 
   strlcpy(ifr.ifr_name, iface.c_str(), sizeof(ifr.ifr_name));
@@ -214,15 +213,15 @@ std::string GetMacAddr(const std::string &iface) {
   if (::ioctl(fd, SIOCGIFHWADDR, &ifr) != 0) {
     LOG(ERROR) << "get_mac ioctl error and errno: " << errno;
     close(fd);
-    return macaddr;
+    return "";
+    ;
   }
 
-  ptr = (uint8_t *)&ifr.ifr_ifru.ifru_hwaddr.sa_data[0];
-  snprintf(macstr, 6, "%02x-%02x-%02x-%02x-%02x-%02x", *ptr, *(ptr + 1),
-           *(ptr + 2), *(ptr + 3), *(ptr + 4), *(ptr + 5));
+  ptr = (uint8_t *)&ifr.ifr_hwaddr.sa_data[0];
+  ::snprintf(macstr, 6, "%02x-%02x-%02x-%02x-%02x-%02x", *ptr, *(ptr + 1),
+             *(ptr + 2), *(ptr + 3), *(ptr + 4), *(ptr + 5));
   ::close(fd);
-  macaddr = macstr;
-  return macaddr;
+  return macstr;
 }
 
 bool SetMacAddr(const std::string &iface, const std::string &macstr) {

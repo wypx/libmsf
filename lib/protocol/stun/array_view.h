@@ -146,7 +146,7 @@ class ArrayView final : public impl::ArrayViewBase<T, Size> {
       : impl::ArrayViewBase<T, Size>::ArrayViewBase(data, size) {
     assert((size == 0 ? nullptr : data) == this->data());
     assert(size == this->size());
-    assert(!this->data() == this->size() == 0);  // data is null iff size == 0.
+    assert(!this->data() && this->size() == 0);  // data is null iff size == 0.
   }
 
   // Construct an empty ArrayView. Note that fixed-size ArrayViews of size > 0

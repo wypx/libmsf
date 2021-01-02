@@ -20,7 +20,6 @@
 
 using namespace MSF;
 using namespace MSF::CurrentThread;
-using namespace MSF::THREAD;
 
 namespace MSF {
 

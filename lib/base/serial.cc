@@ -318,7 +318,7 @@ int fdevent_ioctl_fionread(int fd, int fdfmt, int *toread) {
 #else
   MSF_UNUSED(fdfmt);
 #endif
-  return ioctl(fd, FIONREAD, toread);
+  return ::ioctl(fd, FIONREAD, toread);
 #endif
 }
 
@@ -375,6 +375,7 @@ bool WaitForChange(const int fd, bool is_open) {
     if (::ioctl(fd, TIOCMGET, &status) < 0) {
       LOG(ERROR) << "waitForChange failed on a call to ioctl(TIOCMGET): "
                  << errno;
+      return false;
     } else {
       if (0 != (status & TIOCM_CTS) || 0 != (status & TIOCM_DSR) ||
           0 != (status & TIOCM_RI) || 0 != (status & TIOCM_CD)) {
@@ -388,6 +389,7 @@ bool WaitForChange(const int fd, bool is_open) {
   int command = (TIOCM_CD | TIOCM_DSR | TIOCM_RI | TIOCM_CTS);
   if (::ioctl(fd, TIOCMIWAIT, &command) < 0) {
     LOG(ERROR) << "waitForDSR failed on a call to ioctl(TIOCMIWAIT): " << errno;
+    return false;
   }
   return true;
 #endif
@@ -397,6 +399,7 @@ bool GetCTS(const int fd) {
   int status;
   if (::ioctl(fd, TIOCMGET, &status) < 0) {
     LOG(ERROR) << "GetCTS failed on a call to ioctl(TIOCMGET): " << errno;
+    return false;
   } else {
     return 0 != (status & TIOCM_CTS);
   }
@@ -406,6 +409,7 @@ bool GetDSR(const int fd) {
   int status;
   if (::ioctl(fd, TIOCMGET, &status) < 0) {
     LOG(ERROR) << "GetDSR failed on a call to ioctl(TIOCMGET): " << errno;
+    return false;
   } else {
     return 0 != (status & TIOCM_DSR);
   }
@@ -415,6 +419,7 @@ bool GetRI(const int fd) {
   int status;
   if (::ioctl(fd, TIOCMGET, &status) < 0) {
     LOG(ERROR) << "getRI failed on a call to ioctl(TIOCMGET): " << errno;
+    return false;
   } else {
     return 0 != (status & TIOCM_RI);
   }
@@ -424,6 +429,7 @@ bool GetCD(const int fd) {
   int status;
   if (::ioctl(fd, TIOCMGET, &status) < 0) {
     LOG(ERROR) << "getCD failed on a call to ioctl(TIOCMGET): " << errno;
+    return false;
   } else {
     return 0 != (status & TIOCM_CD);
   }

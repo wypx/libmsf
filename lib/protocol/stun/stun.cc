@@ -101,7 +101,7 @@ static std::unordered_map<uint16_t, std::string> kStunAttrTypeMap = {
     {kStunAttrReservationToken, "RESERVED-TOKEN"},
     {kStunAttrOptions, "OPTIONS"},
     {kStunAttrSoftware, "SOFTWARE"},
-    {SkStunAttrAlternateServer, ""},
+    {kStunAttrAlternateServer, "ALTERNATE-SERVER"},
     {kStunAttrFingerprint, "FINGERPRINT"},
     {kStunAttrOrigin, "ORIGIN"},
     {kStunAttrConnectionID, "CONNECTION-ID"},
@@ -195,6 +195,18 @@ void StunMessage::ClearAttributes() {
   }
   attrs_.clear();
   length_ = 0;
+}
+
+std::vector<uint16_t> StunMessage::GetNonComprehendedAttributes() const {
+  std::vector<uint16_t> unknown_attributes;
+  for (auto& attr : attrs_) {
+    // "comprehension-required" range is 0x0000-0x7FFF.
+    if (attr->type() >= 0x0000 && attr->type() <= 0x7FFF &&
+        GetAttributeValueType(attr->type()) == kStunAttrValueUnknown) {
+      unknown_attributes.push_back(attr->type());
+    }
+  }
+  return unknown_attributes;
 }
 
 const StunAddressAttribute* StunMessage::GetAddress(int type) const {

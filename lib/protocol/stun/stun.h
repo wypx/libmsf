@@ -84,7 +84,7 @@ enum StunAttributeType {
   // TODO(?): Rename these attributes to GTURN_ to avoid conflicts.
   kStunAttrChannelNumber = 0x000c,  // Turn, GTURN: UInt32
   kStunAttrLifetime = 0x000d,  // Turn: UInt32 0x0010: Reserved (was BANDWIDTH)
-  kStunAttrAlternateServer = 0x000e,
+  // kStunAttrAlternateServer = 0x000e,
   kStunAttrMagicCookie = 0x000f,  // GTURN: ByteString, 4 bytes
   kStunAttrXorPeerAddress = 0x0012,
   // TODO(mallinath) - Uncomment after RelayAttributes are renamed.
@@ -98,9 +98,9 @@ enum StunAttributeType {
   kStunAttrReservationToken = 0x0022,  // ByteString, 8 bytes token value
   kStunAttrOptions = 0x8001,           // GTURN: UInt32
   kStunAttrSoftware = 0x8022,
-  SkStunAttrAlternateServer = 0x8023,  // Address
-  kStunAttrFingerprint = 0x8028,       // TURN UInt32
-  kStunAttrOrigin = 0x802F,            // ByteString
+  kStunAttrAlternateServer = 0x8023,  // Address
+  kStunAttrFingerprint = 0x8028,      // TURN UInt32
+  kStunAttrOrigin = 0x802F,           // ByteString
   // TODO(mallinath) - Rename STUN_ATTR_TURN_LIFETIME to STUN_ATTR_LIFETIME and
   // STUN_ATTR_TURN_DATA to STUN_ATTR_DATA. Also rename RelayMessage attributes
   // by appending G to attribute name.
@@ -181,12 +181,15 @@ enum StunErrorCode {
   kStunServerError = 500,
   kStunInsufficientCapacity = 11,
   kStunGlobalFailure = 600,
+  kStunServerNotReachable = 701,
 
   /// TURN TCP
   kStunConnectionFailure = 9,
   kStunConnectionAlreadyExists = 446,
   kStunConnectionTimeoutOrFailure = 447
 };
+
+std::string StunErrorToString(uint16_t code);
 
 // The mask used to determine whether a STUN message is a request/response etc.
 const uint32_t kStunTypeMask = 0x0110;
@@ -247,6 +250,8 @@ class StunMessage {
 
   void SetType(int type) { type_ = static_cast<uint16_t>(type); }
   bool SetTransactionID(const std::string& str);
+
+  std::vector<uint16_t> GetNonComprehendedAttributes() const;
 
   // Gets the desired attribute value, or NULL if no such attribute type exists.
   const StunAddressAttribute* GetAddress(int type) const;

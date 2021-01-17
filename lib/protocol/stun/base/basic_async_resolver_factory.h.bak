@@ -1,0 +1,16 @@
+#ifndef P2P_BASE_BASIC_ASYNC_RESOLVER_FACTORY_H_
+#define P2P_BASE_BASIC_ASYNC_RESOLVER_FACTORY_H_
+
+#include "async_resolver_factory.h"
+#include "async_resolver_interface.h"
+
+namespace MSF {
+
+class BasicAsyncResolverFactory : public AsyncResolverFactory {
+ public:
+  AsyncResolverInterface* Create() override;
+};
+
+}  // namespace MSF
+
+#endif  // P2P_BASE_BASIC_ASYNC_RESOLVER_FACTORY_H_

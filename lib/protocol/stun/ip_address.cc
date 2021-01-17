@@ -36,6 +36,17 @@ uint32_t IPAddress::v4AddressAsHostOrderInteger() const {
   }
 }
 
+int IPAddress::overhead() const {
+  switch (family_) {
+    case AF_INET:  // IPv4
+      return 20;
+    case AF_INET6:  // IPv6
+      return 40;
+    default:
+      return 0;
+  }
+}
+
 bool IPAddress::IsNil() const { return IPIsUnspec(*this); }
 
 size_t IPAddress::Size() const {

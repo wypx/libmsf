@@ -44,14 +44,12 @@ class CopyOnWriteBuffer {
 
   // Construct a buffer and copy the specified number of bytes into it. The
   // source array may be (const) uint8_t*, int8_t*, or char*.
-  template <typename T,
-            typename std::enable_if<
-                internal::BufferCompat<uint8_t, T>::value>::type* = nullptr>
+  template <typename T, typename std::enable_if<internal::BufferCompat<
+                            uint8_t, T>::value>::type* = nullptr>
   CopyOnWriteBuffer(const T* data, size_t size)
       : CopyOnWriteBuffer(data, size, size) {}
-  template <typename T,
-            typename std::enable_if<
-                internal::BufferCompat<uint8_t, T>::value>::type* = nullptr>
+  template <typename T, typename std::enable_if<internal::BufferCompat<
+                            uint8_t, T>::value>::type* = nullptr>
   CopyOnWriteBuffer(const T* data, size_t size, size_t capacity)
       : CopyOnWriteBuffer(size, capacity) {
     if (buffer_) {
@@ -62,8 +60,7 @@ class CopyOnWriteBuffer {
   }
 
   // Construct a buffer from the contents of an array.
-  template <typename T,
-            size_t N,
+  template <typename T, size_t N,
             typename std::enable_if<
                 internal::BufferCompat<uint8_t, T>::value>::type* = nullptr>
   CopyOnWriteBuffer(const T (&array)[N])  // NOLINT: runtime/explicit
@@ -157,9 +154,8 @@ class CopyOnWriteBuffer {
 
   // Replace the contents of the buffer. Accepts the same types as the
   // constructors.
-  template <typename T,
-            typename std::enable_if<
-                internal::BufferCompat<uint8_t, T>::value>::type* = nullptr>
+  template <typename T, typename std::enable_if<internal::BufferCompat<
+                            uint8_t, T>::value>::type* = nullptr>
   void SetData(const T* data, size_t size) {
     assert(IsConsistent());
     if (!buffer_) {
@@ -175,8 +171,7 @@ class CopyOnWriteBuffer {
     assert(IsConsistent());
   }
 
-  template <typename T,
-            size_t N,
+  template <typename T, size_t N,
             typename std::enable_if<
                 internal::BufferCompat<uint8_t, T>::value>::type* = nullptr>
   void SetData(const T (&array)[N]) {
@@ -194,9 +189,8 @@ class CopyOnWriteBuffer {
   }
 
   // Append data to the buffer. Accepts the same types as the constructors.
-  template <typename T,
-            typename std::enable_if<
-                internal::BufferCompat<uint8_t, T>::value>::type* = nullptr>
+  template <typename T, typename std::enable_if<internal::BufferCompat<
+                            uint8_t, T>::value>::type* = nullptr>
   void AppendData(const T* data, size_t size) {
     assert(IsConsistent());
     if (!buffer_) {
@@ -217,8 +211,7 @@ class CopyOnWriteBuffer {
     assert(IsConsistent());
   }
 
-  template <typename T,
-            size_t N,
+  template <typename T, size_t N,
             typename std::enable_if<
                 internal::BufferCompat<uint8_t, T>::value>::type* = nullptr>
   void AppendData(const T (&array)[N]) {

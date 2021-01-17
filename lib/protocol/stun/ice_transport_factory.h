@@ -36,8 +36,7 @@ scoped_refptr<IceTransportInterface> CreateIceTransport(
 //     IceTransportInterface object.
 // |init.async_resolver_factory()| and |init.event_log()| are optional, but if
 //     provided must outlive the created IceTransportInterface object.
-scoped_refptr<IceTransportInterface> CreateIceTransport(
-    IceTransportInit);
+scoped_refptr<IceTransportInterface> CreateIceTransport(IceTransportInit);
 
 }  // namespace webrtc
 

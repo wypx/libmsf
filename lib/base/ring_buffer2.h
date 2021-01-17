@@ -4,6 +4,8 @@
 
 // https://www.boost.org/doc/libs/1_60_0/doc/html/atomic/usage_examples.html#boost_atomic.usage_examples.example_ringbuffer.implementation
 
+// http://blog.sina.com.cn/s/blog_5423c45a0102xbop.html
+
 #include <stddef.h>
 
 #include <atomic>

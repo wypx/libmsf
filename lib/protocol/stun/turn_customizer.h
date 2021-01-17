@@ -13,29 +13,24 @@
 
 #include <stdlib.h>
 
-namespace cricket {
+namespace MSF {
+
 class PortInterface;
 class StunMessage;
-}  // namespace cricket
-
-namespace webrtc {
 
 class TurnCustomizer {
  public:
   // This is called before a TURN message is sent.
   // This could be used to add implementation specific attributes to a request.
-  virtual void MaybeModifyOutgoingStunMessage(
-      cricket::PortInterface* port,
-      cricket::StunMessage* message) = 0;
+  virtual void MaybeModifyOutgoingStunMessage(PortInterface* port,
+                                              StunMessage* message) = 0;
 
   // TURN can send data using channel data messages or Send indication.
   // This method should return false if |data| should be sent using
   // a Send indication instead of a ChannelData message, even if a
   // channel is bound.
-  virtual bool AllowChannelData(cricket::PortInterface* port,
-                                const void* data,
-                                size_t size,
-                                bool payload) = 0;
+  virtual bool AllowChannelData(PortInterface* port, const void* data,
+                                size_t size, bool payload) = 0;
 
   virtual ~TurnCustomizer() {}
 };

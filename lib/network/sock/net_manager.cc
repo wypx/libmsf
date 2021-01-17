@@ -19,6 +19,8 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sstream>
+#include <iomanip>
 
 #define __KERNEL__
 #include <linux/ethtool.h>
@@ -194,7 +196,6 @@ std::string GetMacAddr(const std::string &iface) {
   int fd = -1;
   struct ifreq ifr = {0};
   uint8_t *ptr = nullptr;
-  char macstr[30];
   // if (0 == strcmp(iface.c_str(), "lo")) {
   //   return macaddr;
   // }
@@ -205,7 +206,6 @@ std::string GetMacAddr(const std::string &iface) {
   if ((fd = ::socket(PF_INET, SOCK_STREAM, 0)) < 0) {
     LOG(ERROR) << "create socket failed, errno :" << errno;
     return "";
-    ;
   }
 
   strlcpy(ifr.ifr_name, iface.c_str(), sizeof(ifr.ifr_name));
@@ -218,10 +218,18 @@ std::string GetMacAddr(const std::string &iface) {
   }
 
   ptr = (uint8_t *)&ifr.ifr_hwaddr.sa_data[0];
-  ::snprintf(macstr, 6, "%02x-%02x-%02x-%02x-%02x-%02x", *ptr, *(ptr + 1),
-             *(ptr + 2), *(ptr + 3), *(ptr + 4), *(ptr + 5));
+  std::stringstream mac_str;
+  mac_str << std::setw(2) << std::setfill('0') << std::hex << *ptr << "-"
+          << std::setw(2) << std::setfill('0') << std::hex << *(ptr + 1) << "-"
+          << std::setw(2) << std::setfill('0') << std::hex << *(ptr + 2) << "-"
+          << std::setw(2) << std::setfill('0') << std::hex << *(ptr + 3) << "-"
+          << std::setw(2) << std::setfill('0') << std::hex << *(ptr + 4) << "-"
+          << std::setw(2) << std::setfill('0') << std::hex << *(ptr + 5);
+  // char macstr[30];
+  // ::snprintf(macstr, 6, "%02x-%02x-%02x-%02x-%02x-%02x", *ptr, *(ptr + 1),
+  //            *(ptr + 2), *(ptr + 3), *(ptr + 4), *(ptr + 5));
   ::close(fd);
-  return macstr;
+  return mac_str.str();
 }
 
 bool SetMacAddr(const std::string &iface, const std::string &macstr) {

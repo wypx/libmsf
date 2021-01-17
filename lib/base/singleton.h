@@ -21,7 +21,7 @@
 
 namespace MSF {
 
-https:  // blog.csdn.net/ynshi57/article/details/108083019
+// https:  // blog.csdn.net/ynshi57/article/details/108083019
 
 // https://blog.csdn.net/sai_j/article/details/82766225
 
@@ -36,6 +36,13 @@ struct has_no_destroy {
   const static bool value = sizeof(test<T>(0)) == 1;
 };
 }  // namespace MSF
+
+template <typename… Args, class T>
+T* Instance(Args&&… args) {
+  return new T(std::forward<Args>(args)…);
+}
+// A* pa = Instance<A>(1);
+// B* pb = Instance<B>(1,2)
 
 template <typename T>
 class Singleton : Noncopyable {

@@ -36,7 +36,10 @@ namespace MSF {
 // Note that rtc::scoped_refptr depends on compile-time duck-typing; formally
 // implementing the below RefCountInterface is not required.
 
-enum class RefCountReleaseStatus { kDroppedLastRef, kOtherRefsRemained };
+enum class RefCountReleaseStatus {
+  kDroppedLastRef,
+  kOtherRefsRemained
+};
 
 // Interfaces where refcounting is part of the public api should
 // inherit this abstract interface. The implementation of these

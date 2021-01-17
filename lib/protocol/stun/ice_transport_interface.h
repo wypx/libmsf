@@ -82,8 +82,7 @@ class IceTransportFactory {
   // network thread and an ICE transport factory that intends to work with a
   // peer connection should offer transports compatible with these assumptions.
   virtual scoped_refptr<IceTransportInterface> CreateIceTransport(
-      const std::string& transport_name,
-      int component,
+      const std::string& transport_name, int component,
       IceTransportInit init) = 0;
 };
 

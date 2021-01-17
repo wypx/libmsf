@@ -13,6 +13,14 @@
 
 #include <stddef.h>  // For size_t.
 
+template <typename T>
+constexpr bool IsTriviallyCopyable() {
+  return static_cast<bool>(std::is_trivially_copy_constructible<T>::value &&
+                           (std::is_trivially_copy_assignable<T>::value ||
+                            !std::is_copy_assignable<T>::value) &&
+                           std::is_trivially_destructible<T>::value);
+}
+
 #ifdef __cplusplus
 #include "type_traits.h"
 #endif
@@ -91,18 +99,7 @@ static inline void rtc_MsanCheckInitialized(const volatile void* ptr,
 
 #ifdef __cplusplus
 
-namespace rtc {
-namespace sanitizer_impl {
-
-template <typename T>
-constexpr bool IsTriviallyCopyable() {
-  return static_cast<bool>(absl::is_trivially_copy_constructible<T>::value &&
-                           (absl::is_trivially_copy_assignable<T>::value ||
-                            !std::is_copy_assignable<T>::value) &&
-                           absl::is_trivially_destructible<T>::value);
-}
-
-}  // namespace sanitizer_impl
+namespace MSF {
 
 template <typename T>
 inline void AsanPoison(const T& mem) {

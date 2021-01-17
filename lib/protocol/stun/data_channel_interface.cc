@@ -12,17 +12,11 @@
 
 namespace MSF {
 
-bool DataChannelInterface::ordered() const {
-  return false;
-}
+bool DataChannelInterface::ordered() const { return false; }
 
-uint16_t DataChannelInterface::maxRetransmitTime() const {
-  return 0;
-}
+uint16_t DataChannelInterface::maxRetransmitTime() const { return 0; }
 
-uint16_t DataChannelInterface::maxRetransmits() const {
-  return 0;
-}
+uint16_t DataChannelInterface::maxRetransmits() const { return 0; }
 
 std::optional<int> DataChannelInterface::maxRetransmitsOpt() const {
   return std::nullopt;
@@ -32,12 +26,8 @@ std::optional<int> DataChannelInterface::maxPacketLifeTime() const {
   return std::nullopt;
 }
 
-std::string DataChannelInterface::protocol() const {
-  return std::string();
-}
+std::string DataChannelInterface::protocol() const { return std::string(); }
 
-bool DataChannelInterface::negotiated() const {
-  return false;
-}
+bool DataChannelInterface::negotiated() const { return false; }
 
 }  // namespace webrtc

@@ -58,10 +58,9 @@ inline bool StartsWith(std::string_view text, std::string_view prefix) {
 //
 // Returns whether a given string `text` ends with `suffix`.
 inline bool EndsWith(std::string_view text, std::string_view suffix) {
-  return suffix.empty() ||
-         (text.size() >= suffix.size() &&
-          memcmp(text.data() + (text.size() - suffix.size()), suffix.data(),
-                 suffix.size()) == 0);
+  return suffix.empty() || (text.size() >= suffix.size() &&
+                            memcmp(text.data() + (text.size() - suffix.size()),
+                                   suffix.data(), suffix.size()) == 0);
 }
 
 // EqualsIgnoreCase()
@@ -81,7 +80,6 @@ bool StartsWithIgnoreCase(std::string_view text, std::string_view prefix);
 // Returns whether a given ASCII string `text` ends with `suffix`, ignoring
 // case in the comparison.
 bool EndsWithIgnoreCase(std::string_view text, std::string_view suffix);
-
 
 }  // namespace MSF
 

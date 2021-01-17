@@ -38,6 +38,8 @@ class TokenBucket {
 
   bool grant(uint64_t token_size);
 
+  void add(uint64_t refond_size = 0);
+
   void set_rate(uint64_t rate);
 
  private:

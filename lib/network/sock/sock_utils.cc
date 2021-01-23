@@ -1239,7 +1239,7 @@ int ConnectUnixServer(const std::string &srvPath, const std::string &cliPath) {
 }
 
 /* return bytes# of read on success or negative val on failure. */
-int ReadFdMessage(int sockfd, char *buf, int buflen, int *fds, int fd_num) {
+int ReadFdMessage(int fd, char *buf, int buflen, int *fds, int fd_num) {
   struct iovec iov;
   struct msghdr msgh;
   size_t fdsize = fd_num * sizeof(int);
@@ -1256,7 +1256,7 @@ int ReadFdMessage(int sockfd, char *buf, int buflen, int *fds, int fd_num) {
   msgh.msg_control = control;
   msgh.msg_controllen = sizeof(control);
 
-  ret = ::recvmsg(sockfd, &msgh, MSG_NOSIGNAL | MSG_WAITALL);
+  ret = ::recvmsg(fd, &msgh, MSG_NOSIGNAL | MSG_WAITALL);
   if (ret <= 0) {
     LOG(ERROR) << "Recvmsg failed";
     return ret;
@@ -1285,7 +1285,7 @@ int ReadFdMessage(int sockfd, char *buf, int buflen, int *fds, int fd_num) {
   return ret;
 }
 
-int SendFdMessage(int sockfd, char *buf, int buflen, int *fds, int fd_num) {
+int SendFdMessage(int fd, char *buf, int buflen, int *fds, int fd_num) {
   struct iovec iov;
   struct msghdr msgh;
   size_t fdsize = fd_num * sizeof(int);
@@ -1341,15 +1341,102 @@ int SendFdMessage(int sockfd, char *buf, int buflen, int *fds, int fd_num) {
   }
 
   do {
-    ret = ::sendmsg(sockfd, &msgh, MSG_NOSIGNAL | MSG_WAITALL);
+    ret = ::sendmsg(fd, &msgh, MSG_NOSIGNAL | MSG_WAITALL);
   } while (ret < 0 && (errno == EINTR || errno == EAGAIN));
 
   if (ret < 0) {
-    LOG(ERROR) << "Sendmsg error";
+    LOG(ERROR) << "sendmsg error";
     return ret;
   }
 
   return ret;
+}
+
+bool RecvCredsMessage(int fd, struct ucred *cred, char *v) {
+  struct msghdr msg = {};
+  struct iovec iov;
+  struct cmsghdr *cmsg;
+  ssize_t ret;
+  char cmsgbuf[CMSG_SPACE(sizeof(*cred))] = {};
+  char buf = '1';
+  int optval = 1;
+
+  msg.msg_name = NULL;
+  msg.msg_namelen = 0;
+  msg.msg_control = cmsgbuf;
+  msg.msg_controllen = sizeof(cmsgbuf);
+
+  iov.iov_base = &buf;
+  iov.iov_len = sizeof(buf);
+  msg.msg_iov = &iov;
+  msg.msg_iovlen = 1;
+
+  *v = buf;
+
+  ret = ::setsockopt(fd, SOL_SOCKET, SO_PASSCRED, &optval, sizeof(optval));
+  if (ret < 0) {
+    LOG(ERROR) << "failed to set pass cred on fd, errno: " << errno;
+    return false;
+  }
+
+  ret = ::write(fd, &buf, sizeof(buf));
+  if (ret != sizeof(buf)) {
+    LOG(ERROR) << "failed to start write on scm fd, errno: " << errno;
+    return false;
+  }
+
+  ret = ::recvmsg(fd, &msg, MSG_NOSIGNAL | MSG_WAITALL);
+  if (ret < 0) {
+    LOG(ERROR) << "failed to start receive scm_cred, errno: " << errno;
+    return false;
+  }
+
+  cmsg = CMSG_FIRSTHDR(&msg);
+  if (cmsg && cmsg->cmsg_len == CMSG_LEN(sizeof(*cred)) &&
+      cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_CREDENTIALS) {
+    ::memcpy(cred, CMSG_DATA(cmsg), sizeof(*cred));
+  }
+  *v = buf;
+  return true;
+}
+
+int SendCredsMessage(int fd, struct ucred *cred, char v, bool pingfirst) {
+  struct msghdr msg = {0};
+  struct iovec iov;
+  struct cmsghdr *cmsg;
+  char cmsgbuf[CMSG_SPACE(sizeof(*cred))];
+  char buf[1];
+  buf[0] = 'p';
+
+  if (pingfirst && ::recv(fd, buf, 1, MSG_NOSIGNAL) != 1) {
+    LOG(ERROR) << "failed getting reply from server over socketpair, errno: "
+               << errno;
+    return false;
+  }
+
+  msg.msg_control = cmsgbuf;
+  msg.msg_controllen = sizeof(cmsgbuf);
+
+  cmsg = CMSG_FIRSTHDR(&msg);
+  cmsg->cmsg_len = CMSG_LEN(sizeof(struct ucred));
+  cmsg->cmsg_level = SOL_SOCKET;
+  cmsg->cmsg_type = SCM_CREDENTIALS;
+  ::memcpy(CMSG_DATA(cmsg), cred, sizeof(*cred));
+
+  msg.msg_name = NULL;
+  msg.msg_namelen = 0;
+
+  buf[0] = v;
+  iov.iov_base = buf;
+  iov.iov_len = sizeof(buf);
+  msg.msg_iov = &iov;
+  msg.msg_iovlen = 1;
+
+  if (::sendmsg(fd, &msg, MSG_NOSIGNAL | MSG_WAITALL) < 0) {
+    LOG(ERROR) << "failed at sendmsg, errno: " << errno;
+    return false;
+  }
+  return true;
 }
 
 /* TTL */
@@ -2579,30 +2666,27 @@ int SetRoutingDomain(int fd, const char *name) {
 
 #if 0
 rlim_t GetMaxOpenFd() {
-    struct rlimit rlp;
+  struct rlimit rlp;
 
-    if (::getrlimit(RLIMIT_NOFILE, &rlp) == 0)
-        return rlp.rlim_cur;
+  if (::getrlimit(RLIMIT_NOFILE, &rlp) == 0) return rlp.rlim_cur;
 
-    return 0;
+  return 0;
 }
 
 bool SetMaxOpenFd(rlim_t maxfdPlus1) {
-    struct rlimit rlp;
+  struct rlimit rlp;
 
-    if (::getrlimit(RLIMIT_NOFILE, &rlp) != 0)
-        return false;
+  if (::getrlimit(RLIMIT_NOFILE, &rlp) != 0) return false;
 
-    if (maxfdPlus1 <= rlp.rlim_cur)
-        return true;
+  if (maxfdPlus1 <= rlp.rlim_cur) return true;
 
-    if (maxfdPlus1 > rlp.rlim_max)
-        return false;
+  if (maxfdPlus1 > rlp.rlim_max) return false;
 
-    rlp.rlim_cur = maxfdPlus1;
+  rlp.rlim_cur = maxfdPlus1;
 
-    return ::setrlimit(RLIMIT_NOFILE, &rlp) == 0;
+  return ::setrlimit(RLIMIT_NOFILE, &rlp) == 0;
 }
+
 #endif
 
 }  // namespace MSF

@@ -20,8 +20,9 @@ include_directories(
 # 设置链接库搜索目录
 link_directories(
     ${PROJECT_SOURCE_DIR}/../build/lib/
-    ${PROJECT_SOURCE_DIR}/../build/app/AgentProto/
-    ${PROJECT_SOURCE_DIR}/../build/app/AgentClient
+    ${PROJECT_SOURCE_DIR}/../build/app/agent/client
+    ${PROJECT_SOURCE_DIR}/../build/app/agent/proto
+    ${PROJECT_SOURCE_DIR}/../build/app/agent/server
     ${PROJECT_SOURCE_DIR}/../thirdparty/baidu/incubator-brpc
 )
 

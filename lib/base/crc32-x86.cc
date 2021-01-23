@@ -1,8 +1,13 @@
-#include <cpuid.h>
-#include <smmintrin.h>
 
 #include "crc.h"
 #include "gcc_attr.h"
+
+#if (defined(__amd64) || defined(__x86_64))
+#include <cpuid.h>
+#endif
+
+#include <smmintrin.h>
+
 #include <butil/logging.h>
 
 using namespace MSF;
@@ -107,7 +112,6 @@ inline
 #if !defined(__i686__)
   volatile("" :: : "memory");
 #endif
-#endif
 
   for (; len >= 4; len -= 4, s += 4) v = _mm_crc32_u32(v, *((uint32_t *)s));
 
@@ -115,6 +119,7 @@ inline
 
   for (; len >= 1; len -= 1, s += 1) v = _mm_crc32_u8(v, *((uint16_t *)s));
 
+#endif
   return v;
 }
 

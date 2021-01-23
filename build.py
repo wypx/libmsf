@@ -40,19 +40,19 @@ def MakeBuildDir(buildPath):
 def MakeBuildLib(BuildRoot):
     os.chdir(BuildRoot + "/build/lib")
     os.system("cmake ../../lib")
-    os.system("make -j8")
+    os.system("make -j1")
     os.system("make install")
 
 def MakeBuildApp(BuildRoot):
     os.chdir(BuildRoot + "/build/app")
     os.system("cmake ../../app")
-    os.system("make -j8")
+    os.system("make -j")
     os.system("make install")
 
 def MakeBuildProto(BuildRoot):
-    os.chdir(BuildRoot + "/app/Agent/Proto")
+    os.chdir(BuildRoot + "/app/agent/proto")
     os.system("protoc -I=./ --cpp_out=./ *.proto")
-    os.chdir(BuildRoot + "/app/Mobile/src")
+    os.chdir(BuildRoot + "/app/mobile/src")
     os.system("protoc -I=./ --cpp_out=./ *.proto")
     
 def MakeBuildClean(buildPath):

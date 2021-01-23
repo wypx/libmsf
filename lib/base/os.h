@@ -21,7 +21,7 @@
 #include <sys/sysinfo.h>
 #include <sys/utsname.h>
 
-#include "Plugin.h"
+#include "plugin.h"
 
 namespace MSF {
 

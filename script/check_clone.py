@@ -5,6 +5,8 @@ import os
 import sys
 import pymongo
 
+
+
 def main(db_host, db_port, udisk_id):
   print("=====> Start to get clone task info")
   client = pymongo.MongoClient(db_host, db_port)
@@ -60,4 +62,15 @@ if __name__ == "__main__":
   # main("172.27.24.98", 27019, "bsi-5xg22swl")
   # main("10.66.128.13", 20731, "bsi-dvvpumx5")
   # main("172.27.24.98", 27019, "bsi-uwx0t55m")
-  main("172.27.39.115", 27035, "windows_hn02_bk_820")
+  # main("172.27.37.69", 37025, "hn02_online_image_220G_147")
+  # main("172.27.37.69", 37026, "hn02_online_image_220G_162")
+  # main("172.27.37.69", 37027, "hn02_online_image_220G_177")
+  main("172.27.37.69", 37021, "bsi-lhqbd3v5")
+  # main("172.27.37.69", 37025, "hn02_online_image_220G_102")
+  # main("10.68.4.11", 37017, "tokyo_online_image_220G_367")
+  # main("10.68.4.11", 37018, "tokyo_online_image_220G_382")
+  # main("10.68.4.11", 37019, "tokyo_online_image_220G_397")
+  # main("10.68.4.11", 37020, "tokyo_online_image_220G_130")
+  # main("172.27.37.69", 37021, "bsi-yh4odlmk")
+  
+

@@ -40,10 +40,10 @@ using namespace MSF;
 namespace MSF {
 
 void HandleGetMobileAPNResponse(brpc::Controller *cntl,
-                                mobile::GetMobileAPNResponse *response) {
+                                Mobile::GetMobileAPNResponse *response) {
   // std::unique_ptr makes sure cntl/response will be deleted before returning.
   std::unique_ptr<brpc::Controller> cntl_guard(cntl);
-  std::unique_ptr<mobile::GetMobileAPNResponse> response_guard(response);
+  std::unique_ptr<Mobile::GetMobileAPNResponse> response_guard(response);
 
   if (cntl->Failed()) {
     LOG(WARNING) << "Fail to send EchoRequest, " << cntl->ErrorText();
@@ -270,7 +270,7 @@ int main(int argc, char *argv[]) {
 
   // Normally, you should not call a Channel directly, but instead construct
   // a stub Service wrapping it. stub can be shared by all threads as well.
-  mobile::GetMobileAPNService_Stub stub(&channel);
+  Mobile::GetMobileAPNService_Stub stub(&channel);
 
   // Send a request and wait for the response every 1 second.
   int log_id = 0;
@@ -278,12 +278,12 @@ int main(int argc, char *argv[]) {
     // Since we are sending asynchronous RPC (`done' is not NULL),
     // these objects MUST remain valid until `done' is called.
     // As a result, we allocate these objects on heap
-    mobile::GetMobileAPNResponse *response = new mobile::GetMobileAPNResponse();
+    Mobile::GetMobileAPNResponse *response = new Mobile::GetMobileAPNResponse();
     brpc::Controller *cntl = new brpc::Controller();
 
     // Notice that you don't have to new request, which can be modified
     // or destroyed just after stub.Echo is called.
-    mobile::GetMobileAPNRequest request;
+    Mobile::GetMobileAPNRequest request;
     request.set_cid(100);
 
     cntl->set_log_id(log_id++);  // set by user

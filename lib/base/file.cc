@@ -98,6 +98,8 @@ int closedir(DIR *d) {
 
 namespace toolkit {
 
+// fmemopen
+
 FILE *File::createfile_file(const char *file, const char *mode) {
 	std::string path = file;
 	std::string dir;

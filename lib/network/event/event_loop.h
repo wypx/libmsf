@@ -23,7 +23,7 @@
 #include <mutex>
 #include <vector>
 
-#include "Timer.h"
+#include "timer.h"
 
 using namespace MSF;
 

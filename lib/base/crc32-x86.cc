@@ -2,6 +2,7 @@
 #include "crc.h"
 #include "gcc_attr.h"
 
+if defined(__x86_64)
 #if (defined(__amd64) || defined(__x86_64))
 #include <cpuid.h>
 #endif
@@ -181,3 +182,4 @@ __attribute_cold__ __attribute_noinline__ void checksum_init(void) {
 #endif /* HAVE_CRC32_HARDWARE */
 }
 }
+#endif

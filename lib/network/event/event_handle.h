@@ -13,8 +13,8 @@
 #ifndef LIB_EVNETHANDLE_H_
 #define LIB_EVNETHANDLE_H_
 
-#include "Connector.h"
-#include "Noncopyable.h"
+#include "connector.h"
+#include "noncopyable.h"
 
 using namespace MSF;
 

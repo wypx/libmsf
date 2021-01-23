@@ -16,7 +16,7 @@
 
 #include <sys/epoll.h>
 
-#include "Poller.h"
+#include "poller.h"
 
 using namespace MSF;
 

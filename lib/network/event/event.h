@@ -16,8 +16,8 @@
 #include <functional>
 #include <mutex>
 
-#include "Bitops.h"
-#include "Buffer.h"
+#include "bitops.h"
+#include "buffer.h"
 
 using namespace MSF;
 

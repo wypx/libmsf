@@ -24,9 +24,9 @@
 #include <utility>
 #include <vector>
 
-#include "Atomic.h"
-#include "Mem.h"
-#include "Noncopyable.h"
+#include "atomic.h"
+#include "mem.h"
+#include "noncopyable.h"
 
 using namespace MSF;
 

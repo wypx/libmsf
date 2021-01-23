@@ -15,17 +15,21 @@
 
 #include <functional>
 
-class Connector;
-
 namespace MSF {
+class Acceptor;
+class Connector;
+class Connection;
 
-typedef std::shared_ptr<Connector> ConnectionPtr;
+typedef std::shared_ptr<Acceptor> AcceptorPtr;
+typedef std::function<void(const int, const uint16_t)> NewConnCallback;
+typedef std::shared_ptr<Connection> ConnectionPtr;
+typedef std::shared_ptr<Connector> ConnectorPtr;
 typedef std::function<void(const ConnectionPtr&)> ConnSuccCallback;
 typedef std::function<void(const ConnectionPtr&)> CloseCallback;
 typedef std::function<void(const ConnectionPtr&)> WriteCallback;
 typedef std::function<void(const ConnectionPtr&)> ReadCallback;
-typedef std::function<void(const ConnectionPtr&)> WriteCompleteCallback;
-typedef std::function<void(const ConnectionPtr&, size_t)> HighWaterMarkCallback;
+typedef std::function<void(const ConnectionPtr&)> WriteIOCPCallback;
+typedef std::function<void(const ConnectionPtr&, size_t)> HighWaterCallback;
 
 }  // namespace MSF
 #endif

@@ -16,6 +16,7 @@
 #include <functional>
 #include <memory>
 
+#include "callback.h"
 #include "inet_address.h"
 #include "noncopyable.h"
 
@@ -25,14 +26,9 @@ namespace MSF {
 
 class EventLoop;
 
-typedef std::function<void(const int, const uint16_t)> NewConnCb;
-
-class Acceptor;
-typedef std::shared_ptr<Acceptor> AcceptorPtr;
-
 class Acceptor : public Noncopyable {
  public:
-  explicit Acceptor(const InetAddress &addr, const NewConnCb &cb);
+  explicit Acceptor(const InetAddress &addr, const NewConnCallback &cb);
   ~Acceptor();
 
   void AcceptCb();
@@ -58,7 +54,7 @@ class Acceptor : public Noncopyable {
   int sfd_;
 
   InetAddress addr_;
-  NewConnCb new_conn_cb_;
+  NewConnCallback new_conn_cb_;
 
   // EventLoop* const loop_; // which loop belong to
 };

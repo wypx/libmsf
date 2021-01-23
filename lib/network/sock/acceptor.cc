@@ -23,7 +23,7 @@ using namespace MSF;
 
 namespace MSF {
 
-Acceptor::Acceptor(const InetAddress &addr, const NewConnCb &cb)
+Acceptor::Acceptor(const InetAddress &addr, const NewConnCallback &cb)
     : addr_(addr), new_conn_cb_(std::move(cb)) {
   if (!StartListen()) {
     LOG(FATAL) << "fail to listen for: " << addr.hostPort2String();

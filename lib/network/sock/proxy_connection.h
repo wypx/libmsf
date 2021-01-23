@@ -1,3 +1,4 @@
+
 // /**************************************************************************
 //  *
 //  * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
@@ -10,12 +11,28 @@
 //  * and/or fitness for purpose.
 //  *
 //  **************************************************************************/
-
-#include <string>
+#include "latch.h"
+#include "tcp_connection.h"
 
 namespace MSF {
 
-int Ping(const char *host, int ping_timeout);
-std::string PingResult(int result);
+class ProxyConnection {
+ public:
+ private:
+  TCPConnection conn_;
+};
+
+class ProxyPDU {
+ public:
+  bool WaitAck(const uint32_t ts) { return latch_.waitFor(ts); }
+  void PostAck() { return latch_.countDown(); }
+
+ private:
+  uint16_t remote_id_;
+  uint16_t local_id_;
+  uint32_t command_;
+
+  CountDownLatch latch_;
+};
 
 }  // namespace MSF

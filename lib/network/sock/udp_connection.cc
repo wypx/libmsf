@@ -1,61 +1,29 @@
-
-#include "connection.h"
+/**************************************************************************
+ *
+ * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
+ * All rights reserved.
+ *
+ * Distributed under the terms of the GNU General Public License v2.
+ *
+ * This software is provided 'as is' with no explicit or implied warranties
+ * in respect of its properties, including, but not limited to, correctness
+ * and/or fitness for purpose.
+ *
+ **************************************************************************/
+#include "udp_connection.h"
 #include "sock_utils.h"
 
 #include <butil/logging.h>
 
 namespace MSF {
 
-Connection::Connection(bool thread_safe) {
-  mutex_ = thread_safe ? new std::mutex : nullptr;
+UDPConnection::UDPConnection() {}
+
+UDPConnection::~UDPConnection() {
+  Shutdown(ShutdownMode::kShutdownBoth);  // Force send FIN
 }
 
-Connection::~Connection() { CloseConn(); }
-
-// https://www.icode9.com/content-4-484721.html
-void Connection::SubmitWriteIovecSafe(BufferIovec &queue) noexcept {
-  if (queue.size() > 0) {
-    LOG(WARNING) << "no write iovec available";
-    return;
-  }
-  if (mutex_) {
-    std::lock_guard<std::mutex> lock(*mutex_);
-    SubmitWriteIovec(queue);
-  } else {
-    SubmitWriteIovec(queue);
-  }
-}
-
-void Connection::SubmitWriteIovec(BufferIovec &queue) noexcept {
-  if (write_pending_queue_.empty()) {
-    write_pending_queue_.swap(queue);
-  } else {
-    write_pending_queue_.insert(write_pending_queue_.end(),
-                                std::make_move_iterator(queue.begin()),
-                                std::make_move_iterator(queue.end()));
-  }
-}
-
-void Connection::UpdateWriteBusyIovec() noexcept {
-  if (mutex_) {
-    std::lock_guard<std::mutex> lock(*mutex_);
-    if (write_pending_queue_.size() > 0) {
-      return;
-    }
-    if (write_busy_queue_.empty()) {
-      write_busy_queue_.swap(write_busy_queue_);
-    } else {
-      write_busy_queue_.insert(
-          write_busy_queue_.end(),
-          std::make_move_iterator(write_pending_queue_.begin()),
-          std::make_move_iterator(write_pending_queue_.end()));
-    }
-  }
-}
-
-void Connection::UpdateWriteBusyOffset() noexcept {}
-
-bool Connection::HandleReadEvent() {
+bool UDPConnection::HandleReadEvent() {
 #if 0
   int bytes = ::recv(fd_, recvBuf_.WriteAddr(), recvBuf_.WritableSize(), 0);
   if (bytes == kError) {
@@ -88,7 +56,7 @@ bool Connection::HandleReadEvent() {
   return true;
 }
 
-bool Connection::HandleWriteEvent() {
+bool UDPConnection::HandleWriteEvent() {
   if (state_ != State::kStateConnected &&
       state_ != State::kStateCloseWaitWrite) {
     LOG(ERROR) << fd_ << " HandleWriteEvent wrong state " << state_;
@@ -98,9 +66,9 @@ bool Connection::HandleWriteEvent() {
   return true;
 }
 
-void Connection::HandleErrorEvent() { return; }
+void UDPConnection::HandleErrorEvent() { return; }
 
-void Connection::Shutdown(ShutdownMode mode) {
+void UDPConnection::Shutdown(ShutdownMode mode) {
 #if 0
   switch (mode) {
   case ShutdownMode::kShutdownRead:
@@ -108,18 +76,18 @@ void Connection::Shutdown(ShutdownMode mode) {
       break;
 
   case ShutdownMode::kShutdownWrite:
-      if (!send_buf_.Empty()) {
+      if (!write_buf_.Empty()) {
           LOG(WARNING) << fd_ << " shutdown write, but still has data to send";
-          send_buf_.Clear();
+          write_buf_.Clear();
       }
 
       Shutdown(fd_, SHUT_WR);
       break;
 
   case ShutdownMode::kShutdownBoth:
-      if (!send_buf_.Empty()) {
+      if (!write_buf_.Empty()) {
           LOG(WARNING) << fd_ << " shutdown both, but still has data to send";
-          send_buf_.Clear();
+          write_buf_.Clear();
       }
       Shutdown(fd_, SHUT_RDWR);
       break;
@@ -127,12 +95,12 @@ void Connection::Shutdown(ShutdownMode mode) {
 #endif
 }
 
-void Connection::ActiveClose() {
+void UDPConnection::ActiveClose() {
 #if 0
    if (fd_ == kInvalidSocket)
       return;
 
-    if (send_buf_.Empty()) {
+    if (write_buf_.Empty()) {
         Shutdown(ShutdownMode::kShutdownBoth);
         state_ = State::kStateActiveClose;
     } else {
@@ -144,9 +112,9 @@ void Connection::ActiveClose() {
 #endif
 }
 
-void Connection::CloseConn() {
+void UDPConnection::CloseConn() {
   if (fd_ > 0) {
-    LOG(INFO) << "Close conn for fd: " << fd_;
+    LOG(INFO) << "close conn for fd: " << fd_;
     // event_.remove();
     CloseSocket(fd_);
     fd_ = -1;

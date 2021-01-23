@@ -1,3 +1,4 @@
+
 // /**************************************************************************
 //  *
 //  * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
@@ -11,11 +12,21 @@
 //  *
 //  **************************************************************************/
 
-#include <string>
+#include "proxy_connection.h"
 
 namespace MSF {
 
-int Ping(const char *host, int ping_timeout);
-std::string PingResult(int result);
+class ProxyClient {
+ public:
+  ProxyClient() = default;
+  ~ProxyClient() = default;
+
+ private:
+  ProxyConnection conn_;
+  bool re_onnect_ = true; /* enable reconnct proxy server*/
+  bool re_connecting_ = false;
+};
+
+typedef std::shared_ptr<ProxyClient> ProxyClientPtr;
 
 }  // namespace MSF

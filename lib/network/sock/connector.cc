@@ -11,12 +11,12 @@
  *
  **************************************************************************/
 #include "connector.h"
-
+#include "sock_utils.h"
 #include <butil/logging.h>
 
 namespace MSF {
 
-Connector::Connector() : event_(Event()) {}
+Connector::Connector() {}
 
 Connector::~Connector() { CloseConn(); }
 

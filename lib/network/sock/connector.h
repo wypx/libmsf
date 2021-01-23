@@ -13,15 +13,13 @@
 #ifndef SOCK_CONNECTOR_H_
 #define SOCK_CONNECTOR_H_
 
-#include <deque>
-#include <functional>
-#include <memory>
-#include <mutex>
-#include <vector>
+// #include <deque>
+// #include <functional>
+// #include <memory>
+// #include <mutex>
+// #include <vector>
 
-#include "buffer.h"
 #include "event.h"
-#include "sock_utils.h"
 #include "connection.h"
 
 using namespace MSF;
@@ -49,9 +47,6 @@ enum ConnState {
   kCONN_STATE_CLOSED = 6,
   kCONN_STATE_BUTT
 };
-
-class Connector;
-typedef std::shared_ptr<Connector> ConnectionPtr;
 
 class Connector : public Connection {
  public:

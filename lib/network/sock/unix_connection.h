@@ -1,3 +1,4 @@
+
 // /**************************************************************************
 //  *
 //  * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
@@ -11,11 +12,20 @@
 //  *
 //  **************************************************************************/
 
-#include <string>
+#include "connection.h"
 
 namespace MSF {
 
-int Ping(const char *host, int ping_timeout);
-std::string PingResult(int result);
+class UNIXConnection : public Connection {
+  UNIXConnection() = default;
+  ~UNIXConnection() = default;
+
+  bool HandleReadEvent() override;
+  bool HandleWriteEvent() override;
+  void HandleErrorEvent() override;
+
+  void CloseConn() override;
+  void ActiveClose() override;
+};
 
 }  // namespace MSF

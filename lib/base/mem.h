@@ -96,21 +96,23 @@ inline void *BasicAlignedAlloc(size_t size, size_t align) {
 }
 
 inline void BasicAlignedFree(void *aligned_ptr) { free(aligned_ptr); }
+
 #elif defined(_WIN32)
 
 inline void *BasicAlignedAlloc(size_t size, size_t align) {
-  return _aligned_malloc(size, align);
+  return ::_aligned_malloc(size, align);
 }
-
-inline void BasicAlignedFree(void *aligned_ptr) { _aligned_free(aligned_ptr); }
+inline void BasicAlignedFree(void *aligned_ptr) {
+  ::_aligned_free(aligned_ptr);
+}
 
 #else
 
 inline void *BasicAlignedAlloc(size_t size, size_t align) {
-  return memalign(align, size);
+  return ::memalign(align, size);
 }
 
-inline void BasicAlignedFree(void *aligned_ptr) { free(aligned_ptr); }
+inline void BasicAlignedFree(void *aligned_ptr) { ::free(aligned_ptr); }
 #endif
 
 void *BasicNumaAllocOnNode(size_t size, int node);

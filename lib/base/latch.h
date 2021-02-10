@@ -38,12 +38,12 @@ class CountDownLatch : public Noncopyable {
  public:
   explicit CountDownLatch(int count);
   ~CountDownLatch() = default;
-  void setCount(const int count) { count_ = count; }
-  void wait();
-  bool waitFor(const uint32_t ts);
+  void Wait();
+  bool WaitFor(const uint32_t ts);
   bool WaitUntil();
-  void countDown();
-  int getCount() const;
+  void CountDown();
+  void set_count(const int count) { count_ = count; }
+  int count() const;
 
  private:
   std::mutex mutex_;

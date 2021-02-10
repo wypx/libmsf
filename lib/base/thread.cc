@@ -130,20 +130,22 @@ int pthreadSpawn(pthread_t* tid, void* (*pfn)(void*), void* arg) {
 
 #ifndef WIN32
   sigset_t signal_mask;
-  sigemptyset(&signal_mask);
-  sigaddset(&signal_mask, SIGPIPE);
-  rc = pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
+  ::sigemptyset(&signal_mask);
+  ::sigaddset(&signal_mask, SIGPIPE);
+  rc = ::pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
   if (rc != 0) {
     LOG(ERROR) << "Block sigpipe error.";
   }
 #endif
 
-  pthread_attr_init(&thread_attr);
-  pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_JOINABLE);
-  if (pthread_create(tid, &thread_attr, pfn, arg) < 0) {
+  ::pthread_attr_init(&thread_attr);
+  ::pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_JOINABLE);
+  if (::pthread_create(tid, &thread_attr, pfn, arg) < 0) {
     LOG(ERROR) << "Do pthread_create errno: " << errno;
     return -1;
   }
+
+  ::pthread_attr_destroy(&thread_attr);
 
   return 0;
 }
@@ -208,7 +210,7 @@ void* Thread::threadLoop(ThreadFunc initFunc) {
   SetCurrentThreadName(CurrentThread::t_threadName);
   SetPriority(priority_);
 
-  latch_.countDown();
+  latch_.CountDown();
 
   try {
     func_();
@@ -353,6 +355,8 @@ bool Thread::IsRunning() const {
 #endif
 }
 
+bool Thread::IsCurrent() const { return (::pthread_self() == th_); }
+
 void Thread::Stop() {
   if (!IsRunning()) return;
 
@@ -377,7 +381,7 @@ void Thread::start(const ThreadFunc& initFunc) {
 
   try {
     thread_ = std::thread(std::bind(&Thread::threadLoop, this, initFunc));
-    latch_.wait();
+    latch_.Wait();
   }
   catch (const Exception& ex) {
     CurrentThread::t_threadName = "crashed";
@@ -417,6 +421,13 @@ void Thread::join() {
     return;
   }
   thread_.join();
+}
+
+int Thread::kill(int signal) {
+  if (th_)
+    return ::pthread_kill(thread_.native_handle(), signal);
+  else
+    return -EINVAL;
 }
 
 }  // namespace MSF

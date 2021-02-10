@@ -820,4 +820,177 @@ cleanup:
   return content;
 }
 
+// The type-value for a ZFS FS in fstatfs.
+#define FS_ZFS_TYPE 0xde
+
+// On FreeBSD, ZFS fallocate always fails since it is considered impossible to
+// reserve space on a COW filesystem. posix_fallocate() returns EINVAL
+// Linux in this case already emulates the reservation in glibc
+// In which case it is allocated manually, and still that is not a real
+// guarantee
+// that a full buffer is allocated on disk, since it could be compressed.
+// To prevent this the written buffer needs to be loaded with random data.
+int ManualFallocate(int fd, off_t offset, off_t len) {
+  int r = lseek(fd, offset, SEEK_SET);
+  if (r == -1) return errno;
+  char data[1024 * 128];
+  // TODO: compressing filesystems would require random data
+  // FIPS zeroization audit 20191115: this memset is not security related.
+  ::memset(data, 0x42, sizeof(data));
+  for (off_t off = 0; off < len; off += sizeof(data)) {
+    if (off + static_cast<off_t>(sizeof(data)) > len)
+      r = ::write(fd, data, len - off);
+    else
+      r = ::write(fd, data, sizeof(data));
+    if (r == -1) {
+      return errno;
+    }
+  }
+  return 0;
+}
+
+int IsZFS(int basedir_fd) {
+#ifndef _WIN32
+  struct statfs basefs;
+  (void)::fstatfs(basedir_fd, &basefs);
+  return (basefs.f_type == FS_ZFS_TYPE);
+#else
+  return 0;
+#endif
+}
+
+int PosixFallocate(int fd, off_t offset, off_t len) {
+// Return 0 if oke, otherwise errno > 0
+
+#ifdef HAVE_POSIX_FALLOCATE
+  if (IsZFS(fd)) {
+    return ManualFallocate(fd, offset, len);
+  } else {
+    return ::posix_fallocate(fd, offset, len);
+  }
+#elif defined(__APPLE__)
+  fstore_t store;
+  store.fst_flags = F_ALLOCATECONTIG;
+  store.fst_posmode = F_PEOFPOSMODE;
+  store.fst_offset = offset;
+  store.fst_length = len;
+
+  int ret = fcntl(fd, F_PREALLOCATE, &store);
+  if (ret == -1) {
+    ret = errno;
+  }
+  return ret;
+#else
+  return ManualFallocate(fd, offset, len);
+#endif
+}
+
+#if defined(WIN32)
+int fsync(int fd) {
+  HANDLE handle = (HANDLE*)_get_osfhandle(fd);
+  if (handle == INVALID_HANDLE_VALUE) return -1;
+  if (!FlushFileBuffers(handle)) return -1;
+  return 0;
+}
+ssize_t pwrite(int fd, const void* buf, size_t count, off_t offset) {
+  DWORD bytes_written = 0;
+
+  HANDLE handle = (HANDLE*)_get_osfhandle(fd);
+  if (handle == INVALID_HANDLE_VALUE) return -1;
+
+  OVERLAPPED overlapped = {0};
+  ULARGE_INTEGER offsetUnion;
+  offsetUnion.QuadPart = offset;
+
+  overlapped.Offset = offsetUnion.LowPart;
+  overlapped.OffsetHigh = offsetUnion.HighPart;
+
+  if (!::WriteFile(handle, buf, count, &bytes_written, &overlapped))
+    // we may consider mapping error codes, although that may
+    // not be exhaustive.
+    return -1;
+
+  return bytes_written;
+}
+ssize_t pread(int fd, void* buf, size_t count, off_t offset) {
+  DWORD bytes_read = 0;
+
+  HANDLE handle = (HANDLE*)_get_osfhandle(fd);
+  if (handle == INVALID_HANDLE_VALUE) return -1;
+
+  OVERLAPPED overlapped = {0};
+  ULARGE_INTEGER offsetUnion;
+  offsetUnion.QuadPart = offset;
+
+  overlapped.Offset = offsetUnion.LowPart;
+  overlapped.OffsetHigh = offsetUnion.HighPart;
+
+  if (!ReadFile(handle, buf, count, &bytes_read, &overlapped)) {
+    if (GetLastError() != ERROR_HANDLE_EOF) return -1;
+  }
+
+  return bytes_read;
+}
+ssize_t preadv(int fd, const struct iovec* iov, int iov_cnt) {
+  ssize_t read = 0;
+
+  for (int i = 0; i < iov_cnt; i++) {
+    int r = ::read(fd, iov[i].iov_base, iov[i].iov_len);
+    if (r < 0) return r;
+    read += r;
+    if (r < iov[i].iov_len) break;
+  }
+
+  return read;
+}
+
+ssize_t writev(int fd, const struct iovec* iov, int iov_cnt) {
+  ssize_t written = 0;
+
+  for (int i = 0; i < iov_cnt; i++) {
+    int r = ::write(fd, iov[i].iov_base, iov[i].iov_len);
+    if (r < 0) return r;
+    written += r;
+    if (r < iov[i].iov_len) break;
+  }
+
+  return written;
+}
+
+#ifndef WIN32
+int get_fs_stats(ceph_data_stats_t& stats, const char* path) {
+  if (!path) return -EINVAL;
+
+  struct statfs stbuf;
+  int err = ::statfs(path, &stbuf);
+  if (err < 0) {
+    return -errno;
+  }
+
+  stats.byte_total = stbuf.f_blocks * stbuf.f_bsize;
+  stats.byte_used = (stbuf.f_blocks - stbuf.f_bfree) * stbuf.f_bsize;
+  stats.byte_avail = stbuf.f_bavail * stbuf.f_bsize;
+  stats.avail_percent = (((float)stats.byte_avail / stats.byte_total) * 100);
+  return 0;
+}
+#else
+int get_fs_stats(ceph_data_stats_t& stats, const char* path) {
+  ULARGE_INTEGER avail_bytes, total_bytes, total_free_bytes;
+
+  if (!GetDiskFreeSpaceExA(path, &avail_bytes, &total_bytes,
+                           &total_free_bytes)) {
+    return -EINVAL;
+  }
+
+  stats.byte_total = total_bytes.QuadPart;
+  stats.byte_used = total_bytes.QuadPart - total_free_bytes.QuadPart;
+  // may not be equal to total_free_bytes due to quotas
+  stats.byte_avail = avail_bytes.QuadPart;
+  stats.avail_percent = ((float)stats.byte_avail / stats.byte_total) * 100;
+  return 0;
+}
+#endif
+
+#endif
+
 }  // namespace MSF

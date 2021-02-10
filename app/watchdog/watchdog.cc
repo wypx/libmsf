@@ -10,7 +10,7 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include "WatchDog.h"
+#include "watchdog.h"
 
 #include <base/process.h>
 #include <base/signal_manager.h>
@@ -68,8 +68,8 @@ Guard::Guard() {
 
   // agent_ = new AgentClient(stack_->getOneLoop(), "Guard", Agent::APP_GUARD,
   // "luotang.me", 8888);
-  agent_ = new AgentClient(stack_->getOneLoop(), "Guard", Agent::APP_GUARD);
-  assert(agent_);
+  // agent_ = new AgentClient(stack_->getOneLoop(), "Guard", Agent::APP_GUARD);
+  // assert(agent_);
 }
 
 Guard::~Guard() {}
@@ -88,19 +88,19 @@ struct ApnItem {
 };
 
 void Guard::sendPdu() {
-  struct ApnItem item = {0};
-  AgentPduPtr pdu = std::make_shared<AgentPdu>();
-  pdu->addRspload(&item, sizeof(item));
-  pdu->cmd_ = Agent::Command::CMD_REQ_MOBILE_READ;
-  pdu->dstId_ = Agent::AppId::APP_MOBILE;
-  pdu->timeOut_ = 5;
-  while (1) {
-    int ret = agent_->sendPdu(pdu);
-    if (Agent::ERR_AGENT_NOT_START != ret) {
-      break;
-    }
-  }
-  LOG(INFO) << "ApnItem cid: " << item.cid << " active: " << item.active;
+  // struct ApnItem item = {0};
+  // AgentPduPtr pdu = std::make_shared<AgentPdu>();
+  // pdu->addRspload(&item, sizeof(item));
+  // pdu->cmd_ = Agent::Command::CMD_REQ_MOBILE_READ;
+  // pdu->dstId_ = Agent::AppId::APP_MOBILE;
+  // pdu->timeOut_ = 5;
+  // while (1) {
+  //   int ret = agent_->sendPdu(pdu);
+  //   if (Agent::ERR_AGENT_NOT_START != ret) {
+  //     break;
+  //   }
+  // }
+  // LOG(INFO) << "ApnItem cid: " << item.cid << " active: " << item.active;
 }
 
 }  // namespace MSF

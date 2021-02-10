@@ -28,6 +28,7 @@
 #include <sys/socket.h>
 #include <sys/timerfd.h>
 #include <sys/un.h>
+#include <dirent.h>
 #include <linux/netfilter_ipv4.h>
 // #include <linux/netfilter_ipv6/ip6_tables.h>
 
@@ -2688,5 +2689,40 @@ bool SetMaxOpenFd(rlim_t maxfdPlus1) {
 }
 
 #endif
+
+void DumpOpenFds() {
+#ifdef __APPLE__
+  const char *fn = "/dev/fd";
+#else
+  const char *fn = "/proc/self/fd";
+#endif
+  DIR *d = ::opendir(fn);
+  if (!d) {
+    LOG(ERROR) << "dump_open_fds unable to open " << fn;
+    return;
+  }
+  struct dirent *de = nullptr;
+
+  int n = 0;
+  while ((de = ::readdir(d))) {
+    if (de->d_name[0] == '.') continue;
+    char path[PATH_MAX];
+    ::snprintf(path, sizeof(path), "%s/%s", fn, de->d_name);
+    char target[PATH_MAX];
+    ssize_t r = ::readlink(path, target, sizeof(target) - 1);
+    if (r < 0) {
+      r = -errno;
+      LOG(ERROR) << "dump_open_fds unable to readlink " << path << ": "
+                 << strerror(r);
+      continue;
+    }
+    target[r] = 0;
+    LOG(INFO) << "dump_open_fds " << de->d_name << " -> " << target;
+    n++;
+  }
+  LOG(INFO) << "dump_open_fds dumped " << n << " open files";
+
+  ::closedir(d);
+}
 
 }  // namespace MSF

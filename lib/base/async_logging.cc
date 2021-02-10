@@ -37,7 +37,7 @@ template <class BufferType, class Guard>
 void LoggingBase<BufferType, Guard>::Start() {
   running_ = true;
   thread_.start();
-  latch_.wait();
+  latch_.Wait();
 }
 
 template <class BufferType, class Guard>
@@ -118,7 +118,7 @@ void LoggingBase<BufferType, Guard>::ThreadLoop() {
   BufferVector buffersToWrite;
   buffersToWrite.reserve(16);
   // 为什么在这里才latch_?,防止刚启动就关闭的情况出现时候,running_来不及执行
-  latch_.countDown();
+  latch_.CountDown();
   bool timeout = false;
 
   while (running_) {
@@ -202,7 +202,7 @@ void AsyncLogging::flush_notify() {
 
 void AsyncLogging::threadRoutine() {
   assert(running_ == true);
-  latch_.countDown();
+  latch_.CountDown();
   LogFile output(file_path_, roll_size_, false);
   BufferPtr newBuffer1(new Buffer);
   BufferPtr newBuffer2(new Buffer);

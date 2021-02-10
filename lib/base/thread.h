@@ -73,11 +73,13 @@ class Thread {
   // from when CreateThread was called.
   void Start();
   bool IsRunning() const;
+  bool IsCurrent() const;
   // Stops (joins) the spawned thread.
   void Stop();
 
   void start(const ThreadFunc& initFunc = ThreadFunc());
   void join();
+  int kill(int signal);
 
   bool started() const { return started_; }
   // pthread_t pthreadId() const {

@@ -177,5 +177,4 @@ __attribute_cold__ __attribute_noinline__ void checksum_init(void) {
   g_Crc32 = checksum_sw;
 #endif /* HAVE_CRC32_HARDWARE */
 }
-
 }

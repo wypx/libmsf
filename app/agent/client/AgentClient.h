@@ -65,8 +65,8 @@ struct AgentPdu : public std::enable_shared_from_this<AgentPdu> {
     rspload_.iov_base = buffer;
     rspload_.iov_len = len;
   }
-  bool waitAck(const uint32_t ts) { return latch_.waitFor(ts); }
-  void postAck() { return latch_.countDown(); }
+  bool waitAck(const uint32_t ts) { return latch_.WaitFor(ts); }
+  void postAck() { return latch_.CountDown(); }
 };
 
 typedef std::shared_ptr<AgentPdu> AgentPduPtr;

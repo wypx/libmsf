@@ -31,7 +31,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "$ENV{CXXFLAGS} -fPIC -O0 -Wall -g -ggdb -DGFLAGS_NS=$
 set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${DEFINE_CLOCK_GETTIME} -DGFLAGS_NS=${GFLAGS_NS}")
 
 # 设置依赖库
-set(COMMLIBS AgentClient AgentProto MSF
+set(COMMLIBS MSF
     numa.a
     brpc.a
     protobuf.a 

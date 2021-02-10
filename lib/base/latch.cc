@@ -20,7 +20,7 @@ namespace MSF {
 
 CountDownLatch::CountDownLatch(int count) : count_(count) {}
 
-void CountDownLatch::wait() {
+void CountDownLatch::Wait() {
   std::unique_lock<std::mutex> lock(mutex_);
 
   /**
@@ -39,7 +39,7 @@ void CountDownLatch::wait() {
 // https://www.cnblogs.com/haippy/p/3252041.html
 // https://www.2cto.com/kf/201506/411327.html
 // wait_for: std::cv_status::timeout
-bool CountDownLatch::waitFor(const uint32_t ts) {
+bool CountDownLatch::WaitFor(const uint32_t ts) {
   std::unique_lock<std::mutex> lock(mutex_);
   if (condition_.wait_for(lock, std::chrono::seconds(ts)) ==
       std::cv_status::timeout /*,
@@ -58,7 +58,7 @@ bool CountDownLatch::WaitUntil() {
   return true;
 }
 
-void CountDownLatch::countDown() {
+void CountDownLatch::CountDown() {
   // LOG(INFO) << "count is: " << count_;
   {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -70,7 +70,7 @@ void CountDownLatch::countDown() {
   }
 }
 
-int CountDownLatch::getCount() const {
+int CountDownLatch::count() const {
   // std::lock_guard<std::mutex> lock(mutex_);
   return count_;
 }

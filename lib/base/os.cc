@@ -683,6 +683,7 @@ bool OsInfo::sysInit() {
   nodeName_ = u.nodename;
   release_ = u.release;
   version_ = u.version;
+  // arch
   machine_ = u.machine;
   domainName_ = u.domainname;
 
@@ -700,7 +701,7 @@ bool OsInfo::sysInit() {
  refer:http://blog.csdn.net/u012317833/article/details/39476831 */
 #ifdef WIN32
   SYSTEM_INFO si;
-  GetSystemInfo(&si);
+  ::GetSystemInfo(&si);
   cpuConf_ = si.dwNumberOfProcessors;
 #else
   cpuConf_ = sysconf(_SC_NPROCESSORS_CONF);
@@ -710,6 +711,10 @@ bool OsInfo::sysInit() {
   SYSTEM_INFO sysinfo;
   ::GetSystemInfo(&sysinfo);
   cpuOnline_ = sysinfo.dwNumberOfProcessors;
+
+  char hostname[64];
+  DWORD hostname_sz = sizeof(hostname);
+  ::GetComputerNameA(hostname, &hostname_sz);
 #else
   cpuOnline_ = sysconf(_SC_NPROCESSORS_ONLN);
   maxFileFds_ = sysconf(_SC_OPEN_MAX);
@@ -1248,6 +1253,23 @@ std::string OsInfo::OSVersion() {
     }
   }
 
+  const char* arch_str;
+
+  switch (si.wProcessorArchitecture) {
+    case PROCESSOR_ARCHITECTURE_AMD64:
+      arch_str = "x86_64";
+      break;
+    case PROCESSOR_ARCHITECTURE_INTEL:
+      arch_str = "x86";
+      break;
+    case PROCESSOR_ARCHITECTURE_ARM:
+      arch_str = "arm";
+      break;
+    default:
+      arch_str = "unknown";
+      break;
+  }
+
   // Windows Service Pack version
   if (std::wcslen(osvi.szCSDVersion) > 0) os << " " << osvi.szCSDVersion;
 
@@ -1357,6 +1379,101 @@ bool OsInfo::osInit() {
   vnodeInit();
   dbgOsInfo();
   return true;
+}
+
+static char* value_sanitize(char* value) {
+  while (::isspace(*value) || *value == '"') value++;
+
+  char* end = value + strlen(value) - 1;
+  while (end > value && (isspace(*end) || *end == '"')) end--;
+
+  *(end + 1) = '\0';
+
+  return value;
+}
+
+static bool value_set(char* buf, const char* prefix,
+                      std::map<std::string, std::string>* pm, const char* key) {
+  if (::strncmp(buf, prefix, strlen(prefix))) {
+    return false;
+  }
+
+  (*pm)[key] = value_sanitize(buf + strlen(prefix));
+  return true;
+}
+
+static void FileValuesParse(const std::map<std::string, std::string>& kvm,
+                            FILE* fp, std::map<std::string, std::string>* m) {
+  char buf[512];
+  while (::fgets(buf, sizeof(buf) - 1, fp) != NULL) {
+    for (auto& kv : kvm) {
+      if (value_set(buf, kv.second.c_str(), m, kv.first.c_str())) continue;
+    }
+  }
+}
+
+static bool OsReleaseParse(std::map<std::string, std::string>* m) {
+#if defined(__linux__)
+  static const std::map<std::string, std::string> kvm = {
+      {"distro", "ID="}, {"distro_description", "PRETTY_NAME="},
+      {"distro_version", "VERSION_ID="}};
+
+  FILE* fp = ::fopen("/etc/os-release", "r");
+  if (!fp) {
+    int ret = -errno;
+    LOG(ERROR) << "os_release_parse - failed to open /etc/os-release: "
+               << strerror(ret);
+    return false;
+  }
+
+  FileValuesParse(kvm, fp, m);
+
+  ::fclose(fp);
+#elif defined(__FreeBSD__)
+  struct utsname u;
+  int r = ::uname(&u);
+  if (!r) {
+    m->insert(std::make_pair("distro", u.sysname));
+    m->insert(std::make_pair("distro_description", u.version));
+    m->insert(std::make_pair("distro_version", u.release));
+  }
+#endif
+
+  return true;
+}
+
+int GetCgroupMemoryLimit(uint64_t* limit) {
+#ifndef WIN32
+  // /sys/fs/cgroup/memory/memory.limit_in_bytes
+
+  // the magic value 9223372036854771712 or 0x7ffffffffffff000
+  // appears to mean no limit.
+  FILE* f = ::fopen("/sys/fs/cgroup/memory/memory.limit_in_bytes", "r");
+  if (!f) {
+    return -errno;
+  }
+  char buf[100];
+  int ret = 0;
+  long long value;
+  char* line = ::fgets(buf, sizeof(buf), f);
+  if (!line) {
+    ret = -EINVAL;
+    goto out;
+  }
+  if (::sscanf(line, "%lld", &value) != 1) {
+    ret = -EINVAL;
+  }
+  if (value == 0x7ffffffffffff000) {
+    *limit = 0;  // no limit
+  } else {
+    *limit = value;
+  }
+out:
+  ::fclose(f);
+  return ret;
+#else
+  return 0;
+#endif
 }
 
 }  // namespace MSF

@@ -1011,6 +1011,13 @@ public:
 
         // Return result process
         Process result;
+
+        pid = GetProcessId(pi.hProcess);
+        if (!pid) {
+            errstr << cmd << ": Could not get child process id.";
+            goto fail;
+        }
+
         result.impl()._pid = pi.dwProcessId;
         result.impl()._process = pi.hProcess;
         return result;

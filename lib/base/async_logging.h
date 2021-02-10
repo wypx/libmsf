@@ -233,7 +233,7 @@ class AsyncLogging : Noncopyable {
   void start() {
     running_ = true;
     thread_.start();
-    latch_.wait();
+    latch_.Wait();
   }
 
   void stop() {

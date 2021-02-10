@@ -24,8 +24,8 @@ class ProxyConnection {
 
 class ProxyPDU {
  public:
-  bool WaitAck(const uint32_t ts) { return latch_.waitFor(ts); }
-  void PostAck() { return latch_.countDown(); }
+  bool WaitAck(const uint32_t ts) { return latch_.WaitFor(ts); }
+  void PostAck() { return latch_.CountDown(); }
 
  private:
   uint16_t remote_id_;

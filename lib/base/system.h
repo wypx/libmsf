@@ -21,7 +21,7 @@ using namespace MSF;
 
 namespace MSF {
 
-class SystemInspector : Noncopyable {
+class SystemInspector : noncopyable {
  public:
   // void registerCommands(Inspector* ins);
 

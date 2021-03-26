@@ -120,13 +120,11 @@ int PluginFuncStub(const char* func, ...);
 
 typedef int (*PluginFunc)(void* data, const uint32_t len);
 
-class Plugin
-    : public Noncopyable /* : public std::enable_shared_from_this<Plugin>  */
-      {
+class Plugin : public noncopyable {
  public:
-  uint32_t getPlugState() const { return _state; }
-  std::string getPluginName() const { return _name; }
-  std::vector<std::string> getPluginDepLibs() const { return _deplibs; }
+  uint32_t GetPlugState() const { return _state; }
+  std::string GetPluginName() const { return _name; }
+  std::vector<std::string> GetPluginDepLibs() const { return _deplibs; }
 
   Plugin() = default;
   virtual ~Plugin();
@@ -147,9 +145,9 @@ class Plugin
   PluginFunc _msgHandler;
 };
 
-class PluginManager : public Noncopyable {
+class PluginManager : public noncopyable {
  public:
-  PluginManager& getInstance() {
+  PluginManager& GetInstance() {
     static PluginManager instance;
     return instance;
   }
@@ -163,7 +161,7 @@ class PluginManager : public Noncopyable {
    * from the operating system.
    * \return True if the plugin is successfully loaded.
    * */
-  bool load(const std::string& pluginPath);
+  bool Load(const std::string& pluginPath);
   /**
    * \brief Load a plugin from a given pluginPath
    * \param folder The pluginPath folder.
@@ -172,34 +170,34 @@ class PluginManager : public Noncopyable {
    * If file extension is omitted, we will deduce it from the operating system.
    * \return True if the plugin is successfully loaded.
    * */
-  bool load(const std::string& folder, const std::string& pluginName);
+  bool Load(const std::string& folder, const std::string& pluginName);
   /**
    * \brief Load all plugins from a given folder
    * \param folder Path for the folder where the plug-ins are.
    * \param recursive If true it will search on sub-folders as well
    * \return Number of successfully loaded plug-ins.
    * */
-  int loadFromFolder(const std::string& folder, bool recursive = false);
+  int LoadFromFolder(const std::string& folder, bool recursive = false);
   /**
    * \param pluginName Name or path of the plugin.
    * */
-  bool unload(const std::string& pluginName);
-  void unloadAll();
+  bool Unload(const std::string& pluginName);
+  void UnloadAll();
 
-  std::string resolvePathExtension(const std::string& path);
-  void getLoadedPlugins(std::vector<const std::string*>& pluginNames) const;
-  bool isLoaded(const std::string& pluginName) const;
+  std::string ResolvePathExtension(const std::string& path);
+  void GetLoadedPlugins(std::vector<const std::string*>& pluginNames) const;
+  bool IsLoaded(const std::string& pluginName) const;
 
   /* Do insmod and rmmod kernel ko */
-  int driverInsmod(const std::string& ko_path);
-  int driverRmmod(const std::string& ko_path, const int mode);
+  int DriverInsmod(const std::string& ko_path);
+  int DriverRmmod(const std::string& ko_path, const int mode);
 
  protected:
   explicit PluginManager() = default;
 
  private:
   /* Get the plugin name (without extension) from its path */
-  static std::string getPluginName(const std::string& path);
+  static std::string GetPluginName(const std::string& path);
 
   std::map<std::string, Plugin*> _plugins;
 };

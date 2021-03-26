@@ -17,11 +17,10 @@
 
 namespace MSF {
 
-UDPConnection::UDPConnection() {}
+UDPConnection::UDPConnection(EventLoop *loop, int fd, bool thread_safe)
+    : Connection(loop, fd, thread_safe) {}
 
-UDPConnection::~UDPConnection() {
-  Shutdown(ShutdownMode::kShutdownBoth);  // Force send FIN
-}
+UDPConnection::~UDPConnection() { CloseConn(); }
 
 bool UDPConnection::HandleReadEvent() {
 #if 0
@@ -95,7 +94,10 @@ void UDPConnection::Shutdown(ShutdownMode mode) {
 #endif
 }
 
-void UDPConnection::ActiveClose() {
+void UDPConnection::CloseConn() {
+  if (fd_ > 0) {
+    LOG(INFO) << "close conn for fd: " << fd_;
+
 #if 0
    if (fd_ == kInvalidSocket)
       return;
@@ -110,11 +112,6 @@ void UDPConnection::ActiveClose() {
 
     // loop_->Modify(eET_Write, shared_from_this());
 #endif
-}
-
-void UDPConnection::CloseConn() {
-  if (fd_ > 0) {
-    LOG(INFO) << "close conn for fd: " << fd_;
     // event_.remove();
     CloseSocket(fd_);
     fd_ = -1;

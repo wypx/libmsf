@@ -19,7 +19,7 @@ namespace MSF {
 struct Message;
 
 // Messages get dispatched to a MessageHandler
-class MessageHandler : public Noncopyable {
+class MessageHandler : public noncopyable {
  public:
   virtual ~MessageHandler();
   virtual void OnMessage(Message* msg) = 0;

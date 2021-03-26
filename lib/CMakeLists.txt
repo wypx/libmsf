@@ -62,6 +62,7 @@ endif()
 aux_source_directory(base DIR_SRCS)
 aux_source_directory(network/sock DIR_SRCS)
 aux_source_directory(network/event DIR_SRCS)
+aux_source_directory(network/frpc DIR_SRCS)
 #aux_source_directory(protocol/turn DIR_SRCS)
 aux_source_directory(protocol/stun DIR_SRCS)
 

@@ -15,7 +15,7 @@ namespace MSF {
 // Class used to limit a bitrate, making sure the average does not exceed a
 // maximum as measured over a sliding window. This class is thread safe; all
 // methods will acquire (the same) lock befeore executing.
-class RateLimiter : public Noncopyable {
+class RateLimiter : public noncopyable {
  public:
   RateLimiter(int64_t max_window_ms);
   ~RateLimiter();

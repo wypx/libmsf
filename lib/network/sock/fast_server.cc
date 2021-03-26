@@ -10,27 +10,21 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include "connector.h"
-#include "sock_utils.h"
-#include <butil/logging.h>
+#include "fast_server.h"
 
 namespace MSF {
 
-Connector::Connector(EventLoop *loop, const InetAddress &peer) {}
-
-Connector::~Connector() {}
-
-bool Connector::Connect() {
-  // fd_ = ConnectTcpServer(host.c_str(), port, proto);
-  // if (fd_ < 0) {
-  //   return false;
-  // }
-
-  // fd_ = ConnectUnixServer(srvPath.c_str(), cliPath.c_str());
-  // if (fd_ < 0) {
-  //   return false;
-  // }
-  return true;
+FastServer::FastServer(const InetAddress &addr) {
+  acceptor_ = std::make_unique<Acceptor>(addr, &FastServer::NewConnCallback);
 }
 
-}  // namespace MSF
+FastServer::~FastServer() {}
+
+bool FastServer::StartAccept() { return acceptor_->EnableListen(); }
+
+bool FastServer::RestartAccept() { return acceptor_->EnableListen(); }
+
+bool FastServer::StopAccept() { return acceptor_->DisableListen(); }
+
+bool FastServer::QuitAccept() { return acceptor_->DisableListen(); }
+}

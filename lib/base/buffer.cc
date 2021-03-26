@@ -21,7 +21,7 @@ ssize_t Buffer::ReadFd(int fd, int *savedErrno) {
   // saved an ioctl()/FIONREAD call to tell how much to read
   char extrabuf[65536];
   struct iovec vec[3];
-  const size_t writeable = writeableBytes();
+  const size_t writeable = WriteableBytes();
   uint32_t idx = 0;
   if (readerIndex_ <= writerIndex_) {
     if (readerIndex_ == 0) {  // 尾部要留空一个
@@ -51,10 +51,10 @@ ssize_t Buffer::ReadFd(int fd, int *savedErrno) {
   if (n < 0) {
     *savedErrno = errno;
   } else if ((size_t)n <= writeable) {
-    hasWritten(n);
+    HasWritten(n);
   } else {
-    hasWritten(writeable);
-    append(extrabuf, n - writeable);
+    HasWritten(writeable);
+    Append(extrabuf, n - writeable);
   }
   return n;
 }
@@ -80,7 +80,7 @@ ssize_t Buffer::WriteFd(int fd) {
   }
   const ssize_t n = ::writev(fd, vec, iovcnt);
   if (n > 0) {
-    retrieve(n);
+    Retrieve(n);
   }
   return n;
 }

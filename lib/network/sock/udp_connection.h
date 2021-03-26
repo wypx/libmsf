@@ -17,7 +17,7 @@
 namespace MSF {
 
 class UDPConnection : public Connection {
-  UDPConnection();
+  UDPConnection(EventLoop *loop, int fd, bool thread_safe = true);
   ~UDPConnection();
 
   bool HandleReadEvent() override;
@@ -25,7 +25,6 @@ class UDPConnection : public Connection {
   void HandleErrorEvent() override;
 
   void CloseConn() override;
-  void ActiveClose() override;
   void Shutdown(ShutdownMode mode);
 };
 

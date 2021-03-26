@@ -37,7 +37,7 @@ namespace MSF {
  * 2 增加一个future/promise的选项
  * */
 
-class ThreadPool final : public Noncopyable {
+class ThreadPool final : public noncopyable {
  public:
   typedef std::function<void()> ThreadTask;
 

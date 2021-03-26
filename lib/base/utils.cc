@@ -30,7 +30,7 @@ namespace MSF {
 
 // uuid of system
 // cat /proc/sys/kernel/random/uuid
-#if 0
+#if 1
 std::string NewUuid()
 {
     std::string res;

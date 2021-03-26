@@ -1174,6 +1174,7 @@ int ConnectTcpServer(const std::string &host, const uint16_t port,
     }
 
     if (proto == SOCK_DGRAM) {
+      // https://www.cnblogs.com/skynet/archive/2010/12/04/1881236.html
       SetSendBufferSize(fd, 1024);
     } else {
       SetLinger(fd, true);
@@ -1236,6 +1237,8 @@ int ConnectUnixServer(const std::string &srvPath, const std::string &cliPath) {
     }
   }
   SetNonBlock(fd, true);
+  // https://www.cnblogs.com/skynet/archive/2010/12/04/1881236.html
+  SetSendBufferSize(fd, 120 * 1024);
   return fd;
 }
 

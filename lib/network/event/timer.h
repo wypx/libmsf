@@ -113,14 +113,14 @@ struct TimerItem {
 
   // static uint32_t gTimerId = 0;
 
-  const uint32_t timerId() { return id_; }
+  const uint32_t id() { return id_; }
 
   bool operator<(struct TimerItem e) const {
     /* 超时时间越往后的优先级越低 */
     return (expired_ > e.expired_);
   }
 
-  bool isExpired(const TimePoint t2) {
+  bool IsExpired(const TimePoint t2) {
     if (GetDurationMilliSecond(expired_, t2) > interval_) {
       return true;
     }
@@ -140,34 +140,34 @@ struct TimerItem {
 class EventLoop;
 class BaseTimer {
  public:
-  BaseTimer() : maxTimer_(MAX_TIMER_EVENT_NUM) {}
-  explicit BaseTimer(EventLoop *loop, const uint32_t maxTimer)
-      : loop_(loop), maxTimer_(maxTimer), mutex_() {}
+  BaseTimer() : max_timer_(MAX_TIMER_EVENT_NUM) {}
+  explicit BaseTimer(EventLoop *loop, const uint32_t max_timer)
+      : loop_(loop), max_timer_(max_timer), mutex_() {}
   virtual ~BaseTimer() {}
   // virtual ~BaseTimer() = 0;
-  virtual void addTimer(const TimerCb &cb, const double interval,
+  virtual void AddTimer(const TimerCb &cb, const double interval,
                         const enum TimerStrategy strategy) = 0;
-  virtual void removeTimer(const uint32_t id) = 0;
-  virtual void startTimer() = 0;
-  virtual void stopTimer() = 0;
-  virtual uint32_t getTimerNumber() = 0;
-  virtual double timerInLoop() = 0;
-  virtual void cancelInLoop(const uint32_t timerId) = 0;
+  virtual void RemoveTimer(const uint32_t id) = 0;
+  virtual void StartTimer() = 0;
+  virtual void StopTimer() = 0;
+  virtual uint32_t GetTimerNumber() = 0;
+  virtual double TimerInLoop() = 0;
+  virtual void CancelInLoop(const uint32_t timerId) = 0;
 
  private:
-  virtual void updateTime() = 0;
+  virtual void UpdateTime() = 0;
 
  protected:
   typedef std::pair<TimerItem, uint32_t> ActiveTimer;
   typedef std::set<ActiveTimer> ActiveTimerSet;
 
-  ActiveTimerSet activeTimers_;
+  ActiveTimerSet active_timers_;
 
   EventLoop *loop_;
   /*in-class initialization of non-static data member is a C++11 extension*/
   std::atomic<bool> quit_;
   std::priority_queue<TimerItem> queue_;
-  uint32_t maxTimer_;
+  uint32_t max_timer_;
   std::mutex mutex_;
 };
 
@@ -177,20 +177,20 @@ class BaseTimer {
 class HeapTimer : public BaseTimer {
  public:
   HeapTimer() : BaseTimer() {}
-  explicit HeapTimer(EventLoop *loop, const int maxTimer = 1024)
-      : BaseTimer(loop, maxTimer) {}
+  explicit HeapTimer(EventLoop *loop, const int max_timer = 1024)
+      : BaseTimer(loop, max_timer) {}
   ~HeapTimer();
-  void addTimer(const TimerCb &cb, const double interval,
-                const enum TimerStrategy strategy);
-  void removeTimer(const uint32_t id);
-  void stopTimer();
-  void startTimer();
-  uint32_t getTimerNumber();
-  double timerInLoop();
-  void cancelInLoop(const uint32_t id);
+  void AddTimer(const TimerCb &cb, const double interval,
+                const enum TimerStrategy strategy) override;
+  void RemoveTimer(const uint32_t id) override;
+  void StopTimer() override;
+  void StartTimer() override;
+  uint32_t GetTimerNumber() override;
+  double TimerInLoop() override;
+  void CancelInLoop(const uint32_t id) override;
 
  private:
-  void updateTime();
+  void UpdateTime() override;
 };
 
 /*  基于timerfd实现的定时器\n
@@ -198,20 +198,20 @@ class HeapTimer : public BaseTimer {
 class FdTimer : public BaseTimer {
  public:
   FdTimer() : BaseTimer() {}
-  explicit FdTimer(EventLoop *loop, const int maxTimer)
-      : BaseTimer(loop, maxTimer) {}
+  explicit FdTimer(EventLoop *loop, const int max_timer)
+      : BaseTimer(loop, max_timer) {}
   ~FdTimer();
-  void addTimer(const TimerCb &cb, const double interval,
-                const enum TimerStrategy strategy);
-  void removeTimer(const uint32_t id);
-  void stopTimer();
-  void startTimer();
-  uint32_t getTimerNumber();
-  double timerInLoop();
+  void AddTimer(const TimerCb &cb, const double interval,
+                const enum TimerStrategy strategy) override;
+  void RemoveTimer(const uint32_t id) override;
+  void StopTimer() override;
+  void StartTimer() override;
+  uint32_t GetTimerNumber() override;
+  double TimerInLoop() override;
 
  private:
-  int epFd_;
-  void updateTime();
+  int ep_fd_;
+  void UpdateTime() override;
 };
 
 }  // namespace MSF

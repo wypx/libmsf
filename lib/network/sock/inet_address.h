@@ -69,7 +69,7 @@ struct ipv6_mreq {
 #define DEFAULT_SRVAGENT_UNIXPATH "/var/tmp/AgentServer.sock"
 #define DEFAULT_CLIAGENT_UNIXPATH "/var/tmp/AgentClient.sock"
 
-class InetAddress : public Copyable {
+class InetAddress : public copyable {
  public:
   enum NetworkType {
     UNIX,
@@ -87,7 +87,6 @@ class InetAddress : public Copyable {
   };
 
  public:
-  InetAddress();
   explicit InetAddress(const std::string& host = DEFAULT_IPANY,
                        const uint16_t port = DEFAULT_PORT,
                        const sa_family_t family = AF_INET,

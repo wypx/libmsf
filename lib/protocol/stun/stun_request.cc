@@ -259,7 +259,7 @@ void StunRequest::send_stun_message() {
   manager_->SignalSendPacket(buf.Data(), buf.Length(), this);
 
   OnSent();
-  loop_->runAfter(resend_delay() / 1000.0,
+  loop_->RunAfter(resend_delay() / 1000.0,
                   std::bind(&StunRequest::send_stun_message, this));
 }
 

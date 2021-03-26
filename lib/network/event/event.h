@@ -44,7 +44,7 @@ class Event {
         const uint16_t events = kReadEvent | kCloseEvent | kErrorEvent);
   ~Event();
 
-  void init(EventLoop* loop, const int fd,
+  void Init(EventLoop* loop, const int fd,
             const uint16_t events = kReadEvent | kCloseEvent | kErrorEvent) {
     // assert(eventHandling_);
     // assert(addedToLoop_);
@@ -52,51 +52,51 @@ class Event {
     fd_ = fd;
     events_ = events;
     revents_ = 0;
-    index_ = kNew, eventHandling_ = false, addedToLoop_ = false;
+    index_ = kNew, event_handling_ = false, added_to_loop_ = false;
   }
 
-  void handleEvent(uint64_t receiveTime);
-  void handleEventWithGuard(int receiveTime);
-  void setSuccCallback(const EventCallback& cb);
-  void setReadCallback(const EventCallback& cb);
-  void setWriteCallback(const EventCallback& cb);
-  void setCloseCallback(const EventCallback& cb);
-  void setErrorCallback(const EventCallback& cb);
+  void HandleEvent(uint64_t receiveTime);
+  void HandleEventWithGuard(int receiveTime);
+  void SetSuccCallback(const EventCallback& cb);
+  void SetReadCallback(const EventCallback& cb);
+  void SetWriteCallback(const EventCallback& cb);
+  void SetCloseCallback(const EventCallback& cb);
+  void SetErrorCallback(const EventCallback& cb);
 
   int fd() const { return fd_; }
   int events() const { return events_; }
   void set_revents(int revt) { revents_ = revt; }
 
-  void enableReading() {
+  void EnableReading() {
     events_ |= kReadEvent;
-    update();
+    Update();
   }
-  void disableReading() {
+  void DisableReading() {
     events_ &= ~kReadEvent;
-    update();
+    Update();
   }
-  void enableWriting() {
+  void EnableWriting() {
     events_ |= kWriteEvent;
-    update();
+    Update();
   }
-  void disableWriting() {
+  void DisableWriting() {
     events_ &= ~kWriteEvent;
-    update();
+    Update();
   }
-  void enableClosing() {
+  void EnableClosing() {
     events_ |= kCloseEvent | kErrorEvent;
-    update();
+    Update();
   }
-  void disableAll() {
+  void DisableAll() {
     events_ = kNoneEvent;
-    update();
+    Update();
   }
-  bool isWriting() const { return events_ & kWriteEvent; }
-  bool isReading() const { return events_ & kReadEvent; }
-  bool isNoneEvent() const { return events_ == kNoneEvent; }
+  bool IsWriting() const { return events_ & kWriteEvent; }
+  bool IsReading() const { return events_ & kReadEvent; }
+  bool IsNoneEvent() const { return events_ == kNoneEvent; }
 
-  void remove();
-  EventLoop* ownerLoop() {
+  void Remove();
+  EventLoop* OwnerLoop() {
     return loop_;
   };
 
@@ -104,9 +104,9 @@ class Event {
   int index() { return index_; }
   void set_index(int idx) { index_ = idx; }
 
-  std::string reventsToString();
-  std::string eventsToString();
-  std::string eventsToString(int fd, int ev);
+  std::string ReventsToString();
+  std::string EventsToString();
+  std::string EventsToString(int fd, int ev);
 
  private:
   EventLoop* loop_;
@@ -114,12 +114,12 @@ class Event {
   uint16_t events_;
   uint16_t revents_;  // it's the received event types of epoll or poll
   int index_;         // used by Poller.
-  bool addedToLoop_;
-  bool eventHandling_;
-  EventCallback succCb_;
-  EventCallback writeCb_;
-  EventCallback readCb_;
-  EventCallback closeCb_;
+  bool added_to_loop_;
+  bool event_handling_;
+  EventCallback succ_cb_;
+  EventCallback write_cb_;
+  EventCallback read_cb_;
+  EventCallback close_cb_;
 
   std::mutex mutex_;
 
@@ -128,7 +128,7 @@ class Event {
   static const uint16_t kWriteEvent;
   static const uint16_t kErrorEvent;
   static const uint16_t kCloseEvent;
-  void update();
+  void Update();
 };
 
 }  // namespace MSF

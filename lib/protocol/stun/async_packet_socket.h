@@ -45,7 +45,7 @@ struct PacketOptions {
 
 // Provides the ability to receive packets asynchronously. Sends are not
 // buffered since it is acceptable to drop packets under high load.
-class AsyncPacketSocket : public has_slots<>, public Noncopyable {
+class AsyncPacketSocket : public has_slots<>, public noncopyable {
  public:
   enum State {
     STATE_CLOSED,

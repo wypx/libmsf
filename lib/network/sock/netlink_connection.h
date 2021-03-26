@@ -25,7 +25,6 @@ class NetinkConnection : public Connection {
   void HandleErrorEvent() override;
 
   void CloseConn() override;
-  void ActiveClose() override;
 };
 
 }  // namespace MSF

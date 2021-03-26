@@ -21,7 +21,7 @@
 namespace MSF {
 
 template <class BufferClassT>
-class ByteBufferWriterT : public Noncopyable {
+class ByteBufferWriterT : public noncopyable {
  public:
   ByteBufferWriterT() { Construct(nullptr, kDefaultCapacity); }
   ByteBufferWriterT(const char* bytes, size_t len) { Construct(bytes, len); }
@@ -107,7 +107,7 @@ class ByteBufferWriter : public ByteBufferWriterT<BufferT<char>> {
 
 // The ByteBufferReader references the passed data, i.e. the pointer must be
 // valid during the lifetime of the reader.
-class ByteBufferReader : public Noncopyable {
+class ByteBufferReader : public noncopyable {
  public:
   ByteBufferReader(const char* bytes, size_t len);
 

@@ -26,7 +26,7 @@ namespace MSF {
 /// This class is immutable.
 /// It's recommended to pass it by value, since it's passed in register on x64.
 ///
-class TimeStamp : Copyable {
+class TimeStamp : copyable {
  public:
   ///
   /// Constucts an invalid TimeStamp.

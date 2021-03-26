@@ -46,96 +46,96 @@ class EventLoop {
   ~EventLoop();
 
   /* Loops forever */
-  void loop();
+  void EnterLoop();
 
   /* Quits loop.
    * This is not 100% thread safe, if you call through a raw pointer,
    * better to call through shared_ptr<EventLoop> for 100% safety.*/
-  void quit();
+  void QuitLoop();
 
   ///
   /// Time when poll returns, usually means data arrival.
   ///
   // uint64_t pollReturnTime() const { return pollReturnTime_; }
 
-  int64_t iteration() const { return _iteration; }
+  int64_t iteration() const { return iteration_; }
 
   /* Runs callback immediately in the loop thread.
    * It wakes up the loop, and run the cb.
    * If in the same loop thread, cb is run within the function.
    * Safe to call from other threads.*/
-  void runInLoop(Functor cb);
+  void RunInLoop(Functor cb);
 
   /* Queues callback in the loop thread.
    * Runs after finish pooling.
    * Safe to call from other threads.*/
-  void queueInLoop(Functor cb);
+  void QueueInLoop(Functor cb);
 
-  size_t queueSize() const;
+  size_t QueueSize() const;
 
   /* Runs callback at 'time'.
    * Safe to call from other threads.*/
-  uint64_t runAt(const double time, const TimerCb& cb);
+  uint64_t RunAt(const double time, const TimerCb& cb);
 
   /* Runs callback after @c delay milliseconds.
    * Safe to call from other threads.*/
-  uint64_t runAfter(const double delay, const TimerCb& cb);
+  uint64_t RunAfter(const double delay, const TimerCb& cb);
 
   /* Runs callback every @c interval milliseconds.
    * Safe to call from other threads.*/
-  uint64_t runEvery(const double interval, const TimerCb& cb);
+  uint64_t RunEvery(const double interval, const TimerCb& cb);
 
   /* Cancels the timer.
    * Safe to call from other threads.*/
-  void cancel(uint64_t timerId);
+  void Cancel(uint64_t timerId);
 
   // internal usage
-  void wakeup();
-  void updateEvent(Event* ev);
-  void removeEvent(Event* ev);
-  bool hasEvent(Event* ev);
+  void Wakeup();
+  void UpdateEvent(Event* ev);
+  void RemoveEvent(Event* ev);
+  bool HasEvent(Event* ev);
 
   // pid_t threadId() const { return threadId_; }
-  void assertInLoopThread() {
-    if (!isInLoopThread()) {
-      abortNotInLoopThread();
+  void AssertInLoopThread() {
+    if (!IsInLoopThread()) {
+      AbortNotInLoopThread();
     }
   }
 
   // using namespace MSF;
-  bool isInLoopThread() const;
+  bool IsInLoopThread() const;
   // bool callingPendingFunctors() const { return callingPendingFunctors_; }
-  bool eventHandling() const { return _eventHandling; }
+  bool EventHandling() const { return event_handling_; }
 
-  static EventLoop* getEventLoopOfCurrentThread();
+  static EventLoop* GetEventLoopOfCurrentThread();
 
  private:
-  void abortNotInLoopThread();
-  void handleWakeup();  // waked up
-  void doPendingFunctors();
+  void AbortNotInLoopThread();
+  void HandleWakeup();  // waked up
+  void DoPendingFunctors();
 
-  void printActiveEvents();  // DEBUG
+  void PrintActiveEvents();  // DEBUG
 
-  bool _looping; /* atomic */
-  std::atomic<bool> _quit;
-  bool _eventHandling;          /* atomic */
-  bool _callingPendingFunctors; /* atomic */
-  int64_t _iteration;
-  const pid_t _threadId;
+  bool looping_ = false; /* atomic */
+  bool quit_ = false;
+  bool event_handling_ = false;           /* atomic */
+  bool calling_pending_functors_ = false; /* atomic */
+  int64_t iteration_ = 0;
+  const pid_t thread_id_;
 
-  std::unique_ptr<Poller> _poller;
+  std::unique_ptr<Poller> poller_;
   std::unique_ptr<HeapTimer> timer_;
 
-  int wakeupFd_;
+  int wakeup_fd_ = -1;
   // unlike in TimerQueue, which is an internal class,
   // we don't expose Channel to client.
-  std::unique_ptr<Event> wakeupEvent_;
+  std::unique_ptr<Event> wakeup_event_;
 
-  EventList _activeEvents;
-  Event* _currActiveEvent;
+  EventList active_events_;
+  Event* curr_active_event_;
 
   mutable std::mutex _mutex;
-  std::vector<Functor> _pendingFunctors;
+  std::vector<Functor> pending_functors_;
 };
 
 }  // namespace MSF

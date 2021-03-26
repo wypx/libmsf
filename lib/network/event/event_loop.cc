@@ -32,208 +32,201 @@ __thread EventLoop* t_loopInThisThread = nullptr;
 const int kPollTimeMs = 10000;
 
 EventLoop::EventLoop()
-    : _looping(false),
-      _quit(false),
-      _eventHandling(false),
-      _callingPendingFunctors(false),
-      _iteration(0),
-      _threadId(MSF::CurrentThread::tid()),
-      _poller(new EPollPoller(this)),
-      _currActiveEvent(nullptr) {
-  LOG(TRACE) << "EventLoop created " << this << " in thread " << _threadId;
+    : thread_id_(CurrentThread::tid()), poller_(new EPollPoller(this)) {
+  LOG(TRACE) << "EventLoop created " << this << " in thread " << thread_id_;
   if (t_loopInThisThread) {
     LOG(FATAL) << "Another EventLoop " << t_loopInThisThread
-               << " exists in this thread " << _threadId;
+               << " exists in this thread " << thread_id_;
   } else {
     t_loopInThisThread = this;
   }
 
   // (0, EFD_NONBLOCK | EFD_CLOEXEC | EFD_SEMAPHORE);
-  wakeupFd_ = CreateEventFd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-  assert(wakeupFd_ > 0);
-  wakeupEvent_ = std::make_unique<Event>(this, wakeupFd_);
-  assert(wakeupEvent_);
-  wakeupEvent_->setReadCallback(std::bind(&EventLoop::handleWakeup, this));
+  wakeup_fd_ = CreateEventFd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+  assert(wakeup_fd_ > 0);
+  wakeup_event_ = std::make_unique<Event>(this, wakeup_fd_);
+  assert(wakeup_event_);
+  wakeup_event_->SetReadCallback(std::bind(&EventLoop::HandleWakeup, this));
   // we are always reading the wakeupfd
-  wakeupEvent_->enableReading();
+  wakeup_event_->EnableReading();
 
   timer_ = std::make_unique<HeapTimer>(this, 1024);
   assert(timer_);
 }
 
 EventLoop::~EventLoop() {
-  LOG(INFO) << "EventLoop " << this << " of thread " << _threadId
+  LOG(INFO) << "EventLoop " << this << " of thread " << thread_id_
             << " destructs in thread " << CurrentThread::tid();
-  wakeupEvent_->disableAll();
-  wakeupEvent_->remove();
-  CloseSocket(wakeupFd_);
-  t_loopInThisThread = NULL;
+  wakeup_event_->DisableAll();
+  wakeup_event_->Remove();
+  CloseSocket(wakeup_fd_);
+  t_loopInThisThread = nullptr;
 
   //清理所有的事件?
 }
 
-void EventLoop::loop() {
-  assert(!_looping);
-  assertInLoopThread();
+void EventLoop::EnterLoop() {
+  assert(!looping_);
+  AssertInLoopThread();
 
-  uint32_t nextExpTime = 1;
-  _looping = true;
-  _quit = false;  // FIXME: what if someone calls quit() before loop() ?
+  uint32_t next_exp_time = 1;
+  looping_ = true;
+  quit_ = false;  // FIXME: what if someone calls quit() before loop() ?
   LOG(INFO) << "EventLoop " << this << " start looping";
 
-  while (!_quit) {
-    _activeEvents.clear();
-    int time = _poller->poll(nextExpTime, &_activeEvents);
-    ++_iteration;
+  while (!quit_) {
+    active_events_.clear();
+    int time = poller_->Poll(next_exp_time, &active_events_);
+    ++iteration_;
 #if 0
-    printActiveEvents();
+    PrintActiveEvents();
 #endif
-    nextExpTime = timer_->timerInLoop();
-    // LOG_WARN << "NextExpTime: " << nextExpTime;
-    if (nextExpTime == 0) {
-      nextExpTime = kPollTimeMs;
+    next_exp_time = timer_->TimerInLoop();
+    // LOG_WARN << "NextExpTime: " << next_exp_time;
+    if (next_exp_time == 0) {
+      next_exp_time = kPollTimeMs;
     }
     // TODO sort channel by priority
-    _eventHandling = true;
-    for (Event* ev : _activeEvents) {
-      _currActiveEvent = ev;
-      _currActiveEvent->handleEvent(time);
+    event_handling_ = true;
+    for (Event* ev : active_events_) {
+      curr_active_event_ = ev;
+      curr_active_event_->HandleEvent(time);
     }
-    _currActiveEvent = NULL;
-    _eventHandling = false;
-    doPendingFunctors();
+    curr_active_event_ = nullptr;
+    event_handling_ = false;
+    DoPendingFunctors();
   }
 
   LOG(INFO) << "EventLoop " << this << " stop looping";
-  _looping = false;
+  looping_ = false;
 }
 
-void EventLoop::quit() {
-  _quit = true;
+void EventLoop::QuitLoop() {
+  quit_ = true;
   // There is a chance that loop() just executes while(!quit_) and exits,
   // then EventLoop destructs, then we are accessing an invalid object.
   // Can be fixed using mutex_ in both places.
-  if (!isInLoopThread()) {
-    wakeup();
+  if (!IsInLoopThread()) {
+    Wakeup();
   }
 }
 
-void EventLoop::runInLoop(Functor cb) {
-  if (isInLoopThread()) {
+void EventLoop::RunInLoop(Functor cb) {
+  if (IsInLoopThread()) {
     cb();
   } else {
-    queueInLoop(std::move(cb));
+    QueueInLoop(std::move(cb));
   }
 }
 
-void EventLoop::queueInLoop(Functor cb) {
+void EventLoop::QueueInLoop(Functor cb) {
   {
     std::lock_guard<std::mutex> lock(_mutex);
-    _pendingFunctors.push_back(std::move(cb));
+    pending_functors_.push_back(std::move(cb));
   }
 
-  if (!isInLoopThread() || _callingPendingFunctors) {
-    wakeup();
+  if (!IsInLoopThread() || calling_pending_functors_) {
+    Wakeup();
   }
 }
 
-size_t EventLoop::queueSize() const {
+size_t EventLoop::QueueSize() const {
   std::lock_guard<std::mutex> lock(_mutex);
-  return _pendingFunctors.size();
+  return pending_functors_.size();
 }
 
-TimerId EventLoop::runAt(const double time, const TimerCb& cb) {
-  timer_->addTimer(cb, time, TIMER_ONESHOT);
-  wakeup();
+TimerId EventLoop::RunAt(const double time, const TimerCb& cb) {
+  timer_->AddTimer(cb, time, TIMER_ONESHOT);
+  Wakeup();
   return 0;
 }
 
-TimerId EventLoop::runAfter(const double delay, const TimerCb& cb) {
-  timer_->addTimer(cb, delay, TIMER_ONESHOT);
-  wakeup();
+TimerId EventLoop::RunAfter(const double delay, const TimerCb& cb) {
+  timer_->AddTimer(cb, delay, TIMER_ONESHOT);
+  Wakeup();
   return 0;
 }
 
-TimerId EventLoop::runEvery(const double interval, const TimerCb& cb) {
-  timer_->addTimer(cb, interval, TIMER_PERSIST);
-  wakeup();
+TimerId EventLoop::RunEvery(const double interval, const TimerCb& cb) {
+  timer_->AddTimer(cb, interval, TIMER_PERSIST);
+  Wakeup();
   return 0;
 }
 
-void EventLoop::cancel(uint64_t timerId) {
+void EventLoop::Cancel(uint64_t timerId) {
   // return timerQueue_->cancel(timerId);
   // timer_->addTimer(cb, interval, TIMER_PERSIST);
   return;
 }
 
-void EventLoop::updateEvent(Event* ev) {
-  assert(ev->ownerLoop() == this);
-  // assertInLoopThread();
-  _poller->updateEvent(ev);
+void EventLoop::UpdateEvent(Event* ev) {
+  assert(ev->OwnerLoop() == this);
+  // AssertInLoopThread();
+  poller_->UpdateEvent(ev);
 }
 
-void EventLoop::removeEvent(Event* ev) {
-  assert(ev->ownerLoop() == this);
-  assertInLoopThread();
-  if (_eventHandling) {
-    assert(_currActiveEvent == ev ||
-           std::find(_activeEvents.begin(), _activeEvents.end(), ev) ==
-               _activeEvents.end());
+void EventLoop::RemoveEvent(Event* ev) {
+  assert(ev->OwnerLoop() == this);
+  AssertInLoopThread();
+  if (event_handling_) {
+    assert(curr_active_event_ == ev ||
+           std::find(active_events_.begin(), active_events_.end(), ev) ==
+               active_events_.end());
   }
-  _poller->removeEvent(ev);
+  poller_->RemoveEvent(ev);
 }
 
-bool EventLoop::hasEvent(Event* ev) {
-  assert(ev->ownerLoop() == this);
-  assertInLoopThread();
-  return _poller->hasEvent(ev);
+bool EventLoop::HasEvent(Event* ev) {
+  assert(ev->OwnerLoop() == this);
+  AssertInLoopThread();
+  return poller_->HasEvent(ev);
 }
 
-bool EventLoop::isInLoopThread() const {
-  return _threadId == MSF::CurrentThread::tid();
+bool EventLoop::IsInLoopThread() const {
+  return thread_id_ == MSF::CurrentThread::tid();
 }
 
-void EventLoop::abortNotInLoopThread() {
+void EventLoop::AbortNotInLoopThread() {
   LOG(ERROR) << "EventLoop::abortNotInLoopThread - EventLoop " << this
-             << " was created in threadId_ = " << _threadId
+             << " was created in threadId_ = " << thread_id_
              << ", current thread id = " << CurrentThread::tid();
 }
 
-void EventLoop::wakeup() {
+void EventLoop::Wakeup() {
   uint64_t one = 1;
-  ssize_t n = write(wakeupFd_, &one, sizeof one);
+  ssize_t n = ::write(wakeup_fd_, &one, sizeof one);
   if (n != sizeof one) {
-    LOG(ERROR) << "EventLoop::wakeup() writes " << n << " bytes instead of 8";
+    LOG(ERROR) << "EventLoop::Wakeup() writes " << n << " bytes instead of 8";
   }
 }
 
-void EventLoop::handleWakeup() {
+void EventLoop::HandleWakeup() {
   uint64_t one = 1;
-  ssize_t n = read(wakeupFd_, &one, sizeof one);
+  ssize_t n = ::read(wakeup_fd_, &one, sizeof one);
   if (n != sizeof one) {
     LOG(ERROR) << "EventLoop::handleRead() reads " << n
                << " bytes instead of 8";
   }
 }
 
-void EventLoop::doPendingFunctors() {
+void EventLoop::DoPendingFunctors() {
   std::vector<Functor> functors;
-  _callingPendingFunctors = true;
+  calling_pending_functors_ = true;
 
   {
     std::lock_guard<std::mutex> lock(_mutex);
-    functors.swap(_pendingFunctors);
+    functors.swap(pending_functors_);
   }
 
   for (const Functor& functor : functors) {
     functor();
   }
-  _callingPendingFunctors = false;
+  calling_pending_functors_ = false;
 }
 
-void EventLoop::printActiveEvents() {
-  for (Event* ev : _activeEvents) {
-    LOG(TRACE) << "{" << ev->reventsToString() << "} ";
+void EventLoop::PrintActiveEvents() {
+  for (Event* ev : active_events_) {
+    LOG(TRACE) << "{" << ev->ReventsToString() << "} ";
   }
 }
 

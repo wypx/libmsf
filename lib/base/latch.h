@@ -34,7 +34,7 @@ namespace MSF {
  * 使用条件变量condition_variable, 什么条件下会虚假唤醒？
  * https://segmentfault.com/q/1010000010421523/a-1020000010457503
  * */
-class CountDownLatch : public Noncopyable {
+class CountDownLatch : public noncopyable {
  public:
   explicit CountDownLatch(int count);
   ~CountDownLatch() = default;

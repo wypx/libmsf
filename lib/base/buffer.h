@@ -65,11 +65,11 @@ class Buffer {
         capacity_(initialSize),
         readerIndex_(0),
         writerIndex_(0) {
-    assert(readableBytes() == 0);
-    assert(writeableBytes() == initialSize - 1);
+    assert(ReadableBytes() == 0);
+    assert(WriteableBytes() == initialSize - 1);
   }
 
-  size_t readableBytes() const {
+  size_t ReadableBytes() const {
     ssize_t diff = writerIndex_ - readerIndex_;
     if (diff < 0) {
       diff += capacity_;
@@ -78,11 +78,11 @@ class Buffer {
   }
 
   // 留一个位置不写, 方便区分写满还是空
-  size_t writeableBytes() const { return capacity_ - 1 - readableBytes(); }
+  size_t WriteableBytes() const { return capacity_ - 1 - ReadableBytes(); }
 
   // 移除数据，不发生拷贝
-  ssize_t retrieve(size_t len) {
-    if (len > readableBytes()) {
+  ssize_t Retrieve(size_t len) {
+    if (len > ReadableBytes()) {
       return -1;
     }
     readerIndex_ += len;
@@ -92,14 +92,14 @@ class Buffer {
     return len;
   }
 
-  void retrieveAll() {
+  void RetrieveAll() {
     readerIndex_ = 0;
     writerIndex_ = 0;
   }
 
   //拷贝出数据，不移除数据
-  size_t receive(void *data, size_t len) {
-    if (len > readableBytes()) {
+  size_t Receive(void *data, size_t len) {
+    if (len > ReadableBytes()) {
       return -1;
     }
     size_t next_readerIndex_ = readerIndex_ + len;
@@ -114,8 +114,8 @@ class Buffer {
   }
 
   //拷贝数据，并且移除
-  size_t remove(void *data, size_t len) {
-    if (len > readableBytes()) {
+  size_t Remove(void *data, size_t len) {
+    if (len > ReadableBytes()) {
       return -1;
     }
     size_t next_readerIndex_ = readerIndex_ + len;
@@ -131,8 +131,8 @@ class Buffer {
     return len;
   }
 
-  void hasWritten(size_t len) {
-    assert(len <= writeableBytes());
+  void HasWritten(size_t len) {
+    assert(len <= WriteableBytes());
     size_t next_writerIndex_ = writerIndex_ + len;
     if (next_writerIndex_ < capacity_) {
       writerIndex_ += len;
@@ -143,23 +143,23 @@ class Buffer {
   }
 
   // 追加数据
-  void append(const char * /*restrict*/ data, size_t len) {
-    if (writeableBytes() < len) {
-      makeSpace(len);
+  void Append(const char * /*restrict*/ data, size_t len) {
+    if (WriteableBytes() < len) {
+      MakeSpace(len);
     }
     DoAppend(data, len);
   }
 
-  void append(const void * /*restrict*/ data, size_t len) {
+  void Append(const void * /*restrict*/ data, size_t len) {
     const char *_data = static_cast<const char *>(data);
-    if (writeableBytes() < len) {
-      makeSpace(len);
+    if (WriteableBytes() < len) {
+      MakeSpace(len);
     }
     DoAppend(_data, len);
   }
 
   void DoAppend(const char * /*restrict*/ data, size_t len) {
-    assert(len <= writeableBytes());
+    assert(len <= WriteableBytes());
     size_t next_writerIndex_ = writerIndex_ + len;
     if (next_writerIndex_ < capacity_) {
       ::memcpy(&buffer_[writerIndex_], data, len);
@@ -182,9 +182,9 @@ class Buffer {
   ssize_t WriteFd(int fd);
 
  private:
-  void makeSpace(size_t len) {
-    size_t readable = readableBytes();
-    size_t diff = len - writeableBytes();
+  void MakeSpace(size_t len) {
+    size_t readable = ReadableBytes();
+    size_t diff = len - WriteableBytes();
     capacity_ += diff;
     // LOG(DEBUG) << "buffer size increase:" << diff
     //           << " new capacity:" << capacity_;
@@ -202,7 +202,7 @@ class Buffer {
       readerIndex_ = 0;
       writerIndex_ = part1_size + part2_size;
     }
-    assert(readable == readableBytes());
+    assert(readable == ReadableBytes());
   }
 
  private:

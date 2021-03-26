@@ -12,64 +12,24 @@
  **************************************************************************/
 #include "tcp_connection.h"
 #include "sock_utils.h"
+#include "gcc_attr.h"
+#include "event_loop.h"
 
 #include <butil/logging.h>
 
 namespace MSF {
 
-TCPConnection::TCPConnection() {}
-
-TCPConnection::~TCPConnection() {
-  Shutdown(ShutdownMode::kShutdownBoth);  // Force send FIN
+TCPConnection::TCPConnection(EventLoop *loop, int fd, bool thread_safe)
+    : Connection(loop, fd, thread_safe) {
+  loop_->UpdateEvent(&event_);
 }
 
-bool TCPConnection::HandleReadEvent() {
-#if 0
-  int bytes = ::recv(fd_, recvBuf_.WriteAddr(), recvBuf_.WritableSize(), 0);
-  if (bytes == kError) {
-      if (EAGAIN == errno || EWOULDBLOCK == errno)
-          return true;
+TCPConnection::~TCPConnection() { CloseConn(); }
 
-      if (EINTR == errno)
-          continue; // restart ::recv
-
-      LOG(WARNING) << fd_ << " HandleReadEvent Error " << errno;
-      Shutdown(ShutdownMode::kShutdownBoth);
-      state_ = State::kStateError;
-      return false;
-  }
-
-  if (bytes == 0) {
-      LOG(WARNING) << fd_ << " HandleReadEvent EOF ";
-      if (sendBuf_.Empty()) {
-          Shutdown(ShutdownMode::SHUTDOWN_Both);
-          state_ = State::kStatePassiveClose;
-      } else {
-          state_ = State::kStateCloseWaitWrite;
-          Shutdown(ShutdownMode::kShutdownRead);
-          // loop_->Modify(eET_Write, shared_from_this()); // disable read
-      }
-
-      return false;
-  }
-#endif
-  return true;
+inline bool TCPConnection::IsConnError(int64_t ret) {
+  return ((ret == 0) || (ret < 0 && errno != EINTR && errno != EAGAIN &&
+                         errno != EWOULDBLOCK));
 }
-
-bool TCPConnection::HandleWriteEvent() {
-  if (state_ != State::kStateConnected &&
-      state_ != State::kStateCloseWaitWrite) {
-    LOG(ERROR) << fd_ << " HandleWriteEvent wrong state " << state_;
-    return false;
-  }
-
-  int ret = SendMsg(fd_, &*write_busy_queue_.begin(), write_busy_queue_.size(),
-                    MSG_NOSIGNAL | MSG_DONTWAIT);
-
-  return true;
-}
-
-void TCPConnection::HandleErrorEvent() { return; }
 
 void TCPConnection::Shutdown(ShutdownMode mode) {
 #if 0
@@ -98,31 +58,86 @@ void TCPConnection::Shutdown(ShutdownMode mode) {
 #endif
 }
 
-void TCPConnection::ActiveClose() {
-#if 0
-   if (fd_ == kInvalidSocket)
-      return;
-
-    if (write_buf_.Empty()) {
-        Shutdown(ShutdownMode::kShutdownBoth);
-        state_ = State::kStateActiveClose;
+void TCPConnection::CloseConn() {
+  if (fd_ != kInvalidSocket) {
+    LOG(INFO) << "close conn for fd: " << fd_;
+    if (write_buf_.WriteableBytes() == 0) {
+      set_state(State::kStateActiveClose);
+      Shutdown(ShutdownMode::kShutdownBoth);  // Force send FIN
     } else {
-        state_ = State::kStateCloseWaitWrite;
-        Shutdown(ShutdownMode::kShutdownRead); // disable read
+      set_state(State::kStateCloseWaitWrite);
+      Shutdown(ShutdownMode::kShutdownRead);  // disable read
     }
 
-    // loop_->Modify(eET_Write, shared_from_this());
-#endif
-}
-
-void TCPConnection::CloseConn() {
-  if (fd_ > 0) {
-    LOG(INFO) << "close conn for fd: " << fd_;
-    Shutdown(ShutdownMode::kShutdownBoth);  // Force send FIN
     // event_.remove();
     CloseSocket(fd_);
-    fd_ = -1;
+    fd_ = kInvalidSocket;
   }
 }
+
+bool TCPConnection::IsClosed() { return fd_ == kInvalidSocket; }
+
+// recv in buffer
+size_t TCPConnection::ReadableLength() { return read_buf_.ReadableBytes(); }
+
+size_t TCPConnection::ReceiveData(void *data, size_t len) {
+  return read_buf_.Receive(data, len);
+}
+
+size_t TCPConnection::DrainData(size_t len) { return read_buf_.Retrieve(len); }
+
+size_t TCPConnection::RemoveData(void *data, size_t len) {
+  return read_buf_.Remove(data, len);
+}
+
+void *TCPConnection::Malloc(size_t len, size_t align) { return nullptr; }
+
+void TCPConnection::Free(void *ptr) {}
+
+bool TCPConnection::HandleReadEvent() {
+  if (state_ != State::kStateConnected) {
+    LOG(ERROR) << fd_ << " want to read but wrong state: " << state_;
+    return false;
+  }
+  int saved_errno = 0;
+  size_t ret = read_buf_.ReadFd(fd_, &saved_errno);
+  if (unlikely(IsConnError(ret))) {
+    set_state(State::kStateError);
+    CloseConn();
+    return false;
+  }
+  return true;
+}
+
+bool TCPConnection::HandleWriteEvent() {
+  if (state_ != State::kStateConnected &&
+      state_ != State::kStateCloseWaitWrite) {
+    LOG(ERROR) << fd_ << " want to rw but wrong state: " << state_;
+    return false;
+  }
+
+  UpdateWriteBusyIovecSafe();
+
+  if (write_busy_queue_.empty()) {
+    return true;
+  }
+
+  int64_t ret = SendMsg(fd_, &*write_busy_queue_.begin(),
+                        write_busy_queue_.size(), MSG_NOSIGNAL | MSG_DONTWAIT);
+  if (unlikely(IsConnError(ret))) {
+    return false;
+  }
+  UpdateWriteBusyOffset(ret);
+
+  if (write_cb_) write_cb_(shared_from_this());
+  return true;
+}
+
+void TCPConnection::HandleErrorEvent() {
+  CloseConn();
+  close_cb_(shared_from_this());
+}
+
+void TCPConnection::HandleConnectedEvent() {}
 
 }  // namespace MSF

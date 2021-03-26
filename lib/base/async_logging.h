@@ -224,7 +224,7 @@ class AsyncLoggingDoubleBuffering
       1024 * 1024 * 1;  //每次写1M的数据尝试获取
 };
 
-class AsyncLogging : Noncopyable {
+class AsyncLogging : noncopyable {
  public:
   AsyncLogging(const std::string filePath, off_t rollSize = kRollSize,
                double flushInterval = 3.0);

@@ -1412,7 +1412,7 @@ static void FileValuesParse(const std::map<std::string, std::string>& kvm,
   }
 }
 
-static bool OsReleaseParse(std::map<std::string, std::string>* m) {
+bool OsReleaseParse(std::map<std::string, std::string>* m) {
 #if defined(__linux__)
   static const std::map<std::string, std::string> kvm = {
       {"distro", "ID="}, {"distro_description", "PRETTY_NAME="},

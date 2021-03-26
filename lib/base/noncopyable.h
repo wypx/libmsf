@@ -26,20 +26,20 @@ namespace MSF {
  * C++容器与noncopyable
  * https://blog.csdn.net/zhangxiao93/article/details/72651711
  * */
-class Noncopyable {
+class noncopyable {
  protected:
-  Noncopyable() = default;
-  ~Noncopyable() = default;
+  noncopyable() = default;
+  ~noncopyable() = default;
 
  private:
-  Noncopyable(const Noncopyable &) = delete;
-  void operator=(const Noncopyable &) = delete;
+  noncopyable(const noncopyable &) = delete;
+  void operator=(const noncopyable &) = delete;
 };
 
-class Copyable {
+class copyable {
  protected:
-  Copyable() = default;
-  ~Copyable() = default;
+  copyable() = default;
+  ~copyable() = default;
 };
 
 }  // namespace MSF

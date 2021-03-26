@@ -19,7 +19,7 @@
 
 namespace MSF {
 
-class Random : public Noncopyable {
+class Random : public noncopyable {
  public:
   // TODO(tommi): Change this so that the seed can be initialized internally,
   // e.g. by offering two ways of constructing or offer a static method that

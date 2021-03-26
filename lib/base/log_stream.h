@@ -31,7 +31,7 @@ const int kSmallBuffer = 4000;
 const int kLargeBuffer = 4000 * 1000;
 
 template <int SIZE>
-class FixedBuffer : Noncopyable {
+class FixedBuffer : noncopyable {
  public:
   FixedBuffer() : cur_(data_) { setCookie(cookieStart); }
 
@@ -270,7 +270,7 @@ class WriteBarrier : public BaseBarrier {
   StateVec& states_;
 };
 
-class LogStream : Noncopyable {
+class LogStream : noncopyable {
   typedef LogStream self;
 
  public:

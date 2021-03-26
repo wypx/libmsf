@@ -28,22 +28,22 @@ namespace MSF {
 
 HeapTimer::~HeapTimer() {}
 
-void HeapTimer::addTimer(const TimerCb& cb, const double interval,
+void HeapTimer::AddTimer(const TimerCb& cb, const double interval,
                          const enum TimerStrategy strategy) {
   // std::lock_guard<std::mutex> lock(mutex_);
-  if (unlikely(queue_.size() > maxTimer_)) {
-    LOG(ERROR) << "Up to max event num: " << maxTimer_;
+  if (unlikely(queue_.size() > max_timer_)) {
+    LOG(ERROR) << "Up to max event num: " << max_timer_;
     return;
   }
   queue_.push(std::move(TimerItem(cb, interval, strategy)));
   // LOG(ERROR) << "Now event num: " << queue_.size();
 }
 
-void HeapTimer::removeTimer(const uint32_t id) {
-  loop_->runInLoop(std::bind(&HeapTimer::cancelInLoop, this, id));
+void HeapTimer::RemoveTimer(const uint32_t id) {
+  loop_->RunInLoop(std::bind(&HeapTimer::CancelInLoop, this, id));
 }
 
-void HeapTimer::cancelInLoop(const uint32_t id) {
+void HeapTimer::CancelInLoop(const uint32_t id) {
   // loop_->assertInLoopThread();
   // ActiveTimerSet::iterator it = activeTimers_.find(id);
   // if (it != activeTimers_.end()) {
@@ -51,7 +51,7 @@ void HeapTimer::cancelInLoop(const uint32_t id) {
   // }
 }
 
-double HeapTimer::timerInLoop() {
+double HeapTimer::TimerInLoop() {
   // std::lock_guard<std::mutex> lock(mutex_);
   // LOG_WARN << "queue_ size: " << queue_.size();
   while (!queue_.empty()) {
@@ -59,7 +59,7 @@ double HeapTimer::timerInLoop() {
     {
       /* Check wether min interval is expired */
       auto largest = queue_.top();
-      if (!largest.isExpired(currTp)) {
+      if (!largest.IsExpired(currTp)) {
         double timePassed = GetDurationMilliSecond(largest.expired_, currTp);
         // LOG(INFO) << "Next timeout is: " << (largest.interval_ - timePassed);
         return (largest.interval_ - timePassed);
@@ -89,7 +89,7 @@ double HeapTimer::timerInLoop() {
   ;
 }
 
-void HeapTimer::startTimer() {
+void HeapTimer::StartTimer() {
   // std::thread timer_thread([this]() {
   //     timerThread();
   // });
@@ -100,18 +100,18 @@ void HeapTimer::startTimer() {
   // std::thread::id timer_id = timer_thread.get_id();
 }
 
-void HeapTimer::stopTimer() {}
-void HeapTimer::updateTime() {}
+void HeapTimer::StopTimer() {}
+void HeapTimer::UpdateTime() {}
 
-uint32_t HeapTimer::getTimerNumber() { return queue_.size(); }
+uint32_t HeapTimer::GetTimerNumber() { return queue_.size(); }
 
 FdTimer::~FdTimer() {}
 
-void FdTimer::addTimer(const TimerCb& cb, const double interval,
+void FdTimer::AddTimer(const TimerCb& cb, const double interval,
                        const enum TimerStrategy strategy) {}
-void FdTimer::removeTimer(uint32_t id) {}
-void FdTimer::stopTimer() {}
-void FdTimer::startTimer() {
+void FdTimer::RemoveTimer(uint32_t id) {}
+void FdTimer::StopTimer() {}
+void FdTimer::StartTimer() {
 #if 0
     // 创建timer fd
     int fd = timerfd_create(CLOCK_REALTIME, 0);
@@ -136,11 +136,11 @@ void FdTimer::startTimer() {
     }
 #endif
 }
-uint32_t FdTimer::getTimerNumber() { return 0; }
+uint32_t FdTimer::GetTimerNumber() { return 0; }
 
-double FdTimer::timerInLoop() { return 0; }
+double FdTimer::TimerInLoop() { return 0; }
 
-void FdTimer::updateTime() {
+void FdTimer::UpdateTime() {
   // const auto now = std::chrono::steady_clock::now();
   // const auto now = CurrentMilliTime();
   // if (xx > now )

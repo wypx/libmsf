@@ -26,6 +26,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <string>
 
 namespace MSF {
 
@@ -39,6 +40,8 @@ namespace MSF {
 #else
 #define MSF_API  // nothing
 #endif
+
+std::string NewUuid();
 
 // https://blog.csdn.net/ccmmfit/article/details/45440537
 // https://www.cnblogs.com/didiaodidiao/p/9398361.html

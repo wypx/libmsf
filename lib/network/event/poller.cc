@@ -2,12 +2,12 @@
 
 #include "event.h"
 
-Poller::Poller(EventLoop* loop) : _ownerLoop(loop) {}
+Poller::Poller(EventLoop* loop) : owner_loop_(loop) {}
 
 Poller::~Poller() = default;
 
-bool Poller::hasEvent(Event* ev) const {
-  assertInLoopThread();
-  EventMap::const_iterator it = _events.find(ev->fd());
-  return it != _events.end() && it->second == ev;
+bool Poller::HasEvent(Event* ev) const {
+  AssertInLoopThread();
+  auto it = events_.find(ev->fd());
+  return it != events_.end() && it->second == ev;
 }

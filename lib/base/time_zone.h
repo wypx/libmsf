@@ -16,7 +16,7 @@
 namespace MSF {
 
 // TimeZone for 1970~2030
-class TimeZone : Copyable {
+class TimeZone : copyable {
  public:
   explicit TimeZone(const char* zonefile);
   TimeZone(int eastOfUtc, const char* tzname);  // a fixed timezone

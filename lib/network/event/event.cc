@@ -31,65 +31,65 @@ const uint16_t Event::kErrorEvent = EPOLLERR;
 const uint16_t Event::kCloseEvent = EPOLLHUP;
 
 Event::Event(EventLoop* loop, const int fd, const uint16_t events) {
-  init(loop, fd, events);
+  Init(loop, fd, events);
 }
 
 Event::~Event() {
-  if (unlikely(eventHandling_)) {
-    LOG(ERROR) << "Event handling: " << this;
+  if (unlikely(event_handling_)) {
+    LOG(ERROR) << "event handling: " << this;
   }
-  if (unlikely(addedToLoop_)) {
-    LOG(ERROR) << "Event in loop: " << this;
+  if (unlikely(added_to_loop_)) {
+    LOG(ERROR) << "event in loop: " << this;
   }
-  if (loop_->isInLoopThread()) {
-    if (unlikely(loop_->hasEvent(this))) {
-      LOG(ERROR) << "Loop has event: " << loop_;
+  if (loop_->IsInLoopThread()) {
+    if (unlikely(loop_->HasEvent(this))) {
+      LOG(ERROR) << "loop has event: " << loop_;
     }
   }
 }
 
-void Event::update() {
-  addedToLoop_ = true;
-  loop_->updateEvent(this);
+void Event::Update() {
+  added_to_loop_ = true;
+  loop_->UpdateEvent(this);
 }
 
-void Event::remove() {
-  if (unlikely(isNoneEvent())) {
-    LOG(ERROR) << "None event, cannot remove: " << this;
+void Event::Remove() {
+  if (unlikely(IsNoneEvent())) {
+    LOG(ERROR) << "none event, cannot remove: " << this;
   }
-  addedToLoop_ = false;
-  loop_->removeEvent(this);
+  added_to_loop_ = false;
+  loop_->RemoveEvent(this);
 }
 
-void Event::handleEvent(uint64_t receiveTime) {
+void Event::HandleEvent(uint64_t receiveTime) {
   std::lock_guard<std::mutex> lock(mutex_);
-  handleEventWithGuard(receiveTime);
+  HandleEventWithGuard(receiveTime);
 }
 
-void Event::handleEventWithGuard(int receiveTime) {
-  eventHandling_ = true;
+void Event::HandleEventWithGuard(int receiveTime) {
+  event_handling_ = true;
   if ((revents_ & EPOLLHUP) && !(revents_ & EPOLLIN)) {
-    if (closeCb_) closeCb_();
+    if (close_cb_) close_cb_();
   }
 
   if (revents_ & EPOLLERR) {
-    if (closeCb_) closeCb_();
+    if (close_cb_) close_cb_();
   }
 
   if (revents_ & (EPOLLIN | EPOLLPRI | EPOLLRDHUP)) {
-    if (readCb_) readCb_();
+    if (read_cb_) read_cb_();
   }
   if (revents_ & EPOLLOUT) {
-    if (writeCb_) writeCb_();
+    if (write_cb_) write_cb_();
   }
-  eventHandling_ = false;
+  event_handling_ = false;
 }
 
-std::string Event::reventsToString() { return eventsToString(fd_, revents_); }
+std::string Event::ReventsToString() { return EventsToString(fd_, revents_); }
 
-std::string Event::eventsToString() { return eventsToString(fd_, events_); }
+std::string Event::EventsToString() { return EventsToString(fd_, events_); }
 
-std::string Event::eventsToString(int fd, int ev) {
+std::string Event::EventsToString(int fd, int ev) {
   std::stringstream oss;
   oss << fd << ": ";
   if (ev & EPOLLIN) oss << "EPOLLIN ";
@@ -104,17 +104,17 @@ std::string Event::eventsToString(int fd, int ev) {
   return oss.str();
 }
 
-void Event::setSuccCallback(const EventCallback& cb) {
-  succCb_ = std::move(cb);
+void Event::SetSuccCallback(const EventCallback& cb) {
+  succ_cb_ = std::move(cb);
 }
-void Event::setReadCallback(const EventCallback& cb) {
-  readCb_ = std::move(cb);
+void Event::SetReadCallback(const EventCallback& cb) {
+  read_cb_ = std::move(cb);
 }
-void Event::setWriteCallback(const EventCallback& cb) {
-  writeCb_ = std::move(cb);
+void Event::SetWriteCallback(const EventCallback& cb) {
+  write_cb_ = std::move(cb);
 }
-void Event::setCloseCallback(const EventCallback& cb) {
-  closeCb_ = std::move(cb);
+void Event::SetCloseCallback(const EventCallback& cb) {
+  close_cb_ = std::move(cb);
 }
 
 }  // namespace MSF

@@ -23,7 +23,7 @@ namespace MSF {
 // https://blog.csdn.net/changqingcao/article/details/81036579
 // https://blog.fatedier.com/2015/03/04/decoupling-by-using-reflect-and-simple-factory-pattern-in-cpp
 
-class EventHandle : Noncopyable {
+class EventHandle : noncopyable {
  public:
   EventHandle() {}
   explicit EventHandle(const Agent::AgentCommand cmd) { cmd = cmd_; }
@@ -36,7 +36,7 @@ class EventHandle : Noncopyable {
   Agent::AgentCommand cmd_;
 };
 
-class EventHandleFactory : Noncopyable {
+class EventHandleFactory : noncopyable {
  public:
   typedef std::function<ClassHandle*(TArgs&&... args)> CreateClassFunc;
 
@@ -48,25 +48,25 @@ class EventHandleFactory : Noncopyable {
     return intance;
   }
 
-  const uint32_t getHandleSize() const {
+  const uint32_t GetHandleSize() const {
     std::lock_guard<std::mutex> lock(mutex_);
-    return registerFunctions_.size();
+    return register_functions_.size();
   }
 
-  bool registHandle(const uint32_t cmd, const CreateClassFunc& func) {
+  bool RegistHandle(const uint32_t cmd, const CreateClassFunc& func) {
     if (unlikely(nullptr == func)) {
       return false;
     }
     std::lock_guard<std::mutex> lock(mutex_);
     // bool isReg =
-    // registerFunctions_.insert(std::make_pair(std::string(typeName),
+    // register_functions_.insert(std::make_pair(std::string(typeName),
     // func)).second;
-    registerFunctions_[cmd] = std::move(func);
+    register_functions_[cmd] = std::move(func);
     std::cout << "ClassHandleFactory Register cmd: " << cmd
               << " size:" << getHandleSize() << " this:" << this << std::endl;
 
-    // auto it = registerFunctions_.begin();
-    // while(it != registerFunctions_.end())
+    // auto it = register_functions_.begin();
+    // while(it != register_functions_.end())
     // {
     //     std::cout<<"first->:"<< it->first << std::endl;
     //     // std::cout<<"second->:"<< std::hex << it->second << std::endl;
@@ -76,12 +76,12 @@ class EventHandleFactory : Noncopyable {
     return true;
   }
 
-  EventHandle* getHandle(const uint32_t cmd) {
+  EventHandle* GetHandle(const uint32_t cmd) {
     std::lock_guard<std::mutex> lock(mutex_);
-    auto itor = registerClass_.find(cmd);
-    if (unlikely(itor == registerFunctions_.end())) {
+    auto itor = register_class_.find(cmd);
+    if (unlikely(itor == register_functions_.end())) {
       EventHandle* baseClass = itor->second();
-      registerClass_[cmd] = baseClass;
+      register_class_[cmd] = baseClass;
     } else {
       return itor->second;
     }
@@ -91,8 +91,8 @@ class EventHandleFactory : Noncopyable {
   mutable std::mutex mutex_;
 
   typedef std::function<EventHandle*()> EventHandleCreateFunc;
-  std::unordered_map<uint32_t, EventHandleCreateFunc> registerFunctions_;
-  std::map<uint32_t, EventHandle*> registerClass_;
+  std::unordered_map<uint32_t, EventHandleCreateFunc> register_functions_;
+  std::map<uint32_t, EventHandle*> register_class_;
 };
 
 template <typename T, typename... TArgs>
@@ -112,7 +112,7 @@ class EventHandleCreator {
       std::string typeName;
       if (nullptr != demangleName) {
         typeName = demangleName;
-        free(demangleName);
+        ::free(demangleName);
       }
       std::cout << "EventHandleRegister type: " << typeName << " cmd: " ++cmd
                 << std::endl;
@@ -120,7 +120,7 @@ class EventHandleCreator {
     }
   };
 
-  static T* createObject(TArgs&&... args) {
+  static T* CreateObject(TArgs&&... args) {
     std::cout << abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr,
                                      nullptr) << std::endl;
     std::cout << "CreateObject now" << std::endl;
@@ -142,7 +142,7 @@ class Login : public EventHandle, public EventHandleCreator<Login, int> {
   Login(const int cmd) { std::cout << "Create Cmd: " << cmd << std::endl; }
   virtual ~Login() {}
 
-  virtual void handleMessage(const int fd, void* head, void* body) {
+  virtual void HandleMessage(const int fd, void* head, void* body) {
     std::cout << "CMD ClassHandle handle message " << std::endl;
   }
 
@@ -151,9 +151,9 @@ class Login : public EventHandle, public EventHandleCreator<Login, int> {
 
 void EventHandleTest() {
   EventHandle* p = EventHandleFactory<int>::Instance().Create(100, 100);
-  p->handleMessage(0, nullptr, nullptr);
+  p->HandleMessage(0, nullptr, nullptr);
 
-  EventHandleFactory::Instance().getHandle(100)->handleMessage(0, nullptr,
+  EventHandleFactory::Instance().GetHandle(100)->HandleMessage(0, nullptr,
                                                                nullptr);
 }
 

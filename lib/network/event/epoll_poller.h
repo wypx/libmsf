@@ -54,25 +54,25 @@ class EPollPoller : public Poller {
   EPollPoller(EventLoop* loop);
   ~EPollPoller() override;
 
-  int poll(int timeoutMs, EventList* activeEvents) override;
-  void updateEvent(Event* ev) override;
-  void removeEvent(Event* ev) override;
+  int Poll(int timeout_ms, EventList* active_events) override;
+  void UpdateEvent(Event* ev) override;
+  void RemoveEvent(Event* ev) override;
 
  private:
-  int _epFd;
-  const uint32_t _maxEpEventNum = 1024;
+  int ep_fd_ = -1;
+  static const uint32_t kMaxEpEventNumber = 1024;
   // std::vector<struct epoll_event> _epEvents;
-  struct epoll_event _epEvents[1024];
-  static const int _initEventListSize = 16;
+  struct epoll_event ep_events_[1024];
+  static const int kInitEventListSize = 16;
 
-  static const char* operationToString(int op);
+  static const char* OperationToString(int op);
 
-  bool createEpSocket();
-  bool addEpEvent(const Event* ev);
-  bool modEpEvent(const Event* ev);
-  bool delEpEvent(const Event* ev);
+  bool CreateEpSocket();
+  bool AddEvent(const Event* ev);
+  bool ModEvent(const Event* ev);
+  bool DelEvent(const Event* ev);
 
-  void fillActiveEvents(int numEvents, EventList* activeEvents);
+  void FillActiveEvents(int num_events, EventList* active_events);
 };
 
 }  // namespace MSF

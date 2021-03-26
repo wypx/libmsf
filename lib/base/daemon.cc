@@ -251,7 +251,7 @@ bool RunSubprocess(char *command, char **args,
   if (childpid == 0) {
     /* try to detach from parent's process group */
     if (::setsid() == -1) {
-      LOG(ERROR) << "Unable to detach child.  Aborting";
+      LOG(ERROR) << "unable to detach child process, aborting";
       return -1;
     }
     if (::execvp(command, args)) {

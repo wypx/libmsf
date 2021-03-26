@@ -22,11 +22,6 @@ static const in_addr_t g_any4IpAddr = INADDR_ANY;
 static const in_addr_t g_anyLoopIpAddr = INADDR_LOOPBACK;
 static const in6_addr_t g_any6IpAddr = IN6ADDR_ANY_INIT;
 
-InetAddress::InetAddress()
-    : host_(DEFAULT_IPANY),
-      port_(DEFAULT_PORT),
-      family_(AF_INET),
-      proto_(SOCK_STREAM) {}
 InetAddress::InetAddress(const std::string &host, const uint16_t port,
                          const sa_family_t family, const int proto)
     : host_(host), port_(port), family_(family) {

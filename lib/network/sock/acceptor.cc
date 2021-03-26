@@ -17,19 +17,15 @@
 #include <fcntl.h>
 
 #include "gcc_attr.h"
-#include "sock_utils.h"
+#include "event_loop.h"
 
 using namespace MSF;
 
 namespace MSF {
 
-Acceptor::Acceptor(const InetAddress &addr, const NewConnCallback &cb)
-    : addr_(addr), new_conn_cb_(std::move(cb)) {
-  if (!StartListen()) {
-    LOG(FATAL) << "fail to listen for: " << addr.hostPort2String();
-  }
-  OpenIdleFd();
-}
+Acceptor::Acceptor(EventLoop *loop, const InetAddress &addr,
+                   const NewConnCallback &cb)
+    : loop_(loop), addr_(addr), new_conn_cb_(std::move(cb)) {}
 
 Acceptor::~Acceptor() {
   if (idle_fd_ > 0) {
@@ -40,6 +36,77 @@ Acceptor::~Acceptor() {
     CloseSocket(sfd_);
     sfd_ = kInvalidSocket;
   }
+}
+
+bool Acceptor::Start() {
+  uint16_t event = EPOLLIN | EPOLLERR | EPOLLRDHUP;
+
+/* 解决惊群 */
+#ifdef EPOLLEXCLUSIVE
+  event |= EPOLLEXCLUSIVE;
+#endif
+
+  if (addr_.family() == AF_INET || addr_.family() == AF_INET6) {
+    if (addr_.proto() == SOCK_STREAM) {
+      LOG(INFO) << "host: " << addr_.host() << " port: " << addr_.port();
+      sfd_ = CreateTcpServer(addr_.host(), addr_.port(), SOCK_STREAM, 5);
+      if (sfd_ < 0) {
+        return false;
+      }
+    } else if (addr_.proto() == SOCK_DGRAM) {
+      sfd_ = CreateTcpServer(addr_.host(), addr_.port(), SOCK_DGRAM, 5);
+      if (sfd_ < 0) {
+        return false;
+      }
+    }
+  } else if (addr_.family() == AF_UNIX) {
+    // sfd_ = CreateUnixServer(addr_.host(), 5, 0777);
+    if (sfd_ < 0) {
+      return false;
+    }
+  } else {
+    LOG(ERROR) << "not support this family type: " << addr_.family();
+    return false;
+  }
+  if (::listen(sfd_, back_log_) < 0) {
+    LOG(ERROR) << "failed to open listen for fd: " << sfd_;
+    return false;
+  }
+  OpenIdleFd();
+
+  return true;
+}
+
+void Acceptor::Stop() {
+  loop_->RunInLoop([this] {
+    CloseAccept();
+    CloseIdleFd();
+  });
+}
+
+void Acceptor::OpenListen() {
+  loop_->RunInLoop([this] {
+    if (::listen(sfd_, back_log_) < 0) {
+      LOG(ERROR) << "failed to open listen for fd: " << sfd_;
+    }
+  });
+}
+
+void Acceptor::CloseListen() {
+  loop_->RunInLoop([this] {
+    if (::listen(sfd_, 0) < 0) {
+      LOG(ERROR) << "failed to close listen for fd: " << sfd_;
+    }
+  });
+}
+
+void Acceptor::CloseAccept() {
+  LOG(WARNING) << "acceptor close for fd: " << sfd_;
+  if (sfd_ > 0) {
+    CloseSocket(sfd_);
+    sfd_ = kInvalidSocket;
+  }
+  new_conn_cb_ = nullptr;
 }
 
 void Acceptor::CloseIdleFd() {
@@ -70,67 +137,12 @@ void Acceptor::DiscardAccept() {
   OpenIdleFd();
 }
 
-bool Acceptor::EnableListen() {
-  if (::listen(sfd_, back_log_) < 0) {
-    LOG(ERROR) << "failed to enable listen for fd: " << sfd_;
-    return false;
-  }
-  return true;
-}
-
-bool Acceptor::DisableListen() {
-  if (::listen(sfd_, 0) < 0) {
-    LOG(ERROR) << "failed to disable listen for fd: " << sfd_;
-    return false;
-  }
-  return true;
-}
-
-bool Acceptor::StartListen() {
-  uint16_t event = EPOLLIN | EPOLLERR | EPOLLRDHUP;
-
-/* 解决惊群 */
-#ifdef EPOLLEXCLUSIVE
-  event |= EPOLLEXCLUSIVE;
-#endif
-
-  if (addr_.family() == AF_INET || addr_.family() == AF_INET6) {
-    if (addr_.proto() == SOCK_STREAM) {
-      LOG(INFO) << "host: " << addr_.host() << " port: " << addr_.port();
-      sfd_ = CreateTcpServer(addr_.host(), addr_.port(), SOCK_STREAM, 5);
-      if (sfd_ < 0) {
-        return false;
-      }
-    } else if (addr_.proto() == SOCK_DGRAM) {
-      sfd_ = CreateTcpServer(addr_.host(), addr_.port(), SOCK_DGRAM, 5);
-      if (sfd_ < 0) {
-        return false;
-      }
-    }
-  } else if (addr_.family() == AF_UNIX) {
-    // sfd_ = CreateUnixServer(addr_.host(), 5, 0777);
-    if (sfd_ < 0) {
-      return false;
-    }
-  } else {
-    LOG(ERROR) << "not support this family type: " << addr_.family();
-    return false;
-  }
-
-  // lopp_->
-
-  started_ = true;
-  return true;
-}
-
-bool Acceptor::StopListen() { return true; }
-
-bool Acceptor::HandleAcceptError(int err) {
-  switch (err) {
+bool Acceptor::HandleError(int error) {
+  switch (error) {
     case EINTR:
     case EPROTO:
     case ECONNABORTED: {
-      LOG(WARNING) << "should retry accept, errno: " << err;
+      LOG(WARNING) << "should retry accept, errno: " << error;
       return false;
     }
     case EAGAIN:
@@ -138,12 +150,12 @@ bool Acceptor::HandleAcceptError(int err) {
     case EWOULDBLOCK:
 #endif
     {
-      LOG(ERROR) << "should dicard accept, errno: " << err;
+      LOG(ERROR) << "should dicard accept, errno: " << error;
       return true;
     }
     case ENOBUFS:
     case ENOMEM: {
-      LOG(ERROR) << "should dicard accept, errno: " << err;
+      LOG(ERROR) << "should dicard accept, errno: " << error;
       return true;
     }
     case EMFILE:
@@ -155,7 +167,7 @@ bool Acceptor::HandleAcceptError(int err) {
       * accept()ing when you can't" in libev's doc.
       * By Marc Lehmann, author of libev.*/
       DiscardAccept();
-      DisableListen();
+      CloseListen();
       return true;
     }
     default: {
@@ -205,7 +217,7 @@ void Acceptor::AcceptCb() {
      */
     new_fd = ::accept(sfd_, (struct sockaddr *)&addr, &addrlen);
     if (unlikely(new_fd < 0)) {
-      stop = HandleAcceptError(errno);
+      stop = HandleError(errno);
     } else {
       SetNonBlock(new_fd, true);
       /* 监听线程放在单独的线程, 如果想分发到线程池也可以*/
@@ -214,16 +226,6 @@ void Acceptor::AcceptCb() {
   } while (stop);
 
   return;
-}
-
-void Acceptor::ErrorCb() {
-  LOG(WARNING) << "acceptor close for fd: " << sfd_;
-  if (sfd_ > 0) {
-    CloseSocket(sfd_);
-    sfd_ = kInvalidSocket;
-  }
-  new_conn_cb_ = nullptr;
-  started_ = false;
 }
 
 }  // namespace MSF

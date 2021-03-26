@@ -70,7 +70,7 @@ struct TimeZone::Data {
   std::string abbreviation;
 };
 
-class File : Noncopyable {
+class File : noncopyable {
  public:
   File(const char* file) : fp_(::fopen(file, "rb")) {}
 

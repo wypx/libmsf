@@ -21,6 +21,7 @@
 
 #include "callback.h"
 #include "buffer.h"
+#include "inet_address.h"
 
 using namespace MSF;
 
@@ -45,6 +46,7 @@ class Connection : public std::enable_shared_from_this<Connection> {
  public:
   enum State {
     kStateNone,            // init connection state
+    kStateConnecting,      // connection sync connecting
     kStateConnected,       // connection connected
     kStateCloseWaitWrite,  // passive or active close, but have data to send
     kStatePassiveClose,    // connection should close
@@ -53,12 +55,38 @@ class Connection : public std::enable_shared_from_this<Connection> {
     kStateClosed,          // final state being to destroy
   };
 
-  Connection(bool thread_safe = true);
+  Connection(EventLoop *loop, int fd, bool thread_safe = true);
   virtual ~Connection();
+
+  // send data
+  void SubmitWriteBufferSafe(void *buffer, size_t size) noexcept;
+  void SubmitWriteIovecSafe(BufferIovec &queue) noexcept;
+
+  // recv in buffer
+  virtual size_t ReadableLength() = 0;
+  virtual size_t ReceiveData(void *data, size_t len) = 0;
+  virtual size_t DrainData(size_t len) = 0;
+  virtual size_t RemoveData(void *data, size_t len) = 0;
+
+  virtual bool IsClosed() = 0;
+  virtual void CloseConn() = 0;
+
+  virtual void *Malloc(size_t len, size_t align) = 0;
+  virtual void Free(void *ptr) = 0;
+
+  int fd() noexcept { return fd_; }
+  void set_read_water_mark(int64_t mark) noexcept { read_water_mark_ = mark; }
+  int64_t read_water_mark() const noexcept { return read_water_mark_; }
+  inline void set_active_ts(uint64_t ts) noexcept { active_ts_ = ts; }
+  inline uint64_t active_ts() const noexcept { return active_ts_; }
+
+  inline const InetAddress &peer_addr() const noexcept { return peer_addr_; }
+  inline EventLoop *loop() const noexcept { return loop_; }
 
   virtual bool HandleReadEvent() = 0;
   virtual bool HandleWriteEvent() = 0;
   virtual void HandleErrorEvent() = 0;
+  virtual void HandleConnectedEvent() = 0;
 
   void SetConnHighWaterCb(const HighWaterCallback &cb) noexcept {
     io_water_cb_ = std::move(cb);
@@ -83,20 +111,25 @@ class Connection : public std::enable_shared_from_this<Connection> {
   BufferType buffer_type() const noexcept { return buffer_type_; }
 
  protected:
-  void SubmitWriteIovecSafe(BufferIovec &queue) noexcept;
   void SubmitWriteIovec(BufferIovec &queue) noexcept;
+  void UpdateWriteBusyIovecSafe() noexcept;
   void UpdateWriteBusyIovec() noexcept;
-  void UpdateWriteBusyOffset() noexcept;
-  virtual void CloseConn();
-  virtual void ActiveClose();
-  void Shutdown(ShutdownMode mode);
+  void UpdateWriteBusyOffset(int64_t bytes_send) noexcept;
+  virtual void Shutdown(ShutdownMode mode) = 0;
+
+  void set_state(State state) noexcept { state_ = state; }
+  State state() noexcept { return state_; }
 
  protected:
+  EventLoop *loop_;
   int fd_ = -1;
+  InetAddress peer_addr_;
   State state_ = State::kStateNone;
+  uint64_t active_ts_;
 
   BufferType buffer_type_;
 
+  int64_t read_water_mark_;
   Buffer read_buf_;
   Buffer write_buf_;
   // not copy to circular buffer
@@ -104,8 +137,6 @@ class Connection : public std::enable_shared_from_this<Connection> {
   std::mutex *mutex_;
   BufferIovec write_pending_queue_;
   BufferIovec write_busy_queue_;
-
-  EventLoop *loop_;
 
   HighWaterCallback io_water_cb_;
   WriteIOCPCallback write_iocp_cb_;

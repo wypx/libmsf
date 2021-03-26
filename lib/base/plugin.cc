@@ -14,11 +14,11 @@ int pluginFuncStub(const char* func, ...) {
   return -404;
 }
 
-PluginManager::~PluginManager() { unloadAll(); }
+PluginManager::~PluginManager() { UnloadAll(); }
 
-bool PluginManager::load(const std::string& pluginPath) {
-  std::string plugName = getPluginName(pluginPath);
-  std::string realPath = resolvePathExtension(pluginPath);
+bool PluginManager::Load(const std::string& pluginPath) {
+  std::string plugName = GetPluginName(pluginPath);
+  std::string realPath = ResolvePathExtension(pluginPath);
 
   int iRet = IsFileExist(pluginPath);
   if (iRet < 0) {
@@ -42,7 +42,7 @@ bool PluginManager::load(const std::string& pluginPath) {
      POSIX specification of dlsym(). */
   Plugin* plug = (Plugin*)MSF_DLSYM(handle, plugName.c_str());
   if (!plug) {
-    LOG(ERROR) << "Fail to load plugin :" << pluginPath
+    LOG(ERROR) << "Fail to Load plugin :" << pluginPath
                << "error:" << MSF_DLERROR();
     return false;
   }
@@ -56,31 +56,31 @@ bool PluginManager::load(const std::string& pluginPath) {
   return true;
 }
 
-bool PluginManager::load(const std::string& folder,
+bool PluginManager::Load(const std::string& folder,
                          const std::string& pluginName) {
   if (folder.empty()) {
-    return load(pluginName);
+    return Load(pluginName);
   } else if (folder[folder.size() - 1] == '/' ||
              folder[folder.size() - 1] == '\\') {
-    return load(folder + pluginName);
+    return Load(folder + pluginName);
   }
-  return load(folder + '/' + pluginName);
+  return Load(folder + '/' + pluginName);
 }
 
-int PluginManager::loadFromFolder(const std::string& folder, bool recursive) {
+int PluginManager::LoadFromFolder(const std::string& folder, bool recursive) {
   std::list<std::string> files;
   ListFiles(files, folder, MSF_LIB_EXTENSION, recursive);
-  // try to load every library
+  // try to Load every library
   int res = 0;
   std::list<std::string>::const_iterator it;
   for (it = files.begin(); it != files.end(); ++it) {
-    if (load(*it)) ++res;
+    if (Load(*it)) ++res;
   }
   return res;
 }
 
-bool PluginManager::unload(const std::string& pluginName) {
-  std::string plugName = getPluginName(pluginName);
+bool PluginManager::Unload(const std::string& pluginName) {
+  std::string plugName = GetPluginName(pluginName);
   std::map<std::string, Plugin*>::iterator it = _plugins.find(plugName);
   if (it != _plugins.end()) {
     MSF_DLCLOSE(it->second->_handle);
@@ -90,7 +90,7 @@ bool PluginManager::unload(const std::string& pluginName) {
   return false;
 }
 
-void PluginManager::unloadAll() {
+void PluginManager::UnloadAll() {
   std::map<std::string, Plugin*>::iterator it;
   for (it = _plugins.begin(); it != _plugins.end(); ++it) {
     MSF_DLCLOSE(it->second->_handle);
@@ -98,7 +98,7 @@ void PluginManager::unloadAll() {
   _plugins.clear();
 }
 
-std::string PluginManager::resolvePathExtension(const std::string& path) {
+std::string PluginManager::ResolvePathExtension(const std::string& path) {
   size_t lastDash = path.find_last_of("/\\");
   size_t lastDot = path.find_last_of('.');
   if (lastDash == std::string::npos)
@@ -112,7 +112,7 @@ std::string PluginManager::resolvePathExtension(const std::string& path) {
   return path;
 }
 
-std::string PluginManager::getPluginName(const std::string& path) {
+std::string PluginManager::GetPluginName(const std::string& path) {
   size_t lastDash = path.find_last_of("/\\");
   size_t lastDot = path.find_last_of('.');
   if (lastDash == std::string::npos)
@@ -126,7 +126,7 @@ std::string PluginManager::getPluginName(const std::string& path) {
   return path.substr(lastDash, lastDot - lastDash);
 }
 
-int PluginManager::driverInsmod(const std::string& ko_path) {
+int PluginManager::DriverInsmod(const std::string& ko_path) {
   int fd = -1;
   struct stat st;
   uint32_t len;
@@ -140,35 +140,35 @@ int PluginManager::driverInsmod(const std::string& ko_path) {
     return -1;
   }
 
-  rc = fstat(fd, &st);
+  rc = ::fstat(fd, &st);
   if (rc < 0) {
-    close(fd);
+    ::close(fd);
     LOG(ERROR) << "Fail to lstat " << ko_path;
     return -1;
   }
 
   len = st.st_size;
-  map = mmap(NULL, len, PROT_READ, MAP_PRIVATE, fd, 0);
+  map = ::mmap(NULL, len, PROT_READ, MAP_PRIVATE, fd, 0);
   if (map == MAP_FAILED) {
-    close(fd);
+    ::close(fd);
     LOG(ERROR) << "Fail to map" << ko_path;
     return -1;
   }
 
   strcpy(option, " ");
-  rc = syscall(__NR_init_module, map, len, option);
+  rc = ::syscall(__NR_init_module, map, len, option);
   if (rc != 0) {
-    munmap(map, len);
-    close(fd);
+    ::munmap(map, len);
+    ::close(fd);
     LOG(ERROR) << "Cannot insert " << ko_path;
     return -1;
   }
-  munmap(map, len);
-  close(fd);
+  ::munmap(map, len);
+  ::close(fd);
   return 0;
 }
 
-int PluginManager::driverRmmod(const std::string& ko_path, const int mode) {
+int PluginManager::DriverRmmod(const std::string& ko_path, const int mode) {
   int flags = O_NONBLOCK | O_EXCL;
   int lRet;
   // char szName[128] = {0};
@@ -193,7 +193,7 @@ int PluginManager::driverRmmod(const std::string& ko_path, const int mode) {
     flags |= O_TRUNC;
   }
 
-  lRet = syscall(__NR_delete_module, ko_path, flags);
+  lRet = ::syscall(__NR_delete_module, ko_path, flags);
   if (lRet != 0) {
     LOG(ERROR) << "Cannot rmmod " << ko_path;
     return -1;

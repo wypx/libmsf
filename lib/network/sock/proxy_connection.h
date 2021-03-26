@@ -12,14 +12,14 @@
 //  *
 //  **************************************************************************/
 #include "latch.h"
-#include "tcp_connection.h"
+#include "callback.h"
 
 namespace MSF {
 
 class ProxyConnection {
  public:
  private:
-  TCPConnection conn_;
+  ConnectionPtr conn_;
 };
 
 class ProxyPDU {

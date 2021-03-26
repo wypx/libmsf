@@ -20,7 +20,7 @@
 
 namespace MSF {
 
-EventStack::EventStack() : baseLoop_(EventLoop()), started_(false) {
+EventStack::EventStack() : base_loop_(EventLoop()), started_(false) {
   InitSigHandler();
 }
 
@@ -28,117 +28,117 @@ EventStack::~EventStack() {
   // Don't delete loop, it's stack variable
 }
 
-EventLoop *EventStack::getOneLoop() {
-  // baseLoop_.assertInLoopThread();
+EventLoop *EventStack::GetOneLoop() {
+  // base_loop_.assertInLoopThread();
   if (unlikely(!started_)) {
-    LOG(FATAL) << "Event loop thread pool not start.";
+    LOG(FATAL) << "event loop thread pool not start.";
     return nullptr;
   }
 
-  if (threadArgs_.size() == 0) {
-    LOG(INFO) << "Event loop return baseloop.";
-    return &baseLoop_;
+  if (thread_args_.size() == 0) {
+    LOG(INFO) << "event loop return baseloop.";
+    return &base_loop_;
   }
 
   std::default_random_engine e;
   std::uniform_int_distribution<unsigned> u(
-      0, threadArgs_.size() - 1);  //随机数分布对象
-  return threadArgs_[u(e)].loop_;
+      0, thread_args_.size() - 1);  //随机数分布对象
+  return thread_args_[u(e)].loop_;
 }
 
-EventLoop *EventStack::getHashLoop() {
-  // baseLoop_.assertInLoopThread();
+EventLoop *EventStack::GetHashLoop() {
+  // base_loop_.assertInLoopThread();
   if (unlikely(!started_)) {
-    LOG(FATAL) << "Event loop thread pool not start.";
+    LOG(FATAL) << "event loop thread pool not start.";
     return nullptr;
   }
 
-  if (threadArgs_.size() == 0) {
-    LOG(INFO) << "Event loop return baseloop.";
-    return &baseLoop_;
+  if (thread_args_.size() == 0) {
+    LOG(INFO) << "event loop return baseloop.";
+    return &base_loop_;
   }
-  return threadArgs_[(next_++) % threadArgs_.size()].loop_;
+  return thread_args_[(next_++) % thread_args_.size()].loop_;
 }
 
-EventLoop *EventStack::getBaseLoop() { return &baseLoop_; }
+EventLoop *EventStack::GetBaseLoop() { return &base_loop_; }
 
 EventLoop *EventStack::GetFixedLoop(uint32_t idx) {
-  if (idx < threadArgs_.size()) {
-    return threadArgs_[idx].loop_;
+  if (idx < thread_args_.size()) {
+    return thread_args_[idx].loop_;
   }
   return nullptr;
 }
-std::vector<EventLoop *> EventStack::getAllLoops() {
+std::vector<EventLoop *> EventStack::GetAllLoops() {
   std::vector<EventLoop *> loops;
-  for (const auto &th : threadArgs_) {
+  for (const auto &th : thread_args_) {
     loops.push_back(th.loop_);
   }
   return loops;
 }
 
-void EventStack::startLoop(ThreadArg *arg) {
+void EventStack::StartLoop(ThreadArg *arg) {
   // not 100% race-free, eg. threadFunc could be running callback_.
   if (arg->loop_ != nullptr) {
-    if (initCb_) {
-      initCb_(arg->loop_);
+    if (init_cb_) {
+      init_cb_(arg->loop_);
     }
-    arg->loop_->loop();
+    arg->loop_->EnterLoop();
 
     // still a tiny chance to call destructed object, if threadFunc exits just
     // now. but when EventLoopThread destructs, usually programming is exiting
     // anyway.
-    arg->loop_->quit();
+    arg->loop_->QuitLoop();
     arg->thread_->join();
     arg->loop_ = nullptr;
   } else {
-    LOG(FATAL) << "Event loop pointer is invalid";
+    LOG(FATAL) << "event loop pointer is invalid";
   }
 }
 
-void EventStack::setThreadArgs(const std::vector<ThreadArg> &threadArg) {
-  std::move(threadArg.begin(), threadArg.end(),
-            std::back_inserter(threadArgs_));
+void EventStack::SetThreadArgs(const std::vector<ThreadArg> &thread_arg) {
+  std::move(thread_arg.begin(), thread_arg.end(),
+            std::back_inserter(thread_args_));
 }
 
-bool EventStack::startThreads(const std::vector<ThreadArg> &threadArgs) {
+bool EventStack::StartThreads(const std::vector<ThreadArg> &thread_args) {
   if (unlikely(started_)) {
-    LOG(FATAL) << "Event loop thread pool is started.";
+    LOG(FATAL) << "event loop thread pool is started.";
     return false;
   }
-  // baseLoop_->assertInLoopThread();
+  // base_loop_->assertInLoopThread();
   started_ = true;
 
-  std::move(threadArgs.begin(), threadArgs.end(),
-            std::back_inserter(threadArgs_));
+  std::move(thread_args.begin(), thread_args.end(),
+            std::back_inserter(thread_args_));
 
-  for (auto &th : threadArgs_) {
+  for (auto &th : thread_args_) {
     th.thread_ =
-        new Thread(std::bind(&EventStack::startLoop, this, &th), th.name_);
+        new Thread(std::bind(&EventStack::StartLoop, this, &th), th.name_);
     if (th.thread_ == nullptr) {
-      LOG(FATAL) << "Alloc event thread failed, errno:" << errno;
+      LOG(FATAL) << "alloc event thread failed, errno:" << errno;
       return false;
     }
     th.thread_->start([this, &th]() {
       /* Pre init function before thread loop */
       th.loop_ = new EventLoop();
       if (th.loop_ == nullptr) {
-        LOG(FATAL) << "Alloc event loop failed, errno:" << errno;
+        LOG(FATAL) << "alloc event loop failed, errno:" << errno;
         return;
       }
     });
   }
-  LOG(INFO) << "Start all " << threadArgs_.size() << " thread success.";
+  LOG(INFO) << "start all " << thread_args_.size() << " thread success.";
   return true;
 }
 
-bool EventStack::start(const ThreadInitCallback &cb) {
-  if (threadArgs_.size() == 0) {
+bool EventStack::Start(const ThreadInitCallback &cb) {
+  if (thread_args_.size() == 0) {
     if (cb) {
-      cb(&baseLoop_);
+      cb(&base_loop_);
     }
   }
 
-  baseLoop_.loop();
+  base_loop_.EnterLoop();
 
   return true;
 }

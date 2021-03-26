@@ -134,7 +134,7 @@ struct MemSlab {
   }
 };
 
-class MemPool : Noncopyable {
+class MemPool : noncopyable {
  public:
   explicit MemPool()
       : numa_id_(-1),

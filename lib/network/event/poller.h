@@ -34,28 +34,27 @@ class Poller {
 
   /// Polls the I/O events.
   /// Must be called in the loop thread.
-  virtual int poll(int timeoutMs, EventList* activeChannels) = 0;
+  virtual int Poll(int timeout_ms, EventList* active_channels) = 0;
 
   /// Changes the interested I/O events.
   /// Must be called in the loop thread.
-  virtual void updateEvent(Event* ev) = 0;
+  virtual void UpdateEvent(Event* ev) = 0;
 
   /// Remove the channel, when it destructs.
   /// Must be called in the loop thread.
-  virtual void removeEvent(Event* ev) = 0;
+  virtual void RemoveEvent(Event* ev) = 0;
 
-  virtual bool hasEvent(Event* ev) const;
+  virtual bool HasEvent(Event* ev) const;
 
-  static Poller* newDefaultPoller(EventLoop* loop);
+  static Poller* NewDefaultPoller(EventLoop* loop);
 
-  void assertInLoopThread() const { _ownerLoop->assertInLoopThread(); }
+  void AssertInLoopThread() const { owner_loop_->AssertInLoopThread(); }
 
  protected:
-  typedef std::map<int, Event*> EventMap;
-  EventMap _events;
+  std::map<int, Event*> events_;
 
  private:
-  EventLoop* _ownerLoop;
+  EventLoop* owner_loop_;
 };
 
 }  // namespace MSF

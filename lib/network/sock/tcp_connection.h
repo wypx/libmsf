@@ -13,20 +13,36 @@
 //  **************************************************************************/
 
 #include "connection.h"
+#include "event.h"
 
 namespace MSF {
 
 class TCPConnection : public Connection {
-  TCPConnection();
+  TCPConnection(EventLoop *loop, int fd, bool thread_safe = true);
   ~TCPConnection();
+
+  // recv in buffer
+  size_t ReadableLength() override;
+  size_t ReceiveData(void *data, size_t len) override;
+  size_t DrainData(size_t len) override;
+  size_t RemoveData(void *data, size_t len) override;
+
+  bool IsClosed() override;
+  void CloseConn() override;
+  void Shutdown(ShutdownMode mode) override;
+
+  void *Malloc(size_t len, size_t align) override;
+  void Free(void *ptr) override;
 
   bool HandleReadEvent() override;
   bool HandleWriteEvent() override;
   void HandleErrorEvent() override;
+  void HandleConnectedEvent() override;
 
-  void CloseConn() override;
-  void ActiveClose() override;
-  void Shutdown(ShutdownMode mode);
+  inline bool IsConnError(int64_t ret);
+
+ private:
+  Event event_;
 };
 
 }  // namespace MSF

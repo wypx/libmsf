@@ -14,7 +14,7 @@ namespace MSF {
 // source bytes, so it can be used on read-only data.
 // Sizes/counts specify bits/bytes, for clarity.
 // Byte order is assumed big-endian/network.
-class BitBuffer : Noncopyable {
+class BitBuffer : noncopyable {
  public:
   BitBuffer(const uint8_t* bytes, size_t byte_count);
 

@@ -17,6 +17,7 @@
 #include <memory>
 
 #include "callback.h"
+#include "sock_utils.h"
 #include "inet_address.h"
 #include "noncopyable.h"
 
@@ -26,37 +27,37 @@ namespace MSF {
 
 class EventLoop;
 
-class Acceptor : public Noncopyable {
+class Acceptor : public noncopyable {
  public:
-  explicit Acceptor(const InetAddress &addr, const NewConnCallback &cb);
+  explicit Acceptor(EventLoop *loop, const InetAddress &addr,
+                    const NewConnCallback &cb);
   ~Acceptor();
 
-  void AcceptCb();
-  void ErrorCb();
-
-  bool EnableListen();
-  bool DisableListen();
-  const int sfd() const { return sfd_; }
+  bool Start();
+  void Stop();
+  void OpenListen();
+  void CloseListen();
 
  private:
-  bool StartListen();
-  bool StopListen();
-  bool HandleAcceptError(int err);
+  void AcceptCb();
+  void ErrorCb();
+  bool HandleError(int error);
+  void CloseAccept();
   void CloseIdleFd();
   void OpenIdleFd();
   void PopAcceptQueue();
   void DiscardAccept();
 
  private:
-  bool started_;
-  int idle_fd_;
-  int back_log_;
-  int sfd_;
+  EventLoop *loop_;
+
+  static const int kAcceptorBacklog = 8;
+  int back_log_ = kAcceptorBacklog;
+  int sfd_ = kInvalidSocket;
+  int idle_fd_ = kInvalidSocket;
 
   InetAddress addr_;
   NewConnCallback new_conn_cb_;
-
-  // EventLoop* const loop_; // which loop belong to
 };
 
 }  // namespace MSF

@@ -13,7 +13,7 @@
 
 namespace MSF {
 
-class BufferQueue : public Noncopyable {
+class BufferQueue : public noncopyable {
  public:
   // Creates a buffer queue with a given capacity and default buffer size.
   BufferQueue(size_t capacity, size_t default_size);

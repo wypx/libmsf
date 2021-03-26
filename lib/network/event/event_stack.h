@@ -41,40 +41,40 @@ struct ThreadArg {
       : name_(name), options_(options), flags_(flags) {}
 };
 
-class EventStack : Noncopyable {
+class EventStack : noncopyable {
  public:
   typedef std::function<void(EventLoop *)> ThreadInitCallback;
 
   explicit EventStack();
   ~EventStack();
-  void setThreadArgs(const std::vector<ThreadArg> &threadArgs);
-  bool startThreads(const std::vector<ThreadArg> &threadArgs);
-  bool start(const ThreadInitCallback &cb = ThreadInitCallback());
+  void SetThreadArgs(const std::vector<ThreadArg> &threadArgs);
+  bool StartThreads(const std::vector<ThreadArg> &threadArgs);
+  bool Start(const ThreadInitCallback &cb = ThreadInitCallback());
 
   // valid after calling start()
   /// round-robin
-  EventLoop *getOneLoop();
-  EventLoop *getHashLoop();
-  EventLoop *getBaseLoop();
+  EventLoop *GetOneLoop();
+  EventLoop *GetHashLoop();
+  EventLoop *GetBaseLoop();
   EventLoop *GetFixedLoop(uint32_t idx);
-  std::vector<EventLoop *> getAllLoops();
+  std::vector<EventLoop *> GetAllLoops();
 
-  bool started() const { return started_; }
-
- private:
-  void startLoop(ThreadArg *arg);
+  bool Started() const { return started_; }
 
  private:
-  EventLoop baseLoop_;
+  void StartLoop(ThreadArg *arg);
+
+ private:
+  EventLoop base_loop_;
   bool exiting_;
   bool started_;
   uint32_t next_;
   std::mutex mutex_;
   std::condition_variable cond_;
 
-  ThreadInitCallback initCb_;
+  ThreadInitCallback init_cb_;
 
-  std::vector<ThreadArg> threadArgs_;
+  std::vector<ThreadArg> thread_args_;
 };
 
 }  // namespace MSF

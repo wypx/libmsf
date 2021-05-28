@@ -341,6 +341,9 @@ void File::scanDir(const string &path_in, const function<bool(const string &path
 }
 #endif
 
+// https://blog.csdn.net/10km/article/details/51005649
+// C++11:for_each_file遍历目录处理文件
+
 /* realpath是用来将参数path所指的相对路径转换成绝对路径
  * 如果resolved_path为NULL，则该函数调用malloc分配一块大小为PATH_MAX的内存
  * 来存放解析出来的绝对路径，并返回指向这块区域的指针, 主动free这块内存 */

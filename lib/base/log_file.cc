@@ -84,6 +84,15 @@ void LogFile::flush() {
   }
 }
 
+long FileUtil::GetAvailableSpace(const char* path) {
+  struct statvfs stat;
+  if (statvfs(path, &stat) != 0) {
+    return -1;
+  }
+  // the available size is f_bsize * f_bavail
+  return stat.f_bsize * stat.f_bavail;
+}
+
 bool LogFile::rollFile() {
   time_t now = 0;
   std::string filename = GetLogFileName(basename_, &now);
@@ -94,6 +103,20 @@ bool LogFile::rollFile() {
     lastFlush_ = now;
     startOfPeriod_ = start;
     file_.reset(new AppendFile(filename));
+    long available_size = GetAvailableSpace(filename.c_str());
+    if (available_size < (300 << 20)) {  // 小于300M 不会再写文件
+      forbit_write_ = true;
+      fprintf(stderr,
+              "filesystem available size less than 300M, forbit write\n");
+    } else {
+      forbit_write_ = false;
+    }
+    // 将STDOUT_FILENO和STDERR_FILENO也重定向到这个文件
+    FILE* fp = file_->fp();
+    if (dupStd_) {
+      ::dup2(fileno(fp), STDOUT_FILENO);
+      ::dup2(fileno(fp), STDERR_FILENO);
+    }
     return true;
   }
   return false;

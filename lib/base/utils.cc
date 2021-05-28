@@ -31,25 +31,24 @@ namespace MSF {
 // uuid of system
 // cat /proc/sys/kernel/random/uuid
 #if 1
-std::string NewUuid()
-{
-    std::string res;
+std::string NewUuid() {
+  std::string res;
 #ifdef WIN32
-    UUID uuid;
-    ::UuidCreate(&uuid);
-    char* uuid_cstr = nullptr;
-    ::UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR*>(&uuid_cstr));
-    res = std::string(uuid_cstr);
-    ::RpcStringFreeA(reinterpret_cast<RPC_CSTR*>(&uuid_cstr));
+  UUID uuid;
+  ::UuidCreate(&uuid);
+  char *uuid_cstr = nullptr;
+  ::UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR *>(&uuid_cstr));
+  res = std::string(uuid_cstr);
+  ::RpcStringFreeA(reinterpret_cast<RPC_CSTR *>(&uuid_cstr));
 #else
-    uuid_t uuid;
-    char uuid_cstr[37]; // 36 byte uuid plus null.
-    ::uuid_generate(uuid);
-    ::uuid_unparse(uuid, uuid_cstr);
-    res = std::string(uuid_cstr);
+  uuid_t uuid;
+  char uuid_cstr[37];  // 36 byte uuid plus null.
+  ::uuid_generate(uuid);
+  ::uuid_unparse(uuid, uuid_cstr);
+  res = std::string(uuid_cstr);
 #endif
 
-    return res;
+  return res;
 }
 #endif
 

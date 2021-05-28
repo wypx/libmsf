@@ -10,8 +10,8 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#ifndef __MSF_THREADPOOL_H__
-#define __MSF_THREADPOOL_H__
+#ifndef LIB_THREADPOOL_H_
+#define LIB_THREADPOOL_H_
 
 #include <unistd.h>
 
@@ -45,45 +45,52 @@ class ThreadPool final : public noncopyable {
   virtual ~ThreadPool();
 
   // Must be called before start().
-  void setMaxQueueSize(int maxSize) { _maxQueueSize = maxSize; }
-  void setThreadInitCallback(const ThreadTask& cb) { _threadInitCallback = cb; }
+  void SetMaxQueueSize(int maxSize) { max_queue_size_ = maxSize; }
+  void SetThreadInitCallback(const ThreadTask& cb) { thread_init_cb_ = cb; }
 
-  void start(int numThreads);
-  void stop();
+  void Start(int numThreads);
+  void Stop();
 
-  const std::string& name() const { return _name; }
-  size_t queueSize() const;
+  const std::string& name() const { return name_; }
+  size_t QueueSize() const;
+
+  template <class F, class... Args>
+  auto EnterQueue(F&& f, Args&&... args);
 
   // Could block if maxQueueSize > 0
   // There is no move-only version of std::function in C++ as of C++14.
   // So we don't need to overload a const& and an && versions
   // as we do in (Bounded)BlockingQueue.
   // https://stackoverflow.com/a/25408989
-  void addTask(ThreadTask f);
+  void AddTask(ThreadTask f);
 
-  bool isRunning() const { return _running; }
+  bool IsRunning() const { return running_; }
 
  private:
-  bool isFull() const;
-  void runInThread();
-  ThreadTask getTask();
+  bool IsFull() const;
+  void RunInThread();
+  ThreadTask GetTask();
 
-  std::string _name;
-  volatile bool _running;
+  std::string name_;
+  volatile bool running_;
 
-  mutable std::mutex _mutex;
-  std::deque<ThreadTask> _queue;
-  size_t _maxQueueSize;
-  std::condition_variable _notEmpty;
-  std::condition_variable _notFull;
+  // the task queue
+  std::deque<ThreadTask> queue_;
+  size_t max_queue_size_;
 
-  ThreadTask _threadInitCallback;
-  std::vector<std::unique_ptr<Thread>> _threads;
+  // synchronization
+  mutable std::mutex mutex_;
+  std::condition_variable not_empty_;
+  std::condition_variable not_full_;
 
-  std::atomic<uint32_t> _maxThreads;
-  std::atomic<uint32_t> _currentThreads;
-  std::atomic<uint32_t> _maxIdleThreads;
-  static thread_local bool _working;
+  ThreadTask thread_init_cb_;
+  // need to keep track of threads so we can join them
+  std::vector<std::unique_ptr<Thread>> threads_;
+
+  std::atomic<uint32_t> max_threads_;
+  std::atomic<uint32_t> current_threads_;
+  std::atomic<uint32_t> max_idle_threads_;
+  static thread_local bool working_;
 };
 
 }  // namespace MSF

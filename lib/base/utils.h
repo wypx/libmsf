@@ -77,8 +77,15 @@ std::string NewUuid();
 #endif
 
 /*Align by number of align*/
-#define MSF_ALGIN_UP(num, align) (((num) + (align - 1)) / (align)) q
+#define MSF_ALGIN_UP(num, align) (((num) + (align - 1)) / (align))
 #define MSF_ROUNDUP(num, align) ((((num) + (align - 1)) / (align)) * (align))
+#define ROUND_DOWN(x, n) (((x) / (n)) * (n))
+
+#define PAGE_SIZE 4096
+#define PAGE_ROUND_UP(x) (((x) + PAGE_SIZE - 1) & (~(PAGE_SIZE - 1)))
+#define PAGE_ROUND_DOWN(x) ((x) & (~(PAGE_SIZE - 1)))
+#define PAGE_ROUNDED(x) ((x) == PAGE_ROUND_DOWN(x))
+
 #define MSF_ABS(value) (((value) >= 0) ? (value) : -(value))
 
 #ifndef roundup

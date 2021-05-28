@@ -124,6 +124,32 @@ void sleepUsec(int64_t usec) {
 
 }  // namespace CurrentThread
 
+// pthread_cond_init
+// pthread_cond_destrory
+// pthread_cond_wait
+// pthread_cond_timewait
+// pthread_cond_signal
+// pthread_cond_broadcast
+
+// pthread_rwlock_init
+// pthread_rwlock_destroy
+// pthread_rwlock_rdlock/tryrdlock
+// pthread_rwlock_wrlock/trywrlock
+// pthread_rwlock_iunlock
+// pthread_rwlock_equal
+// pthread_rwlock_self
+
+// pthread_cleanup_push
+// pthread_cleanup_pop
+// pthread_mutex_lock/unlock
+// pthread_mutex_trylock
+// pthread_mutex_init
+// pthread_mutex_destroy
+
+// pthread_set/get_cancelstate
+// pthread_testcancle
+// pthread_setcacltype
+
 int pthreadSpawn(pthread_t* tid, void* (*pfn)(void*), void* arg) {
   int rc;
   pthread_attr_t thread_attr;
@@ -344,6 +370,12 @@ void Thread::Start() {
   // Set the stack stack size to 1M.
   ::pthread_attr_setstacksize(&attr, 1024 * 1024);
 // assert(0 == pthread_create(&th_, &attr, &StartThread, this));
+
+// pthread_attr_getstack
+// pthread_attr_setstack
+// pthread_attr_get/setstacksize 默认pagesize
+// pthread_attr_get/setgardsize
+// pthread_attr_get/setconcureny(int level) 提高希望并发度
 #endif
 }
 

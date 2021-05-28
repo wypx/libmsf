@@ -20,7 +20,7 @@
 namespace MSF {
 
 template <typename T>
-class ThreadLocal : Noncopyable {
+class ThreadLocal : noncopyable {
  public:
   ThreadLocal() { pthread_key_create(&pkey_, &ThreadLocal::destructor); }
 

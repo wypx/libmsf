@@ -24,119 +24,145 @@ using namespace MSF::CurrentThread;
 namespace MSF {
 
 ThreadPool::ThreadPool(const std::string& name)
-    : _name(name),
-      _running(false),
-      _mutex(),
-      _maxQueueSize(0),
-      _notEmpty(),
-      _notFull() {}
+    : name_(name),
+      running_(false),
+      mutex_(),
+      max_queue_size_(0),
+      not_empty_(),
+      not_full_() {}
 
 ThreadPool::~ThreadPool() {
-  if (_running) {
-    stop();
+  if (running_) {
+    Stop();
   }
 }
 
-void ThreadPool::start(int numThreads) {
-  assert(_threads.empty());
-  _threads.reserve(numThreads);
-  _running = true;
+void ThreadPool::Start(int numThreads) {
+  assert(threads_.empty());
+  threads_.reserve(numThreads);
+  running_ = true;
   for (int i = 0; i < numThreads; ++i) {
     char id[32];
     snprintf(id, sizeof id, "%d", i + 1);
-    _threads.emplace_back(
-        new Thread(std::bind(&ThreadPool::runInThread, this), _name + id));
-    _threads[i]->start();
-    LOG(INFO) << "thread init success for:" << _name + id;
+    threads_.emplace_back(
+        new Thread(std::bind(&ThreadPool::RunInThread, this), e + id));
+    threads_[i]->start();
+    LOG(INFO) << "thread init success for:" << e + id;
   }
 
-  if (numThreads == 0 && _threadInitCallback) {
-    _threadInitCallback();
+  if (numThreads == 0 && thread_init_cb_) {
+    thread_init_cb_();
   }
   LOG(INFO) << "all thread init completed";
 }
 
-void ThreadPool::stop() {
+void ThreadPool::Stop() {
   /* 保证lock的保护范围在括号内激活所有的线程*/
   {
-    std::lock_guard<std::mutex> lock(_mutex);
-    _running = false;
+    std::lock_guard<std::mutex> lock(mutex_);
+    running_ = false;
   }
-  _notEmpty.notify_all();
-  for (auto& thr : _threads) {
+  not_empty_.notify_all();
+  for (auto& thr : threads_) {
     thr->join();
   }
 }
 
-size_t ThreadPool::queueSize() const {
-  std::lock_guard<std::mutex> lock(_mutex);
-  return _queue.size();
+size_t ThreadPool::QueueSize() const {
+  std::lock_guard<std::mutex> lock(mutex_);
+  return queue_.size();
 }
 
-void ThreadPool::addTask(ThreadTask task) {
-  if (_threads.empty()) {
+// https://zhuanlan.zhihu.com/p/358592479
+#if 0
+// add new work item to the pool
+template <class F, class... Args>
+auto ThreadPool::EnterQueue(F&& f, Args&&... args)
+    -> std::future<typename std::result_of<F(Args...)>::type> {
+
+  using return_type = typename std::result_of<F(Args...)>::type;
+
+  auto task = std::make_shared<std::packaged_task<return_type()>>(
+      std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+
+  std::future<return_type> res = task->get_future();
+  {
+    std::unique_lock<std::mutex> lock(queue_mutex);
+
+    // don't allow enqueueing after stopping the pool
+    if (stop) throw std::runtime_error("enqueue on stopped ThreadPool");
+
+    tasks.emplace([task]() { (*task)(); });
+  }
+  condition.notify_one();
+  return res;
+}
+#endif
+
+void ThreadPool::AddTask(ThreadTask task) {
+  if (threads_.empty()) {
     task();
   } else {
-    std::unique_lock<std::mutex> lock(_mutex);
-    while (isFull()) {
-      _notFull.wait(lock);
+    std::unique_lock<std::mutex> lock(mutex_);
+    while (IsFull()) {
+      not_full_.wait(lock);
     }
-    if (!_running) {
+    if (!running_) {
       LOG(ERROR) << "thread pool not running";
       lock.unlock();
       return;
     }
-    _queue.push_back(std::move(task));
+    queue_.push_back(std::move(task));
     lock.unlock();
-    _notEmpty.notify_one();
+    not_empty_.notify_one();
   }
 }
 
-ThreadPool::ThreadTask ThreadPool::getTask() {
-  std::unique_lock<std::mutex> lock(_mutex);
+ThreadPool::ThreadTask ThreadPool::GetTask() {
+  std::unique_lock<std::mutex> lock(mutex_);
   // always use a while-loop, due to spurious wakeup
-  while (_queue.empty() && _running) {
-    _notEmpty.wait(lock);
+  while (queue_.empty() && running_) {
+    not_empty_.wait(lock);
   }
 
-  ThreadTask task = _queue.front();
-  _queue.pop_front();
+  ThreadTask task = queue_.front();
+  queue_.pop_front();
   lock.unlock();
-  if (_maxQueueSize > 0) {
-    _notFull.notify_one();
+  if (max_queue_size_ > 0) {
+    not_full_.notify_one();
   }
   return task;
 }
 
-bool ThreadPool::isFull() const {
-  return _maxQueueSize > 0 && _queue.size() >= _maxQueueSize;
+bool ThreadPool::IsFull() const {
+  return max_queue_size_ > 0 && queue_.size() >= max_queue_size_;
 }
 
-void ThreadPool::runInThread() {
+void ThreadPool::RunInThread() {
   try {
-    if (_threadInitCallback) {
-      _threadInitCallback();
+    if (thread_init_cb_) {
+      thread_init_cb_();
     }
-    while (_running) {
-      ThreadTask task(getTask());
+    while (running_) {
+      ThreadTask task(GetTask());
       if (task) {
         task();
       }
     }
   }
   catch (const MSF::Exception& ex) {
-    LOG(FATAL) << "exception caught in ThreadPool " << _name.c_str()
+    LOG(FATAL) << "exception caught in ThreadPool " << e.c_str()
                << ",reason: " << ex.what()
                << "stack trace: " << ex.stackTrace();
     abort();
   }
   catch (const std::exception& ex) {
-    LOG(FATAL) << "exception caught in ThreadPool " << _name.c_str()
+    LOG(FATAL) << "exception caught in ThreadPool " << e.c_str()
                << ",reason: " << ex.what();
     abort();
   }
   catch (...) {
-    LOG(FATAL) << "unknown exception caught in ThreadPool " << _name.c_str();
+    LOG(FATAL) << "unknown exception caught in ThreadPool " << e.c_str();
     throw;  // rethrow
   }
 }

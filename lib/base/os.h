@@ -186,6 +186,7 @@ class OsInfo {
   void SetEnvar(const std::string name, const std::string value);
   void ClearEnvar(const std::string name);
   std::string GetSystemName();
+  inline std::string GetHome();
 
  private:
   std::string sysName_;

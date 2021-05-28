@@ -29,6 +29,13 @@
 #include <thread>
 #include <regex>
 
+#ifdef WIN32
+#include <WinSock2.h>
+#include <Shlobj.h>
+#else
+#include <pwd.h>
+#endif
+
 #include "affinity.h"
 
 using namespace MSF;
@@ -668,6 +675,24 @@ std::string OsInfo::GetSystemName() {
   if (ret != 0) return std::string("");
   return std::string(hostname);
 #endif  // Catch-all POSIX block.
+}
+
+std::string OsInfo::GetHome() {
+#ifdef WIN32
+  char path[MAX_PATH + 1];
+  // get folder "appdata\local"
+  if (SHGetSpecialFolderPathA(HWND_DESKTOP, path, CSIDL_LOCAL_APPDATA, FALSE)) {
+    return path;
+  } else {
+    return ".";
+  }
+#else
+  const char* home = ::getenv("HOME");
+  if (!home) {
+    home = ::getpwuid(getuid())->pw_dir;
+  }
+  return home;
+#endif
 }
 
 bool OsInfo::sysInit() {

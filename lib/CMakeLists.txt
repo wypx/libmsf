@@ -4,8 +4,8 @@ project(MSF_LIB_PROJECT)
 
 # 加入一个配置头文件,用于处理 CMake 对源码的设置
 configure_file (
-    "${PROJECT_SOURCE_DIR}/conf/Config.h.in"
-    "${PROJECT_SOURCE_DIR}/conf/Config.h"
+    "${PROJECT_SOURCE_DIR}/conf/config.h.in"
+    "${PROJECT_SOURCE_DIR}/conf/config.h"
 )
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../cmake)

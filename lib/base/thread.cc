@@ -13,7 +13,7 @@
 #include "thread.h"
 
 #include <assert.h>
-#include <butil/logging.h>
+#include <base/logging.h>
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>

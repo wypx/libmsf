@@ -2,7 +2,7 @@
 #include "connection.h"
 #include "sock_utils.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 namespace MSF {
 

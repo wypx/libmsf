@@ -12,7 +12,7 @@
  **************************************************************************/
 #include "latch.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 using namespace MSF;
 

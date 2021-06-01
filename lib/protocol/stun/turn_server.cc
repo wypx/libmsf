@@ -13,7 +13,8 @@
 #include <memory>
 #include <tuple>  // for std::tie
 #include <utility>
-#include <butil/logging.h>
+#include <sstream>
+#include <base/logging.h>
 
 #include "packet_socket_factory.h"
 #include "stun.h"

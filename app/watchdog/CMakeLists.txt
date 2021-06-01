@@ -32,21 +32,23 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # 设置依赖库
+# brpc.a
+# gflags.a
+# leveldb.a
+# ssl.a
+# crypto.a
+# snappy.a
+# z.a
 set(COMMLIBS MSF numa.a
-    brpc.a
     protobuf.a
     protoc.a
-    gflags.a
-    leveldb.a
-    ssl.a
-    crypto.a
-    snappy.a
-    z.a
+    uuid
     pthread
     dl)
 
 # 设置源代码路径
 aux_source_directory (. DIR_SRCS)
+# aux_source_directory (../proto DIR_SRCS)
 add_executable(${EXECUTABLE_NAME} ${DIR_SRCS})
 add_definitions(-Wno-builtin-macro-redefined)
 msf_redefine_file(${EXECUTABLE_NAME})

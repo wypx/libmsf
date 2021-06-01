@@ -28,7 +28,7 @@
 
 #include "config_parser.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>

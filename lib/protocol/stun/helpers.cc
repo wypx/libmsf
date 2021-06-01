@@ -7,7 +7,7 @@
 #include <limits>
 #include <memory>
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 // Protect against max macro inclusion.
 #undef max

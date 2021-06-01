@@ -10,7 +10,7 @@
 #include "crc.h"
 #include "message_digest.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 namespace {
 

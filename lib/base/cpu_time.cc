@@ -8,7 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "cpu_time.h"
 #include "time_utils.h"

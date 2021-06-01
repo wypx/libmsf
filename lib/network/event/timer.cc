@@ -12,7 +12,7 @@
  **************************************************************************/
 #include "timer.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include <cassert>
 

@@ -1,6 +1,6 @@
 #include "plugin.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 #include <sys/syscall.h>
 
 #include "file.h"

@@ -12,6 +12,7 @@
 
 #include "safe_conversions.h"
 
+#include <sstream>
 #if defined(__linux__)
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -28,7 +29,7 @@
 #endif
 
 #include "byte_order.h"
-#include <butil/logging.h>
+#include <base/logging.h>
 #include "net_helpers.h"
 // #include "string_builder.h"
 

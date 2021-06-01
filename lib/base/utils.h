@@ -81,7 +81,10 @@ std::string NewUuid();
 #define MSF_ROUNDUP(num, align) ((((num) + (align - 1)) / (align)) * (align))
 #define ROUND_DOWN(x, n) (((x) / (n)) * (n))
 
+#ifndef PAGE_SIZE
 #define PAGE_SIZE 4096
+#endif
+
 #define PAGE_ROUND_UP(x) (((x) + PAGE_SIZE - 1) & (~(PAGE_SIZE - 1)))
 #define PAGE_ROUND_DOWN(x) ((x) & (~(PAGE_SIZE - 1)))
 #define PAGE_ROUNDED(x) ((x) == PAGE_ROUND_DOWN(x))

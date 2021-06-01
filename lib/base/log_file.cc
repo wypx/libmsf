@@ -84,15 +84,6 @@ void LogFile::flush() {
   }
 }
 
-long FileUtil::GetAvailableSpace(const char* path) {
-  struct statvfs stat;
-  if (statvfs(path, &stat) != 0) {
-    return -1;
-  }
-  // the available size is f_bsize * f_bavail
-  return stat.f_bsize * stat.f_bavail;
-}
-
 bool LogFile::rollFile() {
   time_t now = 0;
   std::string filename = GetLogFileName(basename_, &now);
@@ -113,7 +104,7 @@ bool LogFile::rollFile() {
     }
     // 将STDOUT_FILENO和STDERR_FILENO也重定向到这个文件
     FILE* fp = file_->fp();
-    if (dupStd_) {
+    if (dup_std_) {
       ::dup2(fileno(fp), STDOUT_FILENO);
       ::dup2(fileno(fp), STDERR_FILENO);
     }

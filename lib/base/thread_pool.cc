@@ -13,7 +13,7 @@
 #include "thread_pool.h"
 
 #include <assert.h>
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "exception.h"
 #include "thread.h"
@@ -26,8 +26,8 @@ namespace MSF {
 ThreadPool::ThreadPool(const std::string& name)
     : name_(name),
       running_(false),
-      mutex_(),
       max_queue_size_(0),
+      mutex_(),
       not_empty_(),
       not_full_() {}
 
@@ -45,9 +45,9 @@ void ThreadPool::Start(int numThreads) {
     char id[32];
     snprintf(id, sizeof id, "%d", i + 1);
     threads_.emplace_back(
-        new Thread(std::bind(&ThreadPool::RunInThread, this), e + id));
+        new Thread(std::bind(&ThreadPool::RunInThread, this), id));
     threads_[i]->start();
-    LOG(INFO) << "thread init success for:" << e + id;
+    LOG(INFO) << "thread init success for:" << id;
   }
 
   if (numThreads == 0 && thread_init_cb_) {
@@ -151,18 +151,18 @@ void ThreadPool::RunInThread() {
     }
   }
   catch (const MSF::Exception& ex) {
-    LOG(FATAL) << "exception caught in ThreadPool " << e.c_str()
+    LOG(FATAL) << "exception caught in ThreadPool "
                << ",reason: " << ex.what()
                << "stack trace: " << ex.stackTrace();
     abort();
   }
   catch (const std::exception& ex) {
-    LOG(FATAL) << "exception caught in ThreadPool " << e.c_str()
+    LOG(FATAL) << "exception caught in ThreadPool "
                << ",reason: " << ex.what();
     abort();
   }
   catch (...) {
-    LOG(FATAL) << "unknown exception caught in ThreadPool " << e.c_str();
+    LOG(FATAL) << "unknown exception caught in ThreadPool ";
     throw;  // rethrow
   }
 }

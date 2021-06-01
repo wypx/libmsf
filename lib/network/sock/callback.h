@@ -13,6 +13,7 @@
 #ifndef SOCK_CALLBACK_H_
 #define SOCK_CALLBACK_H_
 
+#include <memory>
 #include <functional>
 
 namespace MSF {

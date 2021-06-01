@@ -13,8 +13,9 @@
  **************************************************************************/
 #include "acceptor.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 #include <fcntl.h>
+#include <sys/epoll.h>
 
 #include "gcc_attr.h"
 #include "event_loop.h"
@@ -41,7 +42,7 @@ Acceptor::~Acceptor() {
 bool Acceptor::Start() {
   uint16_t event = EPOLLIN | EPOLLERR | EPOLLRDHUP;
 
-/* 解决惊群 */
+/* 解决Accept惊群 */
 #ifdef EPOLLEXCLUSIVE
   event |= EPOLLEXCLUSIVE;
 #endif

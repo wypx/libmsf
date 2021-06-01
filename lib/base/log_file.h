@@ -42,6 +42,8 @@ class LogFile {
   const int flush_interval_;
   const int checkEveryN_;
   const int64_t roll_size_;
+  bool forbit_write_ = false;
+  bool dup_std_ = true;
 
   const std::string basename_;
 

@@ -14,7 +14,7 @@
 #include <memory>
 #include <set>
 #include <utility>
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "match.h"
 #include "candidate.h"

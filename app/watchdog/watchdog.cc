@@ -16,14 +16,19 @@
 #include <base/signal_manager.h>
 #include <base/version.h>
 #include <base/mem_pool.h>
+#include <base/logging.h>
+
+#include "echo_server.h"
 
 #include <cassert>
 
+#if 0
 #include <gflags/gflags.h>
-#include <butil/logging.h>
+
+#include <base/logging.h>
 #include <butil/time.h>
 #include <brpc/channel.h>
-#include "../Mobile/src/Mobile.pb.h"
+#include "../mobile/src/Mobile.pb.h"
 
 DEFINE_bool(send_attachment, true, "Carry attachment along with requests");
 DEFINE_string(protocol, "baidu_std",
@@ -34,11 +39,13 @@ DEFINE_string(server, "0.0.0.0:8001", "IP Address of server");
 DEFINE_string(load_balancer, "", "The algorithm for load balancing");
 DEFINE_int32(timeout_ms, 100, "RPC timeout in milliseconds");
 DEFINE_int32(max_retry, 3, "Max retries(not including the first RPC)");
+#endif
 
 using namespace MSF;
 
 namespace MSF {
 
+#if 0
 void HandleGetMobileAPNResponse(brpc::Controller *cntl,
                                 Mobile::GetMobileAPNResponse *response) {
   // std::unique_ptr makes sure cntl/response will be deleted before returning.
@@ -54,6 +61,7 @@ void HandleGetMobileAPNResponse(brpc::Controller *cntl,
             << ")"
             << " latency=" << cntl->latency_us() << "us";
 }
+#endif
 
 Guard::Guard() {
   // logFile_ = "/var/log/luotang.me/Guard.log";
@@ -64,7 +72,7 @@ Guard::Guard() {
 
   std::vector<struct ThreadArg> threadArgs;
   threadArgs.push_back(std::move(ThreadArg("AgentLoop")));
-  assert(stack_->startThreads(threadArgs));
+  assert(stack_->StartThreads(threadArgs));
 
   // agent_ = new AgentClient(stack_->getOneLoop(), "Guard", Agent::APP_GUARD,
   // "luotang.me", 8888);
@@ -74,7 +82,7 @@ Guard::Guard() {
 
 Guard::~Guard() {}
 
-void Guard::start() { stack_->start(); }
+void Guard::start() { stack_->Start(); }
 
 struct ApnItem {
   int cid;    /* Context ID, uniquely identifies this call */
@@ -243,7 +251,13 @@ std::string GetParentDirName(const std::string &path) {
   return GetDirName(parent);
 }
 
+
 int main(int argc, char *argv[]) {
+  EventLoop loop;
+  StartEchoServer(&loop);
+  loop.EnterLoop();
+
+#if 0
   logging::LoggingSettings log_setting;
   log_setting.logging_dest = logging::LOG_TO_ALL;
   log_setting.log_file = "/home/luotang.me/log/Guard.log";
@@ -304,6 +318,7 @@ int main(int argc, char *argv[]) {
     // inside the callback
     sleep(1);
   }
+#endif
 
   LOG(INFO) << "EchoClient is going to quit";
 

@@ -46,7 +46,7 @@ def MakeBuildLib(BuildRoot):
 def MakeBuildApp(BuildRoot):
     os.chdir(BuildRoot + "/build/app")
     os.system("cmake ../../app")
-    os.system("make -j")
+    os.system("make -j1")
     os.system("make install")
 
 def MakeBuildProto(BuildRoot):
@@ -68,10 +68,16 @@ def InstallDependencies():
     dependLibs.append("g++")
     dependLibs.append("make")
     dependLibs.append("cmake3")
-    # sudo apt-get install libaio-dev 
+    # apt-get install libaio-dev 
     dependLibs.append("libnuma-dev")
     dependLibs.append("libprotobuf-dev")
     dependLibs.append("protobuf-compiler")
+    # apt-get install libgflags-dev
+    # apt-get install libuuid-dev
+    # apt-get install uuid-dev
+    # apt-get install libssl-dev
+    # apt-get install libsnappy-dev
+    # apt-get install libleveldb-dev
 
 if __name__ == '__main__':
     DisplayGithub()

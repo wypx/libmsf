@@ -34,7 +34,7 @@
 
 #include <linux/sockios.h>  // SIOCGSTAMP
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "gcc_attr.h"
 #include "utils.h"
@@ -151,24 +151,6 @@ bool SplitHostPort(const char *address, std::string &host, int &port) {
   return true;
 }
 
-#ifdef WIN32
-class WinsockInitializer {
- public:
-  WinsockInitializer() {
-    WSADATA wsaData;
-    WORD wVersionRequested = MAKEWORD(2, 0);
-    err_ = WSAStartup(wVersionRequested, &wsaData);
-  }
-  ~WinsockInitializer() {
-    if (!err_) WSACleanup();
-  }
-  int error() { return err_; }
-
- private:
-  int err_;
-};
-#endif
-
 bool SocketInit() {
   char *errstr;
 #ifdef WIN32
@@ -176,12 +158,16 @@ bool SocketInit() {
   WSADATA wsaData;
   int error_code;
 
-  wVersionRequested = MAKEWORD(2, 0);
-  if ((error_code = WSAStartup(wVersionRequested, &wsaData)) != 0) {
-    *errstr = xasprintf("%s", wsa_strerror(error_code));
-    return false;
-  } else {
-    return false;
+  static bool bWSAInit = false;
+  if (!bWSAInit) {
+    wVersionRequested = MAKEWORD(2, 2);
+    if ((error_code = WSAStartup(wVersionRequested, &wsaData)) != 0) {
+      *errstr = ::sprintf("%s", wsa_strerror(error_code));
+      return false;
+    } else {
+      return false;
+    }
+    bWSAInit = true;
   }
 #else /* noone else needs this... */
   (void)errstr;
@@ -189,16 +175,34 @@ bool SocketInit() {
 #endif
 }
 
+void SocketDeinit() {
+#ifdef WIN32
+  WSACleanup();
+#endif
+}
+
 /* try to finish the connect() */
 /*(should be called after connect() only when fd is writable (POLLOUT))*/
 bool SocketError(const int fd) {
+#ifdef WIN32
+  char buf[128] = {0};
+  int len = sizeof(buf);
+  FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS |
+                     FORMAT_MESSAGE_MAX_WIDTH_MASK,
+                 nullptr, WSAGetLastError(),
+                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)buf, len,
+                 nullptr);
+  LOG(INFO) << "socket get error: " << buf;
+  return true;
+#else
   int error = -1;
   socklen_t len = sizeof(error);
   if (::getsockopt(fd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
-    LOG(ERROR) << "Socket get errno: " << errno << " error: " << error;
+    LOG(ERROR) << "socket get errno: " << errno << " error: " << error;
     return true;
   }
   return false;
+#endif
 }
 
 bool IsNoNetwork(const int error) {
@@ -325,6 +329,10 @@ bool CreateSocketPair(int fd[2]) {
   }
   return true;
 }
+
+// https://www.cnblogs.com/nufangrensheng/p/3569009.html
+// fattach
+// fdeattch
 
 /*
 1.close()函数
@@ -960,8 +968,8 @@ int CreateUnixServer(const std::string &srvPath, const uint32_t backlog,
   /* bind the name to the descriptor */
   if (::bind(fd, (struct sockaddr *)&s_un, sizeof(s_un)) < 0) {
     ::umask(old_umask);
-    LOG(ERROR) << "Bind failed  for " << s_un.sun_path
-               << "errno: " << strerror(errno);
+    LOG(ERROR) << "bind failed  for " << s_un.sun_path
+               << " errno: " << strerror(errno);
     CloseSocket(fd);
     return -1;
   }
@@ -970,7 +978,7 @@ int CreateUnixServer(const std::string &srvPath, const uint32_t backlog,
   if (::listen(fd, backlog) < 0) {
     /* tell kernel we're a server */
     LOG(ERROR) << "listen call failed errno :" << strerror(errno);
-    close(fd);
+    CloseSocket(fd);
     return -1;
   }
   return fd;
@@ -1707,6 +1715,7 @@ void DrianData(const int fd, const uint32_t size) {
   }
 }
 
+// MSG_NOSIGNAL, MSG_DONTWAIT/MSG_WAITALL, MSG_MORE, MSG_ZEROCOPY
 int SendMsg(const int fd, struct iovec *iov, int cnt, int flag) {
   struct msghdr msg = {0};
   msg.msg_iov = iov;
@@ -2341,6 +2350,7 @@ int CreateEventFd(const int initval, const int flags) {
   }
 #endif
 
+  // EFDSEMAPHRE
   fd = ::eventfd(initval, 0);
   if (fd < 0) {
     LOG(ERROR) << "Failed to create event fd";

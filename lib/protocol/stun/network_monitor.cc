@@ -13,7 +13,7 @@
 #include <stdint.h>
 
 #include "location.h"
-#include <butil/logging.h>
+#include <base/logging.h>
 
 namespace MSF {
 

@@ -12,7 +12,7 @@
  **************************************************************************/
 #include "signal_manager.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "Os.h"
 

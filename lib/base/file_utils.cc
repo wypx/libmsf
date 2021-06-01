@@ -14,9 +14,10 @@
 
 #include <sys/file.h>
 #include <unistd.h>
+#include <sys/statvfs.h>
 
 #include "file_details.h"
-#include "Uio.h"
+#include "uio.h"
 
 using namespace MSF;
 
@@ -205,6 +206,15 @@ static off_t fileSize(const std::string& path)  // get file size
   } else {
     return fileInfo.st_size;
   }
+}
+
+long GetAvailableSpace(const char* path) {
+  struct statvfs stat;
+  if (::statvfs(path, &stat) != 0) {
+    return -1;
+  }
+  // the available size is f_bsize * f_bavail
+  return stat.f_bsize * stat.f_bavail;
 }
 
 }  // namespace MSF

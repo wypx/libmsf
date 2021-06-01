@@ -11,7 +11,7 @@
  *
  **************************************************************************/
 #include <cassert>
-#include <butil/logging.h>
+#include <base/logging.h>
 #include "AgentClient.h"
 #include "Event.h"
 #include "AgentProto.h"

@@ -42,7 +42,7 @@
 #include <algorithm>
 #include <map>
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "array_size.h"
 #include "byte_order.h"

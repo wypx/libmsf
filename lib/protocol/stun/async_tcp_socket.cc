@@ -5,7 +5,7 @@
 
 #include <algorithm>
 #include <memory>
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "array_view.h"
 #include "byte_order.h"

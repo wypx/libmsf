@@ -6,7 +6,7 @@
 #include <event/event_loop.h>
 
 #include <cassert>
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include <event/timer.h>
 

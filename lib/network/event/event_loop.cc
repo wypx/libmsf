@@ -13,7 +13,7 @@
 #include "event_loop.h"
 
 #include <assert.h>
-#include <butil/logging.h>
+#include <base/logging.h>
 #include <sys/eventfd.h>
 
 #include <memory>

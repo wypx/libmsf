@@ -246,6 +246,8 @@ class AppendFile {
 
   void flush();
 
+  FILE* fp() { return m_fp; }
+
   off_t writtenBytes() const { return m_writtenBytes; }
 
  private:
@@ -256,6 +258,8 @@ class AppendFile {
   off_t m_writtenBytes;
   char m_buffer[kFileBufferSize];
 };
+
+long GetAvailableSpace(const char* path);
 
 }  // namespace MSF
 #endif

@@ -1,0 +1,170 @@
+syntax = "proto3";
+package Agent;
+
+enum Errno {
+    ERR_EXEC_SUCESS         = 0;
+    ERR_EXEC_FAILURE        = 1;
+    ERR_LOGIN_SUCESS        = 2;
+    ERR_LOGIN_FAILURE       = 3;
+    ERR_LOGIN_UNAUTH        = 4;
+    ERR_PEER_OFFLINE        = 5;
+    ERR_SEND_TIMEROUT       = 6;
+    ERR_RECV_TIMEROUT       = 7;
+    ERR_CANNOT_IN_LOOP      = 8;
+    ERR_AGENT_NOT_START     = 9;
+    ERR_ENCODE_FAILURE      = 10;
+    ERR_DECODE_FAILURE      = 11;
+    ERR_UNKNOWN_MAGIC       = 12;
+    ERR_UNKNOWN_COMMAND     = 13;
+    ERR_REPEAT_REGISTERED   = 14;
+    ERR_SERVER_INNER_ERR    = 15;
+};
+
+enum Command {
+    /* Basic node command defines 0x00000000 - 0x000000ff*/
+    CMD_REQ_NODE_REGISTER           = 0x00000000;
+    CMD_REQ_NODE_UNREGISTER         = 0x00000001;
+    CMD_REQ_NODE_HEARTBEAT          = 0x00000002;
+    CMD_REQ_NODE_STATUS_REPORT      = 0x00000003;
+    CMD_REQ_NODE_LOGGER_COLLECT     = 0x00000004;   /* Distributed network logger */
+    CMD_REQ_NODE_LOGGER_LEVEL       = 0x00000005;   /* Set one node logger level */
+    CMD_REQ_NODE_QUERY              = 0x00000006;   /* Query all nodes infomation */
+    CMD_REQ_NODE_NOTIFY             = 0x00000007;   /* Agent server notify all nodes */
+    CMD_REQ_NODE_LEADER_ELECTION    = 0x00000008;
+
+    CMD_REQ_STORAGE_READ            = 0x00000100;
+    CMD_REQ_STORAGE_WRITE           = 0x00000101;
+    CMD_REQ_MOBILE_READ             = 0x00000102;
+    CMD_REQ_MOBILE_WRITE            = 0x00000103;
+};
+
+enum AppId {
+    APP_ONESELF  = 0;
+    APP_AGENT    = 1;
+    APP_GUARD    = 2;
+    APP_MOBILE   = 3;
+    APP_DLNA     = 4;
+    APP_UPNP     = 5;
+    APP_DDNS     = 6;
+};
+
+enum PackType {
+    PACK_BINNARY    = 0;
+    PACK_JSON       = 1;
+    PACK_PROTOBUF   = 2;
+    PACK_BUTT       = 3;
+};
+
+enum Opcode {
+    OP_REQ      = 0;
+    OP_RSP      = 1;
+};
+
+
+// Protobuf data type
+// https://blog.csdn.net/superbfly/article/details/17920383
+// https://www.cnblogs.com/tohxyblog/p/8974763.html
+// https://blog.csdn.net/qing666888/article/details/79389964
+/**
+ * 消息头
+ * MsgHead为固定15字节的头部，当ERRBhs不等于20字节时，消息发送将出错。
+ * 在proto2版本,ERRBhs为15字节总是成立，cmd、seq、len都是required；
+ * 但proto3版本,ERRBhs为15字节则必须要求cmd、seq、len均不等于0，否则无法正确进行收发编解码。
+ */
+ message AgentBhs {
+    /* |63    55      47     39      31      23      15      8      0|
+     * |<-  macgic  ->|version|encrypt|<-          checksum        ->|
+     * |<-  srcid   ->|<-   dstid   ->|<-      sessno / retcode    ->|
+     * |<-  cmd     ->| opcode(1B)  ->|<-          datalen        -->|
+     * */
+    fixed64 verify  = 1;
+    fixed64 router  = 2;
+    fixed64 command = 3;
+}
+
+// message AgentRequest
+// {
+//     ERRAppId  src_id      = 1;
+//     ERRAppId  dst_id      = 2;
+//     ERRAppId  route_id    = 3;    /* Router id */
+//     string route_info     = 4;    /* Router str when route_id cannot express */
+//     uint32      length    = 5;    /* Request data length */
+// }
+
+// message AgentResponse
+// {
+//     Errno ret_code        = 1;      /* Error happen */
+//     bytes ret_msg         = 2;      /* Error message, ascii or utf8 and etc */
+//     bool  last_rsp        = 3;      /* Last responce */
+// }
+
+// message ERRPdu
+// {
+//     oneof ERRType
+//     {
+//         ERRRequest request         = 1;
+//         ERRResponse responce       = 2;
+//     }
+//     bytes msg                   = 3;    /* Message body data */
+// }
+
+// message ERRMsg {
+//     ERRBhs    bhs = 1;
+//     ERRPdu    pdu = 2;
+// }
+
+enum NetType {
+    NET_ETH       = 0;
+    NET_WLAN      = 1;
+    NET_MOBILE    = 2;
+}
+
+message Chap {
+    uint32 phase = 1;   /* Node neg phase */
+    uint32 alg   = 2;   /* Node hash alg */
+    bytes  hash  = 3;   /* Node hash of name and pass */
+};
+
+message LoginRequest {
+    bytes   name        = 1;    /* Node name*/
+    Chap    chap        = 3;    /* Node chap option */
+    NetType net         = 4;    /* Node net type */
+    bytes   token       = 5;    /* App token code */
+};
+
+message LoginReponse {
+    bytes  msg          = 1;    /* Error message, ascii or utf8 and etc */
+    fixed32 ttl         = 2;
+};
+
+
+enum NodeStatus {
+    STATUS_ONLINE       = 0;
+    STATUS_OFFLINE      = 1;
+    STATUS_IDLE         = 2;
+    STATUS_BUSY         = 3;
+};
+
+message NodeInfo {
+    bytes   name        = 1;    /* Node name*/
+    AppId   cid         = 2;
+    NodeStatus  status  = 3;
+    NetType net         = 4;
+};
+
+message HeartBeatRequest {
+    bytes   name        = 1;    /* Node name*/
+    AppId   cid         = 2;
+};
+
+message HeartBeatReponse {
+    repeated NodeInfo  nodes = 1;
+};
+
+message AgentPdu {
+    AgentBhs bhs            = 1;
+    LoginRequest reqLogin   = 2;
+    LoginReponse rspLogin   = 3;
+    HeartBeatRequest reqHb  = 4;
+    HeartBeatReponse rspHb  = 5;
+};

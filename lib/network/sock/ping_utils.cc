@@ -13,7 +13,7 @@
 #include "ping_utils.h"
 
 #include <arpa/inet.h>
-#include <butil/logging.h>
+#include <base/logging.h>
 #include <net/if.h>
 #include <net/if_arp.h>
 #include <netdb.h>

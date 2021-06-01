@@ -12,7 +12,7 @@
  **************************************************************************/
 #include "AgentProto.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include <base/bitops.h>
 

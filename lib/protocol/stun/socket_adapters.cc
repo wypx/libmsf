@@ -15,7 +15,7 @@
 #include "socket_adapters.h"
 
 #include <algorithm>
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "match.h"
 #include "const_buffer.h"
@@ -223,7 +223,7 @@ AsyncHttpsProxySocket::~AsyncHttpsProxySocket() {
 
 int AsyncHttpsProxySocket::Connect(const SocketAddress& addr) {
   int ret;
-  LOG(VERBOSE) << "AsyncHttpsProxySocket::Connect("
+  LOG(L_DEBUG) << "AsyncHttpsProxySocket::Connect("
                       << proxy_.ToSensitiveString() << ")";
   dest_ = addr;
   state_ = PS_INIT;
@@ -259,7 +259,7 @@ Socket::ConnState AsyncHttpsProxySocket::GetState() const {
 }
 
 void AsyncHttpsProxySocket::OnConnectEvent(AsyncSocket* socket) {
-  LOG(VERBOSE) << "AsyncHttpsProxySocket::OnConnectEvent";
+  LOG(L_DEBUG) << "AsyncHttpsProxySocket::OnConnectEvent";
   if (!ShouldIssueConnect()) {
     state_ = PS_TUNNEL;
     BufferedReadAdapter::OnConnectEvent(socket);
@@ -269,7 +269,7 @@ void AsyncHttpsProxySocket::OnConnectEvent(AsyncSocket* socket) {
 }
 
 void AsyncHttpsProxySocket::OnCloseEvent(AsyncSocket* socket, int err) {
-  LOG(VERBOSE) << "AsyncHttpsProxySocket::OnCloseEvent(" << err << ")";
+  LOG(L_DEBUG) << "AsyncHttpsProxySocket::OnCloseEvent(" << err << ")";
   if ((state_ == PS_WAIT_CLOSE) && (err == 0)) {
     state_ = PS_ERROR;
     Connect(dest_);
@@ -343,11 +343,11 @@ void AsyncHttpsProxySocket::SendRequest() {
   content_length_ = 0;
   headers_.clear();
 
-  LOG(VERBOSE) << "AsyncHttpsProxySocket >> " << str;
+  LOG(L_DEBUG) << "AsyncHttpsProxySocket >> " << str;
 }
 
 void AsyncHttpsProxySocket::ProcessLine(char* data, size_t len) {
-  LOG(VERBOSE) << "AsyncHttpsProxySocket << " << data;
+  LOG(L_DEBUG) << "AsyncHttpsProxySocket << " << data;
 
   if (len == 0) {
     if (state_ == PS_TUNNEL_HEADERS) {
@@ -399,7 +399,7 @@ void AsyncHttpsProxySocket::ProcessLine(char* data, size_t len) {
     switch (HttpAuthenticate(data + 19, len - 19, proxy_, "CONNECT", "/", user_,
                              pass_, context_, response, auth_method)) {
       case HAR_IGNORE:
-        LOG(VERBOSE) << "Ignoring Proxy-Authenticate: " << auth_method;
+        LOG(L_DEBUG) << "Ignoring Proxy-Authenticate: " << auth_method;
         if (!unknown_mechanisms_.empty())
           unknown_mechanisms_.append(", ");
         unknown_mechanisms_.append(auth_method);
@@ -544,19 +544,19 @@ void AsyncSocksProxySocket::ProcessInput(char* data, size_t* len) {
     if (atyp == 1) {
       uint32_t addr;
       if (!response.ReadUInt32(&addr) || !response.ReadUInt16(&port)) return;
-      LOG(VERBOSE) << "Bound on " << addr << ":" << port;
+      LOG(L_DEBUG) << "Bound on " << addr << ":" << port;
     } else if (atyp == 3) {
       uint8_t len;
       std::string addr;
       if (!response.ReadUInt8(&len) || !response.ReadString(&addr, len) ||
           !response.ReadUInt16(&port))
         return;
-      LOG(VERBOSE) << "Bound on " << addr << ":" << port;
+      LOG(L_DEBUG) << "Bound on " << addr << ":" << port;
     } else if (atyp == 4) {
       std::string addr;
       if (!response.ReadString(&addr, 16) || !response.ReadUInt16(&port))
         return;
-      LOG(VERBOSE) << "Bound on <IPV6>:" << port;
+      LOG(L_DEBUG) << "Bound on <IPV6>:" << port;
     } else {
       Error(0);
       return;

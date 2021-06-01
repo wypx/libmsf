@@ -14,17 +14,19 @@
 
 namespace MSF {
 
-FastServer::FastServer(const InetAddress &addr) {
-  acceptor_ = std::make_unique<Acceptor>(addr, &FastServer::NewConnCallback);
+FastServer::FastServer(EventLoop *loop, const InetAddress &addr) {
+  acceptor_ = std::make_unique<Acceptor>(
+      loop, addr, std::bind(&FastServer::NewConnCallback, this,
+                            std::placeholders::_1, std::placeholders::_2));
 }
 
 FastServer::~FastServer() {}
 
-bool FastServer::StartAccept() { return acceptor_->EnableListen(); }
+void FastServer::StartAccept() { return acceptor_->OpenListen(); }
 
-bool FastServer::RestartAccept() { return acceptor_->EnableListen(); }
+void FastServer::RestartAccept() { return acceptor_->OpenListen(); }
 
-bool FastServer::StopAccept() { return acceptor_->DisableListen(); }
+void FastServer::StopAccept() { return acceptor_->CloseListen(); }
 
-bool FastServer::QuitAccept() { return acceptor_->DisableListen(); }
+void FastServer::QuitAccept() { return acceptor_->CloseListen(); }
 }

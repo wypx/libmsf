@@ -12,7 +12,7 @@
  **************************************************************************/
 #include "inet_address.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 using namespace MSF;
 

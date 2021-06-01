@@ -15,7 +15,7 @@
 #include "gcc_attr.h"
 #include "event_loop.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 namespace MSF {
 

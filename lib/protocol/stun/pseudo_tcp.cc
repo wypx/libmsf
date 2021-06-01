@@ -17,7 +17,7 @@
 #include <cstdint>
 #include <memory>
 #include <set>
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "byte_order.h"
 #include "byte_buffer.h"

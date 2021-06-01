@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "gcc_attr.h"
+
 namespace MSF {
 
 class Exception : public std::exception {

@@ -42,7 +42,7 @@
 // #define _BSD_SOURCE
 #include "get_clock.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>

@@ -2,7 +2,7 @@
 #define BASE_FLOW_CTRL_H_
 
 #include <assert.h>
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "cpu_cycles.h"
 #include "gcc_attr.h"

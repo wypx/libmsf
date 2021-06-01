@@ -32,19 +32,19 @@ const char* strerror_tl(int savedErrno) {
   return ::strerror_r(savedErrno, t_errnobuf, sizeof t_errnobuf);
 }
 
-Logger::LogLevel initLogLevel() {
+LogLevel initLogLevel() {
   if (::getenv("MSF_LOG_TRACE"))
-    return Logger::TRACE;
+    return TRACE;
   else if (::getenv("MSF_LOG_DEBUG"))
-    return Logger::L_DEBUG;
+    return L_DEBUG;
   else
-    return Logger::INFO;
+    return INFO;
 }
 
-Logger::LogLevel g_logLevel = initLogLevel();
+LogLevel g_logLevel = initLogLevel();
 
-const char* LogLevelName[Logger::NUM_LOG_LEVELS] = {
-    "TRACE ", "DEBUG ", "INFO  ", "WARN  ", "ERROR ", "FATAL ", };
+const char* LogLevelName[NUM_LOG_LEVELS] = {"TRACE ", "DEBUG ", "INFO  ",
+                                            "WARN  ", "ERROR ", "FATAL ", };
 
 // helper class for known string length at compile time
 class T {
@@ -189,7 +189,7 @@ Logger::~Logger() {
   }
 }
 
-void Logger::setLogLevel(Logger::LogLevel level) { g_logLevel = level; }
+void Logger::setLogLevel(LogLevel level) { g_logLevel = level; }
 
 void Logger::setOutput(OutputFunc out) { g_output = out; }
 

@@ -20,13 +20,13 @@ namespace MSF {
 
 class FastServer {
  public:
-  FastServer(const InetAddress &addr);
+  FastServer(EventLoop *loop, const InetAddress &addr);
   virtual ~FastServer();
 
-  bool StartAccept();
-  bool RestartAccept();
-  bool StopAccept();
-  bool QuitAccept();
+  void StartAccept();
+  void RestartAccept();
+  void StopAccept();
+  void QuitAccept();
 
   virtual void NewConnCallback(const int fd, const uint16_t event) = 0;
   virtual void ConnReadCallback(const ConnectionPtr &conn) = 0;

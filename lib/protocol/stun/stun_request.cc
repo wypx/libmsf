@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <memory>
 #include <vector>
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "helpers.h"
 #include "string_encode.h"
@@ -269,7 +269,7 @@ void StunRequest::OnSent() {
   if (retransmissions >= STUN_MAX_RETRANSMISSIONS) {
     timeout_ = true;
   }
-  LOG(VERBOSE) << "Sent STUN request " << count_
+  LOG(L_DEBUG) << "Sent STUN request " << count_
                << "; resend delay = " << resend_delay();
 }
 

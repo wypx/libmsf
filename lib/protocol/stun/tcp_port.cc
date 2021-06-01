@@ -68,7 +68,7 @@
 
 #include <errno.h>
 #include <vector>
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "p2p_constants.h"
 #include "ip_address.h"

@@ -38,7 +38,7 @@
 #include <io.h>
 #endif
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "file_utils.h"
 

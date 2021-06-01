@@ -12,7 +12,7 @@
  **************************************************************************/
 #include "mem.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "os.h"
 #include "utils.h"

@@ -1,7 +1,7 @@
 
 #include "crc.h"
 #include "gcc_attr.h"
-#include <butil/logging.h>
+#include <base/logging.h>
 
 using namespace MSF;
 

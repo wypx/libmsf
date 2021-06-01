@@ -14,7 +14,7 @@
 #include "epoll_poller.h"
 
 #include <assert.h>
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "event.h"
 #include "gcc_attr.h"

@@ -26,7 +26,7 @@
 #include <linux/ethtool.h>
 #undef __KERNEL__
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "net_manager.h"
 #include "utils.h"

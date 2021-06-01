@@ -13,7 +13,7 @@
  **************************************************************************/
 #include "shm.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 #include <sys/ipc.h>
 #include <sys/mman.h>
 #include <sys/shm.h>

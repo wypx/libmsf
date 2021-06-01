@@ -1,7 +1,7 @@
 #include "mmap_file.h"
 
 #include <assert.h>
-#include <butil/logging.h>
+#include <base/logging.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <string.h>
@@ -25,7 +25,6 @@ bool mapMem(const uint32_t n) {
     errno = EINVAL;
     return false;
   }
-  int PAGE_SIZE = 0;
   // Round up to nearest multiple of page size.
   int bytes = n & ~(PAGE_SIZE - 1);
   if (n % PAGE_SIZE) {
@@ -42,23 +41,23 @@ bool mapMem(const uint32_t n) {
   uint8_t* addr = nullptr;
   uint8_t* addr2 = nullptr;
   // Allocate twice the buffer size
-  addr =
-      static_cast<unsigned char*>(mmap(NULL, 2 * bytes, PROT_READ | PROT_WRITE,
-                                       MAP_SHARED | MAP_ANONYMOUS, -1, 0));
+  addr = static_cast<unsigned char*>(::mmap(NULL, 2 * bytes,
+                                            PROT_READ | PROT_WRITE,
+                                            MAP_SHARED | MAP_ANONYMOUS, -1, 0));
 
   if (addr == MAP_FAILED) {
     goto errout;
   }
 
   // Shrink to actual buffer size.
-  addr = static_cast<uint8_t*>(mremap(addr, 2 * bytes, bytes, 0));
+  addr = static_cast<uint8_t*>(::mremap(addr, 2 * bytes, bytes, 0));
   if (addr == MAP_FAILED) {
     goto errout;
   }
 
   // Create the second copy right after the shrinked buffer.
   addr2 = static_cast<uint8_t*>(
-      mremap(addr, 0, bytes, MREMAP_MAYMOVE, addr + bytes));
+      ::mremap(addr, 0, bytes, MREMAP_MAYMOVE, addr + bytes));
 
   if (addr2 == MAP_FAILED) {
     goto errout;

@@ -74,7 +74,7 @@ class AgentConn : public Connector {
   void init(MemPool *mpool, EventLoop *loop, const int fd = -1) {
     mpool_ = mpool;
     loop_ = loop;
-    fd_ = fd;
+    // fd_ = fd;
     Connector::Init(loop, fd);
   }
   void wakeup() {

@@ -54,18 +54,17 @@ namespace MSF {
 
 class TimeZone;
 
+enum LogLevel {
+  TRACE,
+  L_DEBUG,
+  INFO,
+  WARNING,
+  ERROR,
+  FATAL,
+  NUM_LOG_LEVELS,
+};
 class Logger {
  public:
-  enum LogLevel {
-    TRACE,
-    L_DEBUG,
-    INFO,
-    WARN,
-    ERROR,
-    FATAL,
-    NUM_LOG_LEVELS,
-  };
-
   Logger(const char* file, int line);
   Logger(const char* file, int line, LogLevel level);
   Logger(const char* file, int line, LogLevel level, const char* func);
@@ -86,7 +85,6 @@ class Logger {
  private:
   class Impl {
    public:
-    typedef Logger::LogLevel LogLevel;
     Impl(LogLevel level, int old_errno, const char* file, int line);
     void formatTime();
     void finish();
@@ -102,9 +100,9 @@ class Logger {
   Impl impl_;
 };
 
-extern Logger::LogLevel g_logLevel;
+extern LogLevel g_logLevel;
 
-inline Logger::LogLevel Logger::logLevel() { return g_logLevel; }
+inline LogLevel Logger::logLevel() { return g_logLevel; }
 
 //
 // CAUTION: do not write:
@@ -122,21 +120,21 @@ inline Logger::LogLevel Logger::logLevel() { return g_logLevel; }
 //   else
 //     logWarnStream << "Bad news";
 //
-#define LOG_TRACE                          \
-  if (Logger::logLevel() <= Logger::TRACE) \
-  Logger(__FILE__, __LINE__, Logger::TRACE, __func__).stream()
-#define LOG_DEBUG                            \
-  if (Logger::logLevel() <= Logger::L_DEBUG) \
-  Logger(__FILE__, __LINE__, Logger::L_DEBUG, __func__).stream()
+#define LOG_TRACE                  \
+  if (Logger::logLevel() <= TRACE) \
+  Logger(__FILE__, __LINE__, TRACE, __func__).stream()
+#define LOG_DEBUG                    \
+  if (Logger::logLevel() <= L_DEBUG) \
+  Logger(__FILE__, __LINE__, L_DEBUG, __func__).stream()
 #define LOG_INFO \
-  if (Logger::logLevel() <= Logger::INFO) Logger(__FILE__, __LINE__).stream()
-#define LOG_WARN Logger(__FILE__, __LINE__, Logger::WARN).stream()
-#define LOG_ERROR Logger(__FILE__, __LINE__, Logger::ERROR).stream()
-#define LOG_FATAL Logger(__FILE__, __LINE__, Logger::FATAL).stream()
+  if (Logger::logLevel() <= INFO) Logger(__FILE__, __LINE__).stream()
+#define LOG_WARN Logger(__FILE__, __LINE__, WARN).stream()
+#define LOG_ERROR Logger(__FILE__, __LINE__, ERROR).stream()
+#define LOG_FATAL Logger(__FILE__, __LINE__, FATAL).stream()
 #define LOG_SYSERR Logger(__FILE__, __LINE__, false).stream()
 #define LOG_SYSFATAL Logger(__FILE__, __LINE__, true).stream()
 
-#define LOG(level) Logger(__FILE__, __LINE__，level).stream()
+#define LOG(level) Logger(__FILE__, __LINE__, level).stream()
 
 const char* strerror_tl(int savedErrno);
 
@@ -152,7 +150,7 @@ const char* strerror_tl(int savedErrno);
 template <typename T>
 T* CheckNotNull(const char* file, int line, const char* names, T* ptr) {
   if (ptr == NULL) {
-    Logger(file, line, Logger::FATAL).stream() << names;
+    Logger(file, line, FATAL).stream() << names;
   }
   return ptr;
 }

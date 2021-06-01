@@ -14,7 +14,7 @@
 #include <limits>
 #include <memory>
 #include <cassert>
-#include <butil/logging.h>
+#include <base/logging.h>
 
 namespace MSF {
 

@@ -14,7 +14,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "message_digest.h"
 #include "ssl_certificate.h"

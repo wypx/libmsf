@@ -12,7 +12,7 @@
  **************************************************************************/
 #include "mem_pool.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "affinity.h"
 #include "os.h"

@@ -22,7 +22,7 @@
 #include <linux/serial.h>
 #endif
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 using namespace MSF;
 

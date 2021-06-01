@@ -5,7 +5,7 @@
 #ifndef BASE_OBJ_POOL_H_
 #define BASE_OBJ_POOL_H_
 
-#include <butil/logging.h>
+#include <base/logging.h>
 #include <stdint.h>
 #include <sys/mman.h>
 #include <unistd.h>

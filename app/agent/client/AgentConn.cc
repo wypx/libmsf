@@ -10,7 +10,7 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include <butil/logging.h>
+#include <base/logging.h>
 #include "AgentConn.h"
 
 namespace MSF {

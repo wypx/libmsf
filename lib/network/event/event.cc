@@ -12,7 +12,7 @@
  **************************************************************************/
 #include "event.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 #include <sys/epoll.h>
 
 #include <sstream>

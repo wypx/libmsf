@@ -14,7 +14,7 @@
 
 #include <memory>
 #include <string>
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include "transport_description.h"
 // #include "ssl_fingerprint.h"

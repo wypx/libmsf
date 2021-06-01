@@ -12,7 +12,7 @@
  **************************************************************************/
 #include "os.h"
 
-#include <butil/logging.h>
+#include <base/logging.h>
 
 #include <cxxabi.h>
 #include <execinfo.h>

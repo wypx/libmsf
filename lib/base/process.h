@@ -13,23 +13,30 @@
 #ifndef BASE_PROCESS_H_
 #define BASE_PROCESS_H_
 
-#include <errno.h> /* program_invocation_short_name */
-#include <signal.h>
-#include <stdio.h>
-#include <sys/file.h>
-#include <sys/stat.h>
-#include <sys/syscall.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
+// #include <errno.h> /* program_invocation_short_name */
+// #include <signal.h>
+// #include <stdio.h>
+// #include <sys/file.h>
+// #include <sys/stat.h>
+// #include <sys/syscall.h>
+// #include <sys/types.h>
+// #include <sys/wait.h>
+// #include <unistd.h>
 
-#include <algorithm>
-#include <atomic>  // std::atomic_flag
-#include <iostream>
-#include <thread>  // std::thread
+// #include <algorithm>
+// #include <atomic>  // std::atomic_flag
+// #include <iostream>
+// #include <thread>  // std::thread
+// #include <sys/prctl.h>
+// #include <sys/socket.h>
 
-#include "gcc_attr.h"
-#include "plugin.h"
+// #include "gcc_attr.h"
+// #include "plugin.h"
+
+#include <map>
+#include <vector>
+#include <base/time_stamp.h>
+#include <base/flock.h>
 
 using namespace MSF;
 
@@ -71,109 +78,8 @@ enum process_state {
   proc_state_stop,
 };
 
-struct process_desc {
-  pid_t proc_pid;
-  time_t proc_age;
-  int proc_fd;
-  int restart_times;
-
-  uint32_t proc_idx;
-  char proc_name[64];
-  char proc_path[64]; /* Check access first*/
-  char proc_conf[64]; /* Check access first*/
-};
-
-pid_t msf_getpid_by_name(const std::string &name) {
-  FILE *fptr;
-  char buf[256] = {0};
-  char cmd[256] = {0};
-  pid_t pid = -1;
-  snprintf(cmd, sizeof(cmd) - 1, "pidof %s", name.c_str());
-  if ((fptr = popen(cmd, "r")) != NULL) {
-    if (fgets(buf, 255, fptr) != NULL) {
-      pid = atoi(buf);
-      printf("pid = %d\n", pid);
-    }
-  }
-  pclose(fptr);
-  return pid;
-}
-
 extern char *program_invocation_name;
 // extern char *program_invocation_short_name;
-
-// /* https://blog.csdn.net/ycc541/article/details/44857061 */
-// std::string msf_get_process_name()
-// {
-//     return std::string(program_invocation_short_name);
-// }
-
-// int msf_get_proc_exepath(const std::string &name)
-// {
-//     char *path_seg;
-//     FILE *fptr;
-//     char cmd[256] = { 0 };
-
-//     /*
-//      *  s8 buf[PATH_MAX] = { 0 };
-
-//      *   rc = readlink("/proc/self/exe", buf, PATH_MAX-1);
-//      *   if (rc < 0 || rc >= PATH_MAX-1) {
-//      *      return -1;
-//      *   }
-//      */
-//     snprintf(cmd, sizeof(cmd) - 1,
-//             "readlink /proc/%d/exe", getpid());
-//     if ((fptr = popen(cmd,"r")) != NULL) {
-//         if(fgets(name, 256, fptr) != NULL) {
-//             printf("the path name is %s.\n",name);
-//             pclose(fptr);
-//             path_seg = strchr(name, "/");
-//             if (path_seg == NULL) {
-//                 return -1;
-//             }
-//             path_seg++;
-//             memmove(name, path_seg, msf_strlen(path_seg));
-//             return 0;
-//         }
-//     }
-//     pclose(fptr);
-//     return -1;
-// }
-
-void process_wait_child_termination(pid_t v_pid);
-#include <sys/prctl.h>
-#include <sys/socket.h>
-
-namespace Process {
-pid_t pid();
-std::string pidString();
-uid_t uid();
-std::string username();
-uid_t euid();
-// Timestamp startTime();
-int clockTicksPerSecond();
-int pageSize();
-bool isDebugBuild();  // constexpr
-
-std::string hostname();
-std::string procname();
-// std::StringPiece procname(const string& stat);
-
-/// read /proc/self/status
-std::string procStatus();
-
-/// read /proc/self/stat
-std::string procStat();
-
-/// read /proc/self/task/tid/stat
-std::string threadStat();
-
-/// readlink /proc/self/exe
-std::string exePath();
-
-int openedFiles();
-int maxOpenFiles();
 
 struct CpuTime {
   double userSeconds;
@@ -184,13 +90,6 @@ struct CpuTime {
   double total() const { return userSeconds + systemSeconds; }
 };
 CpuTime cpuTime();
-
-int numThreads();
-std::vector<pid_t> threads();
-
-pid_t getPidByName(std::string &name) { return getpid(); }
-
-void getProcessName(char *name, uint32_t len);
 
 /////////
 enum process_state state;
@@ -237,10 +136,161 @@ uint32_t start_times;
 uint32_t proc_svc_num;
 struct svcinst *proc_svcs;
 
-}  // namespace Process
-
 int process_try_lock(const char *proc_name, uint32_t mode);
 int process_spwan(struct process_desc *proc_desc);
+
+struct ProcessDesc {
+  ProcessDesc() {}
+  ~ProcessDesc() {}
+
+#if defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
+  pid_t pid_;
+#elif defined(WIN32) || defined(WIN64)
+  DWORD pid_;
+  HANDLE process_;
+#endif
+
+  std::string name_;
+  std::string path_;
+  std::string conf_;
+  time_t age_;
+  int restart_times_ = 0;
+
+  PosixFileLock *flock_;
+};
+
+class Process {
+ public:
+  Process(const Process &process);
+  Process(Process &&process) noexcept;
+  Process(uint64_t pid);
+#if defined(WIN32) || defined(WIN64)
+  Process(DWORD pid, HANDLE process);
+#endif
+  ~Process();
+
+  Process &operator=(const Process &process);
+  Process &operator=(Process &&process) noexcept;
+
+  // Get the process Id
+  uint64_t pid() const noexcept;
+
+  /* Writes the pid to the specified file. If that fails 0 is
+   * returned, otherwise the pid.
+   */
+  static bool SavePidFile(const char *pidfile);
+
+  /* Remove the the specified file. The result from unlink(2)
+   * is returned
+   */
+  static bool RemovePidFile(const char *pidfile);
+
+  /* Reads the specified pidfile and returns the read pid.
+   * 0 is returned if either there's no pidfile, it's empty
+   * or no pid can be read.
+   */
+  static pid_t ReadPid(const char *pidfile);
+
+  /* Reads the pid using read_pid and looks up the pid in the process
+   * table (using /proc) to determine if the process already exists. If
+   * so the pid is returned, otherwise 0.
+   */
+  static pid_t CheckPid(const char *pidfile);
+
+  // Is the process is running?
+  bool IsRunning() const;
+
+  // Kill the process
+  void Kill();
+
+  /* Wait the process to exit
+   * Will block.
+   * return Process exit result
+   */
+  int Wait();
+
+  /* Wait the process to exit for the given timespan
+   * Will block for the given timespan in the worst case.
+   * param timespan - Timespan to wait for the process
+   * return Process exit result (std::numeric_limits<int>::min() in case of
+   * timeout)
+   */
+  int WaitFor(const time_t &t);
+
+  /* Wait the process to exit until the given timestamp
+   * Will block until the given timestamp in the worst case.
+   * param timestamp - Timestamp to stop wait for the process
+   * return Process exit result (std::numeric_limits<int>::min() in case of
+   * timeout)
+   */
+  int WaitUntil(const TimeStamp &timestamp);
+
+  /* Get the current process Id
+   * return Current process Id
+   */
+  static uint64_t CurrentProcessId();
+
+  /* Get the parent process Id
+   * return Parent process Id
+   */
+  static uint64_t ParentProcessId();
+
+  /* Get the current process
+   * return Current process
+   */
+  static Process CurrentProcess();
+
+  /* Get the parent process
+   * return Parent process
+   */
+  static Process ParentProcess();
+
+  /* Exit the current process
+   * param result - Result is returned to the parent
+   */
+  static void Exit(int result);
+
+  static bool Spwan(ProcessDesc &desc);
+  /* Execute a new process
+   * If input/output/error communication pipe is not provided then
+   * new process will use equivalent standard stream of the parent process.
+   *
+   * param command - Command to execute
+   * param arguments - Pointer to arguments vector (default is nullptr)
+   * param envars - Pointer to environment variables map (default is nullptr)
+   * param directory - Initial working directory (default is nullptr)
+   * param input - Input communication pipe (default is nullptr)
+   * param output - Output communication pipe (default is nullptr)
+   * param error - Error communication pipe (default is nullptr)
+   * return Created process
+   */
+  static Process Execute(const std::string &command,
+                         const std::vector<std::string> *arguments = nullptr,
+                         const std::map<std::string, std::string> *envars =
+                             nullptr,
+                         const std::string *directory = nullptr, int input = 0,
+                         int output = 1, int error = 2);
+
+#if defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
+  pid_t pid_;
+#elif defined(WIN32) || defined(WIN64)
+  DWORD pid_;
+  HANDLE process_;
+#endif
+  ProcessDesc desc_;
+};
+
+struct process_desc {
+  pid_t proc_pid;
+  time_t proc_age;
+  int proc_fd;
+  int restart_times;
+
+  uint32_t proc_idx;
+  char proc_name[64];
+  char proc_path[64]; /* Check access first*/
+  char proc_conf[64]; /* Check access first*/
+};
 
 #if 0
 class Process

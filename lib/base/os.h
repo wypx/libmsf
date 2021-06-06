@@ -130,13 +130,23 @@ class OsInfo {
  public:
   OsInfo();
   ~OsInfo();
-  bool getMemUsage();
-  bool getHddUsage();
-  bool getMemInfo(struct MemInfo &mem);
-  bool getHddInfo(struct HddInfo &hdd);
-  bool getCpuInfo(struct CpuInfo &cpu);
-  void cpuId(uint32_t i, uint32_t *buf);
-  void cpuInit();
+
+  pid_t pid();
+  std::string Pid2String();
+  uid_t uid();
+  std::string username();
+  uid_t euid();
+  std::vector<pid_t> GetPidByName(const std::string &name);
+
+  bool IsDebugBuild();  // constexpr
+
+  bool GetMemUsage();
+  bool GetHddUsage();
+  bool GetMemInfo(struct MemInfo &mem);
+  bool GetHddInfo(struct HddInfo &hdd);
+  bool GetCpuInfo(struct CpuInfo &cpu);
+  void CpuId(uint32_t i, uint32_t *buf);
+  void CpuInit();
   int64_t GetCurCpuTime();
   int64_t GetTotalCpuTime();
   float CalculateCurCpuUseage(int64_t cur_cpu_time_start,
@@ -144,12 +154,13 @@ class OsInfo {
                               int64_t total_cpu_time_start,
                               int64_t total_cpu_time_stop);
 
-  uint32_t getSuggestThreadNum();
+  uint32_t GetSuggestThreadNum();
 
   bool setUser(uid_t user, const std::string &userName);
   bool disablePageOut();
   bool oomAdjust();
-  uint32_t getMaxOpenFds();
+  uint64_t GetMaxCurOpenFds();
+  uint64_t GetMaxOpenFds();
   bool setMaxOpenFds(const uint64_t maxOpenFds);
   static bool EnableCoredump();
   bool setCoreDumpSize(const uint64_t maxCoreSize = 2 * MB);
@@ -164,6 +175,34 @@ class OsInfo {
     static OsInfo intance;
     return intance;
   }
+
+  /* 其他方法:
+  * 1. /proc/pid/status
+  * 2. 进程名字既可以指向argv[0]你,
+  *    也可以阅读/proc/self/status.
+  *    或者你可以使用getenv("_"),
+  *    不确定是谁设置的,​​以及它的可靠性.
+  * 3. 如果你使用glibc，那么：
+  *    #define _GNU_SOURCE
+  *    #include <errno.h>
+  *    extern char *program_invocation_name;
+  *    extern char *program_invocation_short_name;
+  *    在大多数Unices下,__progname也由libc定义.
+  *    唯一便携的方式是使用argv[0]
+  * */
+  /// read /proc/self/status
+  std::string GetProcStatus();
+
+  /// read /proc/self/stat
+  std::string GetProcStat();
+
+  /// read /proc/self/task/tid/stat
+  std::string GetThreadStat();
+
+  /// readlink /proc/self/exe
+  std::string GetExePath();
+  std::string GetExeDir();
+  std::string GetExeName();
 
   void GetLoadAverage();
 
@@ -189,15 +228,16 @@ class OsInfo {
   inline std::string GetHome();
 
  private:
-  std::string sysName_;
-  std::string nodeName_;
+  std::string sys_name_;
+  std::string node_name_;
   std::string release_;
   std::string version_;
   std::string machine_;
-  std::string domainName_; /* _UTSNAME_DOMAIN_LENGTH */
+  std::string domain_name_; /* _UTSNAME_DOMAIN_LENGTH */
 
   std::string hostname_;
 
+  int clock_ticks_;
   /*
    * 如果能知道CPU cache行的大小,那么就可以有针对性地设置内存的对齐值,
    * 这样可以提高程序的效率.有分配内存池的接口, Nginx会将内存池边界
@@ -205,15 +245,15 @@ class OsInfo {
   uint32_t cacheLineSize_;
   /* 返回一个分页的大小,单位为字节(Byte).
    * 该值为系统的分页大小,不一定会和硬件分页大小相同*/
-  uint32_t pageSize_;
+  uint32_t page_size_;
   /* pagesize为4M, pagesize_shift应该为12
    * pagesize进行移位的次数, 见for (n = ngx_pagesize;
    * n >>= 1; ngx_pagesize_shift++) {  }
    */
   uint32_t pageShift_;
-  uint32_t pageNumAll_;
-  uint32_t pageNumAva_;
-  uint64_t memSize_;
+  uint32_t page_num_all_;
+  uint32_t page_num_ava_;
+  uint64_t mem_size_;
   uint32_t cpuConf_;
   uint32_t cpuOnline_;
   uint32_t maxFileFds_;
@@ -230,10 +270,10 @@ class OsInfo {
   bool enableNuma_;
   uint32_t numaCount_;
 
-  bool sysInit();
-  void vnodeInit(void);
-  void dbgOsInfo();
-  bool osInit();
+  bool SystemInit();
+  void VNodeInit(void);
+  void DbgOsInfo();
+  bool OsInit();
 };
 
 }  // namespace MSF

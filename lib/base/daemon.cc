@@ -52,10 +52,10 @@ void Daemonize(bool chdir, bool close) {
    * 步骤1: 后台运行
    * 操作1: 脱离控制终端->调用fork->终止父进程->子进程被init收养
    */
-  int pipefd[2];
+  int channel[2];
   pid_t pid;
 
-  if (::pipe(pipefd) < 0) {
+  if (::pipe(channel) < 0) {
     // LOG(ERROR) << "pipe failed, exit";
     exit(EXIT_FAILURE);
   }
@@ -69,25 +69,35 @@ void Daemonize(bool chdir, bool close) {
     ::exit(EXIT_FAILURE);
   }
   if (pid > 0) {
-    char buf;
+    // char buf;
     ssize_t bytes;
 
-    ::close(pipefd[1]);
+    ::close(channel[1]);
+    pid_t granson_pid;
     /* parent waits for grandchild to be ready */
     do {
-      bytes = ::read(pipefd[0], &buf, sizeof(buf));
+      bytes = ::read(channel[0], &granson_pid, sizeof(pid_t));
     } while (bytes < 0 && EINTR == errno);
-    ::close(pipefd[0]);
+
+    // pid_t granson_pid;
+    // while (read(channel[0], &granson_pid, sizeof(pid_t), 0) != sizeof(pid_t))
+    //   ;
+
+    ::close(channel[0]);
 
     if (bytes <= 0) {
       /* closed fd (without writing) == failure in grandchild */
       LOG(ERROR) << "failed to daemonize";
       ::exit(EXIT_FAILURE);
     }
+    // process_wait_child_termination(child);
+
+    // printf("parent recv real %s pid(%d).\n", proc_name, proc_pid);
+
     /* parent terminates */
     ::exit(EXIT_SUCCESS);
   }
-  ::close(pipefd[0]);
+  ::close(channel[0]);
 
   /* 步骤2: 脱离控制终端,登陆会话和进程组
    * 操作2: 使用setsid创建新会话,成为新会话的首进程,则与原来的
@@ -105,6 +115,12 @@ void Daemonize(bool chdir, bool close) {
   /* clear file mode creation mask */
   umask(0);
 
+  /* Request SIGTERM if parent dies */
+  // prctl(PR_SET_PDEATHSIG, SIGTERM);
+  /* Parent died already? */
+  // if (getppid() == 1)
+  //  ::kill(getpid(), SIGTERM);//SIGKILL
+
   ::signal(SIGCHLD, SIG_IGN);
   ::signal(SIGHUP, SIG_IGN);
 
@@ -115,6 +131,7 @@ void Daemonize(bool chdir, bool close) {
    *        会话首进程退出时可能会给所有会话内的进程发送SIGHUP，而该
    *        信号默认是结束进程,故需要忽略该信号来防止孙子进程意外结束。
    */
+  /*子进程退出,孙子进程让init进程托管,避免僵尸进程*/
   /* 2nd fork turns child into a non-session leader: cannot acquire terminal */
   pid = ::fork();
   if (pid < 0) {
@@ -180,10 +197,14 @@ void Daemonize(bool chdir, bool close) {
    * notify daemonize-grandparent of successful startup
    * do this before any further forking is done (workers)
    */
-  if (::write(pipefd[1], "", 1) < 0) {
+  pid_t grandson_pid = ::getpid();
+  // while (::send(channel[1], (char *)&grandson_pid, sizeof(grandson_pid),
+  //               MSG_NOSIGNAL) != sizeof(pid_t))
+  //   ;
+  if (::write(channel[1], (char *)&grandson_pid, sizeof(grandson_pid)) < 0) {
     ::exit(EXIT_FAILURE);
   }
-  ::close(pipefd[1]);
+  ::close(channel[1]);
 #endif
 }
 

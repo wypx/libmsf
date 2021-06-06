@@ -16,6 +16,8 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <iostream>
+#include <algorithm>
 
 #include "utils.h"
 
@@ -254,71 +256,28 @@ size_t strlcat(char *dst, const char *src, size_t size) {
   return bytes;
 }
 
-std::string exePath() {
-  char buffer[PATH_MAX * 2 + 1] = {0};
-  int n = -1;
-#if defined(_WIN32)
-  n = GetModuleFileNameA(NULL, buffer, sizeof(buffer));
-#elif defined(__MACH__) || defined(__APPLE__)
-  n = sizeof(buffer);
-  if (uv_exepath(buffer, &n) != 0) {
-    n = -1;
-  }
-#elif defined(__linux__)
-  n = readlink("/proc/self/exe", buffer, sizeof(buffer));
-#endif
-
-  std::string filePath;
-  if (n <= 0) {
-    filePath = "./";
-  } else {
-    filePath = buffer;
-  }
-
-#if defined(_WIN32)
-  // windows下把路径统一转换层unix风格，因为后续都是按照unix风格处理的
-  for (auto &ch : filePath) {
-    if (ch == '\\') {
-      ch = '/';
-    }
-  }
-#endif  // defined(_WIN32)
-
-  return filePath;
+// string转小写
+std::string &StringToLower(std::string &str) {
+  std::transform(str.begin(), str.end(), str.begin(), std::towlower);
+  return str;
+}
+std::string StringToLower(std::string &&str) {
+  std::transform(str.begin(), str.end(), str.begin(), std::towlower);
+  return std::move(str);
 }
 
-std::string exeDir() {
-  std::string path = exePath();
-  return path.substr(0, path.rfind('/') + 1);
+// string转大写
+std::string &StringToUpper(std::string &str) {
+  std::transform(str.begin(), str.end(), str.begin(), std::towupper);
+  return str;
 }
-std::string exeName() {
-  std::string path = exePath();
-  return path.substr(path.rfind('/') + 1);
+std::string StringToUpper(std::string &&str) {
+  std::transform(str.begin(), str.end(), str.begin(), std::towupper);
+  return std::move(str);
 }
-// // string转小写
-// std::string &strToLower(std::string &str) {
-//     std::transform(str.begin(), str.end(), str.begin(), std::towlower);
-//     return str;
-// }
-// // string转大写
-// std::string &strToUpper(std::string &str) {
-//     std::transform(str.begin(), str.end(), str.begin(), std::towupper);
-//     return str;
-// }
-
-// // string转小写
-// std::string strToLower(std::string &&str) {
-//     std::transform(str.begin(), str.end(), str.begin(), std::towlower);
-//     return std::move(str);
-// }
-// // string转大写
-// std::string strToUpper(std::string &&str) {
-//     std::transform(str.begin(), str.end(), str.begin(), std::towupper);
-//     return std::move(str);
-// }
 
 std::vector<std::string> StringSplit(const std::string &s,
-                                     const std::string &delim = " ") {
+                                     const std::string &delim) {
   std::vector<std::string> elems;
   size_t pos = 0;
   size_t len = s.length();
@@ -334,6 +293,35 @@ std::vector<std::string> StringSplit(const std::string &s,
     pos = find_pos + delim_len;
   }
   return elems;
+}
+
+void StringReplace(std::string &str, const std::string &old_str,
+                   const std::string &new_str) {
+  if (old_str.empty() || old_str == new_str) {
+    return;
+  }
+  auto pos = str.find(old_str);
+  if (pos == std::string::npos) {
+    return;
+  }
+  str.replace(pos, old_str.size(), new_str);
+  StringReplace(str, old_str, new_str);
+}
+
+std::string StringPrev(const std::string &str, const std::string &sub) {
+  size_t pos = str.find(sub);
+  if (pos == std::string::npos) {
+    return str;
+  }
+  return str.substr(0, pos);
+}
+
+std::string StringNext(const std::string &str, const std::string &sub) {
+  size_t pos = str.find(sub);
+  if (pos == std::string::npos) {
+    return str;
+  }
+  return str.substr(pos + sub.size());
 }
 
 #if 0
@@ -356,19 +344,6 @@ std::string trim(std::string &&s, const std::string &chars) {
     TRIM(s, chars);
 }
 #endif
-
-void replace(std::string &str, const std::string &old_str,
-             const std::string &new_str) {
-  if (old_str.empty() || old_str == new_str) {
-    return;
-  }
-  auto pos = str.find(old_str);
-  if (pos == std::string::npos) {
-    return;
-  }
-  str.replace(pos, old_str.size(), new_str);
-  replace(str, old_str, new_str);
-}
 
 // bool IsIP(const char *str){
 //     return INADDR_NONE != inet_addr(str);

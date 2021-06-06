@@ -13,10 +13,12 @@
 #include "os.h"
 
 #include <base/logging.h>
+#include <base/utils.h>
 
 #include <cxxabi.h>
 #include <execinfo.h>
 #include <fcntl.h>
+#include <dirent.h>
 #include <numaif.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
@@ -44,10 +46,68 @@ using namespace MSF;
 
 namespace MSF {
 
-OsInfo::OsInfo() { osInit(); }
+OsInfo::OsInfo() { OsInit(); }
 OsInfo::~OsInfo() {}
 
-uint32_t OsInfo::getSuggestThreadNum() {
+bool OsInfo::IsDebugBuild() {
+#ifdef NDEBUG
+  return false;
+#else
+  return true;
+#endif
+}
+
+/* 获取进程pid
+  FILE *fp = popen("ps -e | grep \'test\' | awk \'{print $1}\'", "r");
+  char buffer[10] = {0};
+  while (NULL != fgets(buffer, 10, fp)) //逐行读取执行结果并打印
+  {
+      printf("PID:  %s", buffer);
+  }
+  pclose(fp);
+*/
+pid_t OsInfo::pid() { return ::getpid(); }
+
+std::string OsInfo::Pid2String() { return std::to_string(pid()); }
+
+uid_t OsInfo::uid() { return ::getuid(); }
+
+std::string OsInfo::username() {
+  struct passwd pwd;
+  struct passwd* result = nullptr;
+  char buf[8192];
+  const char* name = "unknownuser";
+
+  ::getpwuid_r(uid(), &pwd, buf, sizeof buf, &result);
+  if (result) {
+    name = pwd.pw_name;
+  }
+  return name;
+}
+
+uid_t OsInfo::euid() { return ::geteuid(); }
+
+// https://www.imooc.com/wenda/detail/567291
+// https://www.cnblogs.com/smile233/p/8379802.html
+// https://stackoverflow.com/questions/7663709/how-can-i-convert-a-stdstring-to-int
+std::vector<pid_t> OsInfo::GetPidByName(const std::string& name) {
+  std::vector<pid_t> pids;
+  std::string cmd = "pidof " + name;
+  FILE* fp = ::popen(cmd.c_str(), "r");
+  if (fp == nullptr) return pids;
+
+  char buf[256] = {0};
+  if (::fgets(buf, 255, fp) != nullptr) {
+    std::vector<std::string> str_vec = StringSplit(buf, " ");
+    for (auto str : str_vec) {
+      pids.push_back(std::stoi(str));
+    }
+  }
+  ::pclose(fp);
+  return pids;
+}
+
+uint32_t OsInfo::GetSuggestThreadNum() {
   uint32_t n = std::thread::hardware_concurrency();
   LOG(TRACE) << n << " concurrent threads are supported.";
   return n;
@@ -150,17 +210,56 @@ bool OsInfo::oomAdjust() {
   return true;
 }
 
-uint32_t OsInfo::getMaxOpenFds() {
-  uint32_t maxFds = 0;
+__thread int num_opened_files = 0;
+int FdDirFilter(const struct dirent* d) {
+  if (::isdigit(d->d_name[0])) {
+    ++num_opened_files;
+  }
+  return 0;
+}
+
+__thread std::vector<pid_t>* pids_vec = NULL;
+int TaskDirFilter(const struct dirent* d) {
+  if (::isdigit(d->d_name[0])) {
+    pids_vec->push_back(atoi(d->d_name));
+  }
+  return 0;
+}
+
+int ScanDirectory(const char* dirpath, int (*filter)(const struct dirent*)) {
+  struct dirent** namelist = NULL;
+  int result = ::scandir(dirpath, &namelist, filter, alphasort);
+  assert(namelist == nullptr);
+  return result;
+}
+
+int GetOpenedFiles() {
+  num_opened_files = 0;
+  ScanDirectory("/proc/self/fd", FdDirFilter);
+  return num_opened_files;
+}
+
+uint64_t OsInfo::GetMaxCurOpenFds() {
+  struct rlimit rl;
+  if (::getrlimit(RLIMIT_NOFILE, &rl)) {
+    LOG(ERROR) << "failed to query maximum file descriptor; "
+                  "falling back to maxconns.";
+    return GetOpenedFiles();
+  } else {
+    return static_cast<uint64_t>(rl.rlim_cur);
+  }
+}
+
+uint64_t OsInfo::GetMaxOpenFds() {
   struct rlimit rl;
   /* But if possible, get the actual highest FD we can possibly ever see. */
-  if (0 == getrlimit(RLIMIT_NOFILE, &rl)) {
-    maxFds = rl.rlim_max;
+  if (0 == ::getrlimit(RLIMIT_NOFILE, &rl)) {
+    return rl.rlim_max;
   } else {
-    LOG(ERROR) << "Failed to query maximum file descriptor; "
+    LOG(ERROR) << "failed to query maximum file descriptor; "
                   "falling back to maxconns.";
+    return GetOpenedFiles();
   }
-  return maxFds;
 }
 
 bool OsInfo::setMaxOpenFds(const uint64_t maxOpenFds) {
@@ -460,6 +559,93 @@ bool OsInfo::Reboot() {
   return ::reboot(RB_AUTOBOOT) == 0;
 }
 
+#if 0
+std::string OsInfo::GetProcStatus() {
+  std::string result;
+  FileUtil::ReadFile("/proc/self/status", 65536, &result);
+  return result;
+}
+
+std::string OsInfo::GetProcStat() {
+  std::string result;
+  FileUtil::ReadFile("/proc/self/stat", 65536, &result);
+  return result;
+}
+
+std::string OsInfo::GetThreadStat() {
+  char buf[64];
+  ::snprintf(buf, sizeof buf, "/proc/self/task/%d/stat", CurrentThread::tid());
+  std::string result;
+  FileUtil::ReadFile(buf, 65536, &result);
+  return result;
+}
+
+int OsInfo::GetNumOfThreads()
+{
+    int result = 0;
+    std::string status = GetProcStatus();
+    size_t pos = status.find("Threads:");
+    if (pos != string::npos)
+    {
+      result = ::atoi(status.c_str() + pos + 8);
+    }
+    return result;
+}
+
+std::vector<pid_t> OsInfo::GetThreadsID()
+{
+    std::vector<pid_t> result;
+    t_pids = &result;
+    ScanDirectory("/proc/self/task", TaskDirFilter);
+    t_pids = NULL;
+    std::sort(result.begin(), result.end());
+    return result;
+}
+
+#endif
+
+std::string OsInfo::GetExePath() {
+  char buffer[PATH_MAX * 2 + 1] = {0};
+  int n = -1;
+#if defined(WIN32)
+  n = GetModuleFileNameA(NULL, buffer, sizeof(buffer));
+#elif defined(__MACH__) || defined(__APPLE__)
+  n = sizeof(buffer);
+  if (uv_exepath(buffer, &n) != 0) {
+    n = -1;
+  }
+#elif defined(__linux__)
+  n = ::readlink("/proc/self/exe", buffer, sizeof(buffer));
+#endif
+
+  std::string file_path;
+  if (n <= 0) {
+    file_path = "./";
+  } else {
+    file_path = buffer;
+  }
+
+#if defined(WIN32)
+  // windows下把路径统一转换层unix风格，因为后续都是按照unix风格处理的
+  for (auto& ch : file_path) {
+    if (ch == '\\') {
+      ch = '/';
+    }
+  }
+#endif
+  return file_path;
+}
+
+std::string OsInfo::GetExeDir() {
+  std::string path = GetExePath();
+  return path.substr(0, path.rfind('/') + 1);
+}
+
+std::string OsInfo::GetExeName() {
+  std::string path = GetExePath();
+  return path.substr(path.rfind('/') + 1);
+}
+
 bool OsInfo::set_hostname_persist(const std::string& hostname) {
   hostname_ = hostname;
   std::string cmd = "sudo hostnamectl set-hostname " + hostname;
@@ -625,7 +811,7 @@ const std::string OsInfo::stackTrace(bool demangle) {
 }
 
 /* Numa TRACE*/
-void OsInfo::vnodeInit(void) {
+void OsInfo::VNodeInit(void) {
 #if 0
     int rc;
 
@@ -695,7 +881,7 @@ std::string OsInfo::GetHome() {
 #endif
 }
 
-bool OsInfo::sysInit() {
+bool OsInfo::SystemInit() {
   struct rlimit rlmt;
   struct utsname u;
 
@@ -704,23 +890,25 @@ bool OsInfo::sysInit() {
     return false;
   }
 
-  sysName_ = u.sysname;
-  nodeName_ = u.nodename;
+  sys_name_ = u.sysname;
+  node_name_ = u.nodename;
   release_ = u.release;
   version_ = u.version;
   // arch
   machine_ = u.machine;
-  domainName_ = u.domainname;
+  domain_name_ = u.domainname;
 
   /* GNU fuction
    * getpagesize(); numa_pagesize()
    * get_nprocs_conf();
    * get_nprocs();
    */
-  pageSize_ = sysconf(_SC_PAGESIZE);
-  pageNumAll_ = sysconf(_SC_PHYS_PAGES);
-  pageNumAva_ = sysconf(_SC_AVPHYS_PAGES);
-  memSize_ = pageSize_ * pageNumAll_ / MB;
+  // _SC_PAGE_SIZE
+  clock_ticks_ = ::sysconf(_SC_CLK_TCK);
+  page_size_ = ::sysconf(_SC_PAGESIZE);
+  page_num_all_ = ::sysconf(_SC_PHYS_PAGES);
+  page_num_ava_ = ::sysconf(_SC_AVPHYS_PAGES);
+  mem_size_ = page_size_ * page_num_all_ / MB;
 
 /* Gather number of processors and CPU ticks linux2.6 Later
  refer:http://blog.csdn.net/u012317833/article/details/39476831 */
@@ -756,7 +944,7 @@ bool OsInfo::sysInit() {
   return true;
 }
 
-bool OsInfo::getMemUsage() {
+bool OsInfo::GetMemUsage() {
   std::string pidStatusPath = "/proc/" + std::to_string(getpid()) + "/status";
   std::ifstream fin(pidStatusPath);
   if (!fin) {
@@ -775,7 +963,7 @@ bool OsInfo::getMemUsage() {
   return true;
 }
 
-bool OsInfo::getHddUsage() {
+bool OsInfo::GetHddUsage() {
   FILE* fp = NULL;
   char a[80], d[80], e[80], f[80], buf[256];
   double c, b;
@@ -811,7 +999,7 @@ bool OsInfo::getHddUsage() {
   * SwapTotal:      15859708 kB
   * SwapFree:       15859708 kB
   */
-bool OsInfo::getMemInfo(struct MemInfo& mem) {
+bool OsInfo::GetMemInfo(struct MemInfo& mem) {
   // https://www.cnblogs.com/JCSU/articles/1190685.html
   std::ifstream fin("/proc/meminfo");
   if (!fin) {
@@ -840,7 +1028,7 @@ bool OsInfo::getMemInfo(struct MemInfo& mem) {
   return true;
 }
 
-void OsInfo::cpuId(uint32_t i, uint32_t* buf) {
+void OsInfo::CpuId(uint32_t i, uint32_t* buf) {
 #if ((__i386__ || __amd64__) && (__GNUC__ || __INTEL_COMPILER))
 #if (__i386__)
   /*
@@ -874,14 +1062,14 @@ void OsInfo::cpuId(uint32_t i, uint32_t* buf) {
 
 /* auto detect the L2 cache line size of modern and widespread CPUs
  * 这个函数便是在获取CPU的信息,根据CPU的型号对ngx_cacheline_size进行设置*/
-void OsInfo::cpuInit() {
+void OsInfo::CpuInit() {
 #if ((__i386__ || __amd64__) && (__GNUC__ || __INTEL_COMPILER))
   char* vendor;
   uint32_t vbuf[5], cpu[4], model;
 
-  memset(vbuf, 0, sizeof(vbuf));
+  ::memset(vbuf, 0, sizeof(vbuf));
 
-  cpuId(0, vbuf);
+  CpuId(0, vbuf);
 
   vendor = (char*)&vbuf[1];
 
@@ -890,7 +1078,7 @@ void OsInfo::cpuInit() {
     return;
   }
 
-  cpuId(1, cpu);
+  CpuId(1, cpu);
 
   if (strcmp(vendor, "GenuineIntel") == 0) {
     switch ((cpu[0] & 0xf00) >> 8) {
@@ -1369,20 +1557,20 @@ void OsInfo::ClearEnvar(const std::string name) {
 #endif
 }
 
-void OsInfo::dbgOsInfo() {
-  LOG(TRACE) << "OS type:" << sysName_;
-  LOG(TRACE) << "OS nodename:" << nodeName_;
+void OsInfo::DbgOsInfo() {
+  LOG(TRACE) << "OS type:" << sys_name_;
+  LOG(TRACE) << "OS nodename:" << node_name_;
   LOG(TRACE) << "OS release:" << release_;
   LOG(TRACE) << "OS version:" << version_;
   LOG(TRACE) << "OS machine:" << machine_;
-  LOG(TRACE) << "OS domainname:" << domainName_;
+  LOG(TRACE) << "OS domainname:" << domain_name_;
   LOG(TRACE) << "Processors conf:" << cpuConf_;
   LOG(TRACE) << "Processors avai:" << cpuOnline_;
   LOG(TRACE) << "Cacheline size: " << cacheLineSize_;
-  LOG(TRACE) << "Pagesize: " << pageSize_;
-  LOG(TRACE) << "Pages all num:" << pageNumAll_;
-  LOG(TRACE) << "Pages available: " << pageNumAva_;
-  LOG(TRACE) << "Memory size:  " << memSize_ << "MB";
+  LOG(TRACE) << "Pagesize: " << page_size_;
+  LOG(TRACE) << "Pages all num:" << page_num_all_;
+  LOG(TRACE) << "Pages available: " << page_num_ava_;
+  LOG(TRACE) << "Memory size:  " << mem_size_ << "MB";
   LOG(TRACE) << "Files max opened: " << maxFileFds_;
   LOG(TRACE) << "Socket max opened: " << maxSocket_;
   LOG(TRACE) << "Ticks per second: " << tickSpersec_;
@@ -1399,10 +1587,10 @@ void OsInfo::dbgOsInfo() {
   LOG(TRACE) << "Hdd used_rate: " << hdd_.used_rate;
 }
 
-bool OsInfo::osInit() {
-  sysInit();
-  vnodeInit();
-  dbgOsInfo();
+bool OsInfo::OsInit() {
+  SystemInit();
+  VNodeInit();
+  DbgOsInfo();
   return true;
 }
 

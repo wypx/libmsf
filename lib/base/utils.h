@@ -27,6 +27,8 @@
 #include <cstring>
 #include <ctime>
 #include <string>
+#include <vector>
+#include <stdint.h>
 
 namespace MSF {
 
@@ -127,7 +129,8 @@ std::string NewUuid();
 #endif
 #endif
 
-#include <stdint.h>
+std::vector<std::string> StringSplit(const std::string &s,
+                                     const std::string &delim = " ");
 
 void msf_nsleep(int ns);
 void msf_susleep(int s, int us);

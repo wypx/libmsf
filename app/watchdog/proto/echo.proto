@@ -17,3 +17,35 @@ service EchoService
 {
   rpc Echo(EchoRequest) returns (EchoResponse);
 }
+
+enum PbCloneMode {
+  PB_CLONE_UTM_TO_UTM = 0;
+  PB_CLONE_UTM_TO_NATIVE = 1;
+  PB_CLONE_NATIVE_TO_UTM = 2;
+  PB_CLONE_NATIVE_TO_NATIVE = 3;
+  PB_CLONE_KOALA_IMAGE = 4;
+}
+
+enum ResponseCode {
+  SUCCESS         = 0;
+  ERROR           = 10;
+}
+
+message ChronoCloneLoginPbRequest {
+  string vdisk_id = 10;
+  uint32 sector_size = 20;
+  uint64 vdisk_cap = 30;
+  string src_vdisk_id = 40;           //源盘ID
+  uint32 clone_tick = 50;             //从源盘ID的哪个时间戳clone
+  string clone_res_id = 60;           //从源盘的哪个快照ID clone
+  uint64 peer_size_per_shard = 70;
+  PbCloneMode clone_mode = 80;
+  string src_top_oid = 90;            //源盘top_oid
+  string src_oid = 100;               //源盘oid
+}
+
+message ChronoCloneLoginPbResponse {
+  ResponseCode rc = 10;
+  string chrono_id = 20;             //唯一标识本次clone的ID
+  uint32 ark_version = 30;            //标识这次回滚ready时，应从方舟的哪个version读数据
+}

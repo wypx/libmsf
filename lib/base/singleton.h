@@ -17,7 +17,7 @@
 #include <pthread.h>
 #include <stdlib.h>  // atexit
 
-#include "Noncopyable.h"
+#include "noncopyable.h"
 
 namespace MSF {
 
@@ -45,7 +45,7 @@ T* Instance(Args&&… args) {
 // B* pb = Instance<B>(1,2)
 
 template <typename T>
-class Singleton : Noncopyable {
+class Singleton : noncopyable {
  public:
   Singleton() = delete;
   ~Singleton() = delete;

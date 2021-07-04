@@ -29,7 +29,7 @@
 #include <google/protobuf/generated_message_reflection.h>
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>  // IWYU pragma: export
-#include <google/protobuf/extension_set.h>   // IWYU pragma: export
+#include <google/protobuf/extension_set.h>  // IWYU pragma: export
 #include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/service.h>
 #include <google/protobuf/unknown_field_set.h>
@@ -44,29 +44,24 @@ PROTOBUF_NAMESPACE_CLOSE
 
 // Internal implementation detail -- do not use these members.
 struct TableStruct_echo_2eproto {
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTableField entries
-      [] PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::AuxiliaryParseTableField aux
-      [] PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema
-      [4] PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata
-      [];
-  static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable
-      serialization_table[];
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTableField entries[]
+    PROTOBUF_SECTION_VARIABLE(protodesc_cold);
+  static const ::PROTOBUF_NAMESPACE_ID::internal::AuxiliaryParseTableField aux[]
+    PROTOBUF_SECTION_VARIABLE(protodesc_cold);
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[4]
+    PROTOBUF_SECTION_VARIABLE(protodesc_cold);
+  static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
+  static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
   static const ::PROTOBUF_NAMESPACE_ID::uint32 offsets[];
 };
-extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable
-    descriptor_table_echo_2eproto;
+extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_echo_2eproto;
 namespace echo {
 class ChronoCloneLoginPbRequest;
 struct ChronoCloneLoginPbRequestDefaultTypeInternal;
-extern ChronoCloneLoginPbRequestDefaultTypeInternal
-    _ChronoCloneLoginPbRequest_default_instance_;
+extern ChronoCloneLoginPbRequestDefaultTypeInternal _ChronoCloneLoginPbRequest_default_instance_;
 class ChronoCloneLoginPbResponse;
 struct ChronoCloneLoginPbResponseDefaultTypeInternal;
-extern ChronoCloneLoginPbResponseDefaultTypeInternal
-    _ChronoCloneLoginPbResponse_default_instance_;
+extern ChronoCloneLoginPbResponseDefaultTypeInternal _ChronoCloneLoginPbResponse_default_instance_;
 class EchoRequest;
 struct EchoRequestDefaultTypeInternal;
 extern EchoRequestDefaultTypeInternal _EchoRequest_default_instance_;
@@ -75,16 +70,10 @@ struct EchoResponseDefaultTypeInternal;
 extern EchoResponseDefaultTypeInternal _EchoResponse_default_instance_;
 }  // namespace echo
 PROTOBUF_NAMESPACE_OPEN
-template <>
-::echo::ChronoCloneLoginPbRequest*
-    Arena::CreateMaybeMessage<::echo::ChronoCloneLoginPbRequest>(Arena*);
-template <>
-::echo::ChronoCloneLoginPbResponse*
-    Arena::CreateMaybeMessage<::echo::ChronoCloneLoginPbResponse>(Arena*);
-template <>
-::echo::EchoRequest* Arena::CreateMaybeMessage<::echo::EchoRequest>(Arena*);
-template <>
-::echo::EchoResponse* Arena::CreateMaybeMessage<::echo::EchoResponse>(Arena*);
+template<> ::echo::ChronoCloneLoginPbRequest* Arena::CreateMaybeMessage<::echo::ChronoCloneLoginPbRequest>(Arena*);
+template<> ::echo::ChronoCloneLoginPbResponse* Arena::CreateMaybeMessage<::echo::ChronoCloneLoginPbResponse>(Arena*);
+template<> ::echo::EchoRequest* Arena::CreateMaybeMessage<::echo::EchoRequest>(Arena*);
+template<> ::echo::EchoResponse* Arena::CreateMaybeMessage<::echo::EchoResponse>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace echo {
 
@@ -94,10 +83,8 @@ enum PbCloneMode : int {
   PB_CLONE_NATIVE_TO_UTM = 2,
   PB_CLONE_NATIVE_TO_NATIVE = 3,
   PB_CLONE_KOALA_IMAGE = 4,
-  PbCloneMode_INT_MIN_SENTINEL_DO_NOT_USE_ =
-      std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
-  PbCloneMode_INT_MAX_SENTINEL_DO_NOT_USE_ =
-      std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
+  PbCloneMode_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
+  PbCloneMode_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
 };
 bool PbCloneMode_IsValid(int value);
 constexpr PbCloneMode PbCloneMode_MIN = PB_CLONE_UTM_TO_UTM;
@@ -105,26 +92,24 @@ constexpr PbCloneMode PbCloneMode_MAX = PB_CLONE_KOALA_IMAGE;
 constexpr int PbCloneMode_ARRAYSIZE = PbCloneMode_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* PbCloneMode_descriptor();
-template <typename T>
+template<typename T>
 inline const std::string& PbCloneMode_Name(T enum_t_value) {
-  static_assert(
-      ::std::is_same<T, PbCloneMode>::value || ::std::is_integral<T>::value,
-      "Incorrect type passed to function PbCloneMode_Name.");
-  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(PbCloneMode_descriptor(),
-                                                       enum_t_value);
+  static_assert(::std::is_same<T, PbCloneMode>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function PbCloneMode_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    PbCloneMode_descriptor(), enum_t_value);
 }
-inline bool PbCloneMode_Parse(::PROTOBUF_NAMESPACE_ID::ConstStringParam name,
-                              PbCloneMode* value) {
+inline bool PbCloneMode_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, PbCloneMode* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<PbCloneMode>(
-      PbCloneMode_descriptor(), name, value);
+    PbCloneMode_descriptor(), name, value);
 }
 enum ResponseCode : int {
   SUCCESS = 0,
   ERROR = 10,
-  ResponseCode_INT_MIN_SENTINEL_DO_NOT_USE_ =
-      std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
-  ResponseCode_INT_MAX_SENTINEL_DO_NOT_USE_ =
-      std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
+  ResponseCode_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
+  ResponseCode_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
 };
 bool ResponseCode_IsValid(int value);
 constexpr ResponseCode ResponseCode_MIN = SUCCESS;
@@ -132,32 +117,31 @@ constexpr ResponseCode ResponseCode_MAX = ERROR;
 constexpr int ResponseCode_ARRAYSIZE = ResponseCode_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ResponseCode_descriptor();
-template <typename T>
+template<typename T>
 inline const std::string& ResponseCode_Name(T enum_t_value) {
-  static_assert(
-      ::std::is_same<T, ResponseCode>::value || ::std::is_integral<T>::value,
-      "Incorrect type passed to function ResponseCode_Name.");
+  static_assert(::std::is_same<T, ResponseCode>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function ResponseCode_Name.");
   return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
-      ResponseCode_descriptor(), enum_t_value);
+    ResponseCode_descriptor(), enum_t_value);
 }
-inline bool ResponseCode_Parse(::PROTOBUF_NAMESPACE_ID::ConstStringParam name,
-                               ResponseCode* value) {
+inline bool ResponseCode_Parse(
+    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, ResponseCode* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<ResponseCode>(
-      ResponseCode_descriptor(), name, value);
+    ResponseCode_descriptor(), name, value);
 }
 // ===================================================================
 
-class EchoRequest final
-    : public ::PROTOBUF_NAMESPACE_ID::
-          Message /* @@protoc_insertion_point(class_definition:echo.EchoRequest) */ {
+class EchoRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:echo.EchoRequest) */ {
  public:
   inline EchoRequest() : EchoRequest(nullptr) {}
   ~EchoRequest() override;
-  explicit constexpr EchoRequest(
-      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  explicit constexpr EchoRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
   EchoRequest(const EchoRequest& from);
-  EchoRequest(EchoRequest&& from) noexcept : EchoRequest() {
+  EchoRequest(EchoRequest&& from) noexcept
+    : EchoRequest() {
     *this = ::std::move(from);
   }
 
@@ -189,11 +173,14 @@ class EchoRequest final
   }
   static inline const EchoRequest* internal_default_instance() {
     return reinterpret_cast<const EchoRequest*>(
-        &_EchoRequest_default_instance_);
+               &_EchoRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 0;
+  static constexpr int kIndexInFileMessages =
+    0;
 
-  friend void swap(EchoRequest& a, EchoRequest& b) { a.Swap(&b); }
+  friend void swap(EchoRequest& a, EchoRequest& b) {
+    a.Swap(&b);
+  }
   inline void Swap(EchoRequest* other) {
     if (other == this) return;
     if (GetOwningArena() == other->GetOwningArena()) {
@@ -210,7 +197,9 @@ class EchoRequest final
 
   // implements Message ----------------------------------------------
 
-  inline EchoRequest* New() const final { return new EchoRequest(); }
+  inline EchoRequest* New() const final {
+    return new EchoRequest();
+  }
 
   EchoRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
     return CreateMaybeMessage<EchoRequest>(arena);
@@ -219,25 +208,19 @@ class EchoRequest final
   void CopyFrom(const EchoRequest& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
   void MergeFrom(const EchoRequest& from);
-
- private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
-                        const ::PROTOBUF_NAMESPACE_ID::Message& from);
-
- public:
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message*to, const ::PROTOBUF_NAMESPACE_ID::Message&from);
+  public:
   PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
   bool IsInitialized() const final;
 
   size_t ByteSizeLong() const final;
-  const char* _InternalParse(
-      const char* ptr,
-      ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
   ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
-      ::PROTOBUF_NAMESPACE_ID::uint8* target,
-      ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
   int GetCachedSize() const final { return _cached_size_.Get(); }
 
- private:
+  private:
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const final;
@@ -246,18 +229,16 @@ class EchoRequest final
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
     return "echo.EchoRequest";
   }
-
- protected:
+  protected:
   explicit EchoRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
-
- private:
+  private:
   static void ArenaDtor(void* object);
   inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
 
- public:
   static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData* GetClassData() const final;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
 
   ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
 
@@ -276,20 +257,17 @@ class EchoRequest final
   std::string* mutable_message();
   PROTOBUF_MUST_USE_RESULT std::string* release_message();
   void set_allocated_message(std::string* message);
-
- private:
+  private:
   const std::string& _internal_message() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_message(
-      const std::string& value);
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_message(const std::string& value);
   std::string* _internal_mutable_message();
+  public:
 
- public:
   // @@protoc_insertion_point(class_scope:echo.EchoRequest)
  private:
   class _Internal;
 
-  template <typename T>
-  friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr message_;
@@ -298,17 +276,16 @@ class EchoRequest final
 };
 // -------------------------------------------------------------------
 
-class EchoResponse final
-    : public ::PROTOBUF_NAMESPACE_ID::
-          Message /* @@protoc_insertion_point(class_definition:echo.EchoResponse) */ {
+class EchoResponse final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:echo.EchoResponse) */ {
  public:
   inline EchoResponse() : EchoResponse(nullptr) {}
   ~EchoResponse() override;
-  explicit constexpr EchoResponse(
-      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  explicit constexpr EchoResponse(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
   EchoResponse(const EchoResponse& from);
-  EchoResponse(EchoResponse&& from) noexcept : EchoResponse() {
+  EchoResponse(EchoResponse&& from) noexcept
+    : EchoResponse() {
     *this = ::std::move(from);
   }
 
@@ -340,11 +317,14 @@ class EchoResponse final
   }
   static inline const EchoResponse* internal_default_instance() {
     return reinterpret_cast<const EchoResponse*>(
-        &_EchoResponse_default_instance_);
+               &_EchoResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 1;
+  static constexpr int kIndexInFileMessages =
+    1;
 
-  friend void swap(EchoResponse& a, EchoResponse& b) { a.Swap(&b); }
+  friend void swap(EchoResponse& a, EchoResponse& b) {
+    a.Swap(&b);
+  }
   inline void Swap(EchoResponse* other) {
     if (other == this) return;
     if (GetOwningArena() == other->GetOwningArena()) {
@@ -361,7 +341,9 @@ class EchoResponse final
 
   // implements Message ----------------------------------------------
 
-  inline EchoResponse* New() const final { return new EchoResponse(); }
+  inline EchoResponse* New() const final {
+    return new EchoResponse();
+  }
 
   EchoResponse* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
     return CreateMaybeMessage<EchoResponse>(arena);
@@ -370,25 +352,19 @@ class EchoResponse final
   void CopyFrom(const EchoResponse& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
   void MergeFrom(const EchoResponse& from);
-
- private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
-                        const ::PROTOBUF_NAMESPACE_ID::Message& from);
-
- public:
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message*to, const ::PROTOBUF_NAMESPACE_ID::Message&from);
+  public:
   PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
   bool IsInitialized() const final;
 
   size_t ByteSizeLong() const final;
-  const char* _InternalParse(
-      const char* ptr,
-      ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
   ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
-      ::PROTOBUF_NAMESPACE_ID::uint8* target,
-      ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
   int GetCachedSize() const final { return _cached_size_.Get(); }
 
- private:
+  private:
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const final;
@@ -397,18 +373,16 @@ class EchoResponse final
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
     return "echo.EchoResponse";
   }
-
- protected:
+  protected:
   explicit EchoResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                        bool is_message_owned = false);
-
- private:
+                       bool is_message_owned = false);
+  private:
   static void ArenaDtor(void* object);
   inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
 
- public:
   static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData* GetClassData() const final;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
 
   ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
 
@@ -427,20 +401,17 @@ class EchoResponse final
   std::string* mutable_response();
   PROTOBUF_MUST_USE_RESULT std::string* release_response();
   void set_allocated_response(std::string* response);
-
- private:
+  private:
   const std::string& _internal_response() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_response(
-      const std::string& value);
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_response(const std::string& value);
   std::string* _internal_mutable_response();
+  public:
 
- public:
   // @@protoc_insertion_point(class_scope:echo.EchoResponse)
  private:
   class _Internal;
 
-  template <typename T>
-  friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr response_;
@@ -449,28 +420,24 @@ class EchoResponse final
 };
 // -------------------------------------------------------------------
 
-class ChronoCloneLoginPbRequest final
-    : public ::PROTOBUF_NAMESPACE_ID::
-          Message /* @@protoc_insertion_point(class_definition:echo.ChronoCloneLoginPbRequest) */ {
+class ChronoCloneLoginPbRequest final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:echo.ChronoCloneLoginPbRequest) */ {
  public:
   inline ChronoCloneLoginPbRequest() : ChronoCloneLoginPbRequest(nullptr) {}
   ~ChronoCloneLoginPbRequest() override;
-  explicit constexpr ChronoCloneLoginPbRequest(
-      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  explicit constexpr ChronoCloneLoginPbRequest(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
   ChronoCloneLoginPbRequest(const ChronoCloneLoginPbRequest& from);
   ChronoCloneLoginPbRequest(ChronoCloneLoginPbRequest&& from) noexcept
-      : ChronoCloneLoginPbRequest() {
+    : ChronoCloneLoginPbRequest() {
     *this = ::std::move(from);
   }
 
-  inline ChronoCloneLoginPbRequest& operator=(
-      const ChronoCloneLoginPbRequest& from) {
+  inline ChronoCloneLoginPbRequest& operator=(const ChronoCloneLoginPbRequest& from) {
     CopyFrom(from);
     return *this;
   }
-  inline ChronoCloneLoginPbRequest& operator=(
-      ChronoCloneLoginPbRequest&& from) noexcept {
+  inline ChronoCloneLoginPbRequest& operator=(ChronoCloneLoginPbRequest&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()) {
       InternalSwap(&from);
@@ -494,9 +461,10 @@ class ChronoCloneLoginPbRequest final
   }
   static inline const ChronoCloneLoginPbRequest* internal_default_instance() {
     return reinterpret_cast<const ChronoCloneLoginPbRequest*>(
-        &_ChronoCloneLoginPbRequest_default_instance_);
+               &_ChronoCloneLoginPbRequest_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 2;
+  static constexpr int kIndexInFileMessages =
+    2;
 
   friend void swap(ChronoCloneLoginPbRequest& a, ChronoCloneLoginPbRequest& b) {
     a.Swap(&b);
@@ -521,33 +489,26 @@ class ChronoCloneLoginPbRequest final
     return new ChronoCloneLoginPbRequest();
   }
 
-  ChronoCloneLoginPbRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const
-      final {
+  ChronoCloneLoginPbRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
     return CreateMaybeMessage<ChronoCloneLoginPbRequest>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
   void CopyFrom(const ChronoCloneLoginPbRequest& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
   void MergeFrom(const ChronoCloneLoginPbRequest& from);
-
- private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
-                        const ::PROTOBUF_NAMESPACE_ID::Message& from);
-
- public:
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message*to, const ::PROTOBUF_NAMESPACE_ID::Message&from);
+  public:
   PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
   bool IsInitialized() const final;
 
   size_t ByteSizeLong() const final;
-  const char* _InternalParse(
-      const char* ptr,
-      ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
   ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
-      ::PROTOBUF_NAMESPACE_ID::uint8* target,
-      ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
   int GetCachedSize() const final { return _cached_size_.Get(); }
 
- private:
+  private:
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const final;
@@ -556,18 +517,16 @@ class ChronoCloneLoginPbRequest final
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
     return "echo.ChronoCloneLoginPbRequest";
   }
-
- protected:
+  protected:
   explicit ChronoCloneLoginPbRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                                     bool is_message_owned = false);
-
- private:
+                       bool is_message_owned = false);
+  private:
   static void ArenaDtor(void* object);
   inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
 
- public:
   static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData* GetClassData() const final;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
 
   ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
 
@@ -595,14 +554,12 @@ class ChronoCloneLoginPbRequest final
   std::string* mutable_vdisk_id();
   PROTOBUF_MUST_USE_RESULT std::string* release_vdisk_id();
   void set_allocated_vdisk_id(std::string* vdisk_id);
-
- private:
+  private:
   const std::string& _internal_vdisk_id() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_vdisk_id(
-      const std::string& value);
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_vdisk_id(const std::string& value);
   std::string* _internal_mutable_vdisk_id();
+  public:
 
- public:
   // string src_vdisk_id = 40;
   void clear_src_vdisk_id();
   const std::string& src_vdisk_id() const;
@@ -611,14 +568,12 @@ class ChronoCloneLoginPbRequest final
   std::string* mutable_src_vdisk_id();
   PROTOBUF_MUST_USE_RESULT std::string* release_src_vdisk_id();
   void set_allocated_src_vdisk_id(std::string* src_vdisk_id);
-
- private:
+  private:
   const std::string& _internal_src_vdisk_id() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_src_vdisk_id(
-      const std::string& value);
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_src_vdisk_id(const std::string& value);
   std::string* _internal_mutable_src_vdisk_id();
+  public:
 
- public:
   // string clone_res_id = 60;
   void clear_clone_res_id();
   const std::string& clone_res_id() const;
@@ -627,14 +582,12 @@ class ChronoCloneLoginPbRequest final
   std::string* mutable_clone_res_id();
   PROTOBUF_MUST_USE_RESULT std::string* release_clone_res_id();
   void set_allocated_clone_res_id(std::string* clone_res_id);
-
- private:
+  private:
   const std::string& _internal_clone_res_id() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_clone_res_id(
-      const std::string& value);
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_clone_res_id(const std::string& value);
   std::string* _internal_mutable_clone_res_id();
+  public:
 
- public:
   // string src_top_oid = 90;
   void clear_src_top_oid();
   const std::string& src_top_oid() const;
@@ -643,14 +596,12 @@ class ChronoCloneLoginPbRequest final
   std::string* mutable_src_top_oid();
   PROTOBUF_MUST_USE_RESULT std::string* release_src_top_oid();
   void set_allocated_src_top_oid(std::string* src_top_oid);
-
- private:
+  private:
   const std::string& _internal_src_top_oid() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_src_top_oid(
-      const std::string& value);
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_src_top_oid(const std::string& value);
   std::string* _internal_mutable_src_top_oid();
+  public:
 
- public:
   // string src_oid = 100;
   void clear_src_oid();
   const std::string& src_oid() const;
@@ -659,70 +610,62 @@ class ChronoCloneLoginPbRequest final
   std::string* mutable_src_oid();
   PROTOBUF_MUST_USE_RESULT std::string* release_src_oid();
   void set_allocated_src_oid(std::string* src_oid);
-
- private:
+  private:
   const std::string& _internal_src_oid() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_src_oid(
-      const std::string& value);
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_src_oid(const std::string& value);
   std::string* _internal_mutable_src_oid();
+  public:
 
- public:
   // .echo.PbCloneMode clone_mode = 80;
   void clear_clone_mode();
   ::echo::PbCloneMode clone_mode() const;
   void set_clone_mode(::echo::PbCloneMode value);
-
- private:
+  private:
   ::echo::PbCloneMode _internal_clone_mode() const;
   void _internal_set_clone_mode(::echo::PbCloneMode value);
+  public:
 
- public:
   // uint64 vdisk_cap = 30;
   void clear_vdisk_cap();
   ::PROTOBUF_NAMESPACE_ID::uint64 vdisk_cap() const;
   void set_vdisk_cap(::PROTOBUF_NAMESPACE_ID::uint64 value);
-
- private:
+  private:
   ::PROTOBUF_NAMESPACE_ID::uint64 _internal_vdisk_cap() const;
   void _internal_set_vdisk_cap(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  public:
 
- public:
   // uint32 sector_size = 20;
   void clear_sector_size();
   ::PROTOBUF_NAMESPACE_ID::uint32 sector_size() const;
   void set_sector_size(::PROTOBUF_NAMESPACE_ID::uint32 value);
-
- private:
+  private:
   ::PROTOBUF_NAMESPACE_ID::uint32 _internal_sector_size() const;
   void _internal_set_sector_size(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  public:
 
- public:
   // uint32 clone_tick = 50;
   void clear_clone_tick();
   ::PROTOBUF_NAMESPACE_ID::uint32 clone_tick() const;
   void set_clone_tick(::PROTOBUF_NAMESPACE_ID::uint32 value);
-
- private:
+  private:
   ::PROTOBUF_NAMESPACE_ID::uint32 _internal_clone_tick() const;
   void _internal_set_clone_tick(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  public:
 
- public:
   // uint64 peer_size_per_shard = 70;
   void clear_peer_size_per_shard();
   ::PROTOBUF_NAMESPACE_ID::uint64 peer_size_per_shard() const;
   void set_peer_size_per_shard(::PROTOBUF_NAMESPACE_ID::uint64 value);
-
- private:
+  private:
   ::PROTOBUF_NAMESPACE_ID::uint64 _internal_peer_size_per_shard() const;
   void _internal_set_peer_size_per_shard(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  public:
 
- public:
   // @@protoc_insertion_point(class_scope:echo.ChronoCloneLoginPbRequest)
  private:
   class _Internal;
 
-  template <typename T>
-  friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr vdisk_id_;
@@ -740,28 +683,24 @@ class ChronoCloneLoginPbRequest final
 };
 // -------------------------------------------------------------------
 
-class ChronoCloneLoginPbResponse final
-    : public ::PROTOBUF_NAMESPACE_ID::
-          Message /* @@protoc_insertion_point(class_definition:echo.ChronoCloneLoginPbResponse) */ {
+class ChronoCloneLoginPbResponse final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:echo.ChronoCloneLoginPbResponse) */ {
  public:
   inline ChronoCloneLoginPbResponse() : ChronoCloneLoginPbResponse(nullptr) {}
   ~ChronoCloneLoginPbResponse() override;
-  explicit constexpr ChronoCloneLoginPbResponse(
-      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+  explicit constexpr ChronoCloneLoginPbResponse(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
   ChronoCloneLoginPbResponse(const ChronoCloneLoginPbResponse& from);
   ChronoCloneLoginPbResponse(ChronoCloneLoginPbResponse&& from) noexcept
-      : ChronoCloneLoginPbResponse() {
+    : ChronoCloneLoginPbResponse() {
     *this = ::std::move(from);
   }
 
-  inline ChronoCloneLoginPbResponse& operator=(
-      const ChronoCloneLoginPbResponse& from) {
+  inline ChronoCloneLoginPbResponse& operator=(const ChronoCloneLoginPbResponse& from) {
     CopyFrom(from);
     return *this;
   }
-  inline ChronoCloneLoginPbResponse& operator=(
-      ChronoCloneLoginPbResponse&& from) noexcept {
+  inline ChronoCloneLoginPbResponse& operator=(ChronoCloneLoginPbResponse&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()) {
       InternalSwap(&from);
@@ -785,12 +724,12 @@ class ChronoCloneLoginPbResponse final
   }
   static inline const ChronoCloneLoginPbResponse* internal_default_instance() {
     return reinterpret_cast<const ChronoCloneLoginPbResponse*>(
-        &_ChronoCloneLoginPbResponse_default_instance_);
+               &_ChronoCloneLoginPbResponse_default_instance_);
   }
-  static constexpr int kIndexInFileMessages = 3;
+  static constexpr int kIndexInFileMessages =
+    3;
 
-  friend void swap(ChronoCloneLoginPbResponse& a,
-                   ChronoCloneLoginPbResponse& b) {
+  friend void swap(ChronoCloneLoginPbResponse& a, ChronoCloneLoginPbResponse& b) {
     a.Swap(&b);
   }
   inline void Swap(ChronoCloneLoginPbResponse* other) {
@@ -813,33 +752,26 @@ class ChronoCloneLoginPbResponse final
     return new ChronoCloneLoginPbResponse();
   }
 
-  ChronoCloneLoginPbResponse* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const
-      final {
+  ChronoCloneLoginPbResponse* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
     return CreateMaybeMessage<ChronoCloneLoginPbResponse>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
   void CopyFrom(const ChronoCloneLoginPbResponse& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
   void MergeFrom(const ChronoCloneLoginPbResponse& from);
-
- private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
-                        const ::PROTOBUF_NAMESPACE_ID::Message& from);
-
- public:
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message*to, const ::PROTOBUF_NAMESPACE_ID::Message&from);
+  public:
   PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
   bool IsInitialized() const final;
 
   size_t ByteSizeLong() const final;
-  const char* _InternalParse(
-      const char* ptr,
-      ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
   ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
-      ::PROTOBUF_NAMESPACE_ID::uint8* target,
-      ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
   int GetCachedSize() const final { return _cached_size_.Get(); }
 
- private:
+  private:
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const final;
@@ -848,18 +780,16 @@ class ChronoCloneLoginPbResponse final
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
     return "echo.ChronoCloneLoginPbResponse";
   }
-
- protected:
+  protected:
   explicit ChronoCloneLoginPbResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                                      bool is_message_owned = false);
-
- private:
+                       bool is_message_owned = false);
+  private:
   static void ArenaDtor(void* object);
   inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
 
- public:
   static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData* GetClassData() const final;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
 
   ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
 
@@ -880,40 +810,35 @@ class ChronoCloneLoginPbResponse final
   std::string* mutable_chrono_id();
   PROTOBUF_MUST_USE_RESULT std::string* release_chrono_id();
   void set_allocated_chrono_id(std::string* chrono_id);
-
- private:
+  private:
   const std::string& _internal_chrono_id() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_chrono_id(
-      const std::string& value);
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_chrono_id(const std::string& value);
   std::string* _internal_mutable_chrono_id();
+  public:
 
- public:
   // .echo.ResponseCode rc = 10;
   void clear_rc();
   ::echo::ResponseCode rc() const;
   void set_rc(::echo::ResponseCode value);
-
- private:
+  private:
   ::echo::ResponseCode _internal_rc() const;
   void _internal_set_rc(::echo::ResponseCode value);
+  public:
 
- public:
   // uint32 ark_version = 30;
   void clear_ark_version();
   ::PROTOBUF_NAMESPACE_ID::uint32 ark_version() const;
   void set_ark_version(::PROTOBUF_NAMESPACE_ID::uint32 value);
-
- private:
+  private:
   ::PROTOBUF_NAMESPACE_ID::uint32 _internal_ark_version() const;
   void _internal_set_ark_version(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  public:
 
- public:
   // @@protoc_insertion_point(class_scope:echo.ChronoCloneLoginPbResponse)
  private:
   class _Internal;
 
-  template <typename T>
-  friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr chrono_id_;
@@ -930,7 +855,6 @@ class EchoService : public ::PROTOBUF_NAMESPACE_ID::Service {
  protected:
   // This class should be treated as an abstract interface.
   inline EchoService() {};
-
  public:
   virtual ~EchoService();
 
@@ -939,9 +863,9 @@ class EchoService : public ::PROTOBUF_NAMESPACE_ID::Service {
   static const ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor* descriptor();
 
   virtual void Echo(::PROTOBUF_NAMESPACE_ID::RpcController* controller,
-                    const ::echo::EchoRequest* request,
-                    ::echo::EchoResponse* response,
-                    ::google::protobuf::Closure* done);
+                       const ::echo::EchoRequest* request,
+                       ::echo::EchoResponse* response,
+                       ::google::protobuf::Closure* done);
 
   // implements Service ----------------------------------------------
 
@@ -952,9 +876,9 @@ class EchoService : public ::PROTOBUF_NAMESPACE_ID::Service {
                   ::PROTOBUF_NAMESPACE_ID::Message* response,
                   ::google::protobuf::Closure* done);
   const ::PROTOBUF_NAMESPACE_ID::Message& GetRequestPrototype(
-      const ::PROTOBUF_NAMESPACE_ID::MethodDescriptor* method) const;
+    const ::PROTOBUF_NAMESPACE_ID::MethodDescriptor* method) const;
   const ::PROTOBUF_NAMESPACE_ID::Message& GetResponsePrototype(
-      const ::PROTOBUF_NAMESPACE_ID::MethodDescriptor* method) const;
+    const ::PROTOBUF_NAMESPACE_ID::MethodDescriptor* method) const;
 
  private:
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(EchoService);
@@ -963,9 +887,8 @@ class EchoService : public ::PROTOBUF_NAMESPACE_ID::Service {
 class EchoService_Stub : public EchoService {
  public:
   EchoService_Stub(::PROTOBUF_NAMESPACE_ID::RpcChannel* channel);
-  EchoService_Stub(
-      ::PROTOBUF_NAMESPACE_ID::RpcChannel* channel,
-      ::PROTOBUF_NAMESPACE_ID::Service::ChannelOwnership ownership);
+  EchoService_Stub(::PROTOBUF_NAMESPACE_ID::RpcChannel* channel,
+                   ::PROTOBUF_NAMESPACE_ID::Service::ChannelOwnership ownership);
   ~EchoService_Stub();
 
   inline ::PROTOBUF_NAMESPACE_ID::RpcChannel* channel() { return channel_; }
@@ -973,38 +896,40 @@ class EchoService_Stub : public EchoService {
   // implements EchoService ------------------------------------------
 
   void Echo(::PROTOBUF_NAMESPACE_ID::RpcController* controller,
-            const ::echo::EchoRequest* request, ::echo::EchoResponse* response,
-            ::google::protobuf::Closure* done);
-
+                       const ::echo::EchoRequest* request,
+                       ::echo::EchoResponse* response,
+                       ::google::protobuf::Closure* done);
  private:
   ::PROTOBUF_NAMESPACE_ID::RpcChannel* channel_;
   bool owns_channel_;
   GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(EchoService_Stub);
 };
 
+
 // ===================================================================
+
 
 // ===================================================================
 
 #ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstrict-aliasing"
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
 // EchoRequest
 
 // string message = 1;
-inline void EchoRequest::clear_message() { message_.ClearToEmpty(); }
+inline void EchoRequest::clear_message() {
+  message_.ClearToEmpty();
+}
 inline const std::string& EchoRequest::message() const {
   // @@protoc_insertion_point(field_get:echo.EchoRequest.message)
   return _internal_message();
 }
 template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void EchoRequest::set_message(ArgT0&& arg0,
-                                                            ArgT... args) {
-
-  message_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
+inline PROTOBUF_ALWAYS_INLINE
+void EchoRequest::set_message(ArgT0&& arg0, ArgT... args) {
+ 
+ message_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:echo.EchoRequest.message)
 }
 inline std::string* EchoRequest::mutable_message() {
@@ -1016,31 +941,25 @@ inline const std::string& EchoRequest::_internal_message() const {
   return message_.Get();
 }
 inline void EchoRequest::_internal_set_message(const std::string& value) {
-
-  message_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value,
-      GetArenaForAllocation());
+  
+  message_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
 }
 inline std::string* EchoRequest::_internal_mutable_message() {
-
-  return message_.Mutable(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      GetArenaForAllocation());
+  
+  return message_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
 }
 inline std::string* EchoRequest::release_message() {
   // @@protoc_insertion_point(field_release:echo.EchoRequest.message)
-  return message_.Release(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      GetArenaForAllocation());
+  return message_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
 }
 inline void EchoRequest::set_allocated_message(std::string* message) {
   if (message != nullptr) {
-
+    
   } else {
+    
   }
-  message_.SetAllocated(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      message, GetArenaForAllocation());
+  message_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), message,
+      GetArenaForAllocation());
   // @@protoc_insertion_point(field_set_allocated:echo.EchoRequest.message)
 }
 
@@ -1049,18 +968,18 @@ inline void EchoRequest::set_allocated_message(std::string* message) {
 // EchoResponse
 
 // string response = 1;
-inline void EchoResponse::clear_response() { response_.ClearToEmpty(); }
+inline void EchoResponse::clear_response() {
+  response_.ClearToEmpty();
+}
 inline const std::string& EchoResponse::response() const {
   // @@protoc_insertion_point(field_get:echo.EchoResponse.response)
   return _internal_response();
 }
 template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void EchoResponse::set_response(ArgT0&& arg0,
-                                                              ArgT... args) {
-
-  response_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
+inline PROTOBUF_ALWAYS_INLINE
+void EchoResponse::set_response(ArgT0&& arg0, ArgT... args) {
+ 
+ response_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:echo.EchoResponse.response)
 }
 inline std::string* EchoResponse::mutable_response() {
@@ -1072,31 +991,25 @@ inline const std::string& EchoResponse::_internal_response() const {
   return response_.Get();
 }
 inline void EchoResponse::_internal_set_response(const std::string& value) {
-
-  response_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value,
-      GetArenaForAllocation());
+  
+  response_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
 }
 inline std::string* EchoResponse::_internal_mutable_response() {
-
-  return response_.Mutable(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      GetArenaForAllocation());
+  
+  return response_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
 }
 inline std::string* EchoResponse::release_response() {
   // @@protoc_insertion_point(field_release:echo.EchoResponse.response)
-  return response_.Release(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      GetArenaForAllocation());
+  return response_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
 }
 inline void EchoResponse::set_allocated_response(std::string* response) {
   if (response != nullptr) {
-
+    
   } else {
+    
   }
-  response_.SetAllocated(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      response, GetArenaForAllocation());
+  response_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), response,
+      GetArenaForAllocation());
   // @@protoc_insertion_point(field_set_allocated:echo.EchoResponse.response)
 }
 
@@ -1113,12 +1026,10 @@ inline const std::string& ChronoCloneLoginPbRequest::vdisk_id() const {
   return _internal_vdisk_id();
 }
 template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void ChronoCloneLoginPbRequest::set_vdisk_id(
-    ArgT0&& arg0, ArgT... args) {
-
-  vdisk_id_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
+inline PROTOBUF_ALWAYS_INLINE
+void ChronoCloneLoginPbRequest::set_vdisk_id(ArgT0&& arg0, ArgT... args) {
+ 
+ vdisk_id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:echo.ChronoCloneLoginPbRequest.vdisk_id)
 }
 inline std::string* ChronoCloneLoginPbRequest::mutable_vdisk_id() {
@@ -1126,38 +1037,29 @@ inline std::string* ChronoCloneLoginPbRequest::mutable_vdisk_id() {
   // @@protoc_insertion_point(field_mutable:echo.ChronoCloneLoginPbRequest.vdisk_id)
   return _s;
 }
-inline const std::string& ChronoCloneLoginPbRequest::_internal_vdisk_id()
-    const {
+inline const std::string& ChronoCloneLoginPbRequest::_internal_vdisk_id() const {
   return vdisk_id_.Get();
 }
-inline void ChronoCloneLoginPbRequest::_internal_set_vdisk_id(
-    const std::string& value) {
-
-  vdisk_id_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value,
-      GetArenaForAllocation());
+inline void ChronoCloneLoginPbRequest::_internal_set_vdisk_id(const std::string& value) {
+  
+  vdisk_id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
 }
 inline std::string* ChronoCloneLoginPbRequest::_internal_mutable_vdisk_id() {
-
-  return vdisk_id_.Mutable(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      GetArenaForAllocation());
+  
+  return vdisk_id_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
 }
 inline std::string* ChronoCloneLoginPbRequest::release_vdisk_id() {
   // @@protoc_insertion_point(field_release:echo.ChronoCloneLoginPbRequest.vdisk_id)
-  return vdisk_id_.Release(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      GetArenaForAllocation());
+  return vdisk_id_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
 }
-inline void ChronoCloneLoginPbRequest::set_allocated_vdisk_id(
-    std::string* vdisk_id) {
+inline void ChronoCloneLoginPbRequest::set_allocated_vdisk_id(std::string* vdisk_id) {
   if (vdisk_id != nullptr) {
-
+    
   } else {
+    
   }
-  vdisk_id_.SetAllocated(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      vdisk_id, GetArenaForAllocation());
+  vdisk_id_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), vdisk_id,
+      GetArenaForAllocation());
   // @@protoc_insertion_point(field_set_allocated:echo.ChronoCloneLoginPbRequest.vdisk_id)
 }
 
@@ -1165,22 +1067,18 @@ inline void ChronoCloneLoginPbRequest::set_allocated_vdisk_id(
 inline void ChronoCloneLoginPbRequest::clear_sector_size() {
   sector_size_ = 0u;
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint32
-ChronoCloneLoginPbRequest::_internal_sector_size() const {
+inline ::PROTOBUF_NAMESPACE_ID::uint32 ChronoCloneLoginPbRequest::_internal_sector_size() const {
   return sector_size_;
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 ChronoCloneLoginPbRequest::sector_size()
-    const {
+inline ::PROTOBUF_NAMESPACE_ID::uint32 ChronoCloneLoginPbRequest::sector_size() const {
   // @@protoc_insertion_point(field_get:echo.ChronoCloneLoginPbRequest.sector_size)
   return _internal_sector_size();
 }
-inline void ChronoCloneLoginPbRequest::_internal_set_sector_size(
-    ::PROTOBUF_NAMESPACE_ID::uint32 value) {
-
+inline void ChronoCloneLoginPbRequest::_internal_set_sector_size(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  
   sector_size_ = value;
 }
-inline void ChronoCloneLoginPbRequest::set_sector_size(
-    ::PROTOBUF_NAMESPACE_ID::uint32 value) {
+inline void ChronoCloneLoginPbRequest::set_sector_size(::PROTOBUF_NAMESPACE_ID::uint32 value) {
   _internal_set_sector_size(value);
   // @@protoc_insertion_point(field_set:echo.ChronoCloneLoginPbRequest.sector_size)
 }
@@ -1189,22 +1087,18 @@ inline void ChronoCloneLoginPbRequest::set_sector_size(
 inline void ChronoCloneLoginPbRequest::clear_vdisk_cap() {
   vdisk_cap_ = uint64_t{0u};
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint64
-ChronoCloneLoginPbRequest::_internal_vdisk_cap() const {
+inline ::PROTOBUF_NAMESPACE_ID::uint64 ChronoCloneLoginPbRequest::_internal_vdisk_cap() const {
   return vdisk_cap_;
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint64 ChronoCloneLoginPbRequest::vdisk_cap()
-    const {
+inline ::PROTOBUF_NAMESPACE_ID::uint64 ChronoCloneLoginPbRequest::vdisk_cap() const {
   // @@protoc_insertion_point(field_get:echo.ChronoCloneLoginPbRequest.vdisk_cap)
   return _internal_vdisk_cap();
 }
-inline void ChronoCloneLoginPbRequest::_internal_set_vdisk_cap(
-    ::PROTOBUF_NAMESPACE_ID::uint64 value) {
-
+inline void ChronoCloneLoginPbRequest::_internal_set_vdisk_cap(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  
   vdisk_cap_ = value;
 }
-inline void ChronoCloneLoginPbRequest::set_vdisk_cap(
-    ::PROTOBUF_NAMESPACE_ID::uint64 value) {
+inline void ChronoCloneLoginPbRequest::set_vdisk_cap(::PROTOBUF_NAMESPACE_ID::uint64 value) {
   _internal_set_vdisk_cap(value);
   // @@protoc_insertion_point(field_set:echo.ChronoCloneLoginPbRequest.vdisk_cap)
 }
@@ -1218,12 +1112,10 @@ inline const std::string& ChronoCloneLoginPbRequest::src_vdisk_id() const {
   return _internal_src_vdisk_id();
 }
 template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void ChronoCloneLoginPbRequest::set_src_vdisk_id(
-    ArgT0&& arg0, ArgT... args) {
-
-  src_vdisk_id_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
+inline PROTOBUF_ALWAYS_INLINE
+void ChronoCloneLoginPbRequest::set_src_vdisk_id(ArgT0&& arg0, ArgT... args) {
+ 
+ src_vdisk_id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:echo.ChronoCloneLoginPbRequest.src_vdisk_id)
 }
 inline std::string* ChronoCloneLoginPbRequest::mutable_src_vdisk_id() {
@@ -1231,60 +1123,48 @@ inline std::string* ChronoCloneLoginPbRequest::mutable_src_vdisk_id() {
   // @@protoc_insertion_point(field_mutable:echo.ChronoCloneLoginPbRequest.src_vdisk_id)
   return _s;
 }
-inline const std::string& ChronoCloneLoginPbRequest::_internal_src_vdisk_id()
-    const {
+inline const std::string& ChronoCloneLoginPbRequest::_internal_src_vdisk_id() const {
   return src_vdisk_id_.Get();
 }
-inline void ChronoCloneLoginPbRequest::_internal_set_src_vdisk_id(
-    const std::string& value) {
-
-  src_vdisk_id_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value,
-      GetArenaForAllocation());
+inline void ChronoCloneLoginPbRequest::_internal_set_src_vdisk_id(const std::string& value) {
+  
+  src_vdisk_id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
 }
-inline std::string*
-ChronoCloneLoginPbRequest::_internal_mutable_src_vdisk_id() {
-
-  return src_vdisk_id_.Mutable(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      GetArenaForAllocation());
+inline std::string* ChronoCloneLoginPbRequest::_internal_mutable_src_vdisk_id() {
+  
+  return src_vdisk_id_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
 }
 inline std::string* ChronoCloneLoginPbRequest::release_src_vdisk_id() {
   // @@protoc_insertion_point(field_release:echo.ChronoCloneLoginPbRequest.src_vdisk_id)
-  return src_vdisk_id_.Release(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      GetArenaForAllocation());
+  return src_vdisk_id_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
 }
-inline void ChronoCloneLoginPbRequest::set_allocated_src_vdisk_id(
-    std::string* src_vdisk_id) {
+inline void ChronoCloneLoginPbRequest::set_allocated_src_vdisk_id(std::string* src_vdisk_id) {
   if (src_vdisk_id != nullptr) {
-
+    
   } else {
+    
   }
-  src_vdisk_id_.SetAllocated(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      src_vdisk_id, GetArenaForAllocation());
+  src_vdisk_id_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), src_vdisk_id,
+      GetArenaForAllocation());
   // @@protoc_insertion_point(field_set_allocated:echo.ChronoCloneLoginPbRequest.src_vdisk_id)
 }
 
 // uint32 clone_tick = 50;
-inline void ChronoCloneLoginPbRequest::clear_clone_tick() { clone_tick_ = 0u; }
-inline ::PROTOBUF_NAMESPACE_ID::uint32
-ChronoCloneLoginPbRequest::_internal_clone_tick() const {
+inline void ChronoCloneLoginPbRequest::clear_clone_tick() {
+  clone_tick_ = 0u;
+}
+inline ::PROTOBUF_NAMESPACE_ID::uint32 ChronoCloneLoginPbRequest::_internal_clone_tick() const {
   return clone_tick_;
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 ChronoCloneLoginPbRequest::clone_tick()
-    const {
+inline ::PROTOBUF_NAMESPACE_ID::uint32 ChronoCloneLoginPbRequest::clone_tick() const {
   // @@protoc_insertion_point(field_get:echo.ChronoCloneLoginPbRequest.clone_tick)
   return _internal_clone_tick();
 }
-inline void ChronoCloneLoginPbRequest::_internal_set_clone_tick(
-    ::PROTOBUF_NAMESPACE_ID::uint32 value) {
-
+inline void ChronoCloneLoginPbRequest::_internal_set_clone_tick(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  
   clone_tick_ = value;
 }
-inline void ChronoCloneLoginPbRequest::set_clone_tick(
-    ::PROTOBUF_NAMESPACE_ID::uint32 value) {
+inline void ChronoCloneLoginPbRequest::set_clone_tick(::PROTOBUF_NAMESPACE_ID::uint32 value) {
   _internal_set_clone_tick(value);
   // @@protoc_insertion_point(field_set:echo.ChronoCloneLoginPbRequest.clone_tick)
 }
@@ -1298,12 +1178,10 @@ inline const std::string& ChronoCloneLoginPbRequest::clone_res_id() const {
   return _internal_clone_res_id();
 }
 template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void ChronoCloneLoginPbRequest::set_clone_res_id(
-    ArgT0&& arg0, ArgT... args) {
-
-  clone_res_id_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
+inline PROTOBUF_ALWAYS_INLINE
+void ChronoCloneLoginPbRequest::set_clone_res_id(ArgT0&& arg0, ArgT... args) {
+ 
+ clone_res_id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:echo.ChronoCloneLoginPbRequest.clone_res_id)
 }
 inline std::string* ChronoCloneLoginPbRequest::mutable_clone_res_id() {
@@ -1311,39 +1189,29 @@ inline std::string* ChronoCloneLoginPbRequest::mutable_clone_res_id() {
   // @@protoc_insertion_point(field_mutable:echo.ChronoCloneLoginPbRequest.clone_res_id)
   return _s;
 }
-inline const std::string& ChronoCloneLoginPbRequest::_internal_clone_res_id()
-    const {
+inline const std::string& ChronoCloneLoginPbRequest::_internal_clone_res_id() const {
   return clone_res_id_.Get();
 }
-inline void ChronoCloneLoginPbRequest::_internal_set_clone_res_id(
-    const std::string& value) {
-
-  clone_res_id_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value,
-      GetArenaForAllocation());
+inline void ChronoCloneLoginPbRequest::_internal_set_clone_res_id(const std::string& value) {
+  
+  clone_res_id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
 }
-inline std::string*
-ChronoCloneLoginPbRequest::_internal_mutable_clone_res_id() {
-
-  return clone_res_id_.Mutable(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      GetArenaForAllocation());
+inline std::string* ChronoCloneLoginPbRequest::_internal_mutable_clone_res_id() {
+  
+  return clone_res_id_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
 }
 inline std::string* ChronoCloneLoginPbRequest::release_clone_res_id() {
   // @@protoc_insertion_point(field_release:echo.ChronoCloneLoginPbRequest.clone_res_id)
-  return clone_res_id_.Release(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      GetArenaForAllocation());
+  return clone_res_id_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
 }
-inline void ChronoCloneLoginPbRequest::set_allocated_clone_res_id(
-    std::string* clone_res_id) {
+inline void ChronoCloneLoginPbRequest::set_allocated_clone_res_id(std::string* clone_res_id) {
   if (clone_res_id != nullptr) {
-
+    
   } else {
+    
   }
-  clone_res_id_.SetAllocated(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      clone_res_id, GetArenaForAllocation());
+  clone_res_id_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), clone_res_id,
+      GetArenaForAllocation());
   // @@protoc_insertion_point(field_set_allocated:echo.ChronoCloneLoginPbRequest.clone_res_id)
 }
 
@@ -1351,43 +1219,38 @@ inline void ChronoCloneLoginPbRequest::set_allocated_clone_res_id(
 inline void ChronoCloneLoginPbRequest::clear_peer_size_per_shard() {
   peer_size_per_shard_ = uint64_t{0u};
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint64
-ChronoCloneLoginPbRequest::_internal_peer_size_per_shard() const {
+inline ::PROTOBUF_NAMESPACE_ID::uint64 ChronoCloneLoginPbRequest::_internal_peer_size_per_shard() const {
   return peer_size_per_shard_;
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint64
-ChronoCloneLoginPbRequest::peer_size_per_shard() const {
+inline ::PROTOBUF_NAMESPACE_ID::uint64 ChronoCloneLoginPbRequest::peer_size_per_shard() const {
   // @@protoc_insertion_point(field_get:echo.ChronoCloneLoginPbRequest.peer_size_per_shard)
   return _internal_peer_size_per_shard();
 }
-inline void ChronoCloneLoginPbRequest::_internal_set_peer_size_per_shard(
-    ::PROTOBUF_NAMESPACE_ID::uint64 value) {
-
+inline void ChronoCloneLoginPbRequest::_internal_set_peer_size_per_shard(::PROTOBUF_NAMESPACE_ID::uint64 value) {
+  
   peer_size_per_shard_ = value;
 }
-inline void ChronoCloneLoginPbRequest::set_peer_size_per_shard(
-    ::PROTOBUF_NAMESPACE_ID::uint64 value) {
+inline void ChronoCloneLoginPbRequest::set_peer_size_per_shard(::PROTOBUF_NAMESPACE_ID::uint64 value) {
   _internal_set_peer_size_per_shard(value);
   // @@protoc_insertion_point(field_set:echo.ChronoCloneLoginPbRequest.peer_size_per_shard)
 }
 
 // .echo.PbCloneMode clone_mode = 80;
-inline void ChronoCloneLoginPbRequest::clear_clone_mode() { clone_mode_ = 0; }
-inline ::echo::PbCloneMode ChronoCloneLoginPbRequest::_internal_clone_mode()
-    const {
-  return static_cast<::echo::PbCloneMode>(clone_mode_);
+inline void ChronoCloneLoginPbRequest::clear_clone_mode() {
+  clone_mode_ = 0;
+}
+inline ::echo::PbCloneMode ChronoCloneLoginPbRequest::_internal_clone_mode() const {
+  return static_cast< ::echo::PbCloneMode >(clone_mode_);
 }
 inline ::echo::PbCloneMode ChronoCloneLoginPbRequest::clone_mode() const {
   // @@protoc_insertion_point(field_get:echo.ChronoCloneLoginPbRequest.clone_mode)
   return _internal_clone_mode();
 }
-inline void ChronoCloneLoginPbRequest::_internal_set_clone_mode(
-    ::echo::PbCloneMode value) {
-
+inline void ChronoCloneLoginPbRequest::_internal_set_clone_mode(::echo::PbCloneMode value) {
+  
   clone_mode_ = value;
 }
-inline void ChronoCloneLoginPbRequest::set_clone_mode(
-    ::echo::PbCloneMode value) {
+inline void ChronoCloneLoginPbRequest::set_clone_mode(::echo::PbCloneMode value) {
   _internal_set_clone_mode(value);
   // @@protoc_insertion_point(field_set:echo.ChronoCloneLoginPbRequest.clone_mode)
 }
@@ -1401,12 +1264,10 @@ inline const std::string& ChronoCloneLoginPbRequest::src_top_oid() const {
   return _internal_src_top_oid();
 }
 template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void ChronoCloneLoginPbRequest::set_src_top_oid(
-    ArgT0&& arg0, ArgT... args) {
-
-  src_top_oid_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
+inline PROTOBUF_ALWAYS_INLINE
+void ChronoCloneLoginPbRequest::set_src_top_oid(ArgT0&& arg0, ArgT... args) {
+ 
+ src_top_oid_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:echo.ChronoCloneLoginPbRequest.src_top_oid)
 }
 inline std::string* ChronoCloneLoginPbRequest::mutable_src_top_oid() {
@@ -1414,38 +1275,29 @@ inline std::string* ChronoCloneLoginPbRequest::mutable_src_top_oid() {
   // @@protoc_insertion_point(field_mutable:echo.ChronoCloneLoginPbRequest.src_top_oid)
   return _s;
 }
-inline const std::string& ChronoCloneLoginPbRequest::_internal_src_top_oid()
-    const {
+inline const std::string& ChronoCloneLoginPbRequest::_internal_src_top_oid() const {
   return src_top_oid_.Get();
 }
-inline void ChronoCloneLoginPbRequest::_internal_set_src_top_oid(
-    const std::string& value) {
-
-  src_top_oid_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value,
-      GetArenaForAllocation());
+inline void ChronoCloneLoginPbRequest::_internal_set_src_top_oid(const std::string& value) {
+  
+  src_top_oid_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
 }
 inline std::string* ChronoCloneLoginPbRequest::_internal_mutable_src_top_oid() {
-
-  return src_top_oid_.Mutable(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      GetArenaForAllocation());
+  
+  return src_top_oid_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
 }
 inline std::string* ChronoCloneLoginPbRequest::release_src_top_oid() {
   // @@protoc_insertion_point(field_release:echo.ChronoCloneLoginPbRequest.src_top_oid)
-  return src_top_oid_.Release(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      GetArenaForAllocation());
+  return src_top_oid_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
 }
-inline void ChronoCloneLoginPbRequest::set_allocated_src_top_oid(
-    std::string* src_top_oid) {
+inline void ChronoCloneLoginPbRequest::set_allocated_src_top_oid(std::string* src_top_oid) {
   if (src_top_oid != nullptr) {
-
+    
   } else {
+    
   }
-  src_top_oid_.SetAllocated(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      src_top_oid, GetArenaForAllocation());
+  src_top_oid_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), src_top_oid,
+      GetArenaForAllocation());
   // @@protoc_insertion_point(field_set_allocated:echo.ChronoCloneLoginPbRequest.src_top_oid)
 }
 
@@ -1458,12 +1310,10 @@ inline const std::string& ChronoCloneLoginPbRequest::src_oid() const {
   return _internal_src_oid();
 }
 template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void ChronoCloneLoginPbRequest::set_src_oid(
-    ArgT0&& arg0, ArgT... args) {
-
-  src_oid_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
+inline PROTOBUF_ALWAYS_INLINE
+void ChronoCloneLoginPbRequest::set_src_oid(ArgT0&& arg0, ArgT... args) {
+ 
+ src_oid_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:echo.ChronoCloneLoginPbRequest.src_oid)
 }
 inline std::string* ChronoCloneLoginPbRequest::mutable_src_oid() {
@@ -1474,34 +1324,26 @@ inline std::string* ChronoCloneLoginPbRequest::mutable_src_oid() {
 inline const std::string& ChronoCloneLoginPbRequest::_internal_src_oid() const {
   return src_oid_.Get();
 }
-inline void ChronoCloneLoginPbRequest::_internal_set_src_oid(
-    const std::string& value) {
-
-  src_oid_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value,
-      GetArenaForAllocation());
+inline void ChronoCloneLoginPbRequest::_internal_set_src_oid(const std::string& value) {
+  
+  src_oid_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
 }
 inline std::string* ChronoCloneLoginPbRequest::_internal_mutable_src_oid() {
-
-  return src_oid_.Mutable(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      GetArenaForAllocation());
+  
+  return src_oid_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
 }
 inline std::string* ChronoCloneLoginPbRequest::release_src_oid() {
   // @@protoc_insertion_point(field_release:echo.ChronoCloneLoginPbRequest.src_oid)
-  return src_oid_.Release(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      GetArenaForAllocation());
+  return src_oid_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
 }
-inline void ChronoCloneLoginPbRequest::set_allocated_src_oid(
-    std::string* src_oid) {
+inline void ChronoCloneLoginPbRequest::set_allocated_src_oid(std::string* src_oid) {
   if (src_oid != nullptr) {
-
+    
   } else {
+    
   }
-  src_oid_.SetAllocated(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      src_oid, GetArenaForAllocation());
+  src_oid_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), src_oid,
+      GetArenaForAllocation());
   // @@protoc_insertion_point(field_set_allocated:echo.ChronoCloneLoginPbRequest.src_oid)
 }
 
@@ -1510,17 +1352,18 @@ inline void ChronoCloneLoginPbRequest::set_allocated_src_oid(
 // ChronoCloneLoginPbResponse
 
 // .echo.ResponseCode rc = 10;
-inline void ChronoCloneLoginPbResponse::clear_rc() { rc_ = 0; }
+inline void ChronoCloneLoginPbResponse::clear_rc() {
+  rc_ = 0;
+}
 inline ::echo::ResponseCode ChronoCloneLoginPbResponse::_internal_rc() const {
-  return static_cast<::echo::ResponseCode>(rc_);
+  return static_cast< ::echo::ResponseCode >(rc_);
 }
 inline ::echo::ResponseCode ChronoCloneLoginPbResponse::rc() const {
   // @@protoc_insertion_point(field_get:echo.ChronoCloneLoginPbResponse.rc)
   return _internal_rc();
 }
-inline void ChronoCloneLoginPbResponse::_internal_set_rc(
-    ::echo::ResponseCode value) {
-
+inline void ChronoCloneLoginPbResponse::_internal_set_rc(::echo::ResponseCode value) {
+  
   rc_ = value;
 }
 inline void ChronoCloneLoginPbResponse::set_rc(::echo::ResponseCode value) {
@@ -1537,12 +1380,10 @@ inline const std::string& ChronoCloneLoginPbResponse::chrono_id() const {
   return _internal_chrono_id();
 }
 template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void ChronoCloneLoginPbResponse::set_chrono_id(
-    ArgT0&& arg0, ArgT... args) {
-
-  chrono_id_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
+inline PROTOBUF_ALWAYS_INLINE
+void ChronoCloneLoginPbResponse::set_chrono_id(ArgT0&& arg0, ArgT... args) {
+ 
+ chrono_id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
   // @@protoc_insertion_point(field_set:echo.ChronoCloneLoginPbResponse.chrono_id)
 }
 inline std::string* ChronoCloneLoginPbResponse::mutable_chrono_id() {
@@ -1550,38 +1391,29 @@ inline std::string* ChronoCloneLoginPbResponse::mutable_chrono_id() {
   // @@protoc_insertion_point(field_mutable:echo.ChronoCloneLoginPbResponse.chrono_id)
   return _s;
 }
-inline const std::string& ChronoCloneLoginPbResponse::_internal_chrono_id()
-    const {
+inline const std::string& ChronoCloneLoginPbResponse::_internal_chrono_id() const {
   return chrono_id_.Get();
 }
-inline void ChronoCloneLoginPbResponse::_internal_set_chrono_id(
-    const std::string& value) {
-
-  chrono_id_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value,
-      GetArenaForAllocation());
+inline void ChronoCloneLoginPbResponse::_internal_set_chrono_id(const std::string& value) {
+  
+  chrono_id_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArenaForAllocation());
 }
 inline std::string* ChronoCloneLoginPbResponse::_internal_mutable_chrono_id() {
-
-  return chrono_id_.Mutable(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      GetArenaForAllocation());
+  
+  return chrono_id_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArenaForAllocation());
 }
 inline std::string* ChronoCloneLoginPbResponse::release_chrono_id() {
   // @@protoc_insertion_point(field_release:echo.ChronoCloneLoginPbResponse.chrono_id)
-  return chrono_id_.Release(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      GetArenaForAllocation());
+  return chrono_id_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArenaForAllocation());
 }
-inline void ChronoCloneLoginPbResponse::set_allocated_chrono_id(
-    std::string* chrono_id) {
+inline void ChronoCloneLoginPbResponse::set_allocated_chrono_id(std::string* chrono_id) {
   if (chrono_id != nullptr) {
-
+    
   } else {
+    
   }
-  chrono_id_.SetAllocated(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      chrono_id, GetArenaForAllocation());
+  chrono_id_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), chrono_id,
+      GetArenaForAllocation());
   // @@protoc_insertion_point(field_set_allocated:echo.ChronoCloneLoginPbResponse.chrono_id)
 }
 
@@ -1589,28 +1421,24 @@ inline void ChronoCloneLoginPbResponse::set_allocated_chrono_id(
 inline void ChronoCloneLoginPbResponse::clear_ark_version() {
   ark_version_ = 0u;
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint32
-ChronoCloneLoginPbResponse::_internal_ark_version() const {
+inline ::PROTOBUF_NAMESPACE_ID::uint32 ChronoCloneLoginPbResponse::_internal_ark_version() const {
   return ark_version_;
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 ChronoCloneLoginPbResponse::ark_version()
-    const {
+inline ::PROTOBUF_NAMESPACE_ID::uint32 ChronoCloneLoginPbResponse::ark_version() const {
   // @@protoc_insertion_point(field_get:echo.ChronoCloneLoginPbResponse.ark_version)
   return _internal_ark_version();
 }
-inline void ChronoCloneLoginPbResponse::_internal_set_ark_version(
-    ::PROTOBUF_NAMESPACE_ID::uint32 value) {
-
+inline void ChronoCloneLoginPbResponse::_internal_set_ark_version(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  
   ark_version_ = value;
 }
-inline void ChronoCloneLoginPbResponse::set_ark_version(
-    ::PROTOBUF_NAMESPACE_ID::uint32 value) {
+inline void ChronoCloneLoginPbResponse::set_ark_version(::PROTOBUF_NAMESPACE_ID::uint32 value) {
   _internal_set_ark_version(value);
   // @@protoc_insertion_point(field_set:echo.ChronoCloneLoginPbResponse.ark_version)
 }
 
 #ifdef __GNUC__
-#pragma GCC diagnostic pop
+  #pragma GCC diagnostic pop
 #endif  // __GNUC__
 // -------------------------------------------------------------------
 
@@ -1618,22 +1446,21 @@ inline void ChronoCloneLoginPbResponse::set_ark_version(
 
 // -------------------------------------------------------------------
 
+
 // @@protoc_insertion_point(namespace_scope)
 
 }  // namespace echo
 
 PROTOBUF_NAMESPACE_OPEN
 
+template <> struct is_proto_enum< ::echo::PbCloneMode> : ::std::true_type {};
 template <>
-struct is_proto_enum<::echo::PbCloneMode> : ::std::true_type {};
-template <>
-inline const EnumDescriptor* GetEnumDescriptor<::echo::PbCloneMode>() {
+inline const EnumDescriptor* GetEnumDescriptor< ::echo::PbCloneMode>() {
   return ::echo::PbCloneMode_descriptor();
 }
+template <> struct is_proto_enum< ::echo::ResponseCode> : ::std::true_type {};
 template <>
-struct is_proto_enum<::echo::ResponseCode> : ::std::true_type {};
-template <>
-inline const EnumDescriptor* GetEnumDescriptor<::echo::ResponseCode>() {
+inline const EnumDescriptor* GetEnumDescriptor< ::echo::ResponseCode>() {
   return ::echo::ResponseCode_descriptor();
 }
 

@@ -23,7 +23,7 @@
 
 #include <iostream>
 
-#include "noncopyable.h"
+#include <base/noncopyable.h>
 
 using namespace MSF;
 
@@ -100,8 +100,8 @@ class InetAddress : public copyable {
   explicit InetAddress(const struct in6_addr& in6addr);
 
   /* ipport ipv4/ipv6 address format like "127.0.0.1:8000" */
-  InetAddress(const std::string& ip, const uint16_t port);
-  InetAddress(const std::string& ipport);
+  // InetAddress(const std::string& ip, const uint16_t port);
+  // InetAddress(const std::string& ipport);
 
   ~InetAddress() = default;
 

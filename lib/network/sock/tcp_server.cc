@@ -10,29 +10,20 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include "connector.h"
-#include "sock_utils.h"
-#include <base/logging.h>
-#include "tcp_connection.h"
+#include "tcp_server.h"
+#include "logging.h"
 
 namespace MSF {
 
-Connector::Connector(EventLoop *loop, const InetAddress &peer) {}
+FastTcpServer::FastTcpServer(EventLoop *loop, const InetAddress &addr)
+    : FastServer(loop, addr) {}
 
-Connector::~Connector() {}
+FastTcpServer::~FastTcpServer() {}
 
-bool Connector::Connect() {
-  int fd = ConnectTcpServer("127.0.01", 8888, SOCK_STREAM);
-  if (fd < 0) {
-    return false;
-  }
-  conn_.reset(new TCPConnection(loop_, fd));
-
-  // fd_ = ConnectUnixServer(srvPath.c_str(), cliPath.c_str());
-  // if (fd_ < 0) {
-  //   return false;
-  // }
-  return true;
+void FastTcpServer::NewConnCallback(const int fd, const uint16_t event) {
+  LOG(INFO) << "new conn coming: " << fd;
+  auto conn = std::make_shared<TCPConnection>(loop(), fd, event);
+  connections_[conn->cid()] = conn;
+  succ_cb_(conn);
 }
-
-}  // namespace MSF
+}

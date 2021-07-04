@@ -72,6 +72,8 @@ class Connector {
   void set_cid(const uint32_t cid) { cid_ = cid; }
   const uint32_t cid() const { return cid_; }
 
+  const ConnectionPtr &conn() { return conn_; }
+
  protected:
   EventLoop *loop_;
   ConnectionPtr conn_;

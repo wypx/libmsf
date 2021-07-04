@@ -10,6 +10,11 @@
 
 #include <event/timer.h>
 
+#include "../watchdog/echo.pb.h"
+#include <network/event/event_loop.h>
+#include <network/frpc/frpc_controller.h>
+#include <network/frpc/frpc_channel.h>
+
 using namespace MSF;
 
 /* 这个表示一个方法的返回值只由参数决定, 如果参数不变的话,
@@ -45,8 +50,35 @@ void fun2() {
 #include <iostream>
 #include <ratio>
 
+int EchoTest() {
+
+  FastRpcController controller;
+
+  EventLoop loop;
+  InetAddress addr("127.0.0.1", 8888, AF_INET, SOCK_STREAM);
+  FastRpcChannelPtr channel(new FastRpcChannel(&loop, addr));
+
+  echo::EchoRequest request;
+  echo::EchoResponse response;
+
+  request.set_message("hello word");
+
+  echo::EchoService::Stub stub(channel.get());
+  stub.Echo(&controller, &request, &response, nullptr);
+
+  if (controller.Failed()) {
+    LOG(ERROR) << "failed to send echo";
+    return -1;
+  }
+
+  LOG(INFO) << "Received: " << response.response().size() << " bytes";
+  return 0;
+}
+
 int main(int argc, char* argv[]) {
   MSF::BuildInfo();
+
+  EchoTest();
 
   // std::string logFile_ = "/var/log/luotang.me/Shell.log";
   // assert(Logger::getLogger().init(logFile_.c_str()));

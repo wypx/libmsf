@@ -70,6 +70,6 @@ void Connection::UpdateWriteBusyIovec() noexcept {
   }
 }
 
-void Connection::UpdateWriteBusyOffset(int64_t bytes_send) noexcept {}
+void Connection::UpdateWriteBusyOffset(uint64_t bytes_send) noexcept {}
 
 }  // namespace MSF

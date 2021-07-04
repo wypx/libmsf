@@ -39,9 +39,9 @@ std::string NewUuid() {
   UUID uuid;
   ::UuidCreate(&uuid);
   char *uuid_cstr = nullptr;
-  ::UuidToStringA(&uuid, reinterpret_cast<RPC_CSTR *>(&uuid_cstr));
+  ::UuidToStringA(&uuid, reinterpret_cast<CSTR *>(&uuid_cstr));
   res = std::string(uuid_cstr);
-  ::RpcStringFreeA(reinterpret_cast<RPC_CSTR *>(&uuid_cstr));
+  :StringFreeA(reinterpret_cast<CSTR *>(&uuid_cstr));
 #else
   uuid_t uuid;
   char uuid_cstr[37];  // 36 byte uuid plus null.
@@ -342,6 +342,30 @@ std::string& trim(std::string &s, const std::string &chars) {
 }
 std::string trim(std::string &&s, const std::string &chars) {
     TRIM(s, chars);
+}
+#endif
+
+// 删除std::String类型字符串首尾空格
+
+#if 0
+// 删除左侧空格
+std::string &trimleft(std::string &str) 
+{ 
+	str.erase(0, str.find_first_not_of(std::ctype_base::space));
+	return str;
+} 
+ 
+// 删除右侧空格
+std::string &trimright(std::string &str) 
+{ 
+	str.erase(str.find_last_not_of(std::ctype_base::space) + 1);
+	return str;
+} 
+ 
+// 删除首尾空格
+std::string &trim(std::string &str) 
+{ 
+	return trimleft(trimright(str)); 
 }
 #endif
 

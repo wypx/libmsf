@@ -110,11 +110,13 @@ class Connection : public std::enable_shared_from_this<Connection> {
   void set_buffer_type(BufferType type) noexcept { buffer_type_ = type; }
   BufferType buffer_type() const noexcept { return buffer_type_; }
 
+  uint64_t cid() noexcept { return cid_; }
+
  protected:
   void SubmitWriteIovec(BufferIovec &queue) noexcept;
   void UpdateWriteBusyIovecSafe() noexcept;
   void UpdateWriteBusyIovec() noexcept;
-  void UpdateWriteBusyOffset(int64_t bytes_send) noexcept;
+  void UpdateWriteBusyOffset(uint64_t bytes_send) noexcept;
   virtual void Shutdown(ShutdownMode mode) = 0;
 
   void set_state(State state) noexcept { state_ = state; }
@@ -122,6 +124,7 @@ class Connection : public std::enable_shared_from_this<Connection> {
 
  protected:
   EventLoop *loop_;
+  uint64_t cid_;
   int fd_ = -1;
   InetAddress peer_addr_;
   State state_ = State::kStateNone;

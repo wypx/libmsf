@@ -105,6 +105,17 @@ pid_t Process::CheckPid(const char *pidfile) {
   return pid;
 }
 
+bool IsProcessRunning(long pid) {
+#if defined(WIN32)
+  HANDLE process = OpenProcess(SYNCHRONIZE, FALSE, pid);
+  DWORD ret = WaitForSingleObject(process, 0);
+  CloseHandle(process);
+  return (ret == WAIT_TIMEOUT);
+#else
+  return (::kill(pid, 0) == 0);
+#endif
+}
+
 bool Process::IsRunning() const {
 #if defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
   return (::kill(pid_, 0) == 0);
@@ -239,9 +250,9 @@ int Process::WaitFor(const time_t &t) {
 
 uint64_t Process::CurrentProcessId() {
 #if defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
-  return (uint64_t)::getpid();
+  return static_cast<uint64_t>(::getpid());
 #elif defined(WIN32) || defined(WIN64)
-  return (uint64_t)::GetCurrentProcessId();
+  return static_cast<uint64_t>(::GetCurrentProcessId());
 #endif
 }
 

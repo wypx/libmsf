@@ -42,6 +42,7 @@ set(COMMLIBS MSF
     crypto.a
     snappy.a
     z.a
+    uuid
     pthread
     dl)
 

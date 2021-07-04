@@ -16,10 +16,10 @@
 #include <functional>
 #include <memory>
 
-#include "callback.h"
-#include "sock_utils.h"
-#include "inet_address.h"
-#include "noncopyable.h"
+#include <network/sock/callback.h>
+#include <network/sock/sock_utils.h>
+#include <network/sock/inet_address.h>
+#include "event.h"
 
 using namespace MSF;
 
@@ -56,6 +56,7 @@ class Acceptor : public noncopyable {
   int sfd_ = kInvalidSocket;
   int idle_fd_ = kInvalidSocket;
 
+  std::unique_ptr<Event> event_;
   InetAddress addr_;
   NewConnCallback new_conn_cb_;
 };

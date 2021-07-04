@@ -13,7 +13,6 @@
 #include "thread.h"
 
 #include <assert.h>
-#include <base/logging.h>
 #include <errno.h>
 #include <signal.h>
 #include <stdio.h>
@@ -21,13 +20,15 @@
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <malloc.h>
 #include <sys/syscall.h>
 #define gettid() syscall(__NR_gettid)
 
 #include <iostream>
 #include <type_traits>
 
-#include "exception.h"
+#include <base/logging.h>
+#include <base/exception.h>
 
 using namespace MSF;
 
@@ -237,6 +238,12 @@ void* Thread::threadLoop(ThreadFunc initFunc) {
   SetPriority(priority_);
 
   latch_.CountDown();
+
+  // https://my.huhoo.net/archives/2010/05/malloptmallocnew.html
+  // disable fast bins
+  ::mallopt(M_MXFAST, 0);
+  ::malloc_trim(0);
+  ::malloc_stats();
 
   try {
     func_();

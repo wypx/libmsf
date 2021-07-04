@@ -22,11 +22,22 @@ FastServer::FastServer(EventLoop *loop, const InetAddress &addr) {
 
 FastServer::~FastServer() {}
 
-void FastServer::StartAccept() { return acceptor_->OpenListen(); }
+void FastServer::StartAccept() { acceptor_->Start(); }
+
+void FastServer::StopAccept() { return acceptor_->Stop(); }
 
 void FastServer::RestartAccept() { return acceptor_->OpenListen(); }
 
-void FastServer::StopAccept() { return acceptor_->CloseListen(); }
-
 void FastServer::QuitAccept() { return acceptor_->CloseListen(); }
+
+void FastServer::ConnReadCallback(const ConnectionPtr &conn) { read_cb_(conn); }
+
+void FastServer::ConnWriteCallback(const ConnectionPtr &conn) {
+  write_cb_(conn);
+}
+
+void FastServer::ConnCloseCallback(const ConnectionPtr &conn) {
+  close_cb_(conn);
+  connections_.erase(conn->cid());
+}
 }

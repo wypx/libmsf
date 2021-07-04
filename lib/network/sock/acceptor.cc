@@ -75,6 +75,12 @@ bool Acceptor::Start() {
   }
   OpenIdleFd();
 
+  loop_->RunInLoop([this] {
+    event_.reset(new Event(loop_, sfd_));
+    event_->SetReadCallback(std::bind(&Acceptor::AcceptCb, this));
+    loop_->UpdateEvent(event_.get());
+  });
+
   return true;
 }
 
@@ -90,6 +96,9 @@ void Acceptor::OpenListen() {
     if (::listen(sfd_, back_log_) < 0) {
       LOG(ERROR) << "failed to open listen for fd: " << sfd_;
     }
+    event_.reset(new Event(loop_, sfd_));
+    event_->SetReadCallback(std::bind(&Acceptor::AcceptCb, this));
+    loop_->UpdateEvent(event_.get());
   });
 }
 

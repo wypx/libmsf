@@ -10,29 +10,22 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include "connector.h"
-#include "sock_utils.h"
-#include <base/logging.h>
+#ifndef SOCK_TCP_SERVER_H_
+#define SOCK_TCP_SERVER_H_
+
+#include "fast_server.h"
 #include "tcp_connection.h"
 
 namespace MSF {
 
-Connector::Connector(EventLoop *loop, const InetAddress &peer) {}
+class FastTcpServer : public FastServer {
+ public:
+  FastTcpServer(EventLoop *loop, const InetAddress &addr);
+  virtual ~FastTcpServer();
 
-Connector::~Connector() {}
-
-bool Connector::Connect() {
-  int fd = ConnectTcpServer("127.0.01", 8888, SOCK_STREAM);
-  if (fd < 0) {
-    return false;
-  }
-  conn_.reset(new TCPConnection(loop_, fd));
-
-  // fd_ = ConnectUnixServer(srvPath.c_str(), cliPath.c_str());
-  // if (fd_ < 0) {
-  //   return false;
-  // }
-  return true;
+ protected:
+  void NewConnCallback(const int fd, const uint16_t event) override;
+};
 }
 
-}  // namespace MSF
+#endif

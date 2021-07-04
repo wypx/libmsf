@@ -251,10 +251,17 @@ std::string GetParentDirName(const std::string &path) {
   return GetDirName(parent);
 }
 
-
 int main(int argc, char *argv[]) {
+  BuildInfo();
+
   EventLoop loop;
-  StartEchoServer(&loop);
+
+  InetAddress addr("127.0.0.1", 8888, AF_INET, SOCK_STREAM);
+  FastRpcServer *server = new FastRpcServer(&loop, addr);
+
+  EchoServiceImpl echo_impl(1);
+  server->HookService(&echo_impl);
+
   loop.EnterLoop();
 
 #if 0
@@ -321,8 +328,6 @@ int main(int argc, char *argv[]) {
 #endif
 
   LOG(INFO) << "EchoClient is going to quit";
-
-  BuildInfo();
 
   OptionParser(argc, argv);
 

@@ -134,7 +134,8 @@ inline LogLevel Logger::logLevel() { return g_logLevel; }
 #define LOG_SYSERR Logger(__FILE__, __LINE__, false).stream()
 #define LOG_SYSFATAL Logger(__FILE__, __LINE__, true).stream()
 
-#define LOG(level) Logger(__FILE__, __LINE__, level).stream()
+#define LOG(level) \
+  if (Logger::logLevel() <= level) Logger(__FILE__, __LINE__, level).stream()
 
 const char* strerror_tl(int savedErrno);
 

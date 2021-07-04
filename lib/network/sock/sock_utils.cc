@@ -1012,7 +1012,7 @@ bool Connect(const int fd, const struct sockaddr *srvAddr, socklen_t addrLen,
   /* TODO: I don't know how to do this on Win32. Please send a patch. */
   if (::connect(fd, srvAddr, addrLen) < 0) {
     if (GetLastError() == WSAENETUNREACH) {
-      LOG(ERROR) << "Network is unreachable";
+      LOG(ERROR) << "network is unreachable";
     }
     return false;
   }
@@ -1034,29 +1034,29 @@ bool Connect(const int fd, const struct sockaddr *srvAddr, socklen_t addrLen,
       int saveErrno = GetLastError();
       switch (saveErrno) {
         case EINPROGRESS:
-          LOG(ERROR) << "Connect in progress";
+          LOG(ERROR) << "connect in progress";
           break;
         case EISCONN:
-          LOG(ERROR) << "Connect established yet";
+          LOG(ERROR) << "connect established yet";
           return true;
         case ENETDOWN:
         case ENETUNREACH:
-          LOG(ERROR) << "Network is unreachable";
+          LOG(ERROR) << "network is unreachable";
         case EAGAIN:
         case EADDRINUSE:
-          LOG(ERROR) << "Addres is inused";
+          LOG(ERROR) << "addres is inused";
         case EADDRNOTAVAIL:
         case ECONNREFUSED:
-          LOG(ERROR) << "Connect is refused";
+          LOG(ERROR) << "connect is refused";
         case EACCES:
         case EPERM:
         case EAFNOSUPPORT:
         case EALREADY:
         case EBADF:
-          LOG(ERROR) << "Bad file descriptor";
+          LOG(ERROR) << "bad file descriptor";
         case EFAULT:
         case ENOTSOCK:
-          LOG(ERROR) << "Connect cannot ignore errno:" << strerror(saveErrno);
+          LOG(ERROR) << "connect cannot ignore errno:" << strerror(saveErrno);
           return false;
         default:
           return false;
@@ -1100,13 +1100,13 @@ bool Connect(const int fd, const struct sockaddr *srvAddr, socklen_t addrLen,
         if (SocketError(fd)) {
           return false;
         }
-        LOG(INFO) << "Nonblock connect success.";
+        LOG(INFO) << "nonblock connect success.";
       } else {
         /* errno is already set if err < 0 */
         if (err == 0) {
           errno = ETIMEDOUT;
         }
-        LOG(INFO) << "Nonblock connect errno: " << errno;
+        LOG(INFO) << "nonblock connect errno: " << errno;
         return false;
       }
 #endif
@@ -1139,7 +1139,7 @@ int ConnectTcpServer(const std::string &host, const uint16_t port,
   char port_str[NI_MAXSERV] = {0};
   snprintf(port_str, sizeof(port_str) - 1, "%d", port);
 
-  LOG(INFO) << "Connect to host: " << host << " port: " << port;
+  LOG(INFO) << "connect to host: " << host << " port: " << port;
 
   /* Try with IPv6 if no IPv4 address was found. We do it in this order since
    * in a Redis client you can't afford to test if you have IPv6 connectivity
@@ -1149,7 +1149,7 @@ int ConnectTcpServer(const std::string &host, const uint16_t port,
   ret = getaddrinfo(host.c_str(), port_str, &hints, &ai);
   if (unlikely(ret != 0)) {
     if (ret != EAI_SYSTEM) {
-      LOG(ERROR) << "Connect to " << host << " port " << port
+      LOG(ERROR) << "connect to " << host << " port " << port
                  << " failed getaddrinfo: " << errno << " "
                  << gai_strerror(ret);
     } else {

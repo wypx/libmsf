@@ -20,7 +20,7 @@
 namespace MSF {
 
 TCPConnection::TCPConnection(EventLoop *loop, int fd, bool thread_safe)
-    : Connection(loop, fd, thread_safe) {
+    : Connection(loop, fd, thread_safe), event_(loop, fd) {
   loop_->UpdateEvent(&event_);
 }
 

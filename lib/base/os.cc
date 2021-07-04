@@ -25,6 +25,8 @@
 // #include <grp.h>
 #include <sys/reboot.h>
 #include <sys/sysinfo.h>
+#include <mntent.h>
+#include <sys/mount.h>
 
 #include <algorithm>
 #include <fstream>
@@ -1687,6 +1689,39 @@ out:
 #else
   return 0;
 #endif
+}
+
+// https://blog.csdn.net/dosthing/article/details/81276208
+// https://blog.csdn.net/luckywang1103/article/details/49822333
+
+// https://blog.csdn.net/bingyu880101/article/details/50481507
+
+bool UnmountPath(const std::string& path) {
+  if (path.empty() || path == "/") {
+    return true;
+  }
+  std::string mount_path = path;
+  if (mount_path[mount_path.size() - 1] == '/') {
+    mount_path.erase(mount_path.size() - 1);
+  }
+  struct mntent* ent = nullptr;
+  char mntent_buffer[5 * FILENAME_MAX];
+  struct mntent temp_ent;
+  /* open '/proc/mounts' to load mount points */
+  FILE* proc_mount = ::fopen("/proc/mounts", "re");
+  if (proc_mount == nullptr) return false;
+  while ((ent = ::getmntent_r(proc_mount, &temp_ent, mntent_buffer,
+                              sizeof(mntent_buffer))) != nullptr) {
+    std::string mount_point = ent->mnt_dir;
+    if (mount_point == mount_path) {
+      LOG(INFO) << "The mount device: " << ent->mnt_fsname
+                << " the mount point: " << ent->mnt_dir
+                << " umount target mount point: " << mount_path;
+      ::umount2(ent->mnt_dir, MNT_FORCE);
+    }
+  }
+  ::fclose(proc_mount);
+  return true;
 }
 
 }  // namespace MSF

@@ -1,14 +1,14 @@
-pbRPCpp
+frpc
 =======
 
-pbRPCpp is a small C++ RPC library built on top of boost::asio and google's
+frpc is a small C++ RPC library built on top of libmsf and google's
 protocol buffer, sponsored by [Springbeats](http://springbeats.com), and
-released under Boost License.
+released under GNU License.
 
 Goals
 -----
 
-PbRPCpp aims to provide a simple Remote Procedure Call API for C++ programs.
+frpc aims to provide a simple Remote Procedure Call API for C++ programs.
 It was initially built to simplify client/server communications in desktop
 applications that were already using protobuf as a payload format.
 
@@ -19,25 +19,20 @@ Getting Started
 
 ### Dependencies
 
-* [Boost](http://www.boost.org/)
-* [Google Protobuf](https://code.google.com/p/protobuf/downloads/list)
-* [Google Gtest](https://code.google.com/p/googletest/) which is already included in protobuf's archive.
+* [libmsf](https://github.com/wypx/libmsf)
+* [Google Protobuf](https://github.com/protocolbuffers/protobuf.git)
+* [Google Gtest](https://github.com/google/googletest.git) which is already included in protobuf's archive.
 
 Note that the license for all these components allow a commercial usage (please
 have a look at them for details).
 
 ### Building
 
-Build system relies on [Premake4](http://industriousone.com/premake/download),
-which generates project files for you, depending on the **target** you choose
-(gmake, xcode3, xcode4, vs2008, etc. Type `premake4 --help` to see all the
-available targets).
+Build system relies on [cmake](https://cmake.org/)
 
-For example using gmake:
+For example using cmake:
 
-    cd build
-    premake4 --gtestdir=../../protobuf/gtest --boostdir=../../boost --protobufdir=../../protobuf gmake
-    make config=debug64
+    ./build.py
 
 This will build the static lib and unit-tests in the bin/ directory.
 

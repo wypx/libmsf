@@ -40,6 +40,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 # snappy.a
 # z.a
 set(COMMLIBS MSF numa.a
+    liburing.a
     protobuf.a
     protoc.a
     uuid

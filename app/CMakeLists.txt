@@ -45,6 +45,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++17 -fPIC -O3 -Wall -g -ggdb")
 set(CMAKE_INSTALL_PREFIX /home/luotang.me)
 
 #add_subdirectory (agent AgentServer)
-add_subdirectory (watchdog WatchDog)
+add_subdirectory (watchdog Watchdog)
 add_subdirectory (shell Shell)
 add_subdirectory (mobile Mobile)

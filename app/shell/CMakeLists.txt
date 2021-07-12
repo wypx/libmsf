@@ -34,6 +34,7 @@ set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${DEFINE_CLOCK_GETTIME} -DGFLAGS_NS=${GFLAGS
 set(COMMLIBS MSF
     numa.a
     brpc.a
+    liburing.a
     protobuf.a 
     protoc.a 
     gflags.a

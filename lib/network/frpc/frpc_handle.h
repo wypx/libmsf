@@ -21,12 +21,20 @@
 
 namespace MSF {
 
+class FastRpcController;
+class FastRpcRequest;
+
+typedef std::shared_ptr<FastRpcRequest> FastRpcRequestPtr;
+typedef std::shared_ptr<FastRpcController> FastRpcControllerPtr;
+typedef google::protobuf::Message GoogleMessage;
+typedef std::shared_ptr<google::protobuf::Message> GoogleMessagePtr;
+
 class FastRpcHandle : public std::enable_shared_from_this<FastRpcHandle> {
  public:
   FastRpcHandle() = default;
   virtual ~FastRpcHandle() = default;
 
-  virtual void EntryInit(const frpc::Message& msg) = 0;
+  virtual void EntryInit(const GoogleMessage* msg) = 0;
 };
 
 typedef std::shared_ptr<FastRpcHandle> FastRpcHandlePtr;

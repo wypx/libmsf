@@ -231,7 +231,7 @@ void Acceptor::AcceptCb() {
     } else {
       SetNonBlock(new_fd, true);
       /* 监听线程放在单独的线程, 如果想分发到线程池也可以*/
-      new_conn_cb_(new_fd, EPOLLIN);
+      new_conn_cb_(new_fd, EPOLLIN | EPOLLERR | EPOLLHUP | EPOLLRDHUP);
     }
   } while (stop);
 

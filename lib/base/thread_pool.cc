@@ -41,13 +41,14 @@ void ThreadPool::Start(int numThreads) {
   assert(threads_.empty());
   threads_.reserve(numThreads);
   running_ = true;
+  ThreadOption option;
   for (int i = 0; i < numThreads; ++i) {
-    char id[32];
-    snprintf(id, sizeof id, "%d", i + 1);
-    threads_.emplace_back(
-        new Thread(std::bind(&ThreadPool::RunInThread, this), id));
-    threads_[i]->start();
-    LOG(INFO) << "thread init success for:" << id;
+    option.set_name("th-" + std::to_string(i + 1));
+    option.set_priority(kNormalPriority);
+    option.set_stack_size(4 * 1024 * 1024);
+    option.set_loop_cb(std::bind(&ThreadPool::RunInThread, this));
+    threads_.emplace_back(new Thread(option));
+    threads_[i]->Start();
   }
 
   if (numThreads == 0 && thread_init_cb_) {
@@ -64,7 +65,7 @@ void ThreadPool::Stop() {
   }
   not_empty_.notify_all();
   for (auto& thr : threads_) {
-    thr->join();
+    thr->Join();
   }
 }
 

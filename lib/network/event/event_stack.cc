@@ -29,14 +29,13 @@ EventStack::~EventStack() {
 }
 
 EventLoop *EventStack::GetOneLoop() {
-  // base_loop_.assertInLoopThread();
   if (unlikely(!started_)) {
-    LOG(FATAL) << "event loop thread pool not start.";
+    LOG(FATAL) << "event stack not start.";
     return nullptr;
   }
 
   if (thread_args_.size() == 0) {
-    LOG(INFO) << "event loop return baseloop.";
+    LOG(INFO) << "event stack return baseloop.";
     return &base_loop_;
   }
 
@@ -47,7 +46,6 @@ EventLoop *EventStack::GetOneLoop() {
 }
 
 EventLoop *EventStack::GetHashLoop() {
-  // base_loop_.assertInLoopThread();
   if (unlikely(!started_)) {
     LOG(FATAL) << "event loop thread pool not start.";
     return nullptr;
@@ -76,70 +74,56 @@ std::vector<EventLoop *> EventStack::GetAllLoops() {
   return loops;
 }
 
-void EventStack::StartLoop(ThreadArg *arg) {
+void EventStack::StackLoop(StackArg *arg) {
   // not 100% race-free, eg. threadFunc could be running callback_.
-  if (arg->loop_ != nullptr) {
-    if (init_cb_) {
-      init_cb_(arg->loop_);
-    }
-    arg->loop_->EnterLoop();
-
-    // still a tiny chance to call destructed object, if threadFunc exits just
-    // now. but when EventLoopThread destructs, usually programming is exiting
-    // anyway.
-    arg->loop_->QuitLoop();
-    arg->thread_->join();
-    arg->loop_ = nullptr;
-  } else {
-    LOG(FATAL) << "event loop pointer is invalid";
+  if (init_cb_) {
+    init_cb_(arg->loop_);
   }
+  LOG(INFO) << "============>";
+  arg->loop_->EnterLoop();
+  LOG(INFO) << "<============>";
+
+  // still a tiny chance to call destructed object, if threadFunc exits just
+  // now. but when EventLoopThread destructs, usually programming is exiting
+  // anyway.
+  arg->loop_->QuitLoop();
+  arg->thread_->Join();
 }
 
-void EventStack::SetThreadArgs(const std::vector<ThreadArg> &thread_arg) {
+void EventStack::SetStackArgs(const std::vector<StackArg> &thread_arg) {
   std::move(thread_arg.begin(), thread_arg.end(),
             std::back_inserter(thread_args_));
 }
 
-bool EventStack::StartThreads(const std::vector<ThreadArg> &thread_args) {
+void EventStack::StartStack() {
+  base_loop_.AssertInLoopThread();
   if (unlikely(started_)) {
     LOG(FATAL) << "event loop thread pool is started.";
-    return false;
+    return;
   }
-  // base_loop_->assertInLoopThread();
   started_ = true;
 
-  std::move(thread_args.begin(), thread_args.end(),
-            std::back_inserter(thread_args_));
+  ThreadOption option;
 
   for (auto &th : thread_args_) {
-    th.thread_ =
-        new Thread(std::bind(&EventStack::StartLoop, this, &th), th.name_);
-    if (th.thread_ == nullptr) {
-      LOG(FATAL) << "alloc event thread failed, errno:" << errno;
-      return false;
-    }
-    th.thread_->start([this, &th]() {
-      /* Pre init function before thread loop */
-      th.loop_ = new EventLoop();
-      if (th.loop_ == nullptr) {
-        LOG(FATAL) << "alloc event loop failed, errno:" << errno;
-        return;
-      }
-    });
+    option.set_name(th.name_);
+    option.set_priority(kNormalPriority);
+    option.set_stack_size(1024 * 1024);
+    option.set_loop_cb(std::bind(&EventStack::StackLoop, this, &th));
+    th.thread_.reset(new Thread(option));
+    th.thread_->Start([this, &th] { th.loop_ = new EventLoop(); });
   }
   LOG(INFO) << "start all " << thread_args_.size() << " thread success.";
-  return true;
 }
 
-bool EventStack::Start(const ThreadInitCallback &cb) {
+bool EventStack::StartMain(const ThreadInitCallback &init_cb) {
   if (thread_args_.size() == 0) {
-    if (cb) {
-      cb(&base_loop_);
+    if (init_cb) {
+      init_cb(&base_loop_);
     }
   }
 
   base_loop_.EnterLoop();
-
   return true;
 }
 

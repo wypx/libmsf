@@ -13,6 +13,7 @@ void EchoServiceImpl::Echo(::google::protobuf::RpcController* controller,
                            const ::echo::EchoRequest* request,
                            ::echo::EchoResponse* response,
                            ::google::protobuf::Closure* done) {
+  LOG(INFO) << "echo ===>" << request->message();
   if (fail_reason_.empty()) {
     response->set_response(request->message());
   } else {

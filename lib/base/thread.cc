@@ -123,6 +123,22 @@ void sleepUsec(int64_t usec) {
   // ::nanosleep(&ts, NULL);
 }
 
+class ThreadNameInitializer {
+ public:
+  static void AfterFork() {
+    CurrentThread::t_cachedTid = 0;
+    CurrentThread::t_threadName = "main";
+    CurrentThread::tid();
+  }
+  ThreadNameInitializer() {
+    CurrentThread::t_threadName = "main";
+    CurrentThread::tid();
+    ::pthread_atfork(nullptr, nullptr, &AfterFork);
+  }
+};
+
+ThreadNameInitializer init;
+
 }  // namespace CurrentThread
 
 // pthread_cond_init
@@ -151,68 +167,78 @@ void sleepUsec(int64_t usec) {
 // pthread_testcancle
 // pthread_setcacltype
 
-int pthreadSpawn(pthread_t* tid, void* (*pfn)(void*), void* arg) {
-  int rc;
-  pthread_attr_t thread_attr;
-
-#ifndef WIN32
-  sigset_t signal_mask;
-  ::sigemptyset(&signal_mask);
-  ::sigaddset(&signal_mask, SIGPIPE);
-  rc = ::pthread_sigmask(SIG_BLOCK, &signal_mask, NULL);
-  if (rc != 0) {
-    LOG(ERROR) << "Block sigpipe error.";
-  }
-#endif
-
-  ::pthread_attr_init(&thread_attr);
-  ::pthread_attr_setdetachstate(&thread_attr, PTHREAD_CREATE_JOINABLE);
-  if (::pthread_create(tid, &thread_attr, pfn, arg) < 0) {
-    LOG(ERROR) << "Do pthread_create errno: " << errno;
-    return -1;
-  }
-
-  ::pthread_attr_destroy(&thread_attr);
-
-  return 0;
-}
-
 #if !defined(WIN32) && !defined(WIN64)
 struct ThreadAttributes {
-  ThreadAttributes() { pthread_attr_init(&attr); }
-  ~ThreadAttributes() { pthread_attr_destroy(&attr); }
-  pthread_attr_t* operator&() { return &attr; }
-  pthread_attr_t attr;
+  ThreadAttributes() {
+    ::pthread_attr_init(&attr_);
+    ::pthread_attr_setdetachstate(&attr_, PTHREAD_CREATE_JOINABLE);
+  }
+  ~ThreadAttributes() { ::pthread_attr_destroy(&attr_); }
+  pthread_attr_t* operator&() { return &attr_; }
+  pthread_attr_t attr_;
+
+  void SetThreadName(const char* name) {
+#if defined(__linux__)
+    ::prctl(PR_SET_NAME, reinterpret_cast<unsigned long>(name));  // NOLINT
+#elif defined(__APPLE__)
+    ::pthread_setname_np(name);
+#endif
+  }
+
+  // Set the stack stack size to 1M
+  bool SetStackSize(size_t stacksize = 1024 * 1024) {
+    return (::pthread_attr_setstacksize(&attr_, stacksize) == 0);
+  }
+  size_t GetStackSize() const {
+    size_t stacksize = 0;
+    ::pthread_attr_getstacksize(&attr_, &stacksize);
+    return stacksize;
+  }
+#if 0
+  // pthread_attr_getstack
+  // pthread_attr_setstack
+
+  bool SetConcureny(int level) {
+    ::pthread_attr_setconcureny(&attr_, &level);
+  }
+  int GetConcureny() {
+    int level = 0;
+    ::pthread_attr_getconcureny((&attr_, &level);
+    return level;
+  }
+  bool SetGardSize() {
+    ::pthread_attr_setgardsize(&attr_, &stacksize);
+  }
+  void GetGardSize() {
+    pthread_attr_getgardsize(&attr_, &stacksize);
+  }
+#endif
+  bool BlockSigPipe() {
+#ifndef WIN32
+    sigset_t signal_mask;
+    ::sigemptyset(&signal_mask);
+    ::sigaddset(&signal_mask, SIGPIPE);
+    return (::pthread_sigmask(SIG_BLOCK, &signal_mask, nullptr) == 0);
+#else
+    return true;
+#endif
+  }
+  bool SpawnThread(pthread_t* tid, void* (*pfn)(void*), void* arg) {
+    return (::pthread_create(tid, &attr_, pfn, arg) == 0);
+  }
+
+  bool SetPriority(ThreadPriority priority) { return true; }
+  void SetMallocOpt() {
+    // https://my.huhoo.net/archives/2010/05/malloptmallocnew.html
+    // disable fast bins
+    ::mallopt(M_MXFAST, 0);
+    ::malloc_trim(0);
+    ::malloc_stats();
+  }
 };
 #endif  // defined(WIN)
 
-class ThreadNameInitializer {
- public:
-  static void afterFork() {
-    CurrentThread::t_cachedTid = 0;
-    CurrentThread::t_threadName = "main";
-    CurrentThread::tid();
-    // no need to call pthread_atfork(NULL, NULL, &afterFork);
-  }
-  ThreadNameInitializer() {
-    CurrentThread::t_threadName = "main";
-    CurrentThread::tid();
-    pthread_atfork(NULL, NULL, &afterFork);
-  }
-};
-
-ThreadNameInitializer init;
-
-Thread::Thread(ThreadFunc func, const std::string& name,
-               ThreadPriority priority)
-    : started_(false),
-      priority_(priority),
-      tid_(0),
-      func_(std::move(func)),
-      name_(name),
-      latch_(1) {
-  setDefaultName();
-}
+Thread::Thread(const ThreadOption& option) : option_(option) {}
 
 /**
  * use in pthread
@@ -220,84 +246,57 @@ Thread::Thread(ThreadFunc func, const std::string& name,
  * pthread_detach(_pthreadId);
  * */
 Thread::~Thread() {
-  if (started_ && !thread_.joinable()) {
-    thread_.detach();
-  }
+  Detach();
   started_ = false;
 }
 
-void* Thread::threadLoop(ThreadFunc initFunc) {
-  if (initFunc) {
-    initFunc();
-  }
+void Thread::InternalInit() {
   tid_ = CurrentThread::tid();
-  CurrentThread::t_threadName = name_.c_str();
-  LOG(INFO) << "Thread name: " << CurrentThread::t_threadName
-            << " name:" << name_;
-  SetCurrentThreadName(CurrentThread::t_threadName);
-  SetPriority(priority_);
 
-  latch_.CountDown();
+  CurrentThread::t_threadName = option_.name().c_str();
 
-  // https://my.huhoo.net/archives/2010/05/malloptmallocnew.html
-  // disable fast bins
-  ::mallopt(M_MXFAST, 0);
-  ::malloc_trim(0);
-  ::malloc_stats();
+  LOG(INFO) << "thread name: " << CurrentThread::t_threadName;
+
+  ThreadAttributes attr;
+  attr.SetThreadName(option_.name().c_str());
+  attr.SetStackSize(option_.stack_size());
+  attr.BlockSigPipe();
+  attr.SetMallocOpt();
+
+  SetPriority(option_.priority());
+}
+
+void* Thread::ThreadLoop(const ThreadCallback& init_cb, CountDownLatch& latch) {
+  if (init_cb) {
+    init_cb();
+  }
+  InternalInit();
+  latch.CountDown();
+
+  started_ = true;
 
   try {
-    func_();
+    option_.loop_cb();
     started_ = false;
     CurrentThread::t_threadName = "finished";
   }
   catch (const Exception& ex) {
     CurrentThread::t_threadName = "crashed";
-    LOG(FATAL) << "exception caught in ThreadPool " << name_.c_str()
+    LOG(FATAL) << "exception caught in thread " << option_.name()
                << ",reason: " << ex.what()
                << "stack trace: " << ex.stackTrace();
-    abort();
   }
   catch (const std::exception& ex) {
     CurrentThread::t_threadName = "crashed";
-    LOG(FATAL) << "exception caught in ThreadPool " << name_.c_str()
+    LOG(FATAL) << "exception caught in thread " << option_.name()
                << ",reason: " << ex.what();
-    abort();
   }
   catch (...) {
     CurrentThread::t_threadName = "crashed";
-    LOG(FATAL) << "unknown exception caught in ThreadPool " << name_.c_str();
+    LOG(FATAL) << "unknown exception caught in thread " << option_.name();
     throw;  // rethrow
   }
   return nullptr;
-}
-
-void Thread::SetCurrentThreadName(const char* name) {
-#if defined(WIN32) || defined(WIN64)
-// For details see:
-// https://docs.microsoft.com/en-us/visualstudio/debugger/how-to-set-a-thread-name-in-native-code
-#pragma pack(push, 8)
-  struct {
-    DWORD dwType;
-    LPCSTR szName;
-    DWORD dwThreadID;
-    DWORD dwFlags;
-  } threadname_info = {0x1000, name, static_cast<DWORD>(-1), 0};
-#pragma pack(pop)
-
-#pragma warning(push)
-#pragma warning(disable : 6320 6322)
-  __try {
-    ::RaiseException(0x406D1388, 0, sizeof(threadname_info) / sizeof(ULONG_PTR),
-                     reinterpret_cast<ULONG_PTR*>(&threadname_info));
-  }
-  __except(EXCEPTION_EXECUTE_HANDLER) {  // NOLINT
-  }
-#pragma warning(pop)
-#elif defined(__linux__)
-  ::prctl(PR_SET_NAME, reinterpret_cast<unsigned long>(name));  // NOLINT
-#elif defined(__APPLE__)
-  ::pthread_setname_np(name);
-#endif
 }
 
 /*
@@ -356,33 +355,47 @@ bool Thread::SetPriority(ThreadPriority priority) {
 #endif
 }
 
-void Thread::setDefaultName() {
-  // int num = _numCreated.fetch_add(1);
-  if (name_.empty()) {
-    name_ = "Thread_" + std::to_string(gettid());
+void Thread::Start(const ThreadCallback& init_cb) {
+  if (started_) {
+    LOG(INFO) << "thread has started, tid: " << CurrentThread::tid();
+    return;
   }
-}
-
-void Thread::Start() {
+  started_ = true;
 #if defined(WIN32) || defined(WIN64)
   // See bug 2902 for background on STACK_SIZE_PARAM_IS_A_RESERVATION.
   // Set the reserved stack stack size to 1M, which is the default on Windows
   // and Linux.
   th_ = ::CreateThread(nullptr, 1024 * 1024, &StartThread, this,
                        STACK_SIZE_PARAM_IS_A_RESERVATION, &thread_id_);
-  // assert(th_) << "CreateThread failed";
-  assert(thread_id_);
+  if (th_ < 0) {
+    LOG(FATAL) << "fail to create thread " << option_.name();
+  }
 #else
-  ThreadAttributes attr;
-  // Set the stack stack size to 1M.
-  ::pthread_attr_setstacksize(&attr, 1024 * 1024);
-// assert(0 == pthread_create(&th_, &attr, &StartThread, this));
-
-// pthread_attr_getstack
-// pthread_attr_setstack
-// pthread_attr_get/setstacksize 默认pagesize
-// pthread_attr_get/setgardsize
-// pthread_attr_get/setconcureny(int level) 提高希望并发度
+  try {
+    CountDownLatch latch = CountDownLatch(1);
+    thread_ = std::thread(
+        std::bind(&Thread::ThreadLoop, this, init_cb, std::ref(latch)));
+    latch.Wait();
+  }
+  catch (const Exception& ex) {
+    CurrentThread::t_threadName = "crashed";
+    LOG(FATAL) << "fail to create thread " << option_.name()
+               << ",reason: " << ex.what()
+               << "stack trace: " << ex.stackTrace();
+    started_ = false;
+  }
+  catch (const std::exception& ex) {
+    CurrentThread::t_threadName = "crashed";
+    LOG(FATAL) << "fail to create thread " << option_.name()
+               << ",reason: " << ex.what();
+    started_ = false;
+  }
+  catch (...) {
+    CurrentThread::t_threadName = "crashed";
+    LOG(FATAL) << "fail to create thread, unkown exception " << option_.name();
+    started_ = false;
+    throw;  // rethrow
+  }
 #endif
 }
 
@@ -411,58 +424,37 @@ void Thread::Stop() {
 }
 
 /**
- * pthread_t _pthreadId;
- * pthreadSpawn(&_pthreadId, startThread, data)
- * */
-void Thread::start(const ThreadFunc& initFunc) {
-  assert(!started_);
-  started_ = true;
-
-  try {
-    thread_ = std::thread(std::bind(&Thread::threadLoop, this, initFunc));
-    latch_.Wait();
-  }
-  catch (const Exception& ex) {
-    CurrentThread::t_threadName = "crashed";
-    LOG(FATAL) << "Fail to create thread ThreadPool " << name_.c_str()
-               << ",reason: " << ex.what()
-               << "stack trace: " << ex.stackTrace();
-    started_ = false;
-  }
-  catch (const std::exception& ex) {
-    CurrentThread::t_threadName = "crashed";
-    LOG(FATAL) << "Fail to create thread ThreadPool " << name_.c_str()
-               << ",reason: " << ex.what();
-    started_ = false;
-  }
-  catch (...) {
-    CurrentThread::t_threadName = "crashed";
-    LOG(FATAL) << "Fail to create thread ThreadPool, unkown exception "
-               << name_.c_str();
-    started_ = false;
-    throw;  // rethrow
-  }
-}
-
-/**
  * used in pthread
  * pthread_t _pthreadId;
  * pthread_join(_pthreadId, NULL)
  * */
-void Thread::join() {
+void Thread::Join() {
   if (!started_) {
-    LOG(ERROR) << "Thread already started";
+    LOG(ERROR) << "thread not started";
     return;
   }
 
   if (!thread_.joinable()) {
-    LOG(WARNING) << "Thread not allow to join";
+    LOG(WARNING) << "thread not allow to join";
     return;
   }
   thread_.join();
 }
 
-int Thread::kill(int signal) {
+void Thread::Detach() {
+  if (!started_) {
+    LOG(ERROR) << "thread not started";
+    return;
+  }
+
+  if (!thread_.joinable()) {
+    LOG(WARNING) << "thread not allow to join";
+    return;
+  }
+  thread_.detach();
+}
+
+int Thread::Kill(int signal) {
   if (th_)
     return ::pthread_kill(thread_.native_handle(), signal);
   else

@@ -20,10 +20,21 @@ FastTcpServer::FastTcpServer(EventLoop *loop, const InetAddress &addr)
 
 FastTcpServer::~FastTcpServer() {}
 
-void FastTcpServer::NewConnCallback(const int fd, const uint16_t event) {
-  LOG(INFO) << "new conn coming: " << fd;
-  auto conn = std::make_shared<TCPConnection>(loop(), fd, event);
-  connections_[conn->cid()] = conn;
-  succ_cb_(conn);
+void FastTcpServer::ConnNewCallback(const int fd) {
+  LOG(INFO) << "new conn coming fd: " << fd;
+  auto conn = std::make_shared<TCPConnection>(loop(), fd);
+
+  static uint64_t g_conn_id = 0;
+  conn->set_cid(g_conn_id++);
+  conn->set_state(Connection::kStateConnected);
+  conn->SetConnSuccCb(std::bind(&FastTcpServer::ConnSuccCallback, this, conn));
+  conn->SetConnReadCb(std::bind(&FastTcpServer::ConnReadCallback, this, conn));
+  conn->SetConnWriteCb(
+      std::bind(&FastTcpServer::ConnWriteCallback, this, conn));
+  conn->SetConnCloseCb(
+      std::bind(&FastTcpServer::ConnCloseCallback, this, conn));
+  conn->AddGeneralEvent();
+
+  ConnSuccCallback(conn);
 }
 }

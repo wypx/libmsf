@@ -29,6 +29,19 @@ using namespace MSF;
 
 namespace MSF {
 
+namespace CurrentThread {
+int tid();
+const char* tidString();
+int tidStringLength();
+const char* name();
+
+bool isMainThread();
+void sleepUsec(int64_t usec);
+
+}  // namespace CurrentThread
+
+typedef std::function<void()> ThreadCallback;
+
 enum ThreadPriority {
 #if defined(WIN32) || defined(WIN64)
   kLowPriority = THREAD_PRIORITY_BELOW_NORMAL,
@@ -45,41 +58,49 @@ enum ThreadPriority {
 #endif
 };
 
-namespace CurrentThread {
-int tid();
-const char* tidString();
-int tidStringLength();
-const char* name();
+struct ThreadOption {
+  std::string name_;
+  ThreadCallback loop_cb_;
+  ThreadPriority priority_ = kNormalPriority;
+  uint32_t stack_size_ = 1024 * 1024;
+  bool is_detach_ = false;
 
-bool isMainThread();
-void sleepUsec(int64_t usec);
-
-}  // namespace CurrentThread
-
-typedef std::function<void()> ThreadFunc;
-
-int pthreadSpawn(pthread_t* tid, void* (*pfn)(void*), void* arg);
+  ThreadOption() = default;
+  void set_name(const std::string& name) noexcept { name_ = name; }
+  const std::string& name() const { return name_; }
+  void set_loop_cb(const ThreadCallback& loop_cb) noexcept {
+    loop_cb_ = loop_cb;
+  }
+  const ThreadCallback& loop_cb() { return loop_cb_; }
+  void set_priority(ThreadPriority priority) noexcept { priority_ = priority; }
+  ThreadPriority priority() const { return priority_; }
+  void set_stack_size(uint32_t stack_size = 1024 * 1024) noexcept {
+    stack_size_ = stack_size;
+  }
+  uint32_t stack_size() const { return stack_size_; }
+  void set_is_detach(bool is_detach) noexcept { is_detach_ = is_detach; }
+  bool is_detach() const { return is_detach_; }
+};
 
 // Represents a simple worker thread.  The implementation must be assumed
 // to be single threaded, meaning that all methods of the class, must be
 // called from the same thread, including instantiation.
 class Thread {
  public:
-  explicit Thread(ThreadFunc func, const std::string& name = std::string(),
-                  ThreadPriority priority = kNormalPriority);
+  explicit Thread(const ThreadOption& option);
   ~Thread();
 
   // Spawns a thread and tries to set thread priority according to the priority
   // from when CreateThread was called.
-  void Start();
+  void Start(const ThreadCallback& init_cb = ThreadCallback());
   bool IsRunning() const;
   bool IsCurrent() const;
   // Stops (joins) the spawned thread.
   void Stop();
 
-  void start(const ThreadFunc& initFunc = ThreadFunc());
-  void join();
-  int kill(int signal);
+  void Join();
+  void Detach();
+  int Kill(int signal);
 
   bool started() const { return started_; }
   // pthread_t pthreadId() const {
@@ -87,7 +108,7 @@ class Thread {
   //     return this_id;
   // }
   pid_t tid() const { return tid_; }
-  const std::string& name() const { return name_; }
+  const std::string& name() const { return option_.name(); }
 
   // static int numCreated() { return numCreated_.fetch_and(); }
 
@@ -95,17 +116,12 @@ class Thread {
   static void YieldCurrentThread();
 
  private:
-  void Run();
   bool SetPriority(ThreadPriority priority);
-  void setDefaultName();
-  // Sets the thread name visible to debuggers/tools. This has no effect
-  // otherwise. This name pointer is not copied internally. Thus, it must stay
-  // valid until the thread ends.
-  void SetCurrentThreadName(const char* name);
-  std::thread thread_;
-  bool started_;
-  const ThreadPriority priority_ = kNormalPriority;
+  void InternalInit();
+  void Run();
+  bool started_ = false;
 
+  std::thread thread_;
 #if defined(WIN32) || defined(WIN64)
   static DWORD WINAPI StartThread(void* param);
   HANDLE th_ = nullptr;
@@ -114,13 +130,11 @@ class Thread {
   // static void* StartThread(void* param);
   pthread_t th_ = 0;
 #endif  // defined(WEBRTC_WIN)
-  pid_t tid_;
+  pid_t tid_ = 0;
 
-  ThreadFunc func_;
-  std::string name_;
+  ThreadOption option_;
 
-  CountDownLatch latch_;
-  void* threadLoop(ThreadFunc initFunc);
+  void* ThreadLoop(const ThreadCallback& init_cb, CountDownLatch& latch);
 };
 
 class ThreadFactory {

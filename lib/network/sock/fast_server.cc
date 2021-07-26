@@ -11,13 +11,14 @@
  *
  **************************************************************************/
 #include "fast_server.h"
+#include "logging.h"
 
 namespace MSF {
 
 FastServer::FastServer(EventLoop *loop, const InetAddress &addr) {
   acceptor_ = std::make_unique<Acceptor>(
-      loop, addr, std::bind(&FastServer::NewConnCallback, this,
-                            std::placeholders::_1, std::placeholders::_2));
+      loop, addr,
+      std::bind(&FastServer::ConnNewCallback, this, std::placeholders::_1));
 }
 
 FastServer::~FastServer() {}
@@ -30,14 +31,33 @@ void FastServer::RestartAccept() { return acceptor_->OpenListen(); }
 
 void FastServer::QuitAccept() { return acceptor_->CloseListen(); }
 
-void FastServer::ConnReadCallback(const ConnectionPtr &conn) { read_cb_(conn); }
+void FastServer::SetCallback(const SuccCallback &scb, const ReadCallback &rcb,
+                             const WriteCallback &wcb,
+                             const CloseCallback &ccb) {
+  scb_ = scb;
+  rcb_ = rcb;
+  wcb_ = wcb;
+  ccb_ = ccb;
+}
+
+void FastServer::ConnSuccCallback(const ConnectionPtr &conn) {
+  LOG(INFO) << "conn succ: " << conn->peer_addr().IPPort2String();
+  connections_[conn->cid()] = conn;
+  if (scb_) scb_(conn);
+}
+void FastServer::ConnReadCallback(const ConnectionPtr &conn) {
+  LOG(INFO) << "conn read: " << conn->peer_addr().IPPort2String();
+  if (rcb_) rcb_(conn);
+}
 
 void FastServer::ConnWriteCallback(const ConnectionPtr &conn) {
-  write_cb_(conn);
+  LOG(INFO) << "conn write: " << conn->peer_addr().IPPort2String();
+  if (wcb_) wcb_(conn);
 }
 
 void FastServer::ConnCloseCallback(const ConnectionPtr &conn) {
-  close_cb_(conn);
+  LOG(INFO) << "conn close: " << conn->peer_addr().IPPort2String();
+  if (ccb_) ccb_(conn);
   connections_.erase(conn->cid());
 }
 }

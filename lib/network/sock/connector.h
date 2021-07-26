@@ -49,25 +49,15 @@ class Connector {
 
   bool Connect();
 
-  /* Connector and Accpetor connection use common structure */
-  void Init(EventLoop *loop, const int fd = -1) { event_.Init(loop, fd); }
-
-  void SetSuccCallback(const EventCallback &cb) { event_.SetSuccCallback(cb); }
-  void SetReadCallback(const EventCallback &cb) { event_.SetReadCallback(cb); }
-  void SetWriteCallback(const EventCallback &cb) {
-    event_.SetWriteCallback(cb);
-  }
-  void SetCloseCallback(const EventCallback &cb) {
-    event_.SetCloseCallback(cb);
-  }
-
-  void EnableBaseEvent() {
-    event_.EnableReading();
-    event_.EnableClosing();
-  }
-
-  void EnableWriting() { event_.EnableWriting(); }
-  void DisableWriting() { event_.DisableWriting(); }
+  // void SetSuccCallback(const ConnSuccCallback &cb) { conn_.SetConnSuccCb(cb);
+  // }
+  // void SetReadCallback(const ReadCallback &cb) { conn_.SetConnReadCb(cb); }
+  // void SetWriteCallback(const WriteCallback &cb) {
+  //   conn_.SetConnWriteCb(cb);
+  // }
+  // void SetCloseCallback(const CloseCallback &cb) {
+  //   conn_.SetConnCloseCb(cb);
+  // }
 
   void set_cid(const uint32_t cid) { cid_ = cid; }
   const uint32_t cid() const { return cid_; }
@@ -76,8 +66,8 @@ class Connector {
 
  protected:
   EventLoop *loop_;
+  InetAddress peer_;
   ConnectionPtr conn_;
-  Event event_;
   std::string name_;
   std::string key_; /*key is used to find conn by cid*/
   uint32_t cid_;    /* unique identifier */

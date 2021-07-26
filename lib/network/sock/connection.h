@@ -21,6 +21,7 @@
 
 #include "callback.h"
 #include "buffer.h"
+#include "event.h"
 #include "inet_address.h"
 
 using namespace MSF;
@@ -83,46 +84,67 @@ class Connection : public std::enable_shared_from_this<Connection> {
   inline const InetAddress &peer_addr() const noexcept { return peer_addr_; }
   inline EventLoop *loop() const noexcept { return loop_; }
 
-  virtual bool HandleReadEvent() = 0;
-  virtual bool HandleWriteEvent() = 0;
-  virtual void HandleErrorEvent() = 0;
-  virtual void HandleConnectedEvent() = 0;
-
   void SetConnHighWaterCb(const HighWaterCallback &cb) noexcept {
     io_water_cb_ = std::move(cb);
   }
   void SetConnWriteIOCPCb(const WriteIOCPCallback &cb) noexcept {
     write_iocp_cb_ = std::move(cb);
   }
-  void SetConnSuccessCb(const ConnSuccCallback &cb) noexcept {
-    succ_cb_ = std::move(cb);
+  void SetConnSuccCb(const SuccCallback &cb) noexcept {
+    event_->SetSuccCallback([this, cb] {
+      HandleSuccEvent();
+      cb(shared_from_this());
+    });
   }
   void SetConnReadCb(const ReadCallback &cb) noexcept {
-    read_cb_ = std::move(cb);
+    event_->SetReadCallback([this, cb] {
+      HandleReadEvent();
+      cb(shared_from_this());
+    });
   }
   void SetConnWriteCb(const WriteCallback &cb) noexcept {
-    write_cb_ = std::move(cb);
+    event_->SetWriteCallback([this, cb] {
+      HandleWriteEvent();
+      cb(shared_from_this());
+    });
   }
   void SetConnCloseCb(const CloseCallback &cb) noexcept {
-    close_cb_ = std::move(cb);
+    event_->SetCloseCallback([this, cb] {
+      HandleCloseEvent();
+      cb(shared_from_this());
+    });
   }
 
   void set_buffer_type(BufferType type) noexcept { buffer_type_ = type; }
   BufferType buffer_type() const noexcept { return buffer_type_; }
 
+  void set_cid(uint64_t cid) noexcept { cid_ = cid; }
   uint64_t cid() noexcept { return cid_; }
-
- protected:
-  void SubmitWriteIovec(BufferIovec &queue) noexcept;
-  void UpdateWriteBusyIovecSafe() noexcept;
-  void UpdateWriteBusyIovec() noexcept;
-  void UpdateWriteBusyOffset(uint64_t bytes_send) noexcept;
-  virtual void Shutdown(ShutdownMode mode) = 0;
 
   void set_state(State state) noexcept { state_ = state; }
   State state() noexcept { return state_; }
 
+  void AddGeneralEvent();
+  void AddWriteEvent();
+  void RemoveWriteEvent();
+  void RemoveAllEvent();
+
  protected:
+  virtual void HandleSuccEvent() = 0;
+  virtual void HandleReadEvent() = 0;
+  virtual void HandleWriteEvent() = 0;
+  virtual void HandleCloseEvent() = 0;
+
+  void SubmitWriteIovec(BufferIovec &queue) noexcept;
+  bool UpdateWriteBusyIovecSafe() noexcept;
+  bool UpdateWriteBusyIovec() noexcept;
+  void UpdateWriteBusyOffset(uint64_t bytes_send) noexcept;
+  void ClearWritePendingIovec() noexcept;
+  void ClearWriteBusyIovec() noexcept;
+  virtual void Shutdown(ShutdownMode mode) = 0;
+
+ protected:
+  std::unique_ptr<Event> event_;
   EventLoop *loop_;
   uint64_t cid_;
   int fd_ = -1;
@@ -143,10 +165,6 @@ class Connection : public std::enable_shared_from_this<Connection> {
 
   HighWaterCallback io_water_cb_;
   WriteIOCPCallback write_iocp_cb_;
-  ConnSuccCallback succ_cb_;
-  ReadCallback read_cb_;
-  WriteCallback write_cb_;
-  CloseCallback close_cb_;
 };
 }
 

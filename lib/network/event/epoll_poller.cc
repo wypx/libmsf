@@ -254,19 +254,20 @@ void EPollPoller::RemoveEvent(Event* ev) {
   Poller::AssertInLoopThread();
   int fd = ev->fd();
   if (unlikely(events_.find(fd) == events_.end())) {
-    LOG(ERROR) << "Not found in event map, fd: " << fd;
+    LOG(ERROR) << "not found in event map, fd: " << fd;
     return;
   }
   if (unlikely(events_[fd] != ev)) {
-    LOG(ERROR) << "Event: " << ev << " and fd: " << fd << " not match";
+    LOG(ERROR) << "event: " << ev << " and fd: " << fd << " not match";
     return;
   }
   if (unlikely(ev->IsNoneEvent())) {
-    LOG(ERROR) << "Event: " << ev << " and fd: " << fd << " has none event";
+    LOG(ERROR) << "event: " << ev << " and fd: " << fd << " has none event";
     return;
   }
   int index = ev->index();
   assert(index == kAdded || index == kDeleted);
+  LOG(TRACE) << "remove fd: " << fd;
   size_t n = events_.erase(fd);
   (void)n;
   assert(n == 1);

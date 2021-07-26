@@ -23,13 +23,13 @@
 
 #include "noncopyable.h"
 #include "connector.h"
-#include "frpc.pb.h"
+#include "frpc_handle.h"
 
 using namespace MSF;
 
 namespace MSF {
 
-static const size_t kFastRpcMessageHeaderLength = 32;
+static const size_t kFastRpcMessageHeaderLength = 25;
 
 class EventLoop;
 class FastRpcController;
@@ -45,7 +45,8 @@ class FastRpcChannel : public google::protobuf::RpcChannel, public noncopyable {
   typedef std::function<void(bool, const std::string&)> ResponseCallback;
 
  public:
-  FastRpcChannel(EventLoop* loop, const InetAddress& addr, int timeout = 0);
+  FastRpcChannel(EventLoop* loop, const InetAddress& addr,
+                 bool reconnect = true, int timeout = 0);
   virtual ~FastRpcChannel();
 
   // Inherited from google::protobuf::RpcChannel
@@ -83,16 +84,17 @@ class FastRpcChannel : public google::protobuf::RpcChannel, public noncopyable {
 
   void SendMessage(const void* buffer, size_t len, const ResponseCallback& cb);
 
+  void FastRPCSuccCallback(const ConnectionPtr& conn);
   void FastRPCReadCallback(const ConnectionPtr& conn);
   void FastRPCWriteCallback(const ConnectionPtr& conn);
   void FastRPCCloseCallback(const ConnectionPtr& conn);
 
-  std::list<frpc::Message> ParseFrpcMessage(const ConnectionPtr& conn);
-  void HandleMessage(const ConnectionPtr& conn, const frpc::Message& msg);
+  std::list<GoogleMessage*> ParseFrpcMessage(const ConnectionPtr& conn);
+  void HandleMessage(const ConnectionPtr& conn, GoogleMessage* msg);
 
  private:
-  void connect();
-  void close();
+  void Connect();
+  void Close();
 
  private:
   EventLoop* loop_;
@@ -101,6 +103,8 @@ class FastRpcChannel : public google::protobuf::RpcChannel, public noncopyable {
   ConnectorPtr ctor_;
 
   // <= 0, no request timeout, > 0, request timeout in milliseconds
+  bool reconnect_ = false;
+  bool connecting_ = false;
   int timeout_ = 0;
 
   // map for waiting response: key is request call_id,

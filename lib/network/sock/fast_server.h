@@ -18,6 +18,7 @@
 #include "callback.h"
 #include "acceptor.h"
 #include "connection.h"
+#include "connector.h"
 
 namespace MSF {
 
@@ -31,38 +32,41 @@ class FastServer {
   void StopAccept();
   void QuitAccept();
 
-  void SetConnSuccessCb(const ConnSuccCallback &cb) noexcept {
-    succ_cb_ = std::move(cb);
-  }
-  void SetConnReadCb(const ReadCallback &cb) noexcept {
-    read_cb_ = std::move(cb);
-  }
-  void SetConnWriteCb(const WriteCallback &cb) noexcept {
-    write_cb_ = std::move(cb);
-  }
-  void SetConnCloseCb(const CloseCallback &cb) noexcept {
-    close_cb_ = std::move(cb);
-  }
+  void SetCallback(const SuccCallback &scb, const ReadCallback &rcb,
+                   const WriteCallback &wcb, const CloseCallback &ccb);
 
-  virtual void NewConnCallback(const int fd, const uint16_t event) = 0;
+  virtual void ConnNewCallback(const int fd) = 0;
 
-  EventLoop *loop() { return loop_; }
+  virtual EventLoop *loop() { return acceptor_->loop(); }
 
  protected:
-  void ConnReadCallback(const ConnectionPtr &conn);
-  void ConnWriteCallback(const ConnectionPtr &conn);
-  void ConnCloseCallback(const ConnectionPtr &conn);
+  virtual void ConnSuccCallback(const ConnectionPtr &conn);
+  virtual void ConnReadCallback(const ConnectionPtr &conn);
+  virtual void ConnWriteCallback(const ConnectionPtr &conn);
+  virtual void ConnCloseCallback(const ConnectionPtr &conn);
+
+  void AddConnection(const ConnectionPtr &conn) {
+    connections_[conn->cid()] = conn;
+  }
+  void RemoveConnection(const ConnectionPtr &conn) {
+    connections_.erase(conn->cid());
+  }
+
+  void AddConnector(const ConnectorPtr &ctor) {
+    connectors_[ctor->conn()->cid()] = ctor;
+  }
+  void RemoveConnector(const ConnectorPtr &ctor) {
+    connectors_.erase(ctor->conn()->cid());
+  }
 
  protected:
-  EventLoop *loop_;
+  SuccCallback scb_;
+  ReadCallback rcb_;
+  WriteCallback wcb_;
+  CloseCallback ccb_;
   std::unique_ptr<Acceptor> acceptor_;
   std::unordered_map<uint64_t, ConnectionPtr> connections_;
   std::unordered_map<uint64_t, ConnectorPtr> connectors_;
-
-  ConnSuccCallback succ_cb_;
-  CloseCallback close_cb_;
-  WriteCallback write_cb_;
-  ReadCallback read_cb_;
 };
 }
 

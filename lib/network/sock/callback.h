@@ -25,7 +25,7 @@ typedef std::shared_ptr<Acceptor> AcceptorPtr;
 typedef std::function<void(const int, const uint16_t)> NewConnCallback;
 typedef std::shared_ptr<Connection> ConnectionPtr;
 typedef std::shared_ptr<Connector> ConnectorPtr;
-typedef std::function<void(const ConnectionPtr&)> ConnSuccCallback;
+typedef std::function<void(const ConnectionPtr&)> SuccCallback;
 typedef std::function<void(const ConnectionPtr&)> CloseCallback;
 typedef std::function<void(const ConnectionPtr&)> WriteCallback;
 typedef std::function<void(const ConnectionPtr&)> ReadCallback;

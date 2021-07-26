@@ -143,6 +143,7 @@ class MemPool : noncopyable {
         flags_(0),
         mutex_() {
     AddDefMemSlab();
+    Init();
   }
   explicit MemPool(const int numaId, const uint32_t blkAlign,
                    bool safeMt = true)
@@ -152,6 +153,7 @@ class MemPool : noncopyable {
         flags_(0),
         mutex_() {
     AddDefMemSlab();
+    Init();
   }
   ~MemPool();
 
@@ -161,7 +163,7 @@ class MemPool : noncopyable {
   const uint32_t blk_algin() const { return blk_algin_; }
 
   bool Init();
-  void *Alloc(const uint32_t size);
+  void *Malloc(size_t size);
   void Free(const void *ptr);
   void ReduceBlk();
 

@@ -22,9 +22,10 @@ class UDPConnection : public Connection {
   UDPConnection(EventLoop *loop, int fd, bool thread_safe = true);
   ~UDPConnection();
 
-  bool HandleReadEvent() override;
-  bool HandleWriteEvent() override;
-  void HandleErrorEvent() override;
+  void HandleSuccEvent() override;
+  void HandleReadEvent() override;
+  void HandleWriteEvent() override;
+  void HandleCloseEvent() override;
 
   void CloseConn() override;
   void Shutdown(ShutdownMode mode);

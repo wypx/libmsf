@@ -20,9 +20,7 @@
 namespace MSF {
 
 TCPConnection::TCPConnection(EventLoop *loop, int fd, bool thread_safe)
-    : Connection(loop, fd, thread_safe), event_(loop, fd) {
-  loop_->UpdateEvent(&event_);
-}
+    : Connection(loop, fd, thread_safe) {}
 
 TCPConnection::~TCPConnection() { CloseConn(); }
 
@@ -59,20 +57,23 @@ void TCPConnection::Shutdown(ShutdownMode mode) {
 }
 
 void TCPConnection::CloseConn() {
-  if (fd_ != kInvalidSocket) {
-    LOG(INFO) << "close conn for fd: " << fd_;
-    if (write_buf_.WriteableBytes() == 0) {
-      set_state(State::kStateActiveClose);
-      Shutdown(ShutdownMode::kShutdownBoth);  // Force send FIN
-    } else {
-      set_state(State::kStateCloseWaitWrite);
-      Shutdown(ShutdownMode::kShutdownRead);  // disable read
-    }
+  loop_->RunInLoop([this] {
+    if (fd_ != kInvalidSocket) {
+      RemoveAllEvent();
+      LOG(INFO) << "close conn for fd: " << fd_;
+      if (write_buf_.WriteableBytes() == 0) {
+        set_state(State::kStateActiveClose);
+        Shutdown(ShutdownMode::kShutdownBoth);  // Force send FIN
+      } else {
+        set_state(State::kStateCloseWaitWrite);
+        Shutdown(ShutdownMode::kShutdownRead);  // disable read
+      }
 
-    // event_.remove();
-    CloseSocket(fd_);
-    fd_ = kInvalidSocket;
-  }
+      // event_.remove();
+      CloseSocket(fd_);
+      fd_ = kInvalidSocket;
+    }
+  });
 }
 
 bool TCPConnection::IsClosed() { return fd_ == kInvalidSocket; }
@@ -90,54 +91,64 @@ size_t TCPConnection::RemoveData(void *data, size_t len) {
   return read_buf_.Remove(data, len);
 }
 
-void *TCPConnection::Malloc(size_t len, size_t align) { return nullptr; }
+void *TCPConnection::Malloc(size_t len, size_t align) {
+  return loop_->Malloc(len);
+}
 
-void TCPConnection::Free(void *ptr) {}
+void TCPConnection::Free(void *ptr) { loop_->Free(ptr); }
 
-bool TCPConnection::HandleReadEvent() {
+void TCPConnection::HandleReadEvent() {
   if (state_ != State::kStateConnected) {
-    LOG(ERROR) << fd_ << " want to read but wrong state: " << state_;
-    return false;
+    LOG(WARNING) << fd_ << " want to read but wrong state: " << state_;
+    return;
   }
   int saved_errno = 0;
   size_t ret = read_buf_.ReadFd(fd_, &saved_errno);
+  LOG(INFO) << "read ret: " << ret;
   if (unlikely(IsConnError(ret))) {
     set_state(State::kStateError);
     CloseConn();
-    return false;
+    return;
   }
-  return true;
+  return;
 }
 
-bool TCPConnection::HandleWriteEvent() {
+void TCPConnection::HandleWriteEvent() {
   if (state_ != State::kStateConnected &&
       state_ != State::kStateCloseWaitWrite) {
-    LOG(ERROR) << fd_ << " want to rw but wrong state: " << state_;
-    return false;
+    LOG(WARNING) << fd_ << " want to rw but wrong state: " << state_;
+    return;
   }
 
-  UpdateWriteBusyIovecSafe();
-
-  if (write_busy_queue_.empty()) {
-    return true;
+  if (UpdateWriteBusyIovecSafe()) {
+    return;
   }
 
   int64_t ret = SendMsg(fd_, &*write_busy_queue_.begin(),
                         write_busy_queue_.size(), MSG_NOSIGNAL | MSG_DONTWAIT);
   if (unlikely(IsConnError(ret))) {
-    return false;
+    return;
   }
+  for (auto &iov : write_busy_queue_) {
+    Free(iov.iov_base);
+  }
+
+  write_busy_queue_.clear();
+  
   UpdateWriteBusyOffset(ret);
 
-  if (write_cb_) write_cb_(shared_from_this());
-  return true;
+  RemoveWriteEvent();
+
+  return;
 }
 
-void TCPConnection::HandleErrorEvent() {
+void TCPConnection::HandleCloseEvent() {
+  LOG(WARNING) << fd_ << " do close enent";
   CloseConn();
-  close_cb_(shared_from_this());
 }
 
-void TCPConnection::HandleConnectedEvent() {}
+void TCPConnection::HandleSuccEvent() {
+  LOG(WARNING) << fd_ << " do close enent";
+}
 
 }  // namespace MSF

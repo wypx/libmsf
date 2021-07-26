@@ -17,7 +17,8 @@
 
 namespace MSF {
 
-Connector::Connector(EventLoop *loop, const InetAddress &peer) {}
+Connector::Connector(EventLoop *loop, const InetAddress &peer)
+    : loop_(loop), peer_(peer) {}
 
 Connector::~Connector() {}
 
@@ -27,6 +28,22 @@ bool Connector::Connect() {
     return false;
   }
   conn_.reset(new TCPConnection(loop_, fd));
+
+  static uint64_t g_conn_id = 0;
+  conn_->set_cid(g_conn_id++);
+  conn_->set_state(Connection::kStateConnected);
+  // conn_->SetConnSuccCb(std::bind(&FastTcpServer::ConnSuccCallback, this,
+  // conn_));
+  // conn_->SetConnReadCb(std::bind(&FastTcpServer::ConnReadCallback, this,
+  // conn_));
+  // conn_->SetConnWriteCb(
+  //     std::bind(&FastTcpServer::ConnWriteCallback, this, conn_));
+  // conn_->SetConnCloseCb(
+  //     std::bind(&FastTcpServer::ConnCloseCallback, this, conn_));
+  // conn_->SetConnCloseCb([this](const ConnectionPtr & c){
+  //   LOG(INFO) << "conn close: " << c->peer_addr().IPPort2String();
+  // });
+  // conn_->AddGeneralEvent();
 
   // fd_ = ConnectUnixServer(srvPath.c_str(), cliPath.c_str());
   // if (fd_ < 0) {

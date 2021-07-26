@@ -44,7 +44,7 @@ class LoggingBase {
   virtual void WriteBuffersToFile(BufferVector& buffers, LogFile& output) = 0;
 
   LoggingBase(const std::string& basename, size_t roll_size, size_t partitions,
-              size_t flushInterval, const ThreadFunc& func);
+              size_t flushInterval, const ThreadCallback& func);
 
   void Start();
   void Stop();
@@ -58,13 +58,13 @@ class LoggingBase {
   void ThreadLoop();
 
  public:
-  bool running_;
+  bool running_ = false;
   const int flush_interval_;
   std::string basename_;
   size_t rollSize_;
   size_t partitions_;
   std::atomic_uint32_t roundRobin_;
-  Thread thread_;
+  std::unique_ptr<Thread> thread_;
   CountDownLatch latch_;
   std::mutex mutex_;
   std::condition_variable cond_;
@@ -232,21 +232,21 @@ class AsyncLogging : noncopyable {
 
   void start() {
     running_ = true;
-    thread_.start();
+    thread_->Start();
     latch_.Wait();
   }
 
   void stop() {
     running_ = false;
     cond_.notify_one();
-    thread_.join();
+    thread_->Join();
   }
 
   void append(const char* logline, int len);
   void flush_notify();
 
  private:
-  void threadRoutine();
+  void AsyncLoggingLoop();
 
   typedef FixedBuffer<kLargeBuffer> Buffer;
   typedef std::vector<std::unique_ptr<Buffer>> BufferVector;
@@ -256,7 +256,7 @@ class AsyncLogging : noncopyable {
   std::string file_path_;
   off_t roll_size_;
   const double flush_interval_;
-  Thread thread_;
+  std::unique_ptr<Thread> thread_;
   CountDownLatch latch_;
   std::mutex mutex_;
   std::condition_variable cond_;

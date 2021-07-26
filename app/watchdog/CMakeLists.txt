@@ -19,7 +19,7 @@ else()
         file(MAKE_DIRECTORY ${CMAKE_INSTALL_PREFIX}/Linux) 
     endif()
 endif()
-set(EXECUTABLE_NAME "WatchDog")
+set(EXECUTABLE_NAME "Watchdog")
 
 include (${PROJECT_SOURCE_DIR}/../cmake/utils.cmake)
 #include (${PROJECT_SOURCE_DIR}/cmake/FindNUMA.cmake)

@@ -29,10 +29,10 @@ const uint16_t Event::kReadEvent = EPOLLIN | EPOLLPRI | EPOLLRDHUP;
 const uint16_t Event::kWriteEvent = EPOLLOUT;
 const uint16_t Event::kErrorEvent = EPOLLERR;
 const uint16_t Event::kCloseEvent = EPOLLHUP;
+const uint16_t Event::kAcceptEvent = kReadEvent;
 
-Event::Event(EventLoop* loop, const int fd, const uint16_t events) {
-  Init(loop, fd, events);
-}
+Event::Event(EventLoop* loop, const int fd, const uint16_t events)
+    : loop_(loop), fd_(fd), events_(events) {}
 
 Event::~Event() {
   if (unlikely(event_handling_)) {
@@ -41,25 +41,20 @@ Event::~Event() {
   if (unlikely(added_to_loop_)) {
     LOG(ERROR) << "event in loop: " << this;
   }
-  if (loop_->IsInLoopThread()) {
-    if (unlikely(loop_->HasEvent(this))) {
-      LOG(ERROR) << "loop has event: " << loop_;
-    }
-  }
 }
 
-void Event::Update() {
-  added_to_loop_ = true;
-  loop_->UpdateEvent(this);
-}
+// void Event::Update() {
+//   added_to_loop_ = true;
+//   loop_->UpdateEvent(this);
+// }
 
-void Event::Remove() {
-  if (unlikely(IsNoneEvent())) {
-    LOG(ERROR) << "none event, cannot remove: " << this;
-  }
-  added_to_loop_ = false;
-  loop_->RemoveEvent(this);
-}
+// void Event::Remove() {
+//   if (unlikely(IsNoneEvent())) {
+//     LOG(ERROR) << "none event, cannot remove: " << this;
+//   }
+//   added_to_loop_ = false;
+//   loop_->RemoveEvent(this);
+// }
 
 void Event::HandleEvent(uint64_t receiveTime) {
   std::lock_guard<std::mutex> lock(mutex_);

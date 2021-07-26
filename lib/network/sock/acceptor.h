@@ -38,6 +38,8 @@ class Acceptor : public noncopyable {
   void OpenListen();
   void CloseListen();
 
+  EventLoop *loop() { return loop_; }
+
  private:
   void AcceptCb();
   void ErrorCb();

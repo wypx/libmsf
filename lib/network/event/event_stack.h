@@ -24,20 +24,20 @@ using namespace MSF;
 
 namespace MSF {
 
-struct ThreadArg {
+struct StackArg {
   std::string name_;
   uint32_t options_;
   uint32_t flags_;
 
   EventLoop *loop_;
-  Thread *thread_;
+  std::shared_ptr<Thread> thread_;
 
-  ThreadArg() = default;
-  ThreadArg(const std::string &name) : name_(name), options_(0), flags_(0) {}
-  ThreadArg(const std::string &name, const uint32_t options)
+  StackArg() = default;
+  StackArg(const std::string &name) : name_(name), options_(0), flags_(0) {}
+  StackArg(const std::string &name, const uint32_t options)
       : name_(name), options_(options), flags_(0) {}
-  ThreadArg(const std::string &name, const uint32_t options,
-            const uint32_t flags)
+  StackArg(const std::string &name, const uint32_t options,
+           const uint32_t flags)
       : name_(name), options_(options), flags_(flags) {}
 };
 
@@ -47,9 +47,9 @@ class EventStack : noncopyable {
 
   explicit EventStack();
   ~EventStack();
-  void SetThreadArgs(const std::vector<ThreadArg> &threadArgs);
-  bool StartThreads(const std::vector<ThreadArg> &threadArgs);
-  bool Start(const ThreadInitCallback &cb = ThreadInitCallback());
+  void SetStackArgs(const std::vector<StackArg> &threadArgs);
+  void StartStack();
+  bool StartMain(const ThreadInitCallback &cb = ThreadInitCallback());
 
   // valid after calling start()
   /// round-robin
@@ -59,22 +59,22 @@ class EventStack : noncopyable {
   EventLoop *GetFixedLoop(uint32_t idx);
   std::vector<EventLoop *> GetAllLoops();
 
-  bool Started() const { return started_; }
+  bool started() const { return started_; }
 
  private:
-  void StartLoop(ThreadArg *arg);
+  void StackLoop(StackArg *arg);
 
  private:
   EventLoop base_loop_;
-  bool exiting_;
-  bool started_;
+  bool exiting_ = false;
+  bool started_ = false;
   uint32_t next_;
   std::mutex mutex_;
   std::condition_variable cond_;
 
   ThreadInitCallback init_cb_;
 
-  std::vector<ThreadArg> thread_args_;
+  std::vector<StackArg> thread_args_;
 };
 
 }  // namespace MSF

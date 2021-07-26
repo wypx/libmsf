@@ -26,7 +26,7 @@ namespace MSF {
 class FastRPCMessage {
  public:
   static void SetFrpcMethodDescriptor(
-      frpc::FrpcRequest& request,
+      frpc::FastMessage& request,
       const google::protobuf::MethodDescriptor& method) {
     request.set_method(method.full_name());
   }
@@ -51,7 +51,7 @@ class FastRPCMessage {
     return msg;
   }
 
-  static void SetFrpcMessagedDescriptor(frpc::FrpcRequest& request,
+  static void SetFrpcMessagedDescriptor(frpc::FastMessage& request,
                                         const google::protobuf::Message& msg) {
     request.set_service(msg.GetDescriptor()->full_name());
   }

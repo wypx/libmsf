@@ -37,15 +37,12 @@ class TCPConnection : public Connection {
   void *Malloc(size_t len, size_t align) override;
   void Free(void *ptr) override;
 
-  bool HandleReadEvent() override;
-  bool HandleWriteEvent() override;
-  void HandleErrorEvent() override;
-  void HandleConnectedEvent() override;
+  void HandleReadEvent() override;
+  void HandleWriteEvent() override;
+  void HandleCloseEvent() override;
+  void HandleSuccEvent() override;
 
   inline bool IsConnError(int64_t ret);
-
- private:
-  Event event_;
 };
 
 }  // namespace MSF

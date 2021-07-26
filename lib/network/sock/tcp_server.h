@@ -24,7 +24,7 @@ class FastTcpServer : public FastServer {
   virtual ~FastTcpServer();
 
  protected:
-  void NewConnCallback(const int fd, const uint16_t event) override;
+  void ConnNewCallback(const int fd) override;
 };
 }
 

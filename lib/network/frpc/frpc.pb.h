@@ -48,7 +48,7 @@ struct TableStruct_frpc_2eproto {
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxiliaryParseTableField aux
       [] PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema
-      [7] PROTOBUF_SECTION_VARIABLE(protodesc_cold);
+      [1] PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata
       [];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable
@@ -58,43 +58,13 @@ struct TableStruct_frpc_2eproto {
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable
     descriptor_table_frpc_2eproto;
 namespace frpc {
-class FrpcCancel;
-struct FrpcCancelDefaultTypeInternal;
-extern FrpcCancelDefaultTypeInternal _FrpcCancel_default_instance_;
-class FrpcRequest;
-struct FrpcRequestDefaultTypeInternal;
-extern FrpcRequestDefaultTypeInternal _FrpcRequest_default_instance_;
-class FrpcResponse;
-struct FrpcResponseDefaultTypeInternal;
-extern FrpcResponseDefaultTypeInternal _FrpcResponse_default_instance_;
-class Message;
-struct MessageDefaultTypeInternal;
-extern MessageDefaultTypeInternal _Message_default_instance_;
-class MessageBody;
-struct MessageBodyDefaultTypeInternal;
-extern MessageBodyDefaultTypeInternal _MessageBody_default_instance_;
-class MessageHead;
-struct MessageHeadDefaultTypeInternal;
-extern MessageHeadDefaultTypeInternal _MessageHead_default_instance_;
-class ResponseCode;
-struct ResponseCodeDefaultTypeInternal;
-extern ResponseCodeDefaultTypeInternal _ResponseCode_default_instance_;
+class FastMessage;
+struct FastMessageDefaultTypeInternal;
+extern FastMessageDefaultTypeInternal _FastMessage_default_instance_;
 }  // namespace frpc
 PROTOBUF_NAMESPACE_OPEN
 template <>
-::frpc::FrpcCancel* Arena::CreateMaybeMessage<::frpc::FrpcCancel>(Arena*);
-template <>
-::frpc::FrpcRequest* Arena::CreateMaybeMessage<::frpc::FrpcRequest>(Arena*);
-template <>
-::frpc::FrpcResponse* Arena::CreateMaybeMessage<::frpc::FrpcResponse>(Arena*);
-template <>
-::frpc::Message* Arena::CreateMaybeMessage<::frpc::Message>(Arena*);
-template <>
-::frpc::MessageBody* Arena::CreateMaybeMessage<::frpc::MessageBody>(Arena*);
-template <>
-::frpc::MessageHead* Arena::CreateMaybeMessage<::frpc::MessageHead>(Arena*);
-template <>
-::frpc::ResponseCode* Arena::CreateMaybeMessage<::frpc::ResponseCode>(Arena*);
+::frpc::FastMessage* Arena::CreateMaybeMessage<::frpc::FastMessage>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace frpc {
 
@@ -186,25 +156,25 @@ inline bool ReturnCode_Parse(::PROTOBUF_NAMESPACE_ID::ConstStringParam name,
 }
 // ===================================================================
 
-class ResponseCode final
+class FastMessage final
     : public ::PROTOBUF_NAMESPACE_ID::
-          Message /* @@protoc_insertion_point(class_definition:frpc.ResponseCode) */ {
+          Message /* @@protoc_insertion_point(class_definition:frpc.FastMessage) */ {
  public:
-  inline ResponseCode() : ResponseCode(nullptr) {}
-  ~ResponseCode() override;
-  explicit constexpr ResponseCode(
+  inline FastMessage() : FastMessage(nullptr) {}
+  ~FastMessage() override;
+  explicit constexpr FastMessage(
       ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
 
-  ResponseCode(const ResponseCode& from);
-  ResponseCode(ResponseCode&& from) noexcept : ResponseCode() {
+  FastMessage(const FastMessage& from);
+  FastMessage(FastMessage&& from) noexcept : FastMessage() {
     *this = ::std::move(from);
   }
 
-  inline ResponseCode& operator=(const ResponseCode& from) {
+  inline FastMessage& operator=(const FastMessage& from) {
     CopyFrom(from);
     return *this;
   }
-  inline ResponseCode& operator=(ResponseCode&& from) noexcept {
+  inline FastMessage& operator=(FastMessage&& from) noexcept {
     if (this == &from) return *this;
     if (GetOwningArena() == from.GetOwningArena()) {
       InternalSwap(&from);
@@ -223,17 +193,17 @@ class ResponseCode final
   static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
     return default_instance().GetMetadata().reflection;
   }
-  static const ResponseCode& default_instance() {
+  static const FastMessage& default_instance() {
     return *internal_default_instance();
   }
-  static inline const ResponseCode* internal_default_instance() {
-    return reinterpret_cast<const ResponseCode*>(
-        &_ResponseCode_default_instance_);
+  static inline const FastMessage* internal_default_instance() {
+    return reinterpret_cast<const FastMessage*>(
+        &_FastMessage_default_instance_);
   }
   static constexpr int kIndexInFileMessages = 0;
 
-  friend void swap(ResponseCode& a, ResponseCode& b) { a.Swap(&b); }
-  inline void Swap(ResponseCode* other) {
+  friend void swap(FastMessage& a, FastMessage& b) { a.Swap(&b); }
+  inline void Swap(FastMessage* other) {
     if (other == this) return;
     if (GetOwningArena() == other->GetOwningArena()) {
       InternalSwap(other);
@@ -241,7 +211,7 @@ class ResponseCode final
       ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
     }
   }
-  void UnsafeArenaSwap(ResponseCode* other) {
+  void UnsafeArenaSwap(FastMessage* other) {
     if (other == this) return;
     GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
     InternalSwap(other);
@@ -249,15 +219,15 @@ class ResponseCode final
 
   // implements Message ----------------------------------------------
 
-  inline ResponseCode* New() const final { return new ResponseCode(); }
+  inline FastMessage* New() const final { return new FastMessage(); }
 
-  ResponseCode* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
-    return CreateMaybeMessage<ResponseCode>(arena);
+  FastMessage* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<FastMessage>(arena);
   }
   using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const ResponseCode& from);
+  void CopyFrom(const FastMessage& from);
   using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom(const ResponseCode& from);
+  void MergeFrom(const FastMessage& from);
 
  private:
   static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
@@ -280,177 +250,14 @@ class ResponseCode final
   void SharedCtor();
   void SharedDtor();
   void SetCachedSize(int size) const final;
-  void InternalSwap(ResponseCode* other);
+  void InternalSwap(FastMessage* other);
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "frpc.ResponseCode";
+    return "frpc.FastMessage";
   }
 
  protected:
-  explicit ResponseCode(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                        bool is_message_owned = false);
-
- private:
-  static void ArenaDtor(void* object);
-  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
-
- public:
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData* GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  enum : int {
-    kMsgFieldNumber = 2,
-    kRcFieldNumber = 1,
-  };
-  // string msg = 2;
-  void clear_msg();
-  const std::string& msg() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_msg(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_msg();
-  PROTOBUF_MUST_USE_RESULT std::string* release_msg();
-  void set_allocated_msg(std::string* msg);
-
- private:
-  const std::string& _internal_msg() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_msg(
-      const std::string& value);
-  std::string* _internal_mutable_msg();
-
- public:
-  // int32 rc = 1;
-  void clear_rc();
-  ::PROTOBUF_NAMESPACE_ID::int32 rc() const;
-  void set_rc(::PROTOBUF_NAMESPACE_ID::int32 value);
-
- private:
-  ::PROTOBUF_NAMESPACE_ID::int32 _internal_rc() const;
-  void _internal_set_rc(::PROTOBUF_NAMESPACE_ID::int32 value);
-
- public:
-  // @@protoc_insertion_point(class_scope:frpc.ResponseCode)
- private:
-  class _Internal;
-
-  template <typename T>
-  friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr msg_;
-  ::PROTOBUF_NAMESPACE_ID::int32 rc_;
-  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  friend struct ::TableStruct_frpc_2eproto;
-};
-// -------------------------------------------------------------------
-
-class MessageHead final
-    : public ::PROTOBUF_NAMESPACE_ID::
-          Message /* @@protoc_insertion_point(class_definition:frpc.MessageHead) */ {
- public:
-  inline MessageHead() : MessageHead(nullptr) {}
-  ~MessageHead() override;
-  explicit constexpr MessageHead(
-      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  MessageHead(const MessageHead& from);
-  MessageHead(MessageHead&& from) noexcept : MessageHead() {
-    *this = ::std::move(from);
-  }
-
-  inline MessageHead& operator=(const MessageHead& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline MessageHead& operator=(MessageHead&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const MessageHead& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const MessageHead* internal_default_instance() {
-    return reinterpret_cast<const MessageHead*>(
-        &_MessageHead_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages = 1;
-
-  friend void swap(MessageHead& a, MessageHead& b) { a.Swap(&b); }
-  inline void Swap(MessageHead* other) {
-    if (other == this) return;
-    if (GetOwningArena() == other->GetOwningArena()) {
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(MessageHead* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  inline MessageHead* New() const final { return new MessageHead(); }
-
-  MessageHead* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
-    return CreateMaybeMessage<MessageHead>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const MessageHead& from);
-  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom(const MessageHead& from);
-
- private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
-                        const ::PROTOBUF_NAMESPACE_ID::Message& from);
-
- public:
-  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
-  bool IsInitialized() const final;
-
-  size_t ByteSizeLong() const final;
-  const char* _InternalParse(
-      const char* ptr,
-      ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
-  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
-      ::PROTOBUF_NAMESPACE_ID::uint8* target,
-      ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
-  int GetCachedSize() const final { return _cached_size_.Get(); }
-
- private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const final;
-  void InternalSwap(MessageHead* other);
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "frpc.MessageHead";
-  }
-
- protected:
-  explicit MessageHead(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+  explicit FastMessage(::PROTOBUF_NAMESPACE_ID::Arena* arena,
                        bool is_message_owned = false);
 
  private:
@@ -468,12 +275,80 @@ class MessageHead final
   // accessors -------------------------------------------------------
 
   enum : int {
+    kCallIdFieldNumber = 5,
+    kMethodFieldNumber = 6,
+    kServiceFieldNumber = 7,
+    kMessageFieldNumber = 9,
     kVersionFieldNumber = 1,
     kMagicFieldNumber = 2,
-    kLengthFieldNumber = 3,
-    kTypeFieldNumber = 4,
-    kMsidFieldNumber = 5,
+    kTypeFieldNumber = 3,
+    kLengthFieldNumber = 4,
+    kRetcodeFieldNumber = 8,
   };
+  // string call_id = 5;
+  void clear_call_id();
+  const std::string& call_id() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_call_id(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_call_id();
+  PROTOBUF_MUST_USE_RESULT std::string* release_call_id();
+  void set_allocated_call_id(std::string* call_id);
+
+ private:
+  const std::string& _internal_call_id() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_call_id(
+      const std::string& value);
+  std::string* _internal_mutable_call_id();
+
+ public:
+  // string method = 6;
+  void clear_method();
+  const std::string& method() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_method(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_method();
+  PROTOBUF_MUST_USE_RESULT std::string* release_method();
+  void set_allocated_method(std::string* method);
+
+ private:
+  const std::string& _internal_method() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_method(
+      const std::string& value);
+  std::string* _internal_mutable_method();
+
+ public:
+  // string service = 7;
+  void clear_service();
+  const std::string& service() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_service(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_service();
+  PROTOBUF_MUST_USE_RESULT std::string* release_service();
+  void set_allocated_service(std::string* service);
+
+ private:
+  const std::string& _internal_service() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_service(
+      const std::string& value);
+  std::string* _internal_mutable_service();
+
+ public:
+  // string message = 9;
+  void clear_message();
+  const std::string& message() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_message(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_message();
+  PROTOBUF_MUST_USE_RESULT std::string* release_message();
+  void set_allocated_message(std::string* message);
+
+ private:
+  const std::string& _internal_message() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_message(
+      const std::string& value);
+  std::string* _internal_mutable_message();
+
+ public:
   // fixed32 version = 1;
   void clear_version();
   ::PROTOBUF_NAMESPACE_ID::uint32 version() const;
@@ -494,17 +369,7 @@ class MessageHead final
   void _internal_set_magic(::PROTOBUF_NAMESPACE_ID::uint32 value);
 
  public:
-  // fixed32 length = 3;
-  void clear_length();
-  ::PROTOBUF_NAMESPACE_ID::uint32 length() const;
-  void set_length(::PROTOBUF_NAMESPACE_ID::uint32 value);
-
- private:
-  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_length() const;
-  void _internal_set_length(::PROTOBUF_NAMESPACE_ID::uint32 value);
-
- public:
-  // fixed32 type = 4;
+  // fixed32 type = 3;
   void clear_type();
   ::PROTOBUF_NAMESPACE_ID::uint32 type() const;
   void set_type(::PROTOBUF_NAMESPACE_ID::uint32 value);
@@ -514,17 +379,27 @@ class MessageHead final
   void _internal_set_type(::PROTOBUF_NAMESPACE_ID::uint32 value);
 
  public:
-  // fixed32 msid = 5;
-  void clear_msid();
-  ::PROTOBUF_NAMESPACE_ID::uint32 msid() const;
-  void set_msid(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  // fixed32 length = 4;
+  void clear_length();
+  ::PROTOBUF_NAMESPACE_ID::uint32 length() const;
+  void set_length(::PROTOBUF_NAMESPACE_ID::uint32 value);
 
  private:
-  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_msid() const;
-  void _internal_set_msid(::PROTOBUF_NAMESPACE_ID::uint32 value);
+  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_length() const;
+  void _internal_set_length(::PROTOBUF_NAMESPACE_ID::uint32 value);
 
  public:
-  // @@protoc_insertion_point(class_scope:frpc.MessageHead)
+  // int32 retcode = 8;
+  void clear_retcode();
+  ::PROTOBUF_NAMESPACE_ID::int32 retcode() const;
+  void set_retcode(::PROTOBUF_NAMESPACE_ID::int32 value);
+
+ private:
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_retcode() const;
+  void _internal_set_retcode(::PROTOBUF_NAMESPACE_ID::int32 value);
+
+ public:
+  // @@protoc_insertion_point(class_scope:frpc.FastMessage)
  private:
   class _Internal;
 
@@ -532,956 +407,15 @@ class MessageHead final
   friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr call_id_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr method_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr service_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr message_;
   ::PROTOBUF_NAMESPACE_ID::uint32 version_;
   ::PROTOBUF_NAMESPACE_ID::uint32 magic_;
-  ::PROTOBUF_NAMESPACE_ID::uint32 length_;
   ::PROTOBUF_NAMESPACE_ID::uint32 type_;
-  ::PROTOBUF_NAMESPACE_ID::uint32 msid_;
-  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  friend struct ::TableStruct_frpc_2eproto;
-};
-// -------------------------------------------------------------------
-
-class MessageBody final
-    : public ::PROTOBUF_NAMESPACE_ID::
-          Message /* @@protoc_insertion_point(class_definition:frpc.MessageBody) */ {
- public:
-  inline MessageBody() : MessageBody(nullptr) {}
-  ~MessageBody() override;
-  explicit constexpr MessageBody(
-      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  MessageBody(const MessageBody& from);
-  MessageBody(MessageBody&& from) noexcept : MessageBody() {
-    *this = ::std::move(from);
-  }
-
-  inline MessageBody& operator=(const MessageBody& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline MessageBody& operator=(MessageBody&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const MessageBody& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const MessageBody* internal_default_instance() {
-    return reinterpret_cast<const MessageBody*>(
-        &_MessageBody_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages = 2;
-
-  friend void swap(MessageBody& a, MessageBody& b) { a.Swap(&b); }
-  inline void Swap(MessageBody* other) {
-    if (other == this) return;
-    if (GetOwningArena() == other->GetOwningArena()) {
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(MessageBody* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  inline MessageBody* New() const final { return new MessageBody(); }
-
-  MessageBody* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
-    return CreateMaybeMessage<MessageBody>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const MessageBody& from);
-  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom(const MessageBody& from);
-
- private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
-                        const ::PROTOBUF_NAMESPACE_ID::Message& from);
-
- public:
-  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
-  bool IsInitialized() const final;
-
-  size_t ByteSizeLong() const final;
-  const char* _InternalParse(
-      const char* ptr,
-      ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
-  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
-      ::PROTOBUF_NAMESPACE_ID::uint8* target,
-      ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
-  int GetCachedSize() const final { return _cached_size_.Get(); }
-
- private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const final;
-  void InternalSwap(MessageBody* other);
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "frpc.MessageBody";
-  }
-
- protected:
-  explicit MessageBody(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                       bool is_message_owned = false);
-
- private:
-  static void ArenaDtor(void* object);
-  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
-
- public:
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData* GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  enum : int {
-    kFrpcRequestFieldNumber = 1,
-    kFrpcResponseFieldNumber = 2,
-    kFrpcCancelFieldNumber = 3,
-  };
-  // .frpc.FrpcRequest frpc_request = 1;
-  bool has_frpc_request() const;
-
- private:
-  bool _internal_has_frpc_request() const;
-
- public:
-  void clear_frpc_request();
-  const ::frpc::FrpcRequest& frpc_request() const;
-  PROTOBUF_MUST_USE_RESULT::frpc::FrpcRequest* release_frpc_request();
-  ::frpc::FrpcRequest* mutable_frpc_request();
-  void set_allocated_frpc_request(::frpc::FrpcRequest* frpc_request);
-
- private:
-  const ::frpc::FrpcRequest& _internal_frpc_request() const;
-  ::frpc::FrpcRequest* _internal_mutable_frpc_request();
-
- public:
-  void unsafe_arena_set_allocated_frpc_request(
-      ::frpc::FrpcRequest* frpc_request);
-  ::frpc::FrpcRequest* unsafe_arena_release_frpc_request();
-
-  // .frpc.FrpcResponse frpc_response = 2;
-  bool has_frpc_response() const;
-
- private:
-  bool _internal_has_frpc_response() const;
-
- public:
-  void clear_frpc_response();
-  const ::frpc::FrpcResponse& frpc_response() const;
-  PROTOBUF_MUST_USE_RESULT::frpc::FrpcResponse* release_frpc_response();
-  ::frpc::FrpcResponse* mutable_frpc_response();
-  void set_allocated_frpc_response(::frpc::FrpcResponse* frpc_response);
-
- private:
-  const ::frpc::FrpcResponse& _internal_frpc_response() const;
-  ::frpc::FrpcResponse* _internal_mutable_frpc_response();
-
- public:
-  void unsafe_arena_set_allocated_frpc_response(
-      ::frpc::FrpcResponse* frpc_response);
-  ::frpc::FrpcResponse* unsafe_arena_release_frpc_response();
-
-  // .frpc.FrpcCancel frpc_cancel = 3;
-  bool has_frpc_cancel() const;
-
- private:
-  bool _internal_has_frpc_cancel() const;
-
- public:
-  void clear_frpc_cancel();
-  const ::frpc::FrpcCancel& frpc_cancel() const;
-  PROTOBUF_MUST_USE_RESULT::frpc::FrpcCancel* release_frpc_cancel();
-  ::frpc::FrpcCancel* mutable_frpc_cancel();
-  void set_allocated_frpc_cancel(::frpc::FrpcCancel* frpc_cancel);
-
- private:
-  const ::frpc::FrpcCancel& _internal_frpc_cancel() const;
-  ::frpc::FrpcCancel* _internal_mutable_frpc_cancel();
-
- public:
-  void unsafe_arena_set_allocated_frpc_cancel(::frpc::FrpcCancel* frpc_cancel);
-  ::frpc::FrpcCancel* unsafe_arena_release_frpc_cancel();
-
-  // @@protoc_insertion_point(class_scope:frpc.MessageBody)
- private:
-  class _Internal;
-
-  template <typename T>
-  friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  ::frpc::FrpcRequest* frpc_request_;
-  ::frpc::FrpcResponse* frpc_response_;
-  ::frpc::FrpcCancel* frpc_cancel_;
-  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  friend struct ::TableStruct_frpc_2eproto;
-};
-// -------------------------------------------------------------------
-
-class Message final
-    : public ::PROTOBUF_NAMESPACE_ID::
-          Message /* @@protoc_insertion_point(class_definition:frpc.Message) */ {
- public:
-  inline Message() : Message(nullptr) {}
-  ~Message() override;
-  explicit constexpr Message(
-      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  Message(const Message& from);
-  Message(Message&& from) noexcept : Message() { *this = ::std::move(from); }
-
-  inline Message& operator=(const Message& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline Message& operator=(Message&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const Message& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const Message* internal_default_instance() {
-    return reinterpret_cast<const Message*>(&_Message_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages = 3;
-
-  friend void swap(Message& a, Message& b) { a.Swap(&b); }
-  inline void Swap(Message* other) {
-    if (other == this) return;
-    if (GetOwningArena() == other->GetOwningArena()) {
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(Message* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  inline Message* New() const final { return new Message(); }
-
-  Message* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
-    return CreateMaybeMessage<Message>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const Message& from);
-  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom(const Message& from);
-
- private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
-                        const ::PROTOBUF_NAMESPACE_ID::Message& from);
-
- public:
-  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
-  bool IsInitialized() const final;
-
-  size_t ByteSizeLong() const final;
-  const char* _InternalParse(
-      const char* ptr,
-      ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
-  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
-      ::PROTOBUF_NAMESPACE_ID::uint8* target,
-      ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
-  int GetCachedSize() const final { return _cached_size_.Get(); }
-
- private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const final;
-  void InternalSwap(Message* other);
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "frpc.Message";
-  }
-
- protected:
-  explicit Message(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                   bool is_message_owned = false);
-
- private:
-  static void ArenaDtor(void* object);
-  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
-
- public:
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData* GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  enum : int {
-    kHeadFieldNumber = 1,
-    kBodyFieldNumber = 2,
-  };
-  // .frpc.MessageHead head = 1;
-  bool has_head() const;
-
- private:
-  bool _internal_has_head() const;
-
- public:
-  void clear_head();
-  const ::frpc::MessageHead& head() const;
-  PROTOBUF_MUST_USE_RESULT::frpc::MessageHead* release_head();
-  ::frpc::MessageHead* mutable_head();
-  void set_allocated_head(::frpc::MessageHead* head);
-
- private:
-  const ::frpc::MessageHead& _internal_head() const;
-  ::frpc::MessageHead* _internal_mutable_head();
-
- public:
-  void unsafe_arena_set_allocated_head(::frpc::MessageHead* head);
-  ::frpc::MessageHead* unsafe_arena_release_head();
-
-  // .frpc.MessageBody body = 2;
-  bool has_body() const;
-
- private:
-  bool _internal_has_body() const;
-
- public:
-  void clear_body();
-  const ::frpc::MessageBody& body() const;
-  PROTOBUF_MUST_USE_RESULT::frpc::MessageBody* release_body();
-  ::frpc::MessageBody* mutable_body();
-  void set_allocated_body(::frpc::MessageBody* body);
-
- private:
-  const ::frpc::MessageBody& _internal_body() const;
-  ::frpc::MessageBody* _internal_mutable_body();
-
- public:
-  void unsafe_arena_set_allocated_body(::frpc::MessageBody* body);
-  ::frpc::MessageBody* unsafe_arena_release_body();
-
-  // @@protoc_insertion_point(class_scope:frpc.Message)
- private:
-  class _Internal;
-
-  template <typename T>
-  friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  ::frpc::MessageHead* head_;
-  ::frpc::MessageBody* body_;
-  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  friend struct ::TableStruct_frpc_2eproto;
-};
-// -------------------------------------------------------------------
-
-class FrpcRequest final
-    : public ::PROTOBUF_NAMESPACE_ID::
-          Message /* @@protoc_insertion_point(class_definition:frpc.FrpcRequest) */ {
- public:
-  inline FrpcRequest() : FrpcRequest(nullptr) {}
-  ~FrpcRequest() override;
-  explicit constexpr FrpcRequest(
-      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  FrpcRequest(const FrpcRequest& from);
-  FrpcRequest(FrpcRequest&& from) noexcept : FrpcRequest() {
-    *this = ::std::move(from);
-  }
-
-  inline FrpcRequest& operator=(const FrpcRequest& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline FrpcRequest& operator=(FrpcRequest&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const FrpcRequest& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const FrpcRequest* internal_default_instance() {
-    return reinterpret_cast<const FrpcRequest*>(
-        &_FrpcRequest_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages = 4;
-
-  friend void swap(FrpcRequest& a, FrpcRequest& b) { a.Swap(&b); }
-  inline void Swap(FrpcRequest* other) {
-    if (other == this) return;
-    if (GetOwningArena() == other->GetOwningArena()) {
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(FrpcRequest* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  inline FrpcRequest* New() const final { return new FrpcRequest(); }
-
-  FrpcRequest* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
-    return CreateMaybeMessage<FrpcRequest>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const FrpcRequest& from);
-  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom(const FrpcRequest& from);
-
- private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
-                        const ::PROTOBUF_NAMESPACE_ID::Message& from);
-
- public:
-  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
-  bool IsInitialized() const final;
-
-  size_t ByteSizeLong() const final;
-  const char* _InternalParse(
-      const char* ptr,
-      ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
-  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
-      ::PROTOBUF_NAMESPACE_ID::uint8* target,
-      ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
-  int GetCachedSize() const final { return _cached_size_.Get(); }
-
- private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const final;
-  void InternalSwap(FrpcRequest* other);
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "frpc.FrpcRequest";
-  }
-
- protected:
-  explicit FrpcRequest(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                       bool is_message_owned = false);
-
- private:
-  static void ArenaDtor(void* object);
-  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
-
- public:
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData* GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  enum : int {
-    kCallIdFieldNumber = 1,
-    kServiceFieldNumber = 2,
-    kMethodFieldNumber = 3,
-  };
-  // string call_id = 1;
-  void clear_call_id();
-  const std::string& call_id() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_call_id(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_call_id();
-  PROTOBUF_MUST_USE_RESULT std::string* release_call_id();
-  void set_allocated_call_id(std::string* call_id);
-
- private:
-  const std::string& _internal_call_id() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_call_id(
-      const std::string& value);
-  std::string* _internal_mutable_call_id();
-
- public:
-  // string service = 2;
-  void clear_service();
-  const std::string& service() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_service(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_service();
-  PROTOBUF_MUST_USE_RESULT std::string* release_service();
-  void set_allocated_service(std::string* service);
-
- private:
-  const std::string& _internal_service() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_service(
-      const std::string& value);
-  std::string* _internal_mutable_service();
-
- public:
-  // string method = 3;
-  void clear_method();
-  const std::string& method() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_method(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_method();
-  PROTOBUF_MUST_USE_RESULT std::string* release_method();
-  void set_allocated_method(std::string* method);
-
- private:
-  const std::string& _internal_method() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_method(
-      const std::string& value);
-  std::string* _internal_mutable_method();
-
- public:
-  // @@protoc_insertion_point(class_scope:frpc.FrpcRequest)
- private:
-  class _Internal;
-
-  template <typename T>
-  friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr call_id_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr service_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr method_;
-  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  friend struct ::TableStruct_frpc_2eproto;
-};
-// -------------------------------------------------------------------
-
-class FrpcResponse final
-    : public ::PROTOBUF_NAMESPACE_ID::
-          Message /* @@protoc_insertion_point(class_definition:frpc.FrpcResponse) */ {
- public:
-  inline FrpcResponse() : FrpcResponse(nullptr) {}
-  ~FrpcResponse() override;
-  explicit constexpr FrpcResponse(
-      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  FrpcResponse(const FrpcResponse& from);
-  FrpcResponse(FrpcResponse&& from) noexcept : FrpcResponse() {
-    *this = ::std::move(from);
-  }
-
-  inline FrpcResponse& operator=(const FrpcResponse& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline FrpcResponse& operator=(FrpcResponse&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const FrpcResponse& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const FrpcResponse* internal_default_instance() {
-    return reinterpret_cast<const FrpcResponse*>(
-        &_FrpcResponse_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages = 5;
-
-  friend void swap(FrpcResponse& a, FrpcResponse& b) { a.Swap(&b); }
-  inline void Swap(FrpcResponse* other) {
-    if (other == this) return;
-    if (GetOwningArena() == other->GetOwningArena()) {
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(FrpcResponse* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  inline FrpcResponse* New() const final { return new FrpcResponse(); }
-
-  FrpcResponse* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
-    return CreateMaybeMessage<FrpcResponse>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const FrpcResponse& from);
-  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom(const FrpcResponse& from);
-
- private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
-                        const ::PROTOBUF_NAMESPACE_ID::Message& from);
-
- public:
-  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
-  bool IsInitialized() const final;
-
-  size_t ByteSizeLong() const final;
-  const char* _InternalParse(
-      const char* ptr,
-      ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
-  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
-      ::PROTOBUF_NAMESPACE_ID::uint8* target,
-      ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
-  int GetCachedSize() const final { return _cached_size_.Get(); }
-
- private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const final;
-  void InternalSwap(FrpcResponse* other);
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "frpc.FrpcResponse";
-  }
-
- protected:
-  explicit FrpcResponse(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                        bool is_message_owned = false);
-
- private:
-  static void ArenaDtor(void* object);
-  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
-
- public:
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData* GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  enum : int {
-    kCallIdFieldNumber = 1,
-    kReponseFieldNumber = 3,
-    kRcFieldNumber = 2,
-  };
-  // string call_id = 1;
-  void clear_call_id();
-  const std::string& call_id() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_call_id(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_call_id();
-  PROTOBUF_MUST_USE_RESULT std::string* release_call_id();
-  void set_allocated_call_id(std::string* call_id);
-
- private:
-  const std::string& _internal_call_id() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_call_id(
-      const std::string& value);
-  std::string* _internal_mutable_call_id();
-
- public:
-  // bytes reponse = 3;
-  void clear_reponse();
-  const std::string& reponse() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_reponse(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_reponse();
-  PROTOBUF_MUST_USE_RESULT std::string* release_reponse();
-  void set_allocated_reponse(std::string* reponse);
-
- private:
-  const std::string& _internal_reponse() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_reponse(
-      const std::string& value);
-  std::string* _internal_mutable_reponse();
-
- public:
-  // .frpc.ResponseCode rc = 2;
-  bool has_rc() const;
-
- private:
-  bool _internal_has_rc() const;
-
- public:
-  void clear_rc();
-  const ::frpc::ResponseCode& rc() const;
-  PROTOBUF_MUST_USE_RESULT::frpc::ResponseCode* release_rc();
-  ::frpc::ResponseCode* mutable_rc();
-  void set_allocated_rc(::frpc::ResponseCode* rc);
-
- private:
-  const ::frpc::ResponseCode& _internal_rc() const;
-  ::frpc::ResponseCode* _internal_mutable_rc();
-
- public:
-  void unsafe_arena_set_allocated_rc(::frpc::ResponseCode* rc);
-  ::frpc::ResponseCode* unsafe_arena_release_rc();
-
-  // @@protoc_insertion_point(class_scope:frpc.FrpcResponse)
- private:
-  class _Internal;
-
-  template <typename T>
-  friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr call_id_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr reponse_;
-  ::frpc::ResponseCode* rc_;
-  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  friend struct ::TableStruct_frpc_2eproto;
-};
-// -------------------------------------------------------------------
-
-class FrpcCancel final
-    : public ::PROTOBUF_NAMESPACE_ID::
-          Message /* @@protoc_insertion_point(class_definition:frpc.FrpcCancel) */ {
- public:
-  inline FrpcCancel() : FrpcCancel(nullptr) {}
-  ~FrpcCancel() override;
-  explicit constexpr FrpcCancel(
-      ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  FrpcCancel(const FrpcCancel& from);
-  FrpcCancel(FrpcCancel&& from) noexcept : FrpcCancel() {
-    *this = ::std::move(from);
-  }
-
-  inline FrpcCancel& operator=(const FrpcCancel& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline FrpcCancel& operator=(FrpcCancel&& from) noexcept {
-    if (this == &from) return *this;
-    if (GetOwningArena() == from.GetOwningArena()) {
-      InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return default_instance().GetMetadata().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return default_instance().GetMetadata().reflection;
-  }
-  static const FrpcCancel& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const FrpcCancel* internal_default_instance() {
-    return reinterpret_cast<const FrpcCancel*>(&_FrpcCancel_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages = 6;
-
-  friend void swap(FrpcCancel& a, FrpcCancel& b) { a.Swap(&b); }
-  inline void Swap(FrpcCancel* other) {
-    if (other == this) return;
-    if (GetOwningArena() == other->GetOwningArena()) {
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(FrpcCancel* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  inline FrpcCancel* New() const final { return new FrpcCancel(); }
-
-  FrpcCancel* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
-    return CreateMaybeMessage<FrpcCancel>(arena);
-  }
-  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
-  void CopyFrom(const FrpcCancel& from);
-  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
-  void MergeFrom(const FrpcCancel& from);
-
- private:
-  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message* to,
-                        const ::PROTOBUF_NAMESPACE_ID::Message& from);
-
- public:
-  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
-  bool IsInitialized() const final;
-
-  size_t ByteSizeLong() const final;
-  const char* _InternalParse(
-      const char* ptr,
-      ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
-  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
-      ::PROTOBUF_NAMESPACE_ID::uint8* target,
-      ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
-  int GetCachedSize() const final { return _cached_size_.Get(); }
-
- private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const final;
-  void InternalSwap(FrpcCancel* other);
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "frpc.FrpcCancel";
-  }
-
- protected:
-  explicit FrpcCancel(::PROTOBUF_NAMESPACE_ID::Arena* arena,
-                      bool is_message_owned = false);
-
- private:
-  static void ArenaDtor(void* object);
-  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
-
- public:
-  static const ClassData _class_data_;
-  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData* GetClassData() const final;
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  enum : int {
-    kCallIdFieldNumber = 1,
-    kServiceFieldNumber = 2,
-    kMethodFieldNumber = 3,
-  };
-  // string call_id = 1;
-  void clear_call_id();
-  const std::string& call_id() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_call_id(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_call_id();
-  PROTOBUF_MUST_USE_RESULT std::string* release_call_id();
-  void set_allocated_call_id(std::string* call_id);
-
- private:
-  const std::string& _internal_call_id() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_call_id(
-      const std::string& value);
-  std::string* _internal_mutable_call_id();
-
- public:
-  // string service = 2;
-  void clear_service();
-  const std::string& service() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_service(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_service();
-  PROTOBUF_MUST_USE_RESULT std::string* release_service();
-  void set_allocated_service(std::string* service);
-
- private:
-  const std::string& _internal_service() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_service(
-      const std::string& value);
-  std::string* _internal_mutable_service();
-
- public:
-  // string method = 3;
-  void clear_method();
-  const std::string& method() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_method(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_method();
-  PROTOBUF_MUST_USE_RESULT std::string* release_method();
-  void set_allocated_method(std::string* method);
-
- private:
-  const std::string& _internal_method() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_method(
-      const std::string& value);
-  std::string* _internal_mutable_method();
-
- public:
-  // @@protoc_insertion_point(class_scope:frpc.FrpcCancel)
- private:
-  class _Internal;
-
-  template <typename T>
-  friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr call_id_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr service_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr method_;
+  ::PROTOBUF_NAMESPACE_ID::uint32 length_;
+  ::PROTOBUF_NAMESPACE_ID::int32 retcode_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_frpc_2eproto;
 };
@@ -1493,648 +427,126 @@ class FrpcCancel final
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
-// ResponseCode
-
-// int32 rc = 1;
-inline void ResponseCode::clear_rc() { rc_ = 0; }
-inline ::PROTOBUF_NAMESPACE_ID::int32 ResponseCode::_internal_rc() const {
-  return rc_;
-}
-inline ::PROTOBUF_NAMESPACE_ID::int32 ResponseCode::rc() const {
-  // @@protoc_insertion_point(field_get:frpc.ResponseCode.rc)
-  return _internal_rc();
-}
-inline void ResponseCode::_internal_set_rc(
-    ::PROTOBUF_NAMESPACE_ID::int32 value) {
-
-  rc_ = value;
-}
-inline void ResponseCode::set_rc(::PROTOBUF_NAMESPACE_ID::int32 value) {
-  _internal_set_rc(value);
-  // @@protoc_insertion_point(field_set:frpc.ResponseCode.rc)
-}
-
-// string msg = 2;
-inline void ResponseCode::clear_msg() { msg_.ClearToEmpty(); }
-inline const std::string& ResponseCode::msg() const {
-  // @@protoc_insertion_point(field_get:frpc.ResponseCode.msg)
-  return _internal_msg();
-}
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void ResponseCode::set_msg(ArgT0&& arg0,
-                                                         ArgT... args) {
-
-  msg_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-           static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:frpc.ResponseCode.msg)
-}
-inline std::string* ResponseCode::mutable_msg() {
-  std::string* _s = _internal_mutable_msg();
-  // @@protoc_insertion_point(field_mutable:frpc.ResponseCode.msg)
-  return _s;
-}
-inline const std::string& ResponseCode::_internal_msg() const {
-  return msg_.Get();
-}
-inline void ResponseCode::_internal_set_msg(const std::string& value) {
-
-  msg_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-           value, GetArenaForAllocation());
-}
-inline std::string* ResponseCode::_internal_mutable_msg() {
-
-  return msg_.Mutable(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      GetArenaForAllocation());
-}
-inline std::string* ResponseCode::release_msg() {
-  // @@protoc_insertion_point(field_release:frpc.ResponseCode.msg)
-  return msg_.Release(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      GetArenaForAllocation());
-}
-inline void ResponseCode::set_allocated_msg(std::string* msg) {
-  if (msg != nullptr) {
-
-  } else {
-  }
-  msg_.SetAllocated(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), msg,
-      GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set_allocated:frpc.ResponseCode.msg)
-}
-
-// -------------------------------------------------------------------
-
-// MessageHead
+// FastMessage
 
 // fixed32 version = 1;
-inline void MessageHead::clear_version() { version_ = 0u; }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 MessageHead::_internal_version() const {
+inline void FastMessage::clear_version() { version_ = 0u; }
+inline ::PROTOBUF_NAMESPACE_ID::uint32 FastMessage::_internal_version() const {
   return version_;
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 MessageHead::version() const {
-  // @@protoc_insertion_point(field_get:frpc.MessageHead.version)
+inline ::PROTOBUF_NAMESPACE_ID::uint32 FastMessage::version() const {
+  // @@protoc_insertion_point(field_get:frpc.FastMessage.version)
   return _internal_version();
 }
-inline void MessageHead::_internal_set_version(
+inline void FastMessage::_internal_set_version(
     ::PROTOBUF_NAMESPACE_ID::uint32 value) {
 
   version_ = value;
 }
-inline void MessageHead::set_version(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+inline void FastMessage::set_version(::PROTOBUF_NAMESPACE_ID::uint32 value) {
   _internal_set_version(value);
-  // @@protoc_insertion_point(field_set:frpc.MessageHead.version)
+  // @@protoc_insertion_point(field_set:frpc.FastMessage.version)
 }
 
 // fixed32 magic = 2;
-inline void MessageHead::clear_magic() { magic_ = 0u; }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 MessageHead::_internal_magic() const {
+inline void FastMessage::clear_magic() { magic_ = 0u; }
+inline ::PROTOBUF_NAMESPACE_ID::uint32 FastMessage::_internal_magic() const {
   return magic_;
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 MessageHead::magic() const {
-  // @@protoc_insertion_point(field_get:frpc.MessageHead.magic)
+inline ::PROTOBUF_NAMESPACE_ID::uint32 FastMessage::magic() const {
+  // @@protoc_insertion_point(field_get:frpc.FastMessage.magic)
   return _internal_magic();
 }
-inline void MessageHead::_internal_set_magic(
+inline void FastMessage::_internal_set_magic(
     ::PROTOBUF_NAMESPACE_ID::uint32 value) {
 
   magic_ = value;
 }
-inline void MessageHead::set_magic(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+inline void FastMessage::set_magic(::PROTOBUF_NAMESPACE_ID::uint32 value) {
   _internal_set_magic(value);
-  // @@protoc_insertion_point(field_set:frpc.MessageHead.magic)
+  // @@protoc_insertion_point(field_set:frpc.FastMessage.magic)
 }
 
-// fixed32 length = 3;
-inline void MessageHead::clear_length() { length_ = 0u; }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 MessageHead::_internal_length() const {
-  return length_;
-}
-inline ::PROTOBUF_NAMESPACE_ID::uint32 MessageHead::length() const {
-  // @@protoc_insertion_point(field_get:frpc.MessageHead.length)
-  return _internal_length();
-}
-inline void MessageHead::_internal_set_length(
-    ::PROTOBUF_NAMESPACE_ID::uint32 value) {
-
-  length_ = value;
-}
-inline void MessageHead::set_length(::PROTOBUF_NAMESPACE_ID::uint32 value) {
-  _internal_set_length(value);
-  // @@protoc_insertion_point(field_set:frpc.MessageHead.length)
-}
-
-// fixed32 type = 4;
-inline void MessageHead::clear_type() { type_ = 0u; }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 MessageHead::_internal_type() const {
+// fixed32 type = 3;
+inline void FastMessage::clear_type() { type_ = 0u; }
+inline ::PROTOBUF_NAMESPACE_ID::uint32 FastMessage::_internal_type() const {
   return type_;
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 MessageHead::type() const {
-  // @@protoc_insertion_point(field_get:frpc.MessageHead.type)
+inline ::PROTOBUF_NAMESPACE_ID::uint32 FastMessage::type() const {
+  // @@protoc_insertion_point(field_get:frpc.FastMessage.type)
   return _internal_type();
 }
-inline void MessageHead::_internal_set_type(
+inline void FastMessage::_internal_set_type(
     ::PROTOBUF_NAMESPACE_ID::uint32 value) {
 
   type_ = value;
 }
-inline void MessageHead::set_type(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+inline void FastMessage::set_type(::PROTOBUF_NAMESPACE_ID::uint32 value) {
   _internal_set_type(value);
-  // @@protoc_insertion_point(field_set:frpc.MessageHead.type)
+  // @@protoc_insertion_point(field_set:frpc.FastMessage.type)
 }
 
-// fixed32 msid = 5;
-inline void MessageHead::clear_msid() { msid_ = 0u; }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 MessageHead::_internal_msid() const {
-  return msid_;
+// fixed32 length = 4;
+inline void FastMessage::clear_length() { length_ = 0u; }
+inline ::PROTOBUF_NAMESPACE_ID::uint32 FastMessage::_internal_length() const {
+  return length_;
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 MessageHead::msid() const {
-  // @@protoc_insertion_point(field_get:frpc.MessageHead.msid)
-  return _internal_msid();
+inline ::PROTOBUF_NAMESPACE_ID::uint32 FastMessage::length() const {
+  // @@protoc_insertion_point(field_get:frpc.FastMessage.length)
+  return _internal_length();
 }
-inline void MessageHead::_internal_set_msid(
+inline void FastMessage::_internal_set_length(
     ::PROTOBUF_NAMESPACE_ID::uint32 value) {
 
-  msid_ = value;
+  length_ = value;
 }
-inline void MessageHead::set_msid(::PROTOBUF_NAMESPACE_ID::uint32 value) {
-  _internal_set_msid(value);
-  // @@protoc_insertion_point(field_set:frpc.MessageHead.msid)
-}
-
-// -------------------------------------------------------------------
-
-// MessageBody
-
-// .frpc.FrpcRequest frpc_request = 1;
-inline bool MessageBody::_internal_has_frpc_request() const {
-  return this != internal_default_instance() && frpc_request_ != nullptr;
-}
-inline bool MessageBody::has_frpc_request() const {
-  return _internal_has_frpc_request();
-}
-inline void MessageBody::clear_frpc_request() {
-  if (GetArenaForAllocation() == nullptr && frpc_request_ != nullptr) {
-    delete frpc_request_;
-  }
-  frpc_request_ = nullptr;
-}
-inline const ::frpc::FrpcRequest& MessageBody::_internal_frpc_request() const {
-  const ::frpc::FrpcRequest* p = frpc_request_;
-  return p != nullptr ? *p : reinterpret_cast<const ::frpc::FrpcRequest&>(
-                                 ::frpc::_FrpcRequest_default_instance_);
-}
-inline const ::frpc::FrpcRequest& MessageBody::frpc_request() const {
-  // @@protoc_insertion_point(field_get:frpc.MessageBody.frpc_request)
-  return _internal_frpc_request();
-}
-inline void MessageBody::unsafe_arena_set_allocated_frpc_request(
-    ::frpc::FrpcRequest* frpc_request) {
-  if (GetArenaForAllocation() == nullptr) {
-    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(
-        frpc_request_);
-  }
-  frpc_request_ = frpc_request;
-  if (frpc_request) {
-
-  } else {
-  }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:frpc.MessageBody.frpc_request)
-}
-inline ::frpc::FrpcRequest* MessageBody::release_frpc_request() {
-
-  ::frpc::FrpcRequest* temp = frpc_request_;
-  frpc_request_ = nullptr;
-  if (GetArenaForAllocation() != nullptr) {
-    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
-  }
-  return temp;
-}
-inline ::frpc::FrpcRequest* MessageBody::unsafe_arena_release_frpc_request() {
-  // @@protoc_insertion_point(field_release:frpc.MessageBody.frpc_request)
-
-  ::frpc::FrpcRequest* temp = frpc_request_;
-  frpc_request_ = nullptr;
-  return temp;
-}
-inline ::frpc::FrpcRequest* MessageBody::_internal_mutable_frpc_request() {
-
-  if (frpc_request_ == nullptr) {
-    auto* p = CreateMaybeMessage<::frpc::FrpcRequest>(GetArenaForAllocation());
-    frpc_request_ = p;
-  }
-  return frpc_request_;
-}
-inline ::frpc::FrpcRequest* MessageBody::mutable_frpc_request() {
-  ::frpc::FrpcRequest* _msg = _internal_mutable_frpc_request();
-  // @@protoc_insertion_point(field_mutable:frpc.MessageBody.frpc_request)
-  return _msg;
-}
-inline void MessageBody::set_allocated_frpc_request(
-    ::frpc::FrpcRequest* frpc_request) {
-  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
-  if (message_arena == nullptr) {
-    delete frpc_request_;
-  }
-  if (frpc_request) {
-    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
-        ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<
-            ::frpc::FrpcRequest>::GetOwningArena(frpc_request);
-    if (message_arena != submessage_arena) {
-      frpc_request = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
-          message_arena, frpc_request, submessage_arena);
-    }
-
-  } else {
-  }
-  frpc_request_ = frpc_request;
-  // @@protoc_insertion_point(field_set_allocated:frpc.MessageBody.frpc_request)
+inline void FastMessage::set_length(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+  _internal_set_length(value);
+  // @@protoc_insertion_point(field_set:frpc.FastMessage.length)
 }
 
-// .frpc.FrpcResponse frpc_response = 2;
-inline bool MessageBody::_internal_has_frpc_response() const {
-  return this != internal_default_instance() && frpc_response_ != nullptr;
-}
-inline bool MessageBody::has_frpc_response() const {
-  return _internal_has_frpc_response();
-}
-inline void MessageBody::clear_frpc_response() {
-  if (GetArenaForAllocation() == nullptr && frpc_response_ != nullptr) {
-    delete frpc_response_;
-  }
-  frpc_response_ = nullptr;
-}
-inline const ::frpc::FrpcResponse& MessageBody::_internal_frpc_response()
-    const {
-  const ::frpc::FrpcResponse* p = frpc_response_;
-  return p != nullptr ? *p : reinterpret_cast<const ::frpc::FrpcResponse&>(
-                                 ::frpc::_FrpcResponse_default_instance_);
-}
-inline const ::frpc::FrpcResponse& MessageBody::frpc_response() const {
-  // @@protoc_insertion_point(field_get:frpc.MessageBody.frpc_response)
-  return _internal_frpc_response();
-}
-inline void MessageBody::unsafe_arena_set_allocated_frpc_response(
-    ::frpc::FrpcResponse* frpc_response) {
-  if (GetArenaForAllocation() == nullptr) {
-    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(
-        frpc_response_);
-  }
-  frpc_response_ = frpc_response;
-  if (frpc_response) {
-
-  } else {
-  }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:frpc.MessageBody.frpc_response)
-}
-inline ::frpc::FrpcResponse* MessageBody::release_frpc_response() {
-
-  ::frpc::FrpcResponse* temp = frpc_response_;
-  frpc_response_ = nullptr;
-  if (GetArenaForAllocation() != nullptr) {
-    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
-  }
-  return temp;
-}
-inline ::frpc::FrpcResponse* MessageBody::unsafe_arena_release_frpc_response() {
-  // @@protoc_insertion_point(field_release:frpc.MessageBody.frpc_response)
-
-  ::frpc::FrpcResponse* temp = frpc_response_;
-  frpc_response_ = nullptr;
-  return temp;
-}
-inline ::frpc::FrpcResponse* MessageBody::_internal_mutable_frpc_response() {
-
-  if (frpc_response_ == nullptr) {
-    auto* p = CreateMaybeMessage<::frpc::FrpcResponse>(GetArenaForAllocation());
-    frpc_response_ = p;
-  }
-  return frpc_response_;
-}
-inline ::frpc::FrpcResponse* MessageBody::mutable_frpc_response() {
-  ::frpc::FrpcResponse* _msg = _internal_mutable_frpc_response();
-  // @@protoc_insertion_point(field_mutable:frpc.MessageBody.frpc_response)
-  return _msg;
-}
-inline void MessageBody::set_allocated_frpc_response(
-    ::frpc::FrpcResponse* frpc_response) {
-  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
-  if (message_arena == nullptr) {
-    delete frpc_response_;
-  }
-  if (frpc_response) {
-    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
-        ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<
-            ::frpc::FrpcResponse>::GetOwningArena(frpc_response);
-    if (message_arena != submessage_arena) {
-      frpc_response = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
-          message_arena, frpc_response, submessage_arena);
-    }
-
-  } else {
-  }
-  frpc_response_ = frpc_response;
-  // @@protoc_insertion_point(field_set_allocated:frpc.MessageBody.frpc_response)
-}
-
-// .frpc.FrpcCancel frpc_cancel = 3;
-inline bool MessageBody::_internal_has_frpc_cancel() const {
-  return this != internal_default_instance() && frpc_cancel_ != nullptr;
-}
-inline bool MessageBody::has_frpc_cancel() const {
-  return _internal_has_frpc_cancel();
-}
-inline void MessageBody::clear_frpc_cancel() {
-  if (GetArenaForAllocation() == nullptr && frpc_cancel_ != nullptr) {
-    delete frpc_cancel_;
-  }
-  frpc_cancel_ = nullptr;
-}
-inline const ::frpc::FrpcCancel& MessageBody::_internal_frpc_cancel() const {
-  const ::frpc::FrpcCancel* p = frpc_cancel_;
-  return p != nullptr ? *p : reinterpret_cast<const ::frpc::FrpcCancel&>(
-                                 ::frpc::_FrpcCancel_default_instance_);
-}
-inline const ::frpc::FrpcCancel& MessageBody::frpc_cancel() const {
-  // @@protoc_insertion_point(field_get:frpc.MessageBody.frpc_cancel)
-  return _internal_frpc_cancel();
-}
-inline void MessageBody::unsafe_arena_set_allocated_frpc_cancel(
-    ::frpc::FrpcCancel* frpc_cancel) {
-  if (GetArenaForAllocation() == nullptr) {
-    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(
-        frpc_cancel_);
-  }
-  frpc_cancel_ = frpc_cancel;
-  if (frpc_cancel) {
-
-  } else {
-  }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:frpc.MessageBody.frpc_cancel)
-}
-inline ::frpc::FrpcCancel* MessageBody::release_frpc_cancel() {
-
-  ::frpc::FrpcCancel* temp = frpc_cancel_;
-  frpc_cancel_ = nullptr;
-  if (GetArenaForAllocation() != nullptr) {
-    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
-  }
-  return temp;
-}
-inline ::frpc::FrpcCancel* MessageBody::unsafe_arena_release_frpc_cancel() {
-  // @@protoc_insertion_point(field_release:frpc.MessageBody.frpc_cancel)
-
-  ::frpc::FrpcCancel* temp = frpc_cancel_;
-  frpc_cancel_ = nullptr;
-  return temp;
-}
-inline ::frpc::FrpcCancel* MessageBody::_internal_mutable_frpc_cancel() {
-
-  if (frpc_cancel_ == nullptr) {
-    auto* p = CreateMaybeMessage<::frpc::FrpcCancel>(GetArenaForAllocation());
-    frpc_cancel_ = p;
-  }
-  return frpc_cancel_;
-}
-inline ::frpc::FrpcCancel* MessageBody::mutable_frpc_cancel() {
-  ::frpc::FrpcCancel* _msg = _internal_mutable_frpc_cancel();
-  // @@protoc_insertion_point(field_mutable:frpc.MessageBody.frpc_cancel)
-  return _msg;
-}
-inline void MessageBody::set_allocated_frpc_cancel(
-    ::frpc::FrpcCancel* frpc_cancel) {
-  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
-  if (message_arena == nullptr) {
-    delete frpc_cancel_;
-  }
-  if (frpc_cancel) {
-    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
-        ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<
-            ::frpc::FrpcCancel>::GetOwningArena(frpc_cancel);
-    if (message_arena != submessage_arena) {
-      frpc_cancel = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
-          message_arena, frpc_cancel, submessage_arena);
-    }
-
-  } else {
-  }
-  frpc_cancel_ = frpc_cancel;
-  // @@protoc_insertion_point(field_set_allocated:frpc.MessageBody.frpc_cancel)
-}
-
-// -------------------------------------------------------------------
-
-// Message
-
-// .frpc.MessageHead head = 1;
-inline bool Message::_internal_has_head() const {
-  return this != internal_default_instance() && head_ != nullptr;
-}
-inline bool Message::has_head() const { return _internal_has_head(); }
-inline void Message::clear_head() {
-  if (GetArenaForAllocation() == nullptr && head_ != nullptr) {
-    delete head_;
-  }
-  head_ = nullptr;
-}
-inline const ::frpc::MessageHead& Message::_internal_head() const {
-  const ::frpc::MessageHead* p = head_;
-  return p != nullptr ? *p : reinterpret_cast<const ::frpc::MessageHead&>(
-                                 ::frpc::_MessageHead_default_instance_);
-}
-inline const ::frpc::MessageHead& Message::head() const {
-  // @@protoc_insertion_point(field_get:frpc.Message.head)
-  return _internal_head();
-}
-inline void Message::unsafe_arena_set_allocated_head(
-    ::frpc::MessageHead* head) {
-  if (GetArenaForAllocation() == nullptr) {
-    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(head_);
-  }
-  head_ = head;
-  if (head) {
-
-  } else {
-  }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:frpc.Message.head)
-}
-inline ::frpc::MessageHead* Message::release_head() {
-
-  ::frpc::MessageHead* temp = head_;
-  head_ = nullptr;
-  if (GetArenaForAllocation() != nullptr) {
-    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
-  }
-  return temp;
-}
-inline ::frpc::MessageHead* Message::unsafe_arena_release_head() {
-  // @@protoc_insertion_point(field_release:frpc.Message.head)
-
-  ::frpc::MessageHead* temp = head_;
-  head_ = nullptr;
-  return temp;
-}
-inline ::frpc::MessageHead* Message::_internal_mutable_head() {
-
-  if (head_ == nullptr) {
-    auto* p = CreateMaybeMessage<::frpc::MessageHead>(GetArenaForAllocation());
-    head_ = p;
-  }
-  return head_;
-}
-inline ::frpc::MessageHead* Message::mutable_head() {
-  ::frpc::MessageHead* _msg = _internal_mutable_head();
-  // @@protoc_insertion_point(field_mutable:frpc.Message.head)
-  return _msg;
-}
-inline void Message::set_allocated_head(::frpc::MessageHead* head) {
-  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
-  if (message_arena == nullptr) {
-    delete head_;
-  }
-  if (head) {
-    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
-        ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<
-            ::frpc::MessageHead>::GetOwningArena(head);
-    if (message_arena != submessage_arena) {
-      head = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
-          message_arena, head, submessage_arena);
-    }
-
-  } else {
-  }
-  head_ = head;
-  // @@protoc_insertion_point(field_set_allocated:frpc.Message.head)
-}
-
-// .frpc.MessageBody body = 2;
-inline bool Message::_internal_has_body() const {
-  return this != internal_default_instance() && body_ != nullptr;
-}
-inline bool Message::has_body() const { return _internal_has_body(); }
-inline void Message::clear_body() {
-  if (GetArenaForAllocation() == nullptr && body_ != nullptr) {
-    delete body_;
-  }
-  body_ = nullptr;
-}
-inline const ::frpc::MessageBody& Message::_internal_body() const {
-  const ::frpc::MessageBody* p = body_;
-  return p != nullptr ? *p : reinterpret_cast<const ::frpc::MessageBody&>(
-                                 ::frpc::_MessageBody_default_instance_);
-}
-inline const ::frpc::MessageBody& Message::body() const {
-  // @@protoc_insertion_point(field_get:frpc.Message.body)
-  return _internal_body();
-}
-inline void Message::unsafe_arena_set_allocated_body(
-    ::frpc::MessageBody* body) {
-  if (GetArenaForAllocation() == nullptr) {
-    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(body_);
-  }
-  body_ = body;
-  if (body) {
-
-  } else {
-  }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:frpc.Message.body)
-}
-inline ::frpc::MessageBody* Message::release_body() {
-
-  ::frpc::MessageBody* temp = body_;
-  body_ = nullptr;
-  if (GetArenaForAllocation() != nullptr) {
-    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
-  }
-  return temp;
-}
-inline ::frpc::MessageBody* Message::unsafe_arena_release_body() {
-  // @@protoc_insertion_point(field_release:frpc.Message.body)
-
-  ::frpc::MessageBody* temp = body_;
-  body_ = nullptr;
-  return temp;
-}
-inline ::frpc::MessageBody* Message::_internal_mutable_body() {
-
-  if (body_ == nullptr) {
-    auto* p = CreateMaybeMessage<::frpc::MessageBody>(GetArenaForAllocation());
-    body_ = p;
-  }
-  return body_;
-}
-inline ::frpc::MessageBody* Message::mutable_body() {
-  ::frpc::MessageBody* _msg = _internal_mutable_body();
-  // @@protoc_insertion_point(field_mutable:frpc.Message.body)
-  return _msg;
-}
-inline void Message::set_allocated_body(::frpc::MessageBody* body) {
-  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
-  if (message_arena == nullptr) {
-    delete body_;
-  }
-  if (body) {
-    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
-        ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<
-            ::frpc::MessageBody>::GetOwningArena(body);
-    if (message_arena != submessage_arena) {
-      body = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
-          message_arena, body, submessage_arena);
-    }
-
-  } else {
-  }
-  body_ = body;
-  // @@protoc_insertion_point(field_set_allocated:frpc.Message.body)
-}
-
-// -------------------------------------------------------------------
-
-// FrpcRequest
-
-// string call_id = 1;
-inline void FrpcRequest::clear_call_id() { call_id_.ClearToEmpty(); }
-inline const std::string& FrpcRequest::call_id() const {
-  // @@protoc_insertion_point(field_get:frpc.FrpcRequest.call_id)
+// string call_id = 5;
+inline void FastMessage::clear_call_id() { call_id_.ClearToEmpty(); }
+inline const std::string& FastMessage::call_id() const {
+  // @@protoc_insertion_point(field_get:frpc.FastMessage.call_id)
   return _internal_call_id();
 }
 template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void FrpcRequest::set_call_id(ArgT0&& arg0,
+inline PROTOBUF_ALWAYS_INLINE void FastMessage::set_call_id(ArgT0&& arg0,
                                                             ArgT... args) {
 
   call_id_.Set(
       ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
       static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:frpc.FrpcRequest.call_id)
+  // @@protoc_insertion_point(field_set:frpc.FastMessage.call_id)
 }
-inline std::string* FrpcRequest::mutable_call_id() {
+inline std::string* FastMessage::mutable_call_id() {
   std::string* _s = _internal_mutable_call_id();
-  // @@protoc_insertion_point(field_mutable:frpc.FrpcRequest.call_id)
+  // @@protoc_insertion_point(field_mutable:frpc.FastMessage.call_id)
   return _s;
 }
-inline const std::string& FrpcRequest::_internal_call_id() const {
+inline const std::string& FastMessage::_internal_call_id() const {
   return call_id_.Get();
 }
-inline void FrpcRequest::_internal_set_call_id(const std::string& value) {
+inline void FastMessage::_internal_set_call_id(const std::string& value) {
 
   call_id_.Set(
       ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value,
       GetArenaForAllocation());
 }
-inline std::string* FrpcRequest::_internal_mutable_call_id() {
+inline std::string* FastMessage::_internal_mutable_call_id() {
 
   return call_id_.Mutable(
       ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
       GetArenaForAllocation());
 }
-inline std::string* FrpcRequest::release_call_id() {
-  // @@protoc_insertion_point(field_release:frpc.FrpcRequest.call_id)
+inline std::string* FastMessage::release_call_id() {
+  // @@protoc_insertion_point(field_release:frpc.FastMessage.call_id)
   return call_id_.Release(
       &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       GetArenaForAllocation());
 }
-inline void FrpcRequest::set_allocated_call_id(std::string* call_id) {
+inline void FastMessage::set_allocated_call_id(std::string* call_id) {
   if (call_id != nullptr) {
 
   } else {
@@ -2142,101 +554,49 @@ inline void FrpcRequest::set_allocated_call_id(std::string* call_id) {
   call_id_.SetAllocated(
       &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       call_id, GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set_allocated:frpc.FrpcRequest.call_id)
+  // @@protoc_insertion_point(field_set_allocated:frpc.FastMessage.call_id)
 }
 
-// string service = 2;
-inline void FrpcRequest::clear_service() { service_.ClearToEmpty(); }
-inline const std::string& FrpcRequest::service() const {
-  // @@protoc_insertion_point(field_get:frpc.FrpcRequest.service)
-  return _internal_service();
-}
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void FrpcRequest::set_service(ArgT0&& arg0,
-                                                            ArgT... args) {
-
-  service_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:frpc.FrpcRequest.service)
-}
-inline std::string* FrpcRequest::mutable_service() {
-  std::string* _s = _internal_mutable_service();
-  // @@protoc_insertion_point(field_mutable:frpc.FrpcRequest.service)
-  return _s;
-}
-inline const std::string& FrpcRequest::_internal_service() const {
-  return service_.Get();
-}
-inline void FrpcRequest::_internal_set_service(const std::string& value) {
-
-  service_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value,
-      GetArenaForAllocation());
-}
-inline std::string* FrpcRequest::_internal_mutable_service() {
-
-  return service_.Mutable(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      GetArenaForAllocation());
-}
-inline std::string* FrpcRequest::release_service() {
-  // @@protoc_insertion_point(field_release:frpc.FrpcRequest.service)
-  return service_.Release(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      GetArenaForAllocation());
-}
-inline void FrpcRequest::set_allocated_service(std::string* service) {
-  if (service != nullptr) {
-
-  } else {
-  }
-  service_.SetAllocated(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      service, GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set_allocated:frpc.FrpcRequest.service)
-}
-
-// string method = 3;
-inline void FrpcRequest::clear_method() { method_.ClearToEmpty(); }
-inline const std::string& FrpcRequest::method() const {
-  // @@protoc_insertion_point(field_get:frpc.FrpcRequest.method)
+// string method = 6;
+inline void FastMessage::clear_method() { method_.ClearToEmpty(); }
+inline const std::string& FastMessage::method() const {
+  // @@protoc_insertion_point(field_get:frpc.FastMessage.method)
   return _internal_method();
 }
 template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void FrpcRequest::set_method(ArgT0&& arg0,
+inline PROTOBUF_ALWAYS_INLINE void FastMessage::set_method(ArgT0&& arg0,
                                                            ArgT... args) {
 
   method_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
               static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:frpc.FrpcRequest.method)
+  // @@protoc_insertion_point(field_set:frpc.FastMessage.method)
 }
-inline std::string* FrpcRequest::mutable_method() {
+inline std::string* FastMessage::mutable_method() {
   std::string* _s = _internal_mutable_method();
-  // @@protoc_insertion_point(field_mutable:frpc.FrpcRequest.method)
+  // @@protoc_insertion_point(field_mutable:frpc.FastMessage.method)
   return _s;
 }
-inline const std::string& FrpcRequest::_internal_method() const {
+inline const std::string& FastMessage::_internal_method() const {
   return method_.Get();
 }
-inline void FrpcRequest::_internal_set_method(const std::string& value) {
+inline void FastMessage::_internal_set_method(const std::string& value) {
 
   method_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
               value, GetArenaForAllocation());
 }
-inline std::string* FrpcRequest::_internal_mutable_method() {
+inline std::string* FastMessage::_internal_mutable_method() {
 
   return method_.Mutable(
       ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
       GetArenaForAllocation());
 }
-inline std::string* FrpcRequest::release_method() {
-  // @@protoc_insertion_point(field_release:frpc.FrpcRequest.method)
+inline std::string* FastMessage::release_method() {
+  // @@protoc_insertion_point(field_release:frpc.FastMessage.method)
   return method_.Release(
       &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       GetArenaForAllocation());
 }
-inline void FrpcRequest::set_allocated_method(std::string* method) {
+inline void FastMessage::set_allocated_method(std::string* method) {
   if (method != nullptr) {
 
   } else {
@@ -2244,296 +604,51 @@ inline void FrpcRequest::set_allocated_method(std::string* method) {
   method_.SetAllocated(
       &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), method,
       GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set_allocated:frpc.FrpcRequest.method)
+  // @@protoc_insertion_point(field_set_allocated:frpc.FastMessage.method)
 }
 
-// -------------------------------------------------------------------
-
-// FrpcResponse
-
-// string call_id = 1;
-inline void FrpcResponse::clear_call_id() { call_id_.ClearToEmpty(); }
-inline const std::string& FrpcResponse::call_id() const {
-  // @@protoc_insertion_point(field_get:frpc.FrpcResponse.call_id)
-  return _internal_call_id();
-}
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void FrpcResponse::set_call_id(ArgT0&& arg0,
-                                                             ArgT... args) {
-
-  call_id_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:frpc.FrpcResponse.call_id)
-}
-inline std::string* FrpcResponse::mutable_call_id() {
-  std::string* _s = _internal_mutable_call_id();
-  // @@protoc_insertion_point(field_mutable:frpc.FrpcResponse.call_id)
-  return _s;
-}
-inline const std::string& FrpcResponse::_internal_call_id() const {
-  return call_id_.Get();
-}
-inline void FrpcResponse::_internal_set_call_id(const std::string& value) {
-
-  call_id_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value,
-      GetArenaForAllocation());
-}
-inline std::string* FrpcResponse::_internal_mutable_call_id() {
-
-  return call_id_.Mutable(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      GetArenaForAllocation());
-}
-inline std::string* FrpcResponse::release_call_id() {
-  // @@protoc_insertion_point(field_release:frpc.FrpcResponse.call_id)
-  return call_id_.Release(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      GetArenaForAllocation());
-}
-inline void FrpcResponse::set_allocated_call_id(std::string* call_id) {
-  if (call_id != nullptr) {
-
-  } else {
-  }
-  call_id_.SetAllocated(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      call_id, GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set_allocated:frpc.FrpcResponse.call_id)
-}
-
-// .frpc.ResponseCode rc = 2;
-inline bool FrpcResponse::_internal_has_rc() const {
-  return this != internal_default_instance() && rc_ != nullptr;
-}
-inline bool FrpcResponse::has_rc() const { return _internal_has_rc(); }
-inline void FrpcResponse::clear_rc() {
-  if (GetArenaForAllocation() == nullptr && rc_ != nullptr) {
-    delete rc_;
-  }
-  rc_ = nullptr;
-}
-inline const ::frpc::ResponseCode& FrpcResponse::_internal_rc() const {
-  const ::frpc::ResponseCode* p = rc_;
-  return p != nullptr ? *p : reinterpret_cast<const ::frpc::ResponseCode&>(
-                                 ::frpc::_ResponseCode_default_instance_);
-}
-inline const ::frpc::ResponseCode& FrpcResponse::rc() const {
-  // @@protoc_insertion_point(field_get:frpc.FrpcResponse.rc)
-  return _internal_rc();
-}
-inline void FrpcResponse::unsafe_arena_set_allocated_rc(
-    ::frpc::ResponseCode* rc) {
-  if (GetArenaForAllocation() == nullptr) {
-    delete reinterpret_cast<::PROTOBUF_NAMESPACE_ID::MessageLite*>(rc_);
-  }
-  rc_ = rc;
-  if (rc) {
-
-  } else {
-  }
-  // @@protoc_insertion_point(field_unsafe_arena_set_allocated:frpc.FrpcResponse.rc)
-}
-inline ::frpc::ResponseCode* FrpcResponse::release_rc() {
-
-  ::frpc::ResponseCode* temp = rc_;
-  rc_ = nullptr;
-  if (GetArenaForAllocation() != nullptr) {
-    temp = ::PROTOBUF_NAMESPACE_ID::internal::DuplicateIfNonNull(temp);
-  }
-  return temp;
-}
-inline ::frpc::ResponseCode* FrpcResponse::unsafe_arena_release_rc() {
-  // @@protoc_insertion_point(field_release:frpc.FrpcResponse.rc)
-
-  ::frpc::ResponseCode* temp = rc_;
-  rc_ = nullptr;
-  return temp;
-}
-inline ::frpc::ResponseCode* FrpcResponse::_internal_mutable_rc() {
-
-  if (rc_ == nullptr) {
-    auto* p = CreateMaybeMessage<::frpc::ResponseCode>(GetArenaForAllocation());
-    rc_ = p;
-  }
-  return rc_;
-}
-inline ::frpc::ResponseCode* FrpcResponse::mutable_rc() {
-  ::frpc::ResponseCode* _msg = _internal_mutable_rc();
-  // @@protoc_insertion_point(field_mutable:frpc.FrpcResponse.rc)
-  return _msg;
-}
-inline void FrpcResponse::set_allocated_rc(::frpc::ResponseCode* rc) {
-  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaForAllocation();
-  if (message_arena == nullptr) {
-    delete rc_;
-  }
-  if (rc) {
-    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena =
-        ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper<
-            ::frpc::ResponseCode>::GetOwningArena(rc);
-    if (message_arena != submessage_arena) {
-      rc = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(message_arena, rc,
-                                                              submessage_arena);
-    }
-
-  } else {
-  }
-  rc_ = rc;
-  // @@protoc_insertion_point(field_set_allocated:frpc.FrpcResponse.rc)
-}
-
-// bytes reponse = 3;
-inline void FrpcResponse::clear_reponse() { reponse_.ClearToEmpty(); }
-inline const std::string& FrpcResponse::reponse() const {
-  // @@protoc_insertion_point(field_get:frpc.FrpcResponse.reponse)
-  return _internal_reponse();
-}
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void FrpcResponse::set_reponse(ArgT0&& arg0,
-                                                             ArgT... args) {
-
-  reponse_.SetBytes(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:frpc.FrpcResponse.reponse)
-}
-inline std::string* FrpcResponse::mutable_reponse() {
-  std::string* _s = _internal_mutable_reponse();
-  // @@protoc_insertion_point(field_mutable:frpc.FrpcResponse.reponse)
-  return _s;
-}
-inline const std::string& FrpcResponse::_internal_reponse() const {
-  return reponse_.Get();
-}
-inline void FrpcResponse::_internal_set_reponse(const std::string& value) {
-
-  reponse_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value,
-      GetArenaForAllocation());
-}
-inline std::string* FrpcResponse::_internal_mutable_reponse() {
-
-  return reponse_.Mutable(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      GetArenaForAllocation());
-}
-inline std::string* FrpcResponse::release_reponse() {
-  // @@protoc_insertion_point(field_release:frpc.FrpcResponse.reponse)
-  return reponse_.Release(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      GetArenaForAllocation());
-}
-inline void FrpcResponse::set_allocated_reponse(std::string* reponse) {
-  if (reponse != nullptr) {
-
-  } else {
-  }
-  reponse_.SetAllocated(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      reponse, GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set_allocated:frpc.FrpcResponse.reponse)
-}
-
-// -------------------------------------------------------------------
-
-// FrpcCancel
-
-// string call_id = 1;
-inline void FrpcCancel::clear_call_id() { call_id_.ClearToEmpty(); }
-inline const std::string& FrpcCancel::call_id() const {
-  // @@protoc_insertion_point(field_get:frpc.FrpcCancel.call_id)
-  return _internal_call_id();
-}
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void FrpcCancel::set_call_id(ArgT0&& arg0,
-                                                           ArgT... args) {
-
-  call_id_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:frpc.FrpcCancel.call_id)
-}
-inline std::string* FrpcCancel::mutable_call_id() {
-  std::string* _s = _internal_mutable_call_id();
-  // @@protoc_insertion_point(field_mutable:frpc.FrpcCancel.call_id)
-  return _s;
-}
-inline const std::string& FrpcCancel::_internal_call_id() const {
-  return call_id_.Get();
-}
-inline void FrpcCancel::_internal_set_call_id(const std::string& value) {
-
-  call_id_.Set(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value,
-      GetArenaForAllocation());
-}
-inline std::string* FrpcCancel::_internal_mutable_call_id() {
-
-  return call_id_.Mutable(
-      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-      GetArenaForAllocation());
-}
-inline std::string* FrpcCancel::release_call_id() {
-  // @@protoc_insertion_point(field_release:frpc.FrpcCancel.call_id)
-  return call_id_.Release(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      GetArenaForAllocation());
-}
-inline void FrpcCancel::set_allocated_call_id(std::string* call_id) {
-  if (call_id != nullptr) {
-
-  } else {
-  }
-  call_id_.SetAllocated(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
-      call_id, GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set_allocated:frpc.FrpcCancel.call_id)
-}
-
-// string service = 2;
-inline void FrpcCancel::clear_service() { service_.ClearToEmpty(); }
-inline const std::string& FrpcCancel::service() const {
-  // @@protoc_insertion_point(field_get:frpc.FrpcCancel.service)
+// string service = 7;
+inline void FastMessage::clear_service() { service_.ClearToEmpty(); }
+inline const std::string& FastMessage::service() const {
+  // @@protoc_insertion_point(field_get:frpc.FastMessage.service)
   return _internal_service();
 }
 template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void FrpcCancel::set_service(ArgT0&& arg0,
-                                                           ArgT... args) {
+inline PROTOBUF_ALWAYS_INLINE void FastMessage::set_service(ArgT0&& arg0,
+                                                            ArgT... args) {
 
   service_.Set(
       ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
       static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:frpc.FrpcCancel.service)
+  // @@protoc_insertion_point(field_set:frpc.FastMessage.service)
 }
-inline std::string* FrpcCancel::mutable_service() {
+inline std::string* FastMessage::mutable_service() {
   std::string* _s = _internal_mutable_service();
-  // @@protoc_insertion_point(field_mutable:frpc.FrpcCancel.service)
+  // @@protoc_insertion_point(field_mutable:frpc.FastMessage.service)
   return _s;
 }
-inline const std::string& FrpcCancel::_internal_service() const {
+inline const std::string& FastMessage::_internal_service() const {
   return service_.Get();
 }
-inline void FrpcCancel::_internal_set_service(const std::string& value) {
+inline void FastMessage::_internal_set_service(const std::string& value) {
 
   service_.Set(
       ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value,
       GetArenaForAllocation());
 }
-inline std::string* FrpcCancel::_internal_mutable_service() {
+inline std::string* FastMessage::_internal_mutable_service() {
 
   return service_.Mutable(
       ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
       GetArenaForAllocation());
 }
-inline std::string* FrpcCancel::release_service() {
-  // @@protoc_insertion_point(field_release:frpc.FrpcCancel.service)
+inline std::string* FastMessage::release_service() {
+  // @@protoc_insertion_point(field_release:frpc.FastMessage.service)
   return service_.Release(
       &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       GetArenaForAllocation());
 }
-inline void FrpcCancel::set_allocated_service(std::string* service) {
+inline void FastMessage::set_allocated_service(std::string* service) {
   if (service != nullptr) {
 
   } else {
@@ -2541,73 +656,83 @@ inline void FrpcCancel::set_allocated_service(std::string* service) {
   service_.SetAllocated(
       &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       service, GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set_allocated:frpc.FrpcCancel.service)
+  // @@protoc_insertion_point(field_set_allocated:frpc.FastMessage.service)
 }
 
-// string method = 3;
-inline void FrpcCancel::clear_method() { method_.ClearToEmpty(); }
-inline const std::string& FrpcCancel::method() const {
-  // @@protoc_insertion_point(field_get:frpc.FrpcCancel.method)
-  return _internal_method();
+// int32 retcode = 8;
+inline void FastMessage::clear_retcode() { retcode_ = 0; }
+inline ::PROTOBUF_NAMESPACE_ID::int32 FastMessage::_internal_retcode() const {
+  return retcode_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 FastMessage::retcode() const {
+  // @@protoc_insertion_point(field_get:frpc.FastMessage.retcode)
+  return _internal_retcode();
+}
+inline void FastMessage::_internal_set_retcode(
+    ::PROTOBUF_NAMESPACE_ID::int32 value) {
+
+  retcode_ = value;
+}
+inline void FastMessage::set_retcode(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  _internal_set_retcode(value);
+  // @@protoc_insertion_point(field_set:frpc.FastMessage.retcode)
+}
+
+// string message = 9;
+inline void FastMessage::clear_message() { message_.ClearToEmpty(); }
+inline const std::string& FastMessage::message() const {
+  // @@protoc_insertion_point(field_get:frpc.FastMessage.message)
+  return _internal_message();
 }
 template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE void FrpcCancel::set_method(ArgT0&& arg0,
-                                                          ArgT... args) {
+inline PROTOBUF_ALWAYS_INLINE void FastMessage::set_message(ArgT0&& arg0,
+                                                            ArgT... args) {
 
-  method_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-              static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:frpc.FrpcCancel.method)
+  message_.Set(
+      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
+      static_cast<ArgT0&&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:frpc.FastMessage.message)
 }
-inline std::string* FrpcCancel::mutable_method() {
-  std::string* _s = _internal_mutable_method();
-  // @@protoc_insertion_point(field_mutable:frpc.FrpcCancel.method)
+inline std::string* FastMessage::mutable_message() {
+  std::string* _s = _internal_mutable_message();
+  // @@protoc_insertion_point(field_mutable:frpc.FastMessage.message)
   return _s;
 }
-inline const std::string& FrpcCancel::_internal_method() const {
-  return method_.Get();
+inline const std::string& FastMessage::_internal_message() const {
+  return message_.Get();
 }
-inline void FrpcCancel::_internal_set_method(const std::string& value) {
+inline void FastMessage::_internal_set_message(const std::string& value) {
 
-  method_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
-              value, GetArenaForAllocation());
+  message_.Set(
+      ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value,
+      GetArenaForAllocation());
 }
-inline std::string* FrpcCancel::_internal_mutable_method() {
+inline std::string* FastMessage::_internal_mutable_message() {
 
-  return method_.Mutable(
+  return message_.Mutable(
       ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{},
       GetArenaForAllocation());
 }
-inline std::string* FrpcCancel::release_method() {
-  // @@protoc_insertion_point(field_release:frpc.FrpcCancel.method)
-  return method_.Release(
+inline std::string* FastMessage::release_message() {
+  // @@protoc_insertion_point(field_release:frpc.FastMessage.message)
+  return message_.Release(
       &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       GetArenaForAllocation());
 }
-inline void FrpcCancel::set_allocated_method(std::string* method) {
-  if (method != nullptr) {
+inline void FastMessage::set_allocated_message(std::string* message) {
+  if (message != nullptr) {
 
   } else {
   }
-  method_.SetAllocated(
-      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), method,
-      GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set_allocated:frpc.FrpcCancel.method)
+  message_.SetAllocated(
+      &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
+      message, GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set_allocated:frpc.FastMessage.message)
 }
 
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif  // __GNUC__
-// -------------------------------------------------------------------
-
-// -------------------------------------------------------------------
-
-// -------------------------------------------------------------------
-
-// -------------------------------------------------------------------
-
-// -------------------------------------------------------------------
-
-// -------------------------------------------------------------------
 
 // @@protoc_insertion_point(namespace_scope)
 

@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "epoll_poller.h"
+#include "iouring_poller.h"
 #include "event.h"
 #include "sock_utils.h"
 #include "thread.h"
@@ -33,9 +34,9 @@ const int kPollTimeMs = 10000;
 
 EventLoop::EventLoop()
     : thread_id_(CurrentThread::tid()), poller_(new EPollPoller(this)) {
-  LOG(TRACE) << "EventLoop created " << this << " in thread " << thread_id_;
+  LOG(TRACE) << "eventloop created " << this << " in thread " << thread_id_;
   if (t_loopInThisThread) {
-    LOG(FATAL) << "Another EventLoop " << t_loopInThisThread
+    LOG(FATAL) << "another eventloop " << t_loopInThisThread
                << " exists in this thread " << thread_id_;
   } else {
     t_loopInThisThread = this;
@@ -45,20 +46,18 @@ EventLoop::EventLoop()
   wakeup_fd_ = CreateEventFd(0, EFD_NONBLOCK | EFD_CLOEXEC);
   assert(wakeup_fd_ > 0);
   wakeup_event_ = std::make_unique<Event>(this, wakeup_fd_);
-  assert(wakeup_event_);
   wakeup_event_->SetReadCallback(std::bind(&EventLoop::HandleWakeup, this));
   // we are always reading the wakeupfd
-  wakeup_event_->EnableReading();
+  UpdateEvent(wakeup_event_.get());
 
-  timer_ = std::make_unique<HeapTimer>(this, 1024);
-  assert(timer_);
+  timer_.reset(new HeapTimer(this, 1024));
+  mem_pool_.reset(new MemPool());
 }
 
 EventLoop::~EventLoop() {
-  LOG(INFO) << "EventLoop " << this << " of thread " << thread_id_
+  LOG(INFO) << "eventloop " << this << " of thread " << thread_id_
             << " destructs in thread " << CurrentThread::tid();
-  wakeup_event_->DisableAll();
-  wakeup_event_->Remove();
+  RemoveEvent(wakeup_event_.get());
   CloseSocket(wakeup_fd_);
   t_loopInThisThread = nullptr;
 
@@ -72,7 +71,7 @@ void EventLoop::EnterLoop() {
   uint32_t next_exp_time = 1;
   looping_ = true;
   quit_ = false;  // FIXME: what if someone calls quit() before loop() ?
-  LOG(INFO) << "EventLoop " << this << " start looping";
+  LOG(INFO) << "eventloop " << this << " start looping";
 
   while (!quit_) {
     active_events_.clear();
@@ -97,7 +96,7 @@ void EventLoop::EnterLoop() {
     DoPendingFunctors();
   }
 
-  LOG(INFO) << "EventLoop " << this << " stop looping";
+  LOG(INFO) << "eventloop " << this << " stop looping";
   looping_ = false;
 }
 
@@ -161,7 +160,7 @@ void EventLoop::Cancel(uint64_t timerId) {
 
 void EventLoop::UpdateEvent(Event* ev) {
   assert(ev->OwnerLoop() == this);
-  // AssertInLoopThread();
+  AssertInLoopThread();
   poller_->UpdateEvent(ev);
 }
 
@@ -187,7 +186,7 @@ bool EventLoop::IsInLoopThread() const {
 }
 
 void EventLoop::AbortNotInLoopThread() {
-  LOG(ERROR) << "EventLoop::abortNotInLoopThread - EventLoop " << this
+  LOG(ERROR) << "not in loop thread - eventloop " << this
              << " was created in threadId_ = " << thread_id_
              << ", current thread id = " << CurrentThread::tid();
 }
@@ -196,7 +195,7 @@ void EventLoop::Wakeup() {
   uint64_t one = 1;
   ssize_t n = ::write(wakeup_fd_, &one, sizeof one);
   if (n != sizeof one) {
-    LOG(ERROR) << "EventLoop::Wakeup() writes " << n << " bytes instead of 8";
+    LOG(ERROR) << "eventloop wakeup writes " << n << " bytes instead of 8";
   }
 }
 
@@ -204,8 +203,7 @@ void EventLoop::HandleWakeup() {
   uint64_t one = 1;
   ssize_t n = ::read(wakeup_fd_, &one, sizeof one);
   if (n != sizeof one) {
-    LOG(ERROR) << "EventLoop::handleRead() reads " << n
-               << " bytes instead of 8";
+    LOG(ERROR) << "eventloop reads " << n << " bytes instead of 8";
   }
 }
 
@@ -229,5 +227,9 @@ void EventLoop::PrintActiveEvents() {
     LOG(TRACE) << "{" << ev->ReventsToString() << "} ";
   }
 }
+
+void* EventLoop::Malloc(size_t len) { return mem_pool_->Malloc(len); }
+
+void EventLoop::Free(void* ptr) { mem_pool_->Free(ptr); }
 
 }  // namespace MSF

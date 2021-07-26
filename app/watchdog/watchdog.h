@@ -27,7 +27,7 @@ namespace MSF {
 
 class Guard {
  private:
-  EventStack* stack_;
+  EventStack *stack_;
   // AgentClient* agent_;
   std::string logFile_;
   // std::list<Process*> processes_;

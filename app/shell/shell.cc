@@ -4,6 +4,7 @@
 #include <base/version.h>
 #include <Client/AgentClient.h>
 #include <event/event_loop.h>
+#include <event/event_stack.h>
 
 #include <cassert>
 #include <base/logging.h>
@@ -50,13 +51,20 @@ void fun2() {
 #include <iostream>
 #include <ratio>
 
+
+
 int EchoTest() {
+  EventStack *stack = new EventStack();
 
-  FastRpcController controller;
+  std::vector<struct StackArg> args;
+  args.push_back(std::move(StackArg("frpc")));
+  stack->SetStackArgs(args);
+  stack->StartStack();
 
-  EventLoop loop;
+  EventLoop *base_loop = stack->GetBaseLoop();
+    
   InetAddress addr("127.0.0.1", 8888, AF_INET, SOCK_STREAM);
-  FastRpcChannelPtr channel(new FastRpcChannel(&loop, addr));
+  FastRpcChannelPtr channel(new FastRpcChannel(base_loop, addr));
 
   echo::EchoRequest request;
   echo::EchoResponse response;
@@ -64,6 +72,8 @@ int EchoTest() {
   request.set_message("hello word");
 
   echo::EchoService::Stub stub(channel.get());
+
+  FastRpcController controller;
   stub.Echo(&controller, &request, &response, nullptr);
 
   if (controller.Failed()) {
@@ -72,6 +82,9 @@ int EchoTest() {
   }
 
   LOG(INFO) << "Received: " << response.response().size() << " bytes";
+  LOG(INFO) << "Received: " << response.response();
+
+  stack->StartMain();
   return 0;
 }
 

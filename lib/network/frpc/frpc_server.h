@@ -30,27 +30,25 @@
 namespace MSF {
 
 class EventLoop;
-class FastRpcController;
-class FastRpcRequest;
 
-typedef std::shared_ptr<FastRpcRequest> FastRpcRequestPtr;
-typedef std::shared_ptr<FastRpcController> FastRpcControllerPtr;
-typedef std::shared_ptr<frpc::Message> FastRpcMessagePtr;
-typedef std::shared_ptr<google::protobuf::Message> GoogleMessagePtr;
+typedef std::shared_ptr<frpc::FastMessage> FastRpcMessagePtr;
 
 struct FastRpcRequest {
   static FastRpcRequestPtr NewFastRpcRequest(const ConnectionPtr& conn,
+                                             const FastRpcMessagePtr& frpc,
                                              const FastRpcControllerPtr& ctrl,
                                              const GoogleMessagePtr& request,
                                              const GoogleMessagePtr& response) {
-    return std::make_shared<FastRpcRequest>(conn, ctrl, request, response);
+    return std::make_shared<FastRpcRequest>(conn, frpc, ctrl, request,
+                                            response);
   }
 
-  FastRpcRequest(const ConnectionPtr& conn,
+  FastRpcRequest(const ConnectionPtr& conn, const FastRpcMessagePtr& frpc,
                  const FastRpcControllerPtr& controller,
                  const GoogleMessagePtr& request,
                  const GoogleMessagePtr& response)
       : conn_(conn),
+        frpc_(frpc),
         controller_(controller),
         request_(request),
         response_(response) {}
@@ -58,11 +56,13 @@ struct FastRpcRequest {
   ~FastRpcRequest() {}
 
   const ConnectionPtr& conn() { return conn_; }
+  FastRpcMessagePtr& frpc() { return frpc_; }
   const FastRpcControllerPtr& controller() { return controller_; }
   const GoogleMessagePtr& request() { return request_; }
   const GoogleMessagePtr& response() { return response_; }
 
   ConnectionPtr conn_;
+  FastRpcMessagePtr frpc_;
   FastRpcControllerPtr controller_;
   GoogleMessagePtr request_;
   GoogleMessagePtr response_;
@@ -78,21 +78,19 @@ class FastRpcServer : public noncopyable {
     }
   }
 
-  void FastRPCReadCallback(const ConnectionPtr& conn);
-  void FastRPCWriteCallback(const ConnectionPtr& conn);
-  void FastRPCCloseCallback(const ConnectionPtr& conn);
+  void HandleFastRPCSucc(const ConnectionPtr& conn);
+  void HandleFastRPCRead(const ConnectionPtr& conn);
+  void HandleFastRPCWrite(const ConnectionPtr& conn);
+  void HandleFastRPClose(const ConnectionPtr& conn);
 
   void Running() {}
 
  private:
-  std::list<frpc::Message> ParseFrpcMessage(const ConnectionPtr& conn);
-  void HandleMessage(const ConnectionPtr& conn, frpc::Message& msg);
+  void HandleFrpcMessage(const ConnectionPtr& conn);
 
  private:
   google::protobuf::Service* GetService(
       const google::protobuf::MethodDescriptor* method);
-
-  void AddFastRpcRequest(const FastRpcRequestPtr& request);
 
   void RequestReceived(int client_id, const std::string& call_id_,
                        const google::protobuf::MethodDescriptor* method,
@@ -102,8 +100,7 @@ class FastRpcServer : public noncopyable {
                     FastRpcController* controller,
                     google::protobuf::Message* response);
 
-  FastRpcRequestPtr RemoveRequest(int client_id, const std::string& call_id);
-  void RequestFinished(FastRpcRequestPtr request);
+  void SendResponse(FastRpcRequestPtr msg);
 
  private:
   bool stop_ = false;
@@ -113,9 +110,9 @@ class FastRpcServer : public noncopyable {
   std::map<const google::protobuf::ServiceDescriptor*,
            google::protobuf::Service*> hook_services_;
 
-  typedef std::pair<uint64_t, std::string> FastRpcRequestKey;
-  std::map<FastRpcRequestKey, FastRpcRequestPtr> pending_request_;
-
+  // typedef std::pair<uint64_t, std::string> FastRpcRequestKey;
+  // std::map<FastRpcRequestKey, FastRpcRequestPtr> pending_request_;
+  std::set<FastRpcRequestPtr> pending_request_;
   std::unique_ptr<FastServer> server_;
 };
 }

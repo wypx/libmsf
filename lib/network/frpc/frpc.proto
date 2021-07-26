@@ -23,50 +23,15 @@ enum ReturnCode {
   FRPC_INVALID_REPONSE = 4;
 }
 
-message ResponseCode {
-  int32 rc = 1; // return code
-  string msg = 2; // msg inclued if rc not zero
-};
-
 // https://blog.csdn.net/qq_22660775/article/details/89163881
-// The message header is fixed, and the business
-// header is specified in the message header
-message MessageHead {
+message FastMessage {
   fixed32 version   = 1; // message version
   fixed32 magic     = 2; // message magic
-  fixed32 length    = 3; // body length
-  fixed32 type      = 4; // message type
-  fixed32 msid      = 5; // message id
+  fixed32 type      = 3; // message type
+  fixed32 length    = 4; // next lenght
+  string call_id    = 5; // call uuid
+  string method     = 6; // mothod name
+  string service    = 7; // service name
+  int32 retcode     = 8; // return code
+  string message    = 9; // rc not zero
 }
-
-message MessageBody {
-  FrpcRequest frpc_request = 1;
-  FrpcResponse frpc_response = 2;
-  FrpcCancel frpc_cancel = 3;
-}
-
-message Message {
-  MessageHead head = 1;
-  MessageBody body = 2;
-}
-
-message FrpcRequest {
-  string call_id = 1;
-  string service = 2; // service name
-  string method = 3;  // mothod name
-}
-
-message FrpcResponse {
-  string call_id = 1;
-  ResponseCode rc = 2; // return code
-  bytes reponse = 3; // buffer
-}
-
-message FrpcCancel {
-  string call_id = 1;
-  string service = 2; // service name
-  string method = 3;  // mothod name
-}
-
-
-

@@ -22,12 +22,12 @@ UDPConnection::UDPConnection(EventLoop *loop, int fd, bool thread_safe)
 
 UDPConnection::~UDPConnection() { CloseConn(); }
 
-bool UDPConnection::HandleReadEvent() {
+void UDPConnection::HandleReadEvent() {
 #if 0
   int bytes = ::recv(fd_, recvBuf_.WriteAddr(), recvBuf_.WritableSize(), 0);
   if (bytes == kError) {
       if (EAGAIN == errno || EWOULDBLOCK == errno)
-          return true;
+          return;
 
       if (EINTR == errno)
           continue; // restart ::recv
@@ -49,23 +49,23 @@ bool UDPConnection::HandleReadEvent() {
           // loop_->Modify(eET_Write, shared_from_this()); // disable read
       }
 
-      return false;
+      return;
   }
 #endif
-  return true;
+  return;
 }
 
-bool UDPConnection::HandleWriteEvent() {
+void UDPConnection::HandleWriteEvent() {
   if (state_ != State::kStateConnected &&
       state_ != State::kStateCloseWaitWrite) {
     LOG(ERROR) << fd_ << " HandleWriteEvent wrong state " << state_;
-    return false;
+    return;
   }
 
-  return true;
+  return;
 }
 
-void UDPConnection::HandleErrorEvent() { return; }
+void UDPConnection::HandleCloseEvent() { return; }
 
 void UDPConnection::Shutdown(ShutdownMode mode) {
 #if 0

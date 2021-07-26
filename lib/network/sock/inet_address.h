@@ -106,7 +106,7 @@ class InetAddress : public copyable {
   ~InetAddress() = default;
 
   // https://blog.csdn.net/lxj434368832/article/details/78874108
-  std::string hostPort2String() const {
+  std::string IPPort2String() const {
     return host_ + ":" + std::to_string(port_);
   }
   std::string host() const { return host_; }

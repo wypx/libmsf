@@ -68,11 +68,10 @@ Guard::Guard() {
   // assert(Logger::getLogger().init(logFile_.c_str()));
 
   stack_ = new EventStack();
-  assert(stack_);
 
-  std::vector<struct ThreadArg> threadArgs;
-  threadArgs.push_back(std::move(ThreadArg("AgentLoop")));
-  assert(stack_->StartThreads(threadArgs));
+  std::vector<struct StackArg> args;
+  args.push_back(std::move(StackArg("frpc")));
+  stack_->SetStackArgs(args);
 
   // agent_ = new AgentClient(stack_->getOneLoop(), "Guard", Agent::APP_GUARD,
   // "luotang.me", 8888);
@@ -82,7 +81,7 @@ Guard::Guard() {
 
 Guard::~Guard() {}
 
-void Guard::start() { stack_->Start(); }
+void Guard::start() { stack_->StartMain(); }
 
 struct ApnItem {
   int cid;    /* Context ID, uniquely identifies this call */

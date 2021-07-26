@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "timer.h"
+#include "mem_pool.h"
 
 using namespace MSF;
 
@@ -107,6 +108,9 @@ class EventLoop {
   // bool callingPendingFunctors() const { return callingPendingFunctors_; }
   bool EventHandling() const { return event_handling_; }
 
+  void* Malloc(size_t len);
+  void Free(void* ptr);
+
   static EventLoop* GetEventLoopOfCurrentThread();
 
  private:
@@ -125,6 +129,7 @@ class EventLoop {
 
   std::unique_ptr<Poller> poller_;
   std::unique_ptr<HeapTimer> timer_;
+  std::unique_ptr<MemPool> mem_pool_;
 
   int wakeup_fd_ = -1;
   // unlike in TimerQueue, which is an internal class,

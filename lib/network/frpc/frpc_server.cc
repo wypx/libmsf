@@ -24,136 +24,129 @@
 
 namespace MSF {
 
-FastRpcServer::FastRpcServer(EventLoop* loop, const InetAddress& addr)
-    : loop_(loop) {
+FastRpcServer::FastRpcServer(EventLoop* loop, const InetAddress& addr) {
   server_.reset(new FastTcpServer(loop, addr));
   server_->StartAccept();
+  server_->SetCallback(
+      std::bind(&FastRpcServer::HandleFastRPCSucc, this, std::placeholders::_1),
+      std::bind(&FastRpcServer::HandleFastRPCRead, this, std::placeholders::_1),
+      std::bind(&FastRpcServer::HandleFastRPCWrite, this,
+                std::placeholders::_1),
+      std::bind(&FastRpcServer::HandleFastRPClose, this,
+                std::placeholders::_1));
 }
 
 FastRpcServer::~FastRpcServer() { stop_ = true; }
 
-std::list<frpc::Message> FastRpcServer::ParseFrpcMessage(
-    const ConnectionPtr& conn) {
-  std::list<frpc::Message> messages;
-  char buffer[2048];
+void FastRpcServer::HandleFrpcMessage(const ConnectionPtr& conn) {
+  char* buffer;
   size_t avaliable_len;
+  uint32_t length = 0;
 
   while (true) {
+    // receive 4 bytes for frpc message length
     avaliable_len = conn->ReadableLength();
-    if (unlikely(avaliable_len <= kFastRpcMessageHeaderLength)) {
+    if (unlikely(avaliable_len <= sizeof(uint32_t))) {
       break;
     }
-    conn->ReceiveData(buffer, kFastRpcMessageHeaderLength);
-    frpc::Message message;
-    frpc::MessageHead* head = message.mutable_head();
-    head->ParseFromArray(buffer, kFastRpcMessageHeaderLength);
-    size_t body_len = head->length();
-    if (avaliable_len < kFastRpcMessageHeaderLength + body_len) {
+    conn->ReceiveData(&length, sizeof(uint32_t));
+
+    // receive length bytes for frpc message
+    if (unlikely(avaliable_len < sizeof(uint32_t) + length)) {
       break;
     }
-    conn->RemoveData(buffer, kFastRpcMessageHeaderLength + body_len);
-    message.Clear();
-    message.ParseFromArray(buffer, body_len);
-    messages.push_back(std::move(message));
-  }
-  return messages;
-}
+    buffer = static_cast<char*>(conn->Malloc(sizeof(uint32_t) + length, 64));
+    if (!buffer) {
+      // no mem in pool
+      break;
+    }
+    conn->ReceiveData(buffer, sizeof(uint32_t) + length);
+    FastRpcMessagePtr frpc(new frpc::FastMessage());
+    if (!frpc->ParseFromArray(buffer + sizeof(uint32_t), length)) {
+      conn->Free(buffer);
+      conn->CloseConn();
+      return;
+    }
+    conn->Free(buffer);
 
-void FastRpcServer::HandleMessage(const ConnectionPtr& conn,
-                                  frpc::Message& msg) {
-  auto ctrl = FastRpcController::NewController();
-  const frpc::FrpcRequest& req = msg.body().frpc_request();
+    // receive frpc->length() bytes for spcific bussiness message
+    if (unlikely(avaliable_len < sizeof(uint32_t) + length + frpc->length())) {
+      break;
+    }
+    buffer = static_cast<char*>(
+        conn->Malloc(sizeof(uint32_t) + length + frpc->length(), 64));
+    if (!buffer) {
+      // no mem in pool
+      break;
+    }
+    conn->RemoveData(buffer, sizeof(uint32_t) + length + frpc->length());
 
-  switch (msg.head().type()) {
-    case frpc::FRPC_MESSAGE_REQUEST: {
-      LOG(INFO) << "a request is received";
-      // auto handle = FastRpcHandleFactory::Instance()->CreateHandle(
-      //     frpc::FRPC_MESSAGE_REQUEST);
-      // handle->EntryInit(msg);
+    switch (frpc->type()) {
+      case frpc::FRPC_MESSAGE_REQUEST: {
+        LOG(INFO) << "request received: \n" << frpc->DebugString();
 
-      auto method = FastRPCMessage::GetMethodDescriptor(req.method());
-      auto service = GetService(method);
-      auto desc = FastRPCMessage::GetMessageTypeByName(
-          msg.GetDescriptor()->full_name());
-      auto request = FastRPCMessage::NewGoogleMessage(desc);
+        // construct service by method name
+        auto method = FastRPCMessage::GetMethodDescriptor(frpc->method());
+        auto service = GetService(method);
+        if (!service) {
+          conn->Free(buffer);
+          conn->CloseConn();
+          return;
+        }
+        // construct request message by service name
+        // auto desc = FastRPCMessage::GetMessageTypeByName(frpc->service());
+        // auto request = FastRPCMessage::NewGoogleMessage(desc);
 
-      if (service) {
-        LOG(INFO) << "find service by method:" << method->full_name()
-                  << ", execute request with call_id:" << req.service();
+        auto request = service->GetRequestPrototype(method).New();
+        auto response = service->GetResponsePrototype(method).New();
 
-        GoogleMessagePtr rsp(service->GetResponsePrototype(method).New());
+        if (!request->ParseFromArray(buffer + sizeof(uint32_t) + length,
+                                     frpc->length())) {
+          conn->Free(buffer);
+          conn->CloseConn();
+          return;
+        }
+        conn->Free(buffer);
 
-        auto frpc_request = FastRpcRequest::NewFastRpcRequest(
-            conn, ctrl, GoogleMessagePtr(request), rsp);
-        AddFastRpcRequest(frpc_request);
+        LOG(INFO) << request->DebugString();
+
+        LOG(INFO) << "find service by method:" << frpc->method()
+                  << ", execute request:" << frpc->service();
+
+        auto ctrl = FastRpcController::NewController();
+
+        auto pending_request = FastRpcRequest::NewFastRpcRequest(
+            conn, frpc, ctrl, GoogleMessagePtr(request),
+            GoogleMessagePtr(response));
+
+        pending_request_.insert(pending_request);
 
         // Can't use references.
         auto done = google::protobuf::NewCallback(
-            this, &FastRpcServer::RequestFinished, frpc_request);
-        service->CallMethod(method, ctrl.get(), request, rsp.get(), done);
-      } else {
-        LOG(INFO) << "fail to find service by method:" << method->full_name();
-        ctrl->SetFailed("fail to find the service in the server");
-
-        std::string call_id = req.call_id();
-        auto head = msg.head();
-        head.set_version(123);
-        head.set_magic(456);
-        head.set_type(frpc::FRPC_MESSAGE_RESPONSE);
-        head.set_msid(100);
-
-        msg.clear_body();
-        auto frpc_response = msg.mutable_body()->mutable_frpc_response();
-
-        frpc_response->mutable_rc()->set_msg("no service");
-        frpc_response->mutable_rc()->set_rc(-1);
-
-        frpc_response->set_call_id(call_id);
-
-        head.set_length(frpc_response->ByteSizeLong());
-
-        char buffer[1024] = {0};
-        msg.SerializeToArray(buffer, msg.ByteSizeLong());
-
-        conn->SubmitWriteBufferSafe(buffer, msg.ByteSizeLong());
+            this, &FastRpcServer::SendResponse, pending_request);
+        service->CallMethod(method, ctrl.get(), request, response, done);
+        break;
       }
-      break;
+
+      case frpc::FRPC_MESSAGE_RESPONSE: { break; }
+
+      case frpc::FRPC_MESSAGE_CANCEL: { break; }
+
+      default:
+        break;
     }
-    case frpc::FRPC_MESSAGE_RESPONSE:
-      break;
-    case frpc::FRPC_MESSAGE_CANCEL: {
-      frpc::FrpcCancel cancel = msg.body().frpc_cancel();
-      LOG(INFO) << "a cancel request is received";
-      FastRpcRequestPtr request = RemoveRequest(1, "call_id");
-      if (request) {
-        LOG(INFO) << "cancel request with call_id ";
-        FastRpcController ctrl;
-        ctrl.canceled_ = true;
-        // SendResponse("client_id", "call_id", &ctrl, 0);
-      } else {
-        LOG(INFO) << "the request is already finished, cancel call";
-      }
-      break;
-    }
-    default:
-      break;
   }
 }
 
-void FastRpcServer::FastRPCReadCallback(const ConnectionPtr& conn) {
-  auto messages = ParseFrpcMessage(conn);
-  for (auto message : messages) {
-    HandleMessage(conn, message);
-  }
+void FastRpcServer::HandleFastRPCSucc(const ConnectionPtr& conn) {}
+
+void FastRpcServer::HandleFastRPCRead(const ConnectionPtr& conn) {
+  HandleFrpcMessage(conn);
 }
 
-void FastRpcServer::FastRPCWriteCallback(const ConnectionPtr& conn) {
-  LOG(L_DEBUG) << "conn write cb";
-}
+void FastRpcServer::HandleFastRPCWrite(const ConnectionPtr& conn) {}
 
-void FastRpcServer::FastRPCCloseCallback(const ConnectionPtr& conn) {
-  LOG(INFO) << "conn close cb";
-}
+void FastRpcServer::HandleFastRPClose(const ConnectionPtr& conn) {}
 
 void FastRpcServer::CancelRequest(int client_id, const std::string& call_id) {}
 
@@ -169,40 +162,36 @@ google::protobuf::Service* FastRpcServer::GetService(
   return hook_services_[method->service()];
 }
 
-void FastRpcServer::RequestFinished(FastRpcRequestPtr request) {
-#if 0
-  if (request) {
-    if (RemoveRequest(request->client_id_, request->call_id_) == request) {
-      LOG(INFO)
-          << "request process is finished, start to send rsp of request "
-          << request->call_id_ << " to client " << request->client_id_;
-      // SendResponse(request->client_id_, request->call_id_,
-      //              request->controller_.get(), request->response_.get());
-    } else {
-      LOG(ERROR)
-          << "request process is finished, but can't find the request with id "
-          << request->call_id_ << ","
-          << " request is running";
-    }
+void FastRpcServer::SendResponse(FastRpcRequestPtr msg) {
+  auto& response = msg->response();
+  auto& frpc = msg->frpc();
+
+  // Write uint32 to desc FastMessage length
+
+  // serialize the message
+  frpc->set_type(frpc::FRPC_MESSAGE_RESPONSE);
+  frpc->set_length(response->ByteSizeLong());
+  frpc->set_service(response->GetDescriptor()->full_name());
+
+  LOG(INFO) << "send response: \n" << frpc->DebugString();
+
+  uint32_t frpc_len = frpc->ByteSizeLong();
+  char* buffer = static_cast<char*>(
+      msg->conn()->Malloc(sizeof(uint32_t) + frpc_len + frpc->length(), 64));
+  if (!buffer) {
+    // no mem in pool
+    return;
   }
-#endif
-}
+  ::memcpy(buffer, &frpc_len, sizeof(uint32_t));
 
-void FastRpcServer::AddFastRpcRequest(const FastRpcRequestPtr& request) {
-  // pending_request_.insert(std::pair(
-  //     FastRpcRequestKey(request->client_id_, request->call_id_), request));
-}
+  frpc->SerializeToArray(buffer + sizeof(uint32_t), frpc_len);
+  response->SerializeToArray(buffer + sizeof(uint32_t) + frpc_len,
+                             frpc->length());
 
-FastRpcRequestPtr FastRpcServer::RemoveRequest(int client_id,
-                                               const std::string& call_id) {
-  auto key = FastRpcRequestKey(client_id, call_id);
-  auto it = pending_request_.find(key);
-  if (it == pending_request_.end()) {
-    return nullptr;
-  }
-  FastRpcRequestPtr request = it->second;
-  pending_request_.erase(it);
-  return request;
-}
+  msg->conn()->SubmitWriteBufferSafe(
+      buffer, sizeof(uint32_t) + frpc_len + frpc->length());
+  msg->conn()->AddWriteEvent();
 
+  pending_request_.erase(msg);
+}
 }  // end name space MSF

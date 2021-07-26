@@ -9,13 +9,11 @@ LoggingBase<BufferType, Guard>::LoggingBase(const std::string& basename,
                                             size_t roll_size,
                                             size_t partitions_,
                                             size_t flushInterval,
-                                            const ThreadFunc& func)
-    : running_(false),
-      flush_interval_(flushInterval),
+                                            const ThreadCallback& func)
+    : flush_interval_(flushInterval),
       basename_(basename),
       rollSize_(roll_size),
       partitions_(partitions_),
-      thread_(func, "Logging"),
       latch_(1),
       mutex_() {
   int i = 0;
@@ -36,7 +34,13 @@ LoggingBase<BufferType, Guard>::LoggingBase(const std::string& basename,
 template <class BufferType, class Guard>
 void LoggingBase<BufferType, Guard>::Start() {
   running_ = true;
-  thread_.start();
+  ThreadOption option;
+  option.set_name("logging");
+  option.set_priority(kNormalPriority);
+  option.set_stack_size(4 * 1024 * 1024);
+  option.set_loop_cb(std::bind(&LoggingBase::AsyncLoggingLoop, this));
+  thread_.reset(new Thread(option));
+  thread_->Start();
   latch_.Wait();
 }
 
@@ -44,7 +48,7 @@ template <class BufferType, class Guard>
 void LoggingBase<BufferType, Guard>::Stop() {
   running_ = false;
   cond_.notify_one();
-  thread_.join();
+  thread_->Join();
 }
 
 template <class BufferType, class Guard>
@@ -163,7 +167,6 @@ AsyncLogging::AsyncLogging(const std::string filePath, off_t rollSize,
       file_path_(filePath),
       roll_size_(rollSize),
       flush_interval_(flushInterval),
-      thread_(std::bind(&AsyncLogging::threadRoutine, this)),
       latch_(1),
       mutex_(),
       cond_(),
@@ -200,7 +203,7 @@ void AsyncLogging::flush_notify() {
   cond_.notify_all();  // 保证日志及时输出
 }
 
-void AsyncLogging::threadRoutine() {
+void AsyncLogging::AsyncLoggingLoop() {
   assert(running_ == true);
   latch_.CountDown();
   LogFile output(file_path_, roll_size_, false);

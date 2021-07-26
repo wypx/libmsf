@@ -44,12 +44,12 @@ static const uint32_t kMemBlkSizeArray[MEMBLK_MAX] = {
 
 enum MemBlkIdx MemPool::GetMemBlkIdx(const uint32_t size) {
   if (unlikely(size == 0)) {
-    LOG(ERROR) << "No fitable memblk for size: " << size;
+    LOG(ERROR) << "no fitable memblk for size: " << size;
     return MEMBLK_ZERO;
   }
   uint32_t alignSize = MSF_ROUNDUP(size, blk_algin_);
   if (unlikely(alignSize > kMemBlkSizeArray[MEMBLK_1G])) {
-    LOG(ERROR) << "No fitable memblk for size: " << alignSize;
+    LOG(ERROR) << "no fitable memblk for size: " << alignSize;
     return MEMBLK_MAX;
   }
   // https://blog.csdn.net/qq_40160605/article/details/80150252
@@ -59,7 +59,7 @@ enum MemBlkIdx MemPool::GetMemBlkIdx(const uint32_t size) {
                                   kMemBlkSizeArray + MEMBLK_MAX, alignSize) -
                  kMemBlkSizeArray;
 
-  LOG(INFO) << "Mempool blk idx: " << idx << " size: " << kMemBlkSizeArray[idx];
+  LOG(INFO) << "mempool blk idx: " << idx << " size: " << kMemBlkSizeArray[idx];
   return (MemBlkIdx)idx;
 }
 
@@ -88,7 +88,7 @@ bool MemPool::CreateSlab() {
         blk.set_buffer(malloc(alignSize));
       }
       if (blk.buffer() == nullptr) {
-        LOG(INFO) << "Alloc slab buffer faild, errno:" << errno;
+        LOG(INFO) << "alloc slab buffer faild, errno:" << errno;
         return false;
 
         // free_list_ = (void **)malloc(chunk_cnt_ * sizeof(void *));
@@ -132,21 +132,21 @@ bool MemPool::Init() {
   if (blk_algin_ == 0) {
     blk_algin_ = MP_CACHE_LINE_ALIGN;
   } else if (!IsPowerOf2(blk_algin_) || !(blk_algin_ % sizeof(void *) == 0)) {
-    LOG(ERROR) << "Invalid alignment: " << blk_algin_;
+    LOG(ERROR) << "invalid alignment: " << blk_algin_;
     return false;
   }
 
-  LOG(INFO) << "Flag is:" << flags_;
+  LOG(INFO) << "flag is:" << flags_;
   if (MSF_TEST_BITS(MP_FLAG_HUGE_PAGES_ALLOC, &flags_)) {
     MSF_CLR_BITS(MP_FLAG_REGULAR_PAGES_ALLOC, &flags_);
     MSF_CLR_BITS(MP_FLAG_NUMA_ALLOC, &flags_);
-    LOG(INFO) << "Using huge pages allocator.";
+    LOG(INFO) << "using huge pages allocator.";
   } else if (MSF_TEST_BITS(MP_FLAG_NUMA_ALLOC, &flags_)) {
     MSF_CLR_BITS(MP_FLAG_REGULAR_PAGES_ALLOC, &flags_);
-    LOG(INFO) << "Using numa allocator.";
+    LOG(INFO) << "using numa allocator.";
   } else {
     MSF_SET_BITS(MP_FLAG_REGULAR_PAGES_ALLOC, &flags_);
-    LOG(INFO) << "Using regular allocator.";
+    LOG(INFO) << "using regular allocator.";
   }
 
   // if (MSF_TEST_BITS(MP_FLAG_NUMA_ALLOC, &flags_)) {
@@ -163,10 +163,10 @@ bool MemPool::Init() {
   return CreateSlab();
 }
 
-void *MemPool::Alloc(const uint32_t size) {
+void *MemPool::Malloc(size_t size) {
   uint32_t idx = GetMemBlkIdx(size);
   if (unlikely(idx == MEMBLK_MAX || idx == MEMBLK_ZERO)) {
-    LOG(INFO) << "Alloc memblk faild, size: " << size;
+    LOG(INFO) << "alloc memblk faild, size: " << size;
     return nullptr;
 
     // 根据 blockSize 计算需要预分配的块数，采用指数退让的做法，blockSize
@@ -183,20 +183,20 @@ void *MemPool::Alloc(const uint32_t size) {
 
 void MemPool::Free(const void *ptr) {
   if (unlikely(ptr == nullptr)) {
-    LOG(FATAL) << "Buffer invalid.";
+    LOG(FATAL) << "buffer invalid.";
     return;
   }
 
   auto itor = slab_addr_map_.find((uint64_t)ptr);
   if (unlikely(itor == slab_addr_map_.end())) {
-    LOG(FATAL) << "Buffer invalid, not find key.";
+    LOG(FATAL) << "buffer invalid, not find key.";
     return;
   }
   struct MemSlab *slab = (struct MemSlab *)(itor->second);
   void *p = const_cast<void *>(ptr);
   struct MemBlk *blk = container_of(&p, struct MemBlk, buffer_);
-  LOG(INFO) << "Slab addr: " << slab << " Memblk addr: " << blk
-            << " Buff addr: " << ptr;
+  LOG(INFO) << "slab addr: " << slab << " memblk addr: " << blk
+            << " buff addr: " << ptr;
   slab->AddFreeBlk(*blk);
 
   // 计算当前 blockSize 所在的链表，应该释放掉多少块内存给系统，做内存收缩
@@ -206,7 +206,7 @@ void MemPool::Free(const void *ptr) {
 void MemPool::AddMemSlab(enum MemBlkIdx blkIdx, uint32_t minBlkNR,
                          uint32_t maxBlkNR, uint32_t growBlkNR) {
   if (unlikely(slabs_.size() > max_slab_)) {
-    LOG(ERROR) << "Not support any more slab config: " << max_slab_;
+    LOG(ERROR) << "not support any more slab config: " << max_slab_;
     return;
   }
   struct MemSlab slab(blkIdx, minBlkNR, maxBlkNR, growBlkNR);

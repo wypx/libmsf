@@ -832,6 +832,19 @@ void WritePidFile(const std::string& pid_file) {
   fclose(fp);
 }
 
+bool ReadFileContents(const std::string& file, std::string* content) {
+  int fd = ::open(file.c_str(), O_RDONLY);
+  if (fd < 0) {
+    return false;
+  }
+  char buffer[100];
+  int32_t size = 0;
+  while ((size = ::read(fd, buffer, sizeof(buffer))) > 0) {
+    content->append(buffer, size);
+  }
+  return true;
+}
+
 char* config_read_file(const char* filename) {
   FILE* file = NULL;
   int64_t length = 0;

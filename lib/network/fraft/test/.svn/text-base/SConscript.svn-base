@@ -1,0 +1,36 @@
+Import('env')
+
+test_env = env.Clone()
+deps_libs = ['gtest']
+def CheckDependencies():
+  global env
+  conf = Configure(env)
+  for lib in deps_libs:
+    if not conf.CheckLib(lib):
+      print 'Did not find lib' + lib + ' existing'
+      Exit(1)
+  env = conf.Finish()
+CheckDependencies()
+test_env['objroot'] += '/test'
+test_env['srcroot'] += '/global'
+test_env['extension'] = 'cpp'
+test_env.Append(CPPPATH=[test_env['srcroot'],
+  env['objroot'] + '/test'])
+test_env.Append(LIBPATH=[env['objroot']+'/global',])
+test_env.Prepend(LIBS=
+  [
+    'eventrpc',
+    'global',
+    'gtest',
+  ])
+
+test_src_files = [
+  'utility',
+  'data_node_header',
+  'data_tree',
+  'transaction_log',
+  'transaction_log_header',
+  'transaction_log_iterator',
+]
+for file in test_src_files:
+  test_env.Program(file + "_test", [file + "_test.cpp"])

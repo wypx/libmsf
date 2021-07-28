@@ -879,6 +879,7 @@ std::string OsInfo::GetHome() {
   if (!home) {
     home = ::getpwuid(getuid())->pw_dir;
   }
+  // const char *user = ::getenv("USER");
   return home;
 #endif
 }
@@ -1028,6 +1029,23 @@ bool OsInfo::GetMemInfo(struct MemInfo& mem) {
     }
   }
   return true;
+}
+
+int GetCpuNum() {
+  FILE* file;
+  char buf[50];
+  if ((file = ::fopen("/proc/cpuinfo", "r")) == NULL) {
+    return -1;
+  }
+  int count = 0;
+  while (::fgets(buf, sizeof(buf), file) != NULL) {
+    if (strstr(buf, "processor") != NULL) {
+      count++;
+    }
+  }
+  ::fclose(file);
+
+  return count;
 }
 
 void OsInfo::CpuId(uint32_t i, uint32_t* buf) {

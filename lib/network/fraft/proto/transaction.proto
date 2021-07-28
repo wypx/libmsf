@@ -1,0 +1,31 @@
+syntax="proto3";
+package fraft;
+
+message Session {
+  uint64 id = 1;
+  uint64 timeout = 2;
+};
+
+message SessionList {
+  repeated Session sessions = 1;
+};
+
+message NodeStat {
+  uint64 cgxid = 1;
+  uint64 mgxid = 2;
+  uint64 ctime = 3;
+  uint64 mtime = 4;
+  uint32 version = 5;
+  uint32 cversion = 6;
+  uint32 aversion = 7;
+  uint64 ephemeral_owner = 8;
+  uint64 pgxid = 9;
+};
+
+message NodeData {
+  string path = 1;
+  uint32 permission = 2;
+  uint64 owner = 3;
+  NodeStat stat = 4;
+  bytes data = 7;
+};

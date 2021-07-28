@@ -1,0 +1,35 @@
+syntax="proto3";
+package fraft;
+
+message Id {
+  string scheme =1;
+  string id = 2;
+};
+
+message ACL {
+  uint32 permission = 1;
+  Id id = 2;
+};
+
+message Create {
+  string path = 1;
+  bytes data = 2;
+  repeated ACL acl_list = 3;
+  bool ephemeral = 4;
+};
+
+message Delete {
+  string path = 1;
+};
+
+message SetData {
+  string path = 1;
+  bytes data = 2;
+  uint32 vecsion = 3;
+};
+
+message SetACL {
+  string path = 1;
+  repeated ACL acl_list = 2;
+  uint32 vecsion = 3;
+};

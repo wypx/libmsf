@@ -1,0 +1,19 @@
+syntax="proto3";
+package fraft;
+
+option cc_generic_services = true;
+
+message Dummy {
+}
+
+message Notification {
+ uint64 leader        = 1;
+ uint64 zxid          = 2;
+ uint64 epoch         = 3;
+ uint32 state         = 4;
+ uint64 server_id     = 5;
+}
+
+service LeaderElection {
+  rpc LeaderProposal(Notification) returns (Dummy);
+}

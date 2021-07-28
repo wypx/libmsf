@@ -63,6 +63,7 @@ bool CreateFullDir(const std::string& path, const mode_t mode = 0755);
 void ListFiles(std::list<std::string>& list, const std::string& folder,
                const std::string& extension, bool recursive);
 
+bool ReadFileContents(const std::string& file, std::string* content);
 /*
  * link() - only for systems that lack it
  */

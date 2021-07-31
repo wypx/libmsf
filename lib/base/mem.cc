@@ -83,7 +83,9 @@ void *BaseAllocHugePages(size_t size) {
   }
 
   real_size = MSF_ALIGN(size, page_size);
-  ptr = BasicAlignedAlloc(page_size, real_size);
+  ptr = _aligned_malloc(page_size, real_size);
+  // _aligned_free(ptr);
+  // ptr = BasicAlignedAlloc(page_size, real_size);
   if (ptr == nullptr) {
     LOG(ERROR) << "posix_memalign failed sz:" << real_size;
     return NULL;

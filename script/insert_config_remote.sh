@@ -36,9 +36,16 @@ do
   # ssh -n root@$dest "cd /root/udisk/vhost_gate/conf/;sed -i '/net_type/a\check_inactive_conn_duration       = 5' vhost_gate.ini"
   # ssh -n root@$dest "cd /root/udisk/vhost_gate/conf/;sed -i '/net_type/a\enanle_close_inactive_conn         = 1' vhost_gate.ini"
 
-  ssh -n root@$dest "cd /root/udisk/block_gate/conf/;sed -i '/net_type/a\inactive_conn_interval             = 30' block_gate.ini"
-  ssh -n root@$dest "cd /root/udisk/block_gate/conf/;sed -i '/net_type/a\check_inactive_conn_duration       = 5' block_gate.ini"
-  ssh -n root@$dest "cd /root/udisk/block_gate/conf/;sed -i '/net_type/a\enanle_close_inactive_conn         = 1' block_gate.ini"
+  # ssh -n root@$dest "cd /root/udisk/block_gate/conf/;sed -i '/net_type/a\inactive_conn_interval             = 30' block_gate.ini"
+  # ssh -n root@$dest "cd /root/udisk/block_gate/conf/;sed -i '/net_type/a\check_inactive_conn_duration       = 5' block_gate.ini"
+  # ssh -n root@$dest "cd /root/udisk/block_gate/conf/;sed -i '/net_type/a\enanle_close_inactive_conn         = 1' block_gate.ini"
+
+  # ./PbBlockGateTerminateRequest $dest 13800
+
+  ssh -n root@$dest "cd /root/udisk/chunk/conf/;sed -i '/hela_io_listen_port/a\inactive_conn_interval             = 30' *.conf"
+  ssh -n root@$dest "cd /root/udisk/chunk/conf/;sed -i '/hela_io_listen_port/a\check_inactive_conn_duration       = 5' *.conf"
+  ssh -n root@$dest "cd /root/udisk/chunk/conf/;sed -i '/hela_io_listen_port/a\enanle_close_inactive_conn         = 1' *.conf"
+
 done
 exit 0
 

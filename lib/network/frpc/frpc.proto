@@ -24,6 +24,8 @@ enum ReturnCode {
 }
 
 // https://blog.csdn.net/qq_22660775/article/details/89163881
+// https://izualzhy.cn/demo-protobuf-rpc
+// https://github.com/xiongfengOrz/MiniRPC
 message FastMessage {
   fixed32 version   = 1; // message version
   fixed32 magic     = 2; // message magic

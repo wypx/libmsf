@@ -43,6 +43,8 @@ class Console {
   Console& operator=(const Console&) = delete;
   Console& operator=(Console&&) = delete;
 
+  bool IsInTerminal(FILE* file) noexcept;
+
   // Returns true if stdout appears to be a terminal that supports colored
   // output, false otherwise.
   bool IsColorTerminal();

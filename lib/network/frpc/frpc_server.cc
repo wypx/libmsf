@@ -93,6 +93,7 @@ void FastRpcServer::HandleFrpcMessage(const ConnectionPtr& conn) {
           conn->CloseConn();
           return;
         }
+        // https://izualzhy.cn/demo-protobuf-rpc
         // construct request message by service name
         // auto desc = FastRPCMessage::GetMessageTypeByName(frpc->service());
         // auto request = FastRPCMessage::NewGoogleMessage(desc);

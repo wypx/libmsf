@@ -152,6 +152,115 @@ int process_pin_to_cpu(uint32_t cpu_id) {
 
   return rc;
 }
+
+/***/
+void set_cpu_affinity(uint16_t cpu_id) {
+#if defined(__CYGWIN__)
+// setting cpu affinity on cygwin is not supported
+#elif defined(_WIN32)
+  // core number starts from 0
+  auto mask = (static_cast<DWORD_PTR>(1) << cpu_id);
+  auto ret = SetThreadAffinityMask(GetCurrentThread(), mask);
+  if (ret == 0) {
+    auto const last_error =
+        std::error_code(GetLastError(), std::system_category());
+
+    std::ostringstream error_msg;
+    error_msg << "failed to call set_cpu_affinity, with error message "
+              << "\"" << last_error.message() << "\", errno \""
+              << last_error.value() << "\"";
+    QUILL_THROW(QuillError{error_msg.str()});
+  }
+#elif defined(__APPLE__)
+  // I don't think that's possible to link a thread with a specific core with
+  // Mac OS X
+  // This may be used to express affinity relationships  between threads in the
+  // task.
+  // Threads with the same affinity tag will be scheduled to share an L2 cache
+  // if possible.
+  thread_affinity_policy_data_t policy = {cpu_id};
+
+  // Get the mach thread bound to this thread
+  thread_port_t mach_thread = pthread_mach_thread_np(pthread_self());
+
+  thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY,
+                    (thread_policy_t) & policy, 1);
+#else
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+  CPU_SET(cpu_id, &cpuset);
+
+  auto const err = ::sched_setaffinity(0, sizeof(cpuset), &cpuset);
+
+  if (unlikely(err == -1)) {
+    std::ostringstream error_msg;
+    error_msg << "failed to call set_cpu_affinity, with error message "
+              << "\"" << strerror(errno) << "\", errno \"" << errno << "\"";
+  }
+#endif
+}
+
+/***/
+void set_thread_name(char const *name) {
+#if defined(__CYGWIN__)
+// set thread name on cygwin not supported
+#elif defined(__MINGW32__) || defined(__MINGW64__)
+  // Disabled on MINGW.
+  (void)name;
+#elif defined(_WIN32)
+  std::wstring name_ws = s2ws(name);
+  // Set the thread name
+  HRESULT hr = SetThreadDescription(GetCurrentThread(), name_ws.data());
+  if (FAILED(hr)) {
+    QUILL_THROW(QuillError{"Failed to set thread name"});
+  }
+#elif defined(__APPLE__)
+  auto const res = pthread_setname_np(name);
+  if (res != 0) {
+    QUILL_THROW(
+        QuillError{"Failed to set thread name. error: " + std::to_string(res)});
+  }
+#else
+  auto const err =
+      prctl(PR_SET_NAME, reinterpret_cast<unsigned long>(name), 0, 0, 0);
+
+  if (QUILL_UNLIKELY(err == -1)) {
+    std::ostringstream error_msg;
+    error_msg << "failed to call set_thread_name, with error message "
+              << "\"" << strerror(errno) << "\", errno \"" << errno << "\"";
+    QUILL_THROW(QuillError{error_msg.str()});
+  }
+#endif
+}
+
+/***/
+uint32_t get_thread_id() noexcept {
+#if defined(__CYGWIN__)
+  // get thread id on cygwin not supported
+  return 0;
+#elif defined(_WIN32)
+  return static_cast<uint32_t>(GetCurrentThreadId());
+#elif defined(__linux__)
+  return static_cast<uint32_t>(::syscall(SYS_gettid));
+#elif defined(__APPLE__)
+  uint64_t tid64;
+  pthread_threadid_np(nullptr, &tid64);
+  return static_cast<uint32_t>(tid64);
+#endif
+}
+
+/***/
+uint32_t get_process_id() noexcept {
+#if defined(__CYGWIN__)
+  // get pid on cygwin not supported
+  return 0;
+#elif defined(_WIN32)
+  return static_cast<uint32_t>(GetCurrentProcessId());
+#else
+  return static_cast<uint32_t>(getpid());
+#endif
+}
+
 #else
 
 /*

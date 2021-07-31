@@ -1064,6 +1064,85 @@ int get_fs_stats(ceph_data_stats_t& stats, const char* path) {
 }
 #endif
 
+/***/
+FILE* fopen(filename_t const& filename, std::string const& mode) {
+  FILE* fp{nullptr};
+#if defined(_WIN32)
+  std::wstring const w_mode = s2ws(mode);
+  fp = ::_wfsopen((filename.c_str()), w_mode.data(), _SH_DENYNO);
+#else
+  fp = ::fopen(filename.data(), mode.data());
+#endif
+  if (!fp) {
+    std::ostringstream error_msg;
+    error_msg << "fopen failed with error message errno: \"" << errno << "\"";
+    QUILL_THROW(QuillError{error_msg.str()});
+  }
+  return fp;
+}
+
+#if 0
+/***/
+size_t fsize(FILE* file)
+{
+  if (!file)
+  {
+    QUILL_THROW(QuillError{"fsize failed. file is nullptr"});
+  }
+
+#if defined(_WIN32) && !defined(__CYGWIN__)
+  auto const fd = ::_fileno(file);
+  auto const ret = ::_filelength(fd);
+
+  if (ret >= 0)
+  {
+    return static_cast<size_t>(ret);
+  }
+#else
+  auto const fd = fileno(file);
+  struct stat st;
+
+  if (fstat(fd, &st) == 0)
+  {
+    return static_cast<size_t>(st.st_size);
+  }
+#endif
+
+  // failed to get the file size
+  std::ostringstream error_msg;
+  error_msg << "fopen failed with error message errno: \"" << errno << "\"";
+  QUILL_THROW(QuillError{error_msg.str()});
+}
+/***/
+int remove(std::string const& filename) noexcept
+{
+#if defined(_WIN32)
+  return ::_wremove(filename.c_str());
+#else
+  return std::remove(filename.c_str());
+#endif
+}
+
+/***/
+void rename(filename_t const& previous_file, filename_t const& new_file)
+{
+#if defined(_WIN32)
+  int const res = ::_wrename(previous_file.c_str(), new_file.c_str());
+#else
+  int const res = std::rename(previous_file.c_str(), new_file.c_str());
+#endif
+
+  if (QUILL_UNLIKELY(res != 0))
+  {
+    std::ostringstream error_msg;
+    error_msg << "failed to rename previous log file during rotation, with error message errno: \""
+              << errno << "\"";
+    QUILL_THROW(QuillError{error_msg.str()});
+  }
+}
+
+#endif
+
 #endif
 
 }  // namespace MSF

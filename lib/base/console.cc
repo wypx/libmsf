@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdlib.h>
+#include <array>
+#include <algorithm>
 
 #if defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
 #include <cstdio>
@@ -11,6 +13,23 @@
 #endif
 
 namespace MSF {
+
+bool Console::IsInTerminal(FILE* file) noexcept {
+#if defined(_WIN32) || defined(_WIN64) || defined(WIN32) || defined(WIN64)
+  bool const is_atty = ::_isatty(_fileno(file)) != 0;
+
+  // ::GetConsoleMode() should return 0 if file is redirected or does not point
+  // to the actual console
+  DWORD console_mode;
+  bool const is_console =
+      ::GetConsoleMode(reinterpret_cast<HANDLE>(_get_osfhandle(_fileno(file))),
+                       &console_mode) != 0;
+
+  return is_atty && is_console;
+#else
+  return ::isatty(fileno(file)) != 0;
+#endif
+}
 
 bool Console::IsColorTerminal() {
 #if defined(_WIN32) || defined(_WIN64) || defined(WIN32) || defined(WIN64)
@@ -21,22 +40,26 @@ bool Console::IsColorTerminal() {
   // On non-Windows platforms, we rely on the TERM variable. This list of
   // supported TERM values is copied from Google Test:
   // <https://github.com/google/googletest/blob/master/googletest/src/gtest.cc#L2925>.
-  const char* const SUPPORTED_TERM_VALUES[] = {
-      "xterm",                 "xterm-color", "xterm-256color", "screen",
-      "screen-256color",       "tmux",        "tmux-256color",  "rxvt-unicode",
-      "rxvt-unicode-256color", "linux",       "cygwin", };
+  // Get term from env
+  auto* env_ptr = ::getenv("TERM");
 
-  const char* const term = ::getenv("TERM");
-
-  bool term_supports_color = false;
-  for (const char* candidate : SUPPORTED_TERM_VALUES) {
-    if (term && 0 == ::strcmp(term, candidate)) {
-      term_supports_color = true;
-      break;
-    }
+  if (env_ptr == nullptr) {
+    return false;
   }
 
-  return 0 != ::isatty(fileno(stdout)) && term_supports_color;
+  static constexpr std::array<char const*, 24> supported_terms = {
+      {"xterm",                 "xterm-color", "xterm-256color", "screen",
+       "screen-256color",       "tmux",        "tmux-256color",  "rxvt-unicode",
+       "rxvt-unicode-256color", "linux",       "cygwin",         "ansi",
+       "color",                 "console",     "gnome",          "konsole",
+       "kterm",                 "msys",        "putty",          "rxvt",
+       "vt100"}};
+
+  return IsInTerminal(stdout) &&
+         (std::any_of(supported_terms.begin(), supported_terms.end(),
+                      [&](char const* term) {
+           return ::strstr(env_ptr, term) != nullptr;
+         }));
 #endif
 }
 

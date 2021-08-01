@@ -1141,6 +1141,70 @@ void rename(filename_t const& previous_file, filename_t const& new_file)
   }
 }
 
+
+#ifdef _WIN32
+typedef SYSTEMTIME TIME_TYPE;
+#else  // UNIX, OSX
+typedef struct tm TIME_TYPE;
+#endif
+
+
+void DiagnosticFilename::LocalTime(TIME_TYPE* tm_struct) {
+#ifdef _WIN32
+  GetLocalTime(tm_struct);
+#else  // UNIX, OSX
+  struct timeval time_val;
+  gettimeofday(&time_val, nullptr);
+  localtime_r(&time_val.tv_sec, tm_struct);
+#endif
+}
+
+// Defined in node_internals.h
+std::string DiagnosticFilename::MakeFilename(
+    uint64_t thread_id,
+    const char* prefix,
+    const char* ext) {
+  std::ostringstream oss;
+  TIME_TYPE tm_struct;
+  LocalTime(&tm_struct);
+  oss << prefix;
+#ifdef _WIN32
+  oss << "." << std::setfill('0') << std::setw(4) << tm_struct.wYear;
+  oss << std::setfill('0') << std::setw(2) << tm_struct.wMonth;
+  oss << std::setfill('0') << std::setw(2) << tm_struct.wDay;
+  oss << "." << std::setfill('0') << std::setw(2) << tm_struct.wHour;
+  oss << std::setfill('0') << std::setw(2) << tm_struct.wMinute;
+  oss << std::setfill('0') << std::setw(2) << tm_struct.wSecond;
+#else  // UNIX, OSX
+  oss << "."
+            << std::setfill('0')
+            << std::setw(4)
+            << tm_struct.tm_year + 1900;
+  oss << std::setfill('0')
+            << std::setw(2)
+            << tm_struct.tm_mon + 1;
+  oss << std::setfill('0')
+            << std::setw(2)
+            << tm_struct.tm_mday;
+  oss << "."
+            << std::setfill('0')
+            << std::setw(2)
+            << tm_struct.tm_hour;
+  oss << std::setfill('0')
+            << std::setw(2)
+            << tm_struct.tm_min;
+  oss << std::setfill('0')
+            << std::setw(2)
+            << tm_struct.tm_sec;
+#endif
+  oss << "." << getpid();
+  oss << "." << thread_id;
+  oss << "." << std::setfill('0') << std::setw(3) << ++seq;
+  oss << "." << ext;
+  return oss.str();
+}
+
+
 #endif
 
 #endif

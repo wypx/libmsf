@@ -14,6 +14,7 @@
 #include "epoll_poller.h"
 
 #include <assert.h>
+#include <signal.h>
 #include <base/logging.h>
 
 #include "event.h"
@@ -65,7 +66,7 @@ bool EPollPoller::CreateEpSocket() {
   /* First, try the shiny new epoll_create1 interface, if we have it. */
   ep_fd_ = ::epoll_create1(EPOLL_CLOEXEC);
 #endif
-  if (ep_fd_ < 0) {
+  if (ep_fd_ < 0 && (errno == ENOSYS || errno == EINVAL)) {
     /* Initialize the kernel queue using the old interface.
      * (The size field is ignored   since 2.6.8.) */
     ep_fd_ = ::epoll_create(kMaxEpEventNumber);
@@ -162,19 +163,43 @@ bool EPollPoller::DelEvent(const Event* ev) {
   return true;
 }
 
-int EPollPoller::Poll(int timeout_ms, EventList* activeevents_) {
-  // LOG(INFO) << "fd total count " << ep_events_.size();
-  // LOG(INFO) << "timeout_ms: " << timeout_ms;
-  int numevents = ::epoll_wait(ep_fd_,
-                               // &*ep_events_.begin(),
-                               ep_events_, 512,
-                               // static_cast<int>(ep_events_.size()),
-                               timeout_ms);
-  // LOG(INFO) << "_activeevents_ size: " << activeevents_.size();
+// https://cloud.tencent.com/developer/ask/223634
+int EPollPoller::Poll(int timeout_ms, EventList* active_events) {
+  bool no_epoll_pwait = true;
+  bool no_epoll_wait = false;
+  sigset_t sigset;
+  uint64_t sigmask = 0;
+
+  int numevents = 0;
+  // if (loop->flags & UV_LOOP_BLOCK_SIGPROF)
+  {
+    sigemptyset(&sigset);
+    sigaddset(&sigset, SIGPROF);
+    sigmask |= 1 << (SIGPROF - 1);
+  }
+
+  if (sigmask != 0 && no_epoll_pwait != 0)
+    if (::pthread_sigmask(SIG_BLOCK, &sigset, NULL)) abort();
+
+  if (no_epoll_wait != 0 || (sigmask != 0 && no_epoll_pwait == 0)) {
+    numevents =
+        ::epoll_pwait(ep_fd_, &*ep_events_.begin(),
+                      static_cast<int>(ep_events_.size()), timeout_ms, &sigset);
+    if (numevents == -1 && errno == ENOSYS) {
+      no_epoll_pwait = true;
+    }
+  } else {
+    numevents = ::epoll_wait(ep_fd_, &*ep_events_.begin(),
+                             static_cast<int>(ep_events_.size()), timeout_ms);
+  }
+
+  if (sigmask != 0 && no_epoll_pwait != 0)
+    if (::pthread_sigmask(SIG_UNBLOCK, &sigset, NULL)) abort();
+  // LOG(INFO) << "_activeevents_ size: " << active_events.size();
   // Timestamp now(Timestamp::now());
   if (numevents > 0) {
     // LOG(INFO) << numevents << " events happened";
-    FillActiveEvents(numevents, activeevents_);
+    FillActiveEvents(numevents, active_events);
     // https://blog.csdn.net/xiaoc_fantasy/article/details/79570788
     // if (implicit_cast<size_t>(numevents) == ep_events_.size())
     // {

@@ -27,6 +27,8 @@ constexpr FastMessage::FastMessage(
       magic_(0u),
       type_(0u),
       length_(0u),
+      request_compress_type_(0),
+      response_compress_type_(0),
       retcode_(0) {}
 struct FastMessageDefaultTypeInternal {
   constexpr FastMessageDefaultTypeInternal()
@@ -41,7 +43,7 @@ PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT FastMessageDefaultTypeInternal
 }  // namespace frpc
 static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_frpc_2eproto[1];
 static const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor*
-    file_level_enum_descriptors_frpc_2eproto[3];
+    file_level_enum_descriptors_frpc_2eproto[4];
 static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const**
     file_level_service_descriptors_frpc_2eproto = nullptr;
 
@@ -59,6 +61,8 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_frpc_2eproto::offsets
         PROTOBUF_FIELD_OFFSET(::frpc::FastMessage, call_id_),
         PROTOBUF_FIELD_OFFSET(::frpc::FastMessage, method_),
         PROTOBUF_FIELD_OFFSET(::frpc::FastMessage, service_),
+        PROTOBUF_FIELD_OFFSET(::frpc::FastMessage, request_compress_type_),
+        PROTOBUF_FIELD_OFFSET(::frpc::FastMessage, response_compress_type_),
         PROTOBUF_FIELD_OFFSET(::frpc::FastMessage, retcode_),
         PROTOBUF_FIELD_OFFSET(::frpc::FastMessage, message_), };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas
@@ -71,31 +75,54 @@ static ::PROTOBUF_NAMESPACE_ID::Message const* const file_default_instances[] =
 
 const char descriptor_table_protodef_frpc_2eproto[] PROTOBUF_SECTION_VARIABLE(
     protodesc_cold) =
-    "\n\nfrpc.proto\022\004frpc\"\237\001\n\013FastMessage\022\017\n\007ve"
+    "\n\nfrpc.proto\022\004frpc\"\206\002\n\013FastMessage\022\017\n\007ve"
     "rsion\030\001 \001(\007\022\r\n\005magic\030\002 "
     "\001(\007\022\014\n\004type\030\003 \001(\007"
     "\022\016\n\006length\030\004 \001(\007\022\017\n\007call_id\030\005 "
     "\001(\t\022\016\n\006met"
     "hod\030\006 \001(\t\022\017\n\007service\030\007 "
-    "\001(\t\022\017\n\007retcode\030\010 "
-    "\001(\005\022\017\n\007message\030\t "
-    "\001(\t*u\n\013MessageType\022\030\n\024F"
-    "RPC_MESSAGE_UNKNOWN\020\000\022\030\n\024FRPC_MESSAGE_RE"
-    "QUEST\020\001\022\031\n\025FRPC_MESSAGE_RESPONSE\020\002\022\027\n\023FR"
-    "PC_MESSAGE_CANCEL\020\003*/\n\tMessageID\022\016\n\nFRPC"
-    "_LOGIN\020\000\022\022\n\016FRPC_HEARTBEAT\020\001*{\n\nReturnCo"
-    "de\022\020\n\014FRPC_SUCCESS\020\000\022\023\n\017FRPC_NO_SERVICE\020"
-    "\001\022\022\n\016FRPC_NO_METHOD\020\002\022\030\n\024FRPC_INVALID_RE"
-    "QUEST\020\003\022\030\n\024FRPC_INVALID_"
-    "REPONSE\020\004B\003\200\001\001b\006"
-    "proto3";
+    "\001(\t\0221\n\025request_co"
+    "mpress_type\030\010 \001(\0162\022.frpc.CompressType\0222\n"
+    "\026response_compress_type\030\t \001(\0162\022.frpc.Com"
+    "pressType\022\017\n\007retcode\030\n "
+    "\001(\005\022\017\n\007message\030\013 "
+    "\001(\t*u\n\013MessageType\022\030\n\024FRPC_MESSAGE_UNKNO"
+    "WN\020\000\022\030\n\024FRPC_MESSAGE_REQUEST\020\001\022\031\n\025FRPC_M"
+    "ESSAGE_RESPONSE\020\002\022\027\n\023FRPC_MESSAGE_CANCEL"
+    "\020\003*/\n\tMessageID\022\016\n\nFRPC_LOGIN\020\000\022\022\n\016FRPC_"
+    "HEARTBEAT\020\001*\302\006\n\nReturnCode\022\020\n\014FRPC_SUCCE"
+    "SS\020\000\022\023\n\017FRPC_NO_SERVICE\020\001\022\022\n\016FRPC_NO_MET"
+    "HOD\020\002\022\030\n\024FRPC_INVALID_REQUEST\020\003\022\030\n\024FRPC_"
+    "INVALID_REPONSE\020\004\022\033\n\027RPC_ERROR_PARSE_REQ"
+    "UEST\020\005\022\032\n\026RPC_ERROR_PARSE_REPONS\020\006\022\033\n\027RP"
+    "C_ERROR_COMPRESS_TYPE\020\007\022\034\n\030RPC_ERROR_NO_"
+    "METHOD_NAME\020\010\022\037\n\033RPC_ERROR_PARSE_METHOD_"
+    "NAME\020\t\022\033\n\027RPC_ERROR_FOUND_SERVICE\020\n\022\032\n\026R"
+    "PC_ERROR_FOUND_METHOD\020\013\022\034\n\030RPC_ERROR_CHA"
+    "NNEL_BROKEN\020\014\022\037\n\033RPC_ERROR_CONNECTION_CL"
+    "OSED\020\r\022\035\n\031RPC_ERROR_REQUEST_TIMEOUT\020\016\022\036\n"
+    "\032RPC_ERROR_REQUEST_CANCELED\020\017\022 \n\034RPC_ERR"
+    "OR_SERVER_UNAVAILABLE\020\020\022 \n\034RPC_ERROR_SER"
+    "VER_UNREACHABLE\020\021\022\035\n\031RPC_ERROR_SERVER_SH"
+    "UTDOWN\020\022\022\036\n\032RPC_ERROR_SEND_BUFFER_FULL\020\023"
+    "\022\037\n\033RPC_ERROR_SERIALIZE_REQUEST\020\024\022 \n\034RPC"
+    "_ERROR_SERIALIZE_RESPONSE\020\025\022\035\n\031RPC_ERROR"
+    "_RESOLVE_ADDRESS\020\026\022\033\n\027RPC_ERROR_CREATE_S"
+    "TREAM\020\027\022\034\n\030RPC_ERROR_NOT_IN_RUNNING\020\030\022\031\n"
+    "\025RPC_ERROR_SERVER_BUSY\020\031\022!\n\035RPC_ERROR_TO"
+    "O_MANY_OPEN_FILES\020\032\022\033\n\027RPC_ERROR_RESON_U"
+    "NKNOWN\020\033*\222\001\n\014CompressType\022\024\n\020CompressTyp"
+    "eNone\020\000\022\024\n\020CompressTypeGzip\020\001\022\024\n\020Compres"
+    "sTypeZlib\020\002\022\026\n\022CompressTypeSnappy\020\003\022\023\n\017C"
+    "ompressTypeLZ4\020\004\022\023\n\017CompressTypeMax\020\005B\003\200"
+    "\001\001b\006proto3";
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag
     descriptor_table_frpc_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable
     descriptor_table_frpc_2eproto = {
         false,
         false,
-        486,
+        1450,
         descriptor_table_protodef_frpc_2eproto,
         "frpc.proto",
         &descriptor_table_frpc_2eproto_once,
@@ -163,6 +190,48 @@ bool ReturnCode_IsValid(int value) {
     case 2:
     case 3:
     case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
+    case 16:
+    case 17:
+    case 18:
+    case 19:
+    case 20:
+    case 21:
+    case 22:
+    case 23:
+    case 24:
+    case 25:
+    case 26:
+    case 27:
+      return true;
+    default:
+      return false;
+  }
+}
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* CompressType_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(
+      &descriptor_table_frpc_2eproto);
+  return file_level_enum_descriptors_frpc_2eproto[3];
+}
+bool CompressType_IsValid(int value) {
+  switch (value) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
       return true;
     default:
       return false;
@@ -370,19 +439,43 @@ const char* FastMessage::_InternalParse(
         } else
           goto handle_unusual;
         continue;
-      // int32 retcode = 8;
+      // .frpc.CompressType request_compress_type = 8;
       case 8:
         if (PROTOBUF_PREDICT_TRUE(
                 static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 64)) {
+          ::PROTOBUF_NAMESPACE_ID::uint64 val =
+              ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+          _internal_set_request_compress_type(
+              static_cast<::frpc::CompressType>(val));
+        } else
+          goto handle_unusual;
+        continue;
+      // .frpc.CompressType response_compress_type = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(
+                static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 72)) {
+          ::PROTOBUF_NAMESPACE_ID::uint64 val =
+              ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+          _internal_set_response_compress_type(
+              static_cast<::frpc::CompressType>(val));
+        } else
+          goto handle_unusual;
+        continue;
+      // int32 retcode = 10;
+      case 10:
+        if (PROTOBUF_PREDICT_TRUE(
+                static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 80)) {
           retcode_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
         continue;
-      // string message = 9;
-      case 9:
+      // string message = 11;
+      case 11:
         if (PROTOBUF_PREDICT_TRUE(
-                static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 74)) {
+                static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 90)) {
           auto str = _internal_mutable_message();
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(
               str, ptr, ctx);
@@ -488,15 +581,31 @@ failure:
         stream->WriteStringMaybeAliased(7, this->_internal_service(), target);
   }
 
-  // int32 retcode = 8;
+  // .frpc.CompressType request_compress_type = 8;
+  if (this->request_compress_type() != 0) {
+    target = stream->EnsureSpace(target);
+    target =
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteEnumToArray(
+            8, this->_internal_request_compress_type(), target);
+  }
+
+  // .frpc.CompressType response_compress_type = 9;
+  if (this->response_compress_type() != 0) {
+    target = stream->EnsureSpace(target);
+    target =
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteEnumToArray(
+            9, this->_internal_response_compress_type(), target);
+  }
+
+  // int32 retcode = 10;
   if (this->retcode() != 0) {
     target = stream->EnsureSpace(target);
     target =
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(
-            8, this->_internal_retcode(), target);
+            10, this->_internal_retcode(), target);
   }
 
-  // string message = 9;
+  // string message = 11;
   if (!this->message().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
         this->_internal_message().data(),
@@ -504,7 +613,7 @@ failure:
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
         "frpc.FastMessage.message");
     target =
-        stream->WriteStringMaybeAliased(9, this->_internal_message(), target);
+        stream->WriteStringMaybeAliased(11, this->_internal_message(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -548,7 +657,7 @@ size_t FastMessage::ByteSizeLong() const {
                 this->_internal_service());
   }
 
-  // string message = 9;
+  // string message = 11;
   if (!this->message().empty()) {
     total_size +=
         1 + ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
@@ -575,7 +684,21 @@ size_t FastMessage::ByteSizeLong() const {
     total_size += 1 + 4;
   }
 
-  // int32 retcode = 8;
+  // .frpc.CompressType request_compress_type = 8;
+  if (this->request_compress_type() != 0) {
+    total_size +=
+        1 + ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(
+                this->_internal_request_compress_type());
+  }
+
+  // .frpc.CompressType response_compress_type = 9;
+  if (this->response_compress_type() != 0) {
+    total_size +=
+        1 + ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(
+                this->_internal_response_compress_type());
+  }
+
+  // int32 retcode = 10;
   if (this->retcode() != 0) {
     total_size +=
         1 + ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
@@ -634,6 +757,13 @@ void FastMessage::MergeFrom(const FastMessage& from) {
   }
   if (from.length() != 0) {
     _internal_set_length(from._internal_length());
+  }
+  if (from.request_compress_type() != 0) {
+    _internal_set_request_compress_type(from._internal_request_compress_type());
+  }
+  if (from.response_compress_type() != 0) {
+    _internal_set_response_compress_type(
+        from._internal_response_compress_type());
   }
   if (from.retcode() != 0) {
     _internal_set_retcode(from._internal_retcode());

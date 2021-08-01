@@ -77,30 +77,48 @@ class FastRpcServer : public noncopyable {
       hook_services_[service->GetDescriptor()] = service;
     }
   }
+
+  void ActiveService(google::protobuf::Service* service) {}
+
+  void InActiveService(google::protobuf::Service* service) {}
   // void RegisterService(google::protobuf::Service *service)
   // {
-  //   const ::google::protobuf::ServiceDescriptor *descriptor = service->GetDescriptor();
+  //   const ::google::protobuf::ServiceDescriptor *descriptor =
+  // service->GetDescriptor();
   //   for (int i = 0; i < descriptor->method_count(); ++i)
   //   {
-  //     const ::google::protobuf::MethodDescriptor *method = descriptor->method(i);
-  //     const ::google::protobuf::Message *request = &service->GetRequestPrototype(method);
-  //     const ::google::protobuf::Message *response = &service->GetResponsePrototype(method);
+  //     const ::google::protobuf::MethodDescriptor *method =
+  // descriptor->method(i);
+  //     const ::google::protobuf::Message *request =
+  // &service->GetRequestPrototype(method);
+  //     const ::google::protobuf::Message *response =
+  // &service->GetResponsePrototype(method);
 
-  //     RpcMethod *rpc_method = new RpcMethod(service, request, response, method);
+  //     RpcMethod *rpc_method = new RpcMethod(service, request, response,
+  // method);
   //     uint32_t opcode = std::hash<std::string>()(method->full_name());
-  //     LOG(INFO) << "register service: " << method->full_name()<< ", opcode: " << opcode;
+  //     LOG(INFO) << "register service: " << method->full_name()<< ", opcode: "
+  // << opcode;
   //     rpc_method_map_[opcode] = rpc_method;
   //   }
   // }
 
+  void Running() {}
+  int ServiceCount();
+  int ConnectionCount();
+  bool IsListening();
+  // Restart the listener.  It will restart listening anyway, even if it is
+  // already in
+  // listening.  Return false if the server is not started, or fail to restart
+  // listening.
+  bool RestartListen();
+
+ private:
   void HandleFastRPCSucc(const ConnectionPtr& conn);
   void HandleFastRPCRead(const ConnectionPtr& conn);
   void HandleFastRPCWrite(const ConnectionPtr& conn);
   void HandleFastRPClose(const ConnectionPtr& conn);
 
-  void Running() {}
-
- private:
   void HandleFrpcMessage(const ConnectionPtr& conn);
 
  private:

@@ -60,6 +60,28 @@ class FastServer {
   }
 
  protected:
+  // max connection count to accept.
+  // should >= -1, -1 means no limit, default -1.
+  int max_connection_count_ = -1;
+
+  // keep alive time of idle connections.
+  // idle connections will be closed if no read/write for this time.
+  // in seconds, should >= -1, -1 means forever, default -1.
+  int keep_alive_time_;
+
+  // Network throughput limit.
+  // The network bandwidth is shared by all connections:
+  // * busy connections get more bandwidth.
+  // * the total bandwidth of all connections will not exceed the limit.
+  int max_throughput_in_;       // max network in throughput for all connections.
+                                // in MB/s, should >= -1, -1 means no limit, default -1.
+  int max_throughput_out_;      // max network out throughput for all connections.
+                                // in MB/s, should >= -1, -1 means no limit, default -1.
+
+  //If disable Nagle's algorithm in tcp protocol.
+  //default:true
+  bool no_delay_; 
+
   SuccCallback scb_;
   ReadCallback rcb_;
   WriteCallback wcb_;

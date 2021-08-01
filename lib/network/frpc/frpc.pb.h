@@ -130,6 +130,29 @@ enum ReturnCode : int {
   FRPC_NO_METHOD = 2,
   FRPC_INVALID_REQUEST = 3,
   FRPC_INVALID_REPONSE = 4,
+  RPC_ERROR_PARSE_REQUEST = 5,
+  RPC_ERROR_PARSE_REPONS = 6,
+  RPC_ERROR_COMPRESS_TYPE = 7,
+  RPC_ERROR_NO_METHOD_NAME = 8,
+  RPC_ERROR_PARSE_METHOD_NAME = 9,
+  RPC_ERROR_FOUND_SERVICE = 10,
+  RPC_ERROR_FOUND_METHOD = 11,
+  RPC_ERROR_CHANNEL_BROKEN = 12,
+  RPC_ERROR_CONNECTION_CLOSED = 13,
+  RPC_ERROR_REQUEST_TIMEOUT = 14,
+  RPC_ERROR_REQUEST_CANCELED = 15,
+  RPC_ERROR_SERVER_UNAVAILABLE = 16,
+  RPC_ERROR_SERVER_UNREACHABLE = 17,
+  RPC_ERROR_SERVER_SHUTDOWN = 18,
+  RPC_ERROR_SEND_BUFFER_FULL = 19,
+  RPC_ERROR_SERIALIZE_REQUEST = 20,
+  RPC_ERROR_SERIALIZE_RESPONSE = 21,
+  RPC_ERROR_RESOLVE_ADDRESS = 22,
+  RPC_ERROR_CREATE_STREAM = 23,
+  RPC_ERROR_NOT_IN_RUNNING = 24,
+  RPC_ERROR_SERVER_BUSY = 25,
+  RPC_ERROR_TOO_MANY_OPEN_FILES = 26,
+  RPC_ERROR_RESON_UNKNOWN = 27,
   ReturnCode_INT_MIN_SENTINEL_DO_NOT_USE_ =
       std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
   ReturnCode_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -137,7 +160,7 @@ enum ReturnCode : int {
 };
 bool ReturnCode_IsValid(int value);
 constexpr ReturnCode ReturnCode_MIN = FRPC_SUCCESS;
-constexpr ReturnCode ReturnCode_MAX = FRPC_INVALID_REPONSE;
+constexpr ReturnCode ReturnCode_MAX = RPC_ERROR_RESON_UNKNOWN;
 constexpr int ReturnCode_ARRAYSIZE = ReturnCode_MAX + 1;
 
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* ReturnCode_descriptor();
@@ -153,6 +176,37 @@ inline bool ReturnCode_Parse(::PROTOBUF_NAMESPACE_ID::ConstStringParam name,
                              ReturnCode* value) {
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<ReturnCode>(
       ReturnCode_descriptor(), name, value);
+}
+enum CompressType : int {
+  CompressTypeNone = 0,
+  CompressTypeGzip = 1,
+  CompressTypeZlib = 2,
+  CompressTypeSnappy = 3,
+  CompressTypeLZ4 = 4,
+  CompressTypeMax = 5,
+  CompressType_INT_MIN_SENTINEL_DO_NOT_USE_ =
+      std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
+  CompressType_INT_MAX_SENTINEL_DO_NOT_USE_ =
+      std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
+};
+bool CompressType_IsValid(int value);
+constexpr CompressType CompressType_MIN = CompressTypeNone;
+constexpr CompressType CompressType_MAX = CompressTypeMax;
+constexpr int CompressType_ARRAYSIZE = CompressType_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* CompressType_descriptor();
+template <typename T>
+inline const std::string& CompressType_Name(T enum_t_value) {
+  static_assert(
+      ::std::is_same<T, CompressType>::value || ::std::is_integral<T>::value,
+      "Incorrect type passed to function CompressType_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+      CompressType_descriptor(), enum_t_value);
+}
+inline bool CompressType_Parse(::PROTOBUF_NAMESPACE_ID::ConstStringParam name,
+                               CompressType* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<CompressType>(
+      CompressType_descriptor(), name, value);
 }
 // ===================================================================
 
@@ -278,12 +332,14 @@ class FastMessage final
     kCallIdFieldNumber = 5,
     kMethodFieldNumber = 6,
     kServiceFieldNumber = 7,
-    kMessageFieldNumber = 9,
+    kMessageFieldNumber = 11,
     kVersionFieldNumber = 1,
     kMagicFieldNumber = 2,
     kTypeFieldNumber = 3,
     kLengthFieldNumber = 4,
-    kRetcodeFieldNumber = 8,
+    kRequestCompressTypeFieldNumber = 8,
+    kResponseCompressTypeFieldNumber = 9,
+    kRetcodeFieldNumber = 10,
   };
   // string call_id = 5;
   void clear_call_id();
@@ -333,7 +389,7 @@ class FastMessage final
   std::string* _internal_mutable_service();
 
  public:
-  // string message = 9;
+  // string message = 11;
   void clear_message();
   const std::string& message() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -389,7 +445,27 @@ class FastMessage final
   void _internal_set_length(::PROTOBUF_NAMESPACE_ID::uint32 value);
 
  public:
-  // int32 retcode = 8;
+  // .frpc.CompressType request_compress_type = 8;
+  void clear_request_compress_type();
+  ::frpc::CompressType request_compress_type() const;
+  void set_request_compress_type(::frpc::CompressType value);
+
+ private:
+  ::frpc::CompressType _internal_request_compress_type() const;
+  void _internal_set_request_compress_type(::frpc::CompressType value);
+
+ public:
+  // .frpc.CompressType response_compress_type = 9;
+  void clear_response_compress_type();
+  ::frpc::CompressType response_compress_type() const;
+  void set_response_compress_type(::frpc::CompressType value);
+
+ private:
+  ::frpc::CompressType _internal_response_compress_type() const;
+  void _internal_set_response_compress_type(::frpc::CompressType value);
+
+ public:
+  // int32 retcode = 10;
   void clear_retcode();
   ::PROTOBUF_NAMESPACE_ID::int32 retcode() const;
   void set_retcode(::PROTOBUF_NAMESPACE_ID::int32 value);
@@ -415,6 +491,8 @@ class FastMessage final
   ::PROTOBUF_NAMESPACE_ID::uint32 magic_;
   ::PROTOBUF_NAMESPACE_ID::uint32 type_;
   ::PROTOBUF_NAMESPACE_ID::uint32 length_;
+  int request_compress_type_;
+  int response_compress_type_;
   ::PROTOBUF_NAMESPACE_ID::int32 retcode_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_frpc_2eproto;
@@ -659,7 +737,52 @@ inline void FastMessage::set_allocated_service(std::string* service) {
   // @@protoc_insertion_point(field_set_allocated:frpc.FastMessage.service)
 }
 
-// int32 retcode = 8;
+// .frpc.CompressType request_compress_type = 8;
+inline void FastMessage::clear_request_compress_type() {
+  request_compress_type_ = 0;
+}
+inline ::frpc::CompressType FastMessage::_internal_request_compress_type()
+    const {
+  return static_cast<::frpc::CompressType>(request_compress_type_);
+}
+inline ::frpc::CompressType FastMessage::request_compress_type() const {
+  // @@protoc_insertion_point(field_get:frpc.FastMessage.request_compress_type)
+  return _internal_request_compress_type();
+}
+inline void FastMessage::_internal_set_request_compress_type(
+    ::frpc::CompressType value) {
+
+  request_compress_type_ = value;
+}
+inline void FastMessage::set_request_compress_type(::frpc::CompressType value) {
+  _internal_set_request_compress_type(value);
+  // @@protoc_insertion_point(field_set:frpc.FastMessage.request_compress_type)
+}
+
+// .frpc.CompressType response_compress_type = 9;
+inline void FastMessage::clear_response_compress_type() {
+  response_compress_type_ = 0;
+}
+inline ::frpc::CompressType FastMessage::_internal_response_compress_type()
+    const {
+  return static_cast<::frpc::CompressType>(response_compress_type_);
+}
+inline ::frpc::CompressType FastMessage::response_compress_type() const {
+  // @@protoc_insertion_point(field_get:frpc.FastMessage.response_compress_type)
+  return _internal_response_compress_type();
+}
+inline void FastMessage::_internal_set_response_compress_type(
+    ::frpc::CompressType value) {
+
+  response_compress_type_ = value;
+}
+inline void FastMessage::set_response_compress_type(
+    ::frpc::CompressType value) {
+  _internal_set_response_compress_type(value);
+  // @@protoc_insertion_point(field_set:frpc.FastMessage.response_compress_type)
+}
+
+// int32 retcode = 10;
 inline void FastMessage::clear_retcode() { retcode_ = 0; }
 inline ::PROTOBUF_NAMESPACE_ID::int32 FastMessage::_internal_retcode() const {
   return retcode_;
@@ -678,7 +801,7 @@ inline void FastMessage::set_retcode(::PROTOBUF_NAMESPACE_ID::int32 value) {
   // @@protoc_insertion_point(field_set:frpc.FastMessage.retcode)
 }
 
-// string message = 9;
+// string message = 11;
 inline void FastMessage::clear_message() { message_.ClearToEmpty(); }
 inline const std::string& FastMessage::message() const {
   // @@protoc_insertion_point(field_get:frpc.FastMessage.message)
@@ -757,6 +880,12 @@ struct is_proto_enum<::frpc::ReturnCode> : ::std::true_type {};
 template <>
 inline const EnumDescriptor* GetEnumDescriptor<::frpc::ReturnCode>() {
   return ::frpc::ReturnCode_descriptor();
+}
+template <>
+struct is_proto_enum<::frpc::CompressType> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor<::frpc::CompressType>() {
+  return ::frpc::CompressType_descriptor();
 }
 
 PROTOBUF_NAMESPACE_CLOSE

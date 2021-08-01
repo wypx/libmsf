@@ -61,8 +61,7 @@ class EPollPoller : public Poller {
  private:
   int ep_fd_ = -1;
   static const uint32_t kMaxEpEventNumber = 1024;
-  // std::vector<struct epoll_event> _epEvents;
-  struct epoll_event ep_events_[1024];
+  std::vector<struct epoll_event> ep_events_;
   static const int kInitEventListSize = 16;
 
   static const char* OperationToString(int op);

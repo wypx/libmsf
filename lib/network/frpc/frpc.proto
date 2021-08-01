@@ -21,11 +21,44 @@ enum ReturnCode {
   FRPC_NO_METHOD = 2;
   FRPC_INVALID_REQUEST = 3;
   FRPC_INVALID_REPONSE = 4;
+  RPC_ERROR_PARSE_REQUEST = 5;
+  RPC_ERROR_PARSE_REPONS = 6;
+  RPC_ERROR_COMPRESS_TYPE = 7;
+  RPC_ERROR_NO_METHOD_NAME = 8;
+  RPC_ERROR_PARSE_METHOD_NAME = 9;
+  RPC_ERROR_FOUND_SERVICE = 10;
+  RPC_ERROR_FOUND_METHOD = 11;
+  RPC_ERROR_CHANNEL_BROKEN = 12;
+  RPC_ERROR_CONNECTION_CLOSED = 13;
+  RPC_ERROR_REQUEST_TIMEOUT = 14;
+  RPC_ERROR_REQUEST_CANCELED = 15;
+  RPC_ERROR_SERVER_UNAVAILABLE = 16;
+  RPC_ERROR_SERVER_UNREACHABLE = 17;
+  RPC_ERROR_SERVER_SHUTDOWN = 18;
+  RPC_ERROR_SEND_BUFFER_FULL = 19;
+  RPC_ERROR_SERIALIZE_REQUEST = 20;
+  RPC_ERROR_SERIALIZE_RESPONSE = 21;
+  RPC_ERROR_RESOLVE_ADDRESS = 22;
+  RPC_ERROR_CREATE_STREAM = 23;
+  RPC_ERROR_NOT_IN_RUNNING = 24;
+  RPC_ERROR_SERVER_BUSY = 25;
+  RPC_ERROR_TOO_MANY_OPEN_FILES = 26;
+  RPC_ERROR_RESON_UNKNOWN = 27;
+}
+
+enum CompressType {
+  CompressTypeNone = 0;
+  CompressTypeGzip = 1;
+  CompressTypeZlib = 2;
+  CompressTypeSnappy = 3;
+  CompressTypeLZ4 = 4;
+  CompressTypeMax = 5;
 }
 
 // https://blog.csdn.net/qq_22660775/article/details/89163881
 // https://izualzhy.cn/demo-protobuf-rpc
 // https://github.com/xiongfengOrz/MiniRPC
+// https://www.cnblogs.com/mq0036/p/14699050.html
 message FastMessage {
   fixed32 version   = 1; // message version
   fixed32 magic     = 2; // message magic
@@ -34,6 +67,8 @@ message FastMessage {
   string call_id    = 5; // call uuid
   string method     = 6; // mothod name
   string service    = 7; // service name
-  int32 retcode     = 8; // return code
-  string message    = 9; // rc not zero
+  CompressType request_compress_type = 8;
+  CompressType response_compress_type = 9;
+  int32 retcode     = 10; // return code
+  string message    = 11; // rc not zero
 }

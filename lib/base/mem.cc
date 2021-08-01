@@ -70,7 +70,7 @@ int BasicNumaPinNode(int cpu) {
 
 void *BaseAllocHugePages(size_t size) {
   size_t real_size;
-  void *ptr = NULL;
+  void *ptr = nullptr;
 
 #ifndef WIN32
   LOG(ERROR) << "sysconf pagesize is invalid";
@@ -79,20 +79,18 @@ void *BaseAllocHugePages(size_t size) {
 
   if (page_size < 0) {
     LOG(ERROR) << "sysconf pagesize is invalid";
-    return NULL;
+    return nullptr;
   }
 
   real_size = MSF_ALIGN(size, page_size);
-  ptr = _aligned_malloc(page_size, real_size);
-  // _aligned_free(ptr);
-  // ptr = BasicAlignedAlloc(page_size, real_size);
+  ptr = BasicAlignedAlloc(page_size, real_size);
   if (ptr == nullptr) {
     LOG(ERROR) << "posix_memalign failed sz:" << real_size;
-    return NULL;
+    return nullptr;
   }
   memset(ptr, 0, real_size);
   return ptr;
-#endif
+#else
   /* Use 1 extra page to store allocation metadata */
   /* (libhugetlbfs is more efficient in this regard) */
   real_size = MSF_ALIGN(size + MSF_HUGE_PAGE_SIZE, MSF_HUGE_PAGE_SIZE);
@@ -109,10 +107,13 @@ void *BaseAllocHugePages(size_t size) {
     LOG(INFO) << "huge pages allocation failed, allocating regular pages";
 
     real_size = MSF_ALIGN(size + MSF_HUGE_PAGE_SIZE, page_size);
-    ptr = BasicAlignedAlloc(page_size, real_size);
+    // WIN32
+    ptr = _aligned_malloc(page_size, real_size);
+    // _aligned_free(ptr);
+    // ptr = BasicAlignedAlloc(page_size, real_size);
     if (ptr == nullptr) {
       LOG(ERROR) << "posix_memalign failed sz:" << real_size;
-      return NULL;
+      return nullptr;
     }
     memset(ptr, 0, real_size);
     real_size = 0;
@@ -123,6 +124,7 @@ void *BaseAllocHugePages(size_t size) {
   *((size_t *)ptr) = real_size;
   /* Skip the page with metadata */
   return (char *)ptr + MSF_HUGE_PAGE_SIZE;
+#endif
 }
 
 void BasicFreeHugePages(void *ptr) {

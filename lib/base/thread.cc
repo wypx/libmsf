@@ -194,6 +194,53 @@ struct ThreadAttributes {
     ::pthread_attr_getstacksize(&attr_, &stacksize);
     return stacksize;
   }
+
+#if 0
+/* On MacOS, threads other than the main thread are created with a reduced
+ * stack size by default.  Adjust to RLIMIT_STACK aligned to the page size.
+ *
+ * On Linux, threads created by musl have a much smaller stack than threads
+ * created by glibc (80 vs. 2048 or 4096 kB.)  Follow glibc for consistency.
+ */
+static size_t thread_stack_size(void) {
+#if defined(__APPLE__) || defined(__linux__)
+  struct rlimit lim;
+
+  /* getrlimit() can fail on some aarch64 systems due to a glibc bug where
+   * the system call wrapper invokes the wrong system call. Don't treat
+   * that as fatal, just use the default stack size instead.
+   */
+  if (0 == ::getrlimit(RLIMIT_STACK, &lim) && lim.rlim_cur != RLIM_INFINITY) {
+    /* pthread_attr_setstacksize() expects page-aligned values. */
+    lim.rlim_cur -= lim.rlim_cur % (rlim_t) getpagesize();
+
+    /* Musl's PTHREAD_STACK_MIN is 2 KB on all architectures, which is
+     * too small to safely receive signals on.
+     *
+     * Musl's PTHREAD_STACK_MIN + MINSIGSTKSZ == 8192 on arm64 (which has
+     * the largest MINSIGSTKSZ of the architectures that musl supports) so
+     * let's use that as a lower bound.
+     *
+     * We use a hardcoded value because PTHREAD_STACK_MIN + MINSIGSTKSZ
+     * is between 28 and 133 KB when compiling against glibc, depending
+     * on the architecture.
+     */
+    if (lim.rlim_cur >= 8192)
+      if (lim.rlim_cur >= PTHREAD_STACK_MIN)
+        return lim.rlim_cur;
+  }
+#endif
+
+#if !defined(__linux__)
+  return 0;
+#elif defined(__PPC__) || defined(__ppc__) || defined(__powerpc__)
+  return 4 << 20;  /* glibc default. */
+#else
+  return 2 << 20;  /* glibc default. */
+#endif
+}
+#endif
+
 #if 0
   // pthread_attr_getstack
   // pthread_attr_setstack

@@ -50,8 +50,6 @@ def MakeBuildApp(BuildRoot):
     os.system("make install")
 
 def MakeBuildProto(BuildRoot):
-    os.chdir(BuildRoot + "/app/agent/proto")
-    os.system("protoc -I=./ --cpp_out=./ *.proto")
     os.chdir(BuildRoot + "/app/mobile/src")
     os.system("protoc -I=./ --cpp_out=./ *.proto")
     
@@ -78,6 +76,7 @@ def InstallDependencies():
     # apt-get install libssl-dev
     # apt-get install libsnappy-dev
     # apt-get install libleveldb-dev
+    # apt-get install liblz4-dev
 
 if __name__ == '__main__':
     DisplayGithub()

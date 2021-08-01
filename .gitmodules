@@ -46,3 +46,15 @@
 [submodule "thirdparty/seastar"]
 	path = thirdparty/seastar
 	url = https://github.com/scylladb/seastar.git
+[submodule "thirdparty/watchdog"]
+	path = thirdparty/watchdog
+	url = https://github.com/ivanvanderbyl/watchdog
+[submodule "thirdparty/util-linux"]
+	path = thirdparty/util-linux
+	url = https://github.com/karelzak/util-linux.git
+[submodule "thirdparty/rapidjson"]
+	path = thirdparty/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
+[submodule "thirdparty/tcprstat"]
+	path = thirdparty/tcprstat
+	url = https://github.com/y123456yz/tcprstat.git

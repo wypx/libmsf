@@ -6,7 +6,34 @@
 [![GitHub release](https://img.shields.io/github/release/alibaba/fastjson.svg)](https://github.com/alibaba/fastjson/releases)
 [![License](https://img.shields.io/badge/license-Apache%202-4EB1BA.svg)](https://www.apache.org/licenses/LICENSE-2.0.html)
 
+
 MSF (Mircro Service Framework) acting as mircro service process framework, provide base infrastructure such as network, epoll event, timer, general logger, mempool and process service monitoring etc.
+
+Directory |Features
+------------------|----------------
+[app](https://github.com/libmsf/app/)      | Application demo
+[cmake](https://github.com/libmsf/tools)        |CMake tools
+[doc](https://github.com/libmsf/doc)         |Document
+[lib](https://github.com/libmsf/lib)     |Library with base and network
+[script](https://github.com/libmsf/script)      |Scripts tools
+[test](https://github.com/libmsf/test)         |Test code
+ 
+Dependent environment
+
+Software |version requirements
+------|--------
+linux kernel:   |	2.6.18 and above
+gcc:          	|   4.1.2 and above glibc-devel
+cmake:       	|   3.2 and above
+numa:          |	numa-dev
+
+Compile and install
+```
+git clone https://github.com/wypx/libmsf.git
+./build.py
+```
+
+Detailed [reference]()
 
 ### __主要特性包括:__
  * 为各个模块提供基础设施模块 比如`内存` `日志` `网络` `事件` `信号`等基础库
@@ -244,4 +271,3 @@ Libmsf is released under the [Gnu 2.0 license](license.txt).
 *
 **************************************************************************/
 ```
-

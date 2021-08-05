@@ -2,7 +2,6 @@
 #include <base/signal_manager.h>
 #include <base/thread.h>
 #include <base/version.h>
-#include <Client/AgentClient.h>
 #include <event/event_loop.h>
 #include <event/event_stack.h>
 

@@ -165,8 +165,7 @@ bool EPollPoller::DelEvent(const Event* ev) {
 
 // https://cloud.tencent.com/developer/ask/223634
 int EPollPoller::Poll(int timeout_ms, EventList* active_events) {
-  bool no_epoll_pwait = true;
-  bool no_epoll_wait = false;
+  bool use_epoll_pwait = true;
   sigset_t sigset;
   uint64_t sigmask = 0;
 
@@ -178,10 +177,10 @@ int EPollPoller::Poll(int timeout_ms, EventList* active_events) {
     sigmask |= 1 << (SIGPROF - 1);
   }
 
-  if (sigmask != 0 && no_epoll_pwait != 0)
+  if (sigmask != 0 && use_epoll_pwait)
     if (::pthread_sigmask(SIG_BLOCK, &sigset, NULL)) abort();
 
-  if (no_epoll_wait != 0 || (sigmask != 0 && no_epoll_pwait == 0)) {
+  if (sigmask != 0 && use_epoll_pwait) {
     numevents =
         ::epoll_pwait(ep_fd_, &*ep_events_.begin(),
                       static_cast<int>(ep_events_.size()), timeout_ms, &sigset);
@@ -193,7 +192,7 @@ int EPollPoller::Poll(int timeout_ms, EventList* active_events) {
                              static_cast<int>(ep_events_.size()), timeout_ms);
   }
 
-  if (sigmask != 0 && no_epoll_pwait != 0)
+  if (sigmask != 0 && use_epoll_pwait)
     if (::pthread_sigmask(SIG_UNBLOCK, &sigset, NULL)) abort();
   // LOG(INFO) << "_activeevents_ size: " << active_events.size();
   // Timestamp now(Timestamp::now());

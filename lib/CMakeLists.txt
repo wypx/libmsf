@@ -40,8 +40,8 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/network/event
     ${CMAKE_CURRENT_SOURCE_DIR}/network/frpc
     ${CMAKE_CURRENT_SOURCE_DIR}/network/fraft
-    ${CMAKE_CURRENT_SOURCE_DIR}/protocol/turn
-    ${CMAKE_CURRENT_SOURCE_DIR}/protocol/stun
+    ${CMAKE_CURRENT_SOURCE_DIR}/network/turn
+    ${CMAKE_CURRENT_SOURCE_DIR}/network/stun
     ${CMAKE_CURRENT_SOURCE_DIR}/../thirdparty/baidu/incubator-brpc/src/
 )
 

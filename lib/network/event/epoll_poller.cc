@@ -185,7 +185,7 @@ int EPollPoller::Poll(int timeout_ms, EventList* active_events) {
         ::epoll_pwait(ep_fd_, &*ep_events_.begin(),
                       static_cast<int>(ep_events_.size()), timeout_ms, &sigset);
     if (numevents == -1 && errno == ENOSYS) {
-      no_epoll_pwait = true;
+      use_epoll_pwait = false;
     }
   } else {
     numevents = ::epoll_wait(ep_fd_, &*ep_events_.begin(),

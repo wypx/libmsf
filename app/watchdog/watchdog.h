@@ -13,7 +13,6 @@
 #ifndef GUARD_GUARD_H
 #define GUARD_GUARD_H
 
-#include <Client/AgentClient.h>
 #include <event/event_loop.h>
 #include <event/event_stack.h>
 

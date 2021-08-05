@@ -36,6 +36,8 @@ void FastRpcController::Reset() {
 
 bool FastRpcController::Failed() const { return failed_; }
 
+int FastRpcController::ErrorCode() const { return 0; }
+
 std::string FastRpcController::ErrorText() const { return failed_reason_; }
 
 void FastRpcController::StartCancel() {

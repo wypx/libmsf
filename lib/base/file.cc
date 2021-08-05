@@ -1141,7 +1141,6 @@ void rename(filename_t const& previous_file, filename_t const& new_file)
   }
 }
 
-
 #ifdef _WIN32
 typedef SYSTEMTIME TIME_TYPE;
 #else  // UNIX, OSX
@@ -1203,7 +1202,6 @@ std::string DiagnosticFilename::MakeFilename(
   oss << "." << ext;
   return oss.str();
 }
-
 
 #endif
 

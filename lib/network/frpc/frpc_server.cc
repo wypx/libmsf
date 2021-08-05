@@ -41,7 +41,7 @@ FastRpcServer::FastRpcServer(EventLoop* loop, const InetAddress& addr) {
 }
 
 FastRpcServer::~FastRpcServer() {
-  stop_ = true; 
+  stop_ = true;
   // Optional:  Delete all global objects allocated by libprotobuf.
   google::protobuf::ShutdownProtobufLibrary();
 }

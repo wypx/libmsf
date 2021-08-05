@@ -25,6 +25,10 @@
 namespace MSF {
 
 FastRpcServer::FastRpcServer(EventLoop* loop, const InetAddress& addr) {
+  // Verify that the version of the library that we linked against is
+  // compatible with the version of the headers we compiled against.
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
   server_.reset(new FastTcpServer(loop, addr));
   server_->StartAccept();
   server_->SetCallback(
@@ -36,7 +40,11 @@ FastRpcServer::FastRpcServer(EventLoop* loop, const InetAddress& addr) {
                 std::placeholders::_1));
 }
 
-FastRpcServer::~FastRpcServer() { stop_ = true; }
+FastRpcServer::~FastRpcServer() {
+  stop_ = true; 
+  // Optional:  Delete all global objects allocated by libprotobuf.
+  google::protobuf::ShutdownProtobufLibrary();
+}
 
 void FastRpcServer::HandleFrpcMessage(const ConnectionPtr& conn) {
   char* buffer;

@@ -58,3 +58,6 @@
 [submodule "thirdparty/tcprstat"]
 	path = thirdparty/tcprstat
 	url = https://github.com/y123456yz/tcprstat.git
+[submodule "thirdparty/bootstrap-dht"]
+	path = thirdparty/bootstrap-dht
+	url = https://github.com/bittorrent/bootstrap-dht.git

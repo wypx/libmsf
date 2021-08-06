@@ -50,6 +50,10 @@ class Poller {
 
   void AssertInLoopThread() const { owner_loop_->AssertInLoopThread(); }
 
+  bool has_signal_profile() const {
+    return owner_loop_->flags() & LOOP_BLOCK_SIGPROF;
+  }
+
  protected:
   std::map<int, Event*> events_;
 

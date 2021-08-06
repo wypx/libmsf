@@ -14,8 +14,7 @@
 #ifndef EVENT_EPOLLPOLLER_H_
 #define EVENT_EPOLLPOLLER_H_
 
-#include <sys/epoll.h>
-
+#include "sock_utils.h"
 #include "poller.h"
 
 using namespace MSF;
@@ -59,17 +58,17 @@ class EPollPoller : public Poller {
   void RemoveEvent(Event* ev) override;
 
  private:
-  int ep_fd_ = -1;
-  static const uint32_t kMaxEpEventNumber = 1024;
-  std::vector<struct epoll_event> ep_events_;
-  static const int kInitEventListSize = 16;
+  int poll_fd_ = kInvalidSocket;
+  sigset_t sigset_;
+  bool use_epoll_pwait_ = true;
+  std::vector<struct epoll_event> poll_events_;
 
   static const char* OperationToString(int op);
 
-  bool CreateEpSocket();
+  bool CreateEpollSocket();
   bool AddEvent(const Event* ev);
-  bool ModEvent(const Event* ev);
-  bool DelEvent(const Event* ev);
+  bool ModifyEvent(const Event* ev);
+  bool DeleteEvent(const Event* ev);
 
   void FillActiveEvents(int num_events, EventList* active_events);
 };

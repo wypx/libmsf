@@ -37,6 +37,11 @@ typedef std::vector<Event*> EventList;
 
 typedef uint64_t TimerId;
 
+enum EventLoopFlag {
+  LOOP_FLAG_NONE = 0,
+  LOOP_BLOCK_SIGPROF = 1,
+};
+
 /* Reactor, at most one per thread. */
 class EventLoop {
  public:
@@ -58,6 +63,9 @@ class EventLoop {
   /// Time when poll returns, usually means data arrival.
   ///
   // uint64_t pollReturnTime() const { return pollReturnTime_; }
+
+  uint16_t flags_() const { return flags_; }
+  void set_flags(uint16_t flags) { flags_ |= flags; }
 
   int64_t iteration() const { return iteration_; }
 
@@ -119,6 +127,8 @@ class EventLoop {
   void DoPendingFunctors();
 
   void PrintActiveEvents();  // DEBUG
+
+  uint16_t flags_ = LOOP_BLOCK_SIGPROF;
 
   bool looping_ = false; /* atomic */
   bool quit_ = false;

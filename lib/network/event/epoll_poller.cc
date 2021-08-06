@@ -13,13 +13,11 @@
  **************************************************************************/
 #include "epoll_poller.h"
 
-#include <assert.h>
 #include <signal.h>
 #include <base/logging.h>
 
 #include "event.h"
 #include "gcc_attr.h"
-#include "sock_utils.h"
 #include "utils.h"
 
 using namespace MSF;
@@ -46,12 +44,14 @@ namespace MSF {
  *  only in one epoll set.  Thus removing events explicitly before closing
  *  eliminates possible lock contention.
  */
-EPollPoller::EPollPoller(EventLoop* loop) : Poller(loop) { CreateEpSocket(); }
+EPollPoller::EPollPoller(EventLoop* loop) : Poller(loop) {
+  CreateEpollSocket();
+}
 
 EPollPoller::~EPollPoller() {
-  if (ep_fd_ > 0) {
-    ::close(ep_fd_);
-    ep_fd_ = -1;
+  if (poll_fd_ > 0) {
+    ::close(poll_fd_);
+    poll_fd_ = -1;
   }
 }
 
@@ -61,23 +61,23 @@ EPollPoller::~EPollPoller() {
  * largest number of msec we can support here is 2147482.  Let's
  * round that down by 47 seconds.
  */
-bool EPollPoller::CreateEpSocket() {
+bool EPollPoller::CreateEpollSocket() {
   /* First, try the shiny new epoll_create1 interface, if we have it. */
-  ep_fd_ = ::epoll_create1(EPOLL_CLOEXEC);
-  if (ep_fd_ < 0 && (errno == ENOSYS || errno == EINVAL)) {
+  poll_fd_ = ::epoll_create1(EPOLL_CLOEXEC);
+  if (poll_fd_ < 0 && (errno == ENOSYS || errno == EINVAL)) {
     /* Initialize the kernel queue using the old interface.
      * (The size field is ignored   since 2.6.8.) */
-    ep_fd_ = ::epoll_create(kMaxEpEventNumber);
-    if (ep_fd_ < 0) {
+    poll_fd_ = ::epoll_create(1024);
+    if (poll_fd_ < 0) {
       if (errno != ENOSYS) {
-        LOG(ERROR) << "failed to create epoll fd: " << errno;
+        LOG(FATAL) << "failed to create epoll fd: " << errno;
         return false;
       }
       return false;
     }
-    SetCloseOnExec(ep_fd_);
+    SetCloseOnExec(poll_fd_);
   }
-  LOG(TRACE) << "epoll create fd: " << ep_fd_;
+  LOG(TRACE) << "epoll create fd: " << poll_fd_;
   return true;
 }
 
@@ -87,123 +87,131 @@ bool EPollPoller::AddEvent(const Event* ev) {
   event.events = ev->events();
   event.data.ptr = (void*)ev;
 
-  if (::epoll_ctl(ep_fd_, EPOLL_CTL_ADD, ev->fd(), &event) < 0) {
-    /* If an ADD operation fails with EEXIST,
+  if (::epoll_ctl(poll_fd_, EPOLL_CTL_ADD, ev->fd(), &event) < 0) {
+    /* If an add operation fails with EEXIST,
      * either the operation was redundant (as with a
      * precautionary add), or we ran into a fun
      * kernel bug where using dup*() to duplicate the
      * same file into the same fd gives you the same epitem
      * rather than a fresh one.  For the second case,
-     * we must retry with MOD. */
+     * we must retry with mod. */
     if (errno == EEXIST) {
-      if (::epoll_ctl(ep_fd_, EPOLL_CTL_MOD, ev->fd(), &event) < 0) {
-        LOG(ERROR) << "Epoll MOD on" << ev->fd()
-                   << " retried as ADD; that failed too.";
+      if (::epoll_ctl(poll_fd_, EPOLL_CTL_MOD, ev->fd(), &event) < 0) {
+        LOG(ERROR) << "epoll mod on" << ev->fd()
+                   << " retried as add; that failed too.";
         return true;
       } else {
-        LOG(ERROR) << "Epoll MOD on" << ev->fd()
-                   << " retried as ADD; tsucceeded.";
+        LOG(ERROR) << "epoll mod on" << ev->fd()
+                   << " retried as add; succeeded.";
         return false;
       }
     }
   }
-  LOG(TRACE) << "Epoll Add"
+  LOG(TRACE) << "epoll Add"
              << " on " << ev->fd() << " succeeded.";
-  ep_events_.resize(ep_events_.size() + 1);
+  poll_events_.resize(poll_events_.size() + 1);
   return true;
 }
 
-bool EPollPoller::ModEvent(const Event* ev) {
+bool EPollPoller::ModifyEvent(const Event* ev) {
   struct epoll_event event;
   memset(&event, 0, sizeof event);
   event.events = ev->events();
   event.data.ptr = (void*)ev;
 
-  if (::epoll_ctl(ep_fd_, EPOLL_CTL_MOD, ev->fd(), &event) < 0) {
-    LOG(ERROR) << "Failed to mod epoll event";
-    /* If a MOD operation fails with ENOENT, the
+  if (::epoll_ctl(poll_fd_, EPOLL_CTL_MOD, ev->fd(), &event) < 0) {
+    LOG(TRACE) << "failed to mod epoll event";
+    /* If a mod operation fails with ENOENT, the
      * fd was probably closed and re-opened.  We
-     * should retry the operation as an ADD.
+     * should retry the operation as an add.
      */
     if (errno == ENOENT) {
-      if (::epoll_ctl(ep_fd_, EPOLL_CTL_ADD, ev->fd(), &event) < 0) {
-        LOG(ERROR) << "Epoll MOD"
-                   << " on " << ev->fd() << " retried as ADD; that failed too.";
+      if (::epoll_ctl(poll_fd_, EPOLL_CTL_ADD, ev->fd(), &event) < 0) {
+        LOG(ERROR) << "epoll mod"
+                   << " on " << ev->fd() << " retried as add; that failed too.";
         return true;
       } else {
-        LOG(ERROR) << "Epoll MOD"
-                   << " on " << ev->fd() << " retried as ADD; succeeded.";
+        LOG(ERROR) << "epoll mod"
+                   << " on " << ev->fd() << " retried as add; succeeded.";
         return false;
       }
     }
   }
-  LOG(TRACE) << "Epoll MOD"
+  LOG(TRACE) << "epoll mod"
              << " on " << ev->fd() << " succeeded.";
   return true;
 }
 
-bool EPollPoller::DelEvent(const Event* ev) {
-  if (::epoll_ctl(ep_fd_, EPOLL_CTL_DEL, ev->fd(), NULL) < 0) {
+bool EPollPoller::DeleteEvent(const Event* ev) {
+  if (::epoll_ctl(poll_fd_, EPOLL_CTL_DEL, ev->fd(), NULL) < 0) {
     LOG(ERROR) << "Failed to del epoll event for fd: " << ev->fd() << ",errno"
                << errno;
     if (errno == ENOENT || errno == EBADF || errno == EPERM) {
       /* If a delete fails with one of these errors,
        * that's fine too: we closed the fd before we
        * got around to calling epoll_dispatch. */
-      LOG(ERROR) << "Epoll DEL on fd " << ev->fd() << "gave " << strerror(errno)
+      LOG(ERROR) << "epoll DEL on fd " << ev->fd() << "gave " << strerror(errno)
                  << "DEL was unnecessary.";
       return true;
     }
     return false;
   }
-  LOG(TRACE) << "Epoll Del"
+  LOG(TRACE) << "epoll Del"
              << " on " << ev->fd() << " succeeded.";
   return true;
 }
 
 // https://cloud.tencent.com/developer/ask/223634
 int EPollPoller::Poll(int timeout_ms, EventList* active_events) {
-  bool use_epoll_pwait = true;
-  sigset_t sigset;
-  uint64_t sigmask = 0;
+  int num_events = 0;
 
-  int numevents = 0;
-  // if (loop->flags & UV_LOOP_BLOCK_SIGPROF)
-  {
-    sigemptyset(&sigset);
-    sigaddset(&sigset, SIGPROF);
+  // https://www.cnblogs.com/likwo/archive/2012/12/20/2826988.html
+  uint64_t sigmask = 0;
+  if (has_signal_profile()) {
+    ::sigemptyset(&sigset);
+    ::sigaddset(&sigset, SIGPROF);
     sigmask |= 1 << (SIGPROF - 1);
   }
 
-  if (sigmask != 0 && use_epoll_pwait)
-    if (::pthread_sigmask(SIG_BLOCK, &sigset, NULL)) abort();
-
-  if (sigmask != 0 && use_epoll_pwait) {
-    numevents =
-        ::epoll_pwait(ep_fd_, &*ep_events_.begin(),
-                      static_cast<int>(ep_events_.size()), timeout_ms, &sigset);
-    if (numevents == -1 && errno == ENOSYS) {
-      use_epoll_pwait = false;
+  if (sigmask != 0 && use_epoll_pwait_) {
+    if (::pthread_sigmask(SIG_BLOCK, &sigset, nullptr)) {
+      LOG(ERROR) << "pthread sigmask sig block errno: " << errno;
+      use_epoll_pwait_ = false;
     }
   } else {
-    numevents = ::epoll_wait(ep_fd_, &*ep_events_.begin(),
-                             static_cast<int>(ep_events_.size()), timeout_ms);
+    use_epoll_pwait_ = false;
   }
 
-  if (sigmask != 0 && use_epoll_pwait)
-    if (::pthread_sigmask(SIG_UNBLOCK, &sigset, NULL)) abort();
+  if (use_epoll_pwait_) {
+    num_events = ::epoll_pwait(poll_fd_, &*poll_events_.begin(),
+                               static_cast<int>(poll_events_.size()),
+                               timeout_ms, &sigset);
+    if (num_events == -1 && errno == ENOSYS) {
+      use_epoll_pwait_ = false;
+    }
+  } else {
+    num_events =
+        ::epoll_wait(poll_fd_, &*poll_events_.begin(),
+                     static_cast<int>(poll_events_.size()), timeout_ms);
+  }
+
+  if (use_epoll_pwait_) {
+    if (::pthread_sigmask(SIG_UNBLOCK, &sigset, nullptr) < 0) {
+      use_epoll_pwait_ = false;
+    }
+  }
+  if (::pthread_sigmask(SIG_UNBLOCK, &sigset, NULL)) abort();
   // LOG(INFO) << "_activeevents_ size: " << active_events.size();
   // Timestamp now(Timestamp::now());
-  if (numevents > 0) {
-    // LOG(INFO) << numevents << " events happened";
-    FillActiveEvents(numevents, active_events);
+  if (num_events > 0) {
+    // LOG(INFO) << num_events << " events happened";
+    FillActiveEvents(num_events, active_events);
     // https://blog.csdn.net/xiaoc_fantasy/article/details/79570788
-    // if (implicit_cast<size_t>(numevents) == ep_events_.size())
-    // {
-    //    ep_events_.resize(ep_events_.size()*2);
-    // }
-  } else if (numevents == 0) {
-    // LOG(INFO) << "Timeout cause nothing happened";
+    if (implicit_cast<size_t>(num_events) == poll_events_.size()) {
+      poll_events_.resize(poll_events_.size() * 2);
+    }
+  } else if (num_events == 0) {
+    LOG(TRACE) << "timeout cause nothing happened";
   } else {
     // error happens, log uncommon ones
     if (errno != EINTR && errno != EWOULDBLOCK && errno != EAGAIN) {
@@ -214,24 +222,23 @@ int EPollPoller::Poll(int timeout_ms, EventList* active_events) {
   return 0;
 }
 
-void EPollPoller::FillActiveEvents(int numevents, EventList* active_events) {
-  // assert(implicit_cast<size_t>(numevents) <= ep_events_.size());
+void EPollPoller::FillActiveEvents(int num_events, EventList* active_events) {
   /*
    * Notice:
-   * Epoll event struct's "data" is a union,
+   * epoll event struct's "data" is a union,
    * one of data.fd and data.ptr is valid.
    * refer:
    * https://blog.csdn.net/sun_z_x/article/details/22581411
    */
-  for (int i = 0; i < numevents; ++i) {
-    Event* ev = static_cast<Event*>(ep_events_[i].data.ptr);
+  for (int i = 0; i < num_events; ++i) {
+    Event* ev = static_cast<Event*>(poll_events_[i].data.ptr);
 #ifndef NDEBUG
     int fd = ev->fd();
     auto it = events_.find(fd);
     assert(it != events_.end());
     assert(it->second == ev);
 #endif
-    ev->set_revents(ep_events_[i].events);
+    ev->set_revents(poll_events_[i].events);
     active_events->push_back(ev);
   }
 }
@@ -241,7 +248,7 @@ void EPollPoller::UpdateEvent(Event* ev) {
   LOG(TRACE) << "fd = " << ev->fd() << " events = " << ev->events()
              << " index = " << index;
 
-  // Poller::assertInLoopThread();
+  Poller::AssertInLoopThread();
 
   if (index == kNew || index == kDeleted) {
     // a new one, add with EPOLL_CTL_ADD
@@ -265,10 +272,10 @@ void EPollPoller::UpdateEvent(Event* ev) {
     assert(events_[fd] == ev);
     assert(index == kAdded);
     if (ev->IsNoneEvent()) {
-      DelEvent(ev);
+      DeleteEvent(ev);
       ev->set_index(kDeleted);
     } else {
-      ModEvent(ev);
+      ModifyEvent(ev);
     }
   }
 }
@@ -295,7 +302,7 @@ void EPollPoller::RemoveEvent(Event* ev) {
   assert(n == 1);
 
   if (index == kAdded) {
-    DelEvent(ev);
+    DeleteEvent(ev);
   }
   ev->set_index(kNew);
 }
@@ -303,11 +310,11 @@ void EPollPoller::RemoveEvent(Event* ev) {
 const char* EPollPoller::OperationToString(int op) {
   switch (op) {
     case EPOLL_CTL_ADD:
-      return "ADD";
+      return "add";
     case EPOLL_CTL_DEL:
       return "DEL";
     case EPOLL_CTL_MOD:
-      return "MOD";
+      return "mod";
     default:
       assert(false && "ERROR op");
       return "Unknown Operation";

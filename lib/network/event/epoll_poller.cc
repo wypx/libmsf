@@ -62,10 +62,8 @@ EPollPoller::~EPollPoller() {
  * round that down by 47 seconds.
  */
 bool EPollPoller::CreateEpSocket() {
-#ifdef EVENT__HAVE_EPOLL_CREATE1
   /* First, try the shiny new epoll_create1 interface, if we have it. */
   ep_fd_ = ::epoll_create1(EPOLL_CLOEXEC);
-#endif
   if (ep_fd_ < 0 && (errno == ENOSYS || errno == EINVAL)) {
     /* Initialize the kernel queue using the old interface.
      * (The size field is ignored   since 2.6.8.) */

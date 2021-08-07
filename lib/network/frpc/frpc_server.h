@@ -70,10 +70,10 @@ struct FastRpcRequest {
 
 class FastRpcMethod : public noncopyable {
  public:
-  FastRpcMethod(const google::protobuf::Service* service,
-                const google::protobuf::MethodDescriptor* method,
-                const ::google::protobuf::Message* request,
-                const ::google::protobuf::Message* response)
+  FastRpcMethod(google::protobuf::Service* service,
+                google::protobuf::MethodDescriptor* method,
+                google::protobuf::Message* request,
+                google::protobuf::Message* response)
       : service_(service),
         method_(method),
         request_(request),

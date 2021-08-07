@@ -53,6 +53,9 @@ def MakeBuildProto(BuildRoot):
     os.chdir(BuildRoot + "/lib/network/frpc")
     os.system("protoc -I=./ --cpp_out=./ *.proto")
     os.chdir(BuildRoot)
+    os.chdir(BuildRoot + "/lib/network/fraft/proto")
+    os.system("protoc -I=./ --cpp_out=./ *.proto")
+    os.chdir(BuildRoot)
     if os._exists(BuildRoot + "/app/mobile/src/Mobile.proto"):
         os.chdir(BuildRoot + "/app/mobile/src")
         os.system("protoc -I=./ --cpp_out=./ *.proto")

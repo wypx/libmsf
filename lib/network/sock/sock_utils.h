@@ -16,7 +16,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdint.h>
+#include <signal.h>
 #include <sys/uio.h>
+#include <sys/epoll.h>
 #include <string>
 
 #define HAVE_MSGHDR_MSG_CONTROL 1

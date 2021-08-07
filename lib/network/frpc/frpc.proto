@@ -67,8 +67,9 @@ message FastMessage {
   string call_id    = 5; // call uuid
   string method     = 6; // mothod name
   string service    = 7; // service name
-  CompressType request_compress_type = 8;
-  CompressType response_compress_type = 9;
-  int32 retcode     = 10; // return code
-  string message    = 11; // rc not zero
+  uint32 opcode     = 8; // opcode=mothod/service
+  CompressType request_compress_type = 9;
+  CompressType response_compress_type = 10;
+  int32 retcode     = 11; // return code
+  string message    = 12; // rc not zero
 }

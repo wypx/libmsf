@@ -81,7 +81,7 @@ void FastRpcChannel::CallMethod(
   frpc.set_call_id(call_id);
   frpc.set_service(request->GetDescriptor()->full_name());
   frpc.set_method(method->full_name());
-  // uint32_t opcode = std::hash<std::string>()(method->full_name());
+  frpc.set_opcode(std::hash<std::string>()(method->full_name()));
 
   LOG(INFO) << "send message " << frpc.ByteSizeLong() << " " << frpc.length();
 

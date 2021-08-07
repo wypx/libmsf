@@ -94,9 +94,8 @@ void FastRpcServer::HandleFrpcMessage(const ConnectionPtr& conn) {
         LOG(INFO) << "request received: \n" << frpc->DebugString();
 
         // construct service by method name
-        auto method = FastRPCMessage::GetMethodDescriptor(frpc->method());
-        auto service = GetService(method);
-        if (!service) {
+        auto method_ptr = GetFastMethod(frpc->opcode());
+        if (!method_ptr) {
           conn->Free(buffer);
           conn->CloseConn();
           return;
@@ -106,8 +105,8 @@ void FastRpcServer::HandleFrpcMessage(const ConnectionPtr& conn) {
         // auto desc = FastRPCMessage::GetMessageTypeByName(frpc->service());
         // auto request = FastRPCMessage::NewGoogleMessage(desc);
 
-        auto request = service->GetRequestPrototype(method).New();
-        auto response = service->GetResponsePrototype(method).New();
+        auto request = method_ptr->request()->New();
+        auto response = method_ptr->response()->New();
 
         if (!request->ParseFromArray(buffer + sizeof(uint32_t) + length,
                                      frpc->length())) {
@@ -133,7 +132,8 @@ void FastRpcServer::HandleFrpcMessage(const ConnectionPtr& conn) {
         // Can't use references.
         auto done = google::protobuf::NewCallback(
             this, &FastRpcServer::SendResponse, pending_request);
-        service->CallMethod(method, ctrl.get(), request, response, done);
+        method_ptr->service()->CallMethod(method_ptr->method(), ctrl.get(),
+                                          request, response, done);
         break;
       }
 
@@ -159,6 +159,28 @@ void FastRpcServer::HandleFastRPClose(const ConnectionPtr& conn) {}
 
 void FastRpcServer::CancelRequest(int client_id, const std::string& call_id) {}
 
+void FastRpcServer::HookService(google::protobuf::Service* service) {
+  const ::google::protobuf::ServiceDescriptor* descriptor =
+      service->GetDescriptor();
+  for (int i = 0; i < descriptor->method_count(); ++i) {
+    const ::google::protobuf::MethodDescriptor* method = descriptor->method(i);
+    const ::google::protobuf::Message* request =
+        &service->GetRequestPrototype(method);
+    const ::google::protobuf::Message* response =
+        &service->GetResponsePrototype(method);
+
+    FastRpcMethodPtr method_ptr(
+        new FastRpcMethod(service, method, request, response));
+    uint32_t opcode = std::hash<std::string>()(method->full_name());
+    // find the method by method full_name
+    // auto method = FastRPCMessage::GetMethodDescriptor(frpc->method());
+
+    LOG(INFO) << "register service: " << method->full_name()
+              << ", opcode: " << opcode;
+    hook_services_[opcode] = method_ptr;
+  }
+}
+
 /**
  * get the registered service by method.
  * The service is registered by HookService() method
@@ -166,9 +188,13 @@ void FastRpcServer::CancelRequest(int client_id, const std::string& call_id) {}
  * @return the Service if it is exported by HookService() call,
  *         NULL if the service is not exported
  */
-google::protobuf::Service* FastRpcServer::GetService(
-    const google::protobuf::MethodDescriptor* method) {
-  return hook_services_[method->service()];
+static const FastRpcMethodPtr kEmptyFastRpcMethodPtr;
+const FastRpcMethodPtr& FastRpcServer::GetFastMethod(uint32_t opcode) {
+  auto it = hook_services_.find(opcode);
+  if (it == hook_services_.end()) {
+    return kEmptyFastRpcMethodPtr;
+  }
+  return it->second;
 }
 
 void FastRpcServer::SendResponse(FastRpcRequestPtr msg) {

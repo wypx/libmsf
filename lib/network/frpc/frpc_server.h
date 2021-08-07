@@ -16,7 +16,7 @@
 // https://github.com/xiongfengOrz/MiniRPC
 // https://github.com/LiveMirror/nominate-gitee-feimat-fastrpc
 
-#include <map>
+#include <unordered_map>
 #include <list>
 
 #include <google/protobuf/service.h>
@@ -68,40 +68,45 @@ struct FastRpcRequest {
   GoogleMessagePtr response_;
 };
 
+class FastRpcMethod : public noncopyable {
+ public:
+  FastRpcMethod(const google::protobuf::Service* service,
+                const google::protobuf::MethodDescriptor* method,
+                const ::google::protobuf::Message* request,
+                const ::google::protobuf::Message* response)
+      : service_(service),
+        method_(method),
+        request_(request),
+        response_(response) {}
+
+  ~FastRpcMethod() = default;
+  google::protobuf::Service* service() { return service_; }
+  google::protobuf::MethodDescriptor* method() { return method_; }
+  google::protobuf::Message* request() {
+    return request_;
+  };
+  google::protobuf::Message* response() {
+    return response_;
+  };
+
+ private:
+  google::protobuf::Service* service_;
+  google::protobuf::MethodDescriptor* method_;
+  google::protobuf::Message* request_;
+  google::protobuf::Message* response_;
+};
+
+typedef std::shared_ptr<FastRpcMethod> FastRpcMethodPtr;
+
 class FastRpcServer : public noncopyable {
  public:
   FastRpcServer(EventLoop* loop, const InetAddress& addr);
   virtual ~FastRpcServer();
-  void HookService(google::protobuf::Service* service) {
-    if (service) {
-      hook_services_[service->GetDescriptor()] = service;
-    }
-  }
-
   void ActiveService(google::protobuf::Service* service) {}
 
   void InActiveService(google::protobuf::Service* service) {}
-  // void RegisterService(google::protobuf::Service *service)
-  // {
-  //   const ::google::protobuf::ServiceDescriptor *descriptor =
-  // service->GetDescriptor();
-  //   for (int i = 0; i < descriptor->method_count(); ++i)
-  //   {
-  //     const ::google::protobuf::MethodDescriptor *method =
-  // descriptor->method(i);
-  //     const ::google::protobuf::Message *request =
-  // &service->GetRequestPrototype(method);
-  //     const ::google::protobuf::Message *response =
-  // &service->GetResponsePrototype(method);
 
-  //     RpcMethod *rpc_method = new RpcMethod(service, request, response,
-  // method);
-  //     uint32_t opcode = std::hash<std::string>()(method->full_name());
-  //     LOG(INFO) << "register service: " << method->full_name()<< ", opcode: "
-  // << opcode;
-  //     rpc_method_map_[opcode] = rpc_method;
-  //   }
-  // }
+  void HookService(google::protobuf::Service* service);
 
   void Running() {}
   int ServiceCount();
@@ -122,8 +127,7 @@ class FastRpcServer : public noncopyable {
   void HandleFrpcMessage(const ConnectionPtr& conn);
 
  private:
-  google::protobuf::Service* GetService(
-      const google::protobuf::MethodDescriptor* method);
+  const FastRpcMethodPtr& GetFastMethod(uint32_t opcode);
 
   void RequestReceived(int client_id, const std::string& call_id_,
                        const google::protobuf::MethodDescriptor* method,
@@ -140,11 +144,8 @@ class FastRpcServer : public noncopyable {
   EventLoop* loop_;
 
   // Registration Service
-  std::map<const google::protobuf::ServiceDescriptor*,
-           google::protobuf::Service*> hook_services_;
+  std::unordered_map<uint32_t, FastRpcMethodPtr> hook_services_;
 
-  // typedef std::pair<uint64_t, std::string> FastRpcRequestKey;
-  // std::map<FastRpcRequestKey, FastRpcRequestPtr> pending_request_;
   std::set<FastRpcRequestPtr> pending_request_;
   std::unique_ptr<FastServer> server_;
 };

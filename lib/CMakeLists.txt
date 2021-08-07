@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.10.2 FATAL_ERROR)
 cmake_policy(VERSION 3.10.2)
 project(MSF_LIB_PROJECT)
 
+option(WITH_GPERF "Link tcmalloc and profiler" ON)
+option(WITH_TESTS "With tests" OFF)
+
+
 # 加入一个配置头文件,用于处理 CMake 对源码的设置
 configure_file (
     "${PROJECT_SOURCE_DIR}/conf/config.h.in"

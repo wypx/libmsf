@@ -58,8 +58,8 @@ class IOUringPoller : public Poller {
   static const char* OperationToString(int op);
 
   bool AddEvent(const Event* ev);
-  bool ModEvent(const Event* ev);
-  bool DelEvent(const Event* ev);
+  bool ModifyEvent(const Event* ev);
+  bool DeleteEvent(const Event* ev);
   void AddProvideBuf(struct io_uring* ring, uint16_t bid, uint32_t gid,
                      Event* ev);
   void FillActiveEvents(int num_events, EventList* active_events);

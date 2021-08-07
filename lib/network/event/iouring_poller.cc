@@ -99,14 +99,14 @@ bool IOUringPoller::AddEvent(const Event* ev) {
   return true;
 }
 
-bool IOUringPoller::ModEvent(const Event* ev) {
+bool IOUringPoller::ModifyEvent(const Event* ev) {
 
   LOG(TRACE) << "Epoll MOD"
              << " on " << ev->fd() << " succeeded.";
   return true;
 }
 
-bool IOUringPoller::DelEvent(const Event* ev) {
+bool IOUringPoller::DeleteEvent(const Event* ev) {
 
   LOG(TRACE) << "Epoll Del"
              << " on " << ev->fd() << " succeeded.";
@@ -233,10 +233,10 @@ void IOUringPoller::UpdateEvent(Event* ev) {
     assert(events_[fd] == ev);
     assert(index == kAdded);
     if (ev->IsNoneEvent()) {
-      DelEvent(ev);
+      DeleteEvent(ev);
       ev->set_index(kDeleted);
     } else {
-      ModEvent(ev);
+      ModifyEvent(ev);
     }
   }
 }
@@ -262,7 +262,7 @@ void IOUringPoller::RemoveEvent(Event* ev) {
   assert(n == 1);
 
   if (index == kAdded) {
-    DelEvent(ev);
+    DeleteEvent(ev);
   }
   ev->set_index(kNew);
 }

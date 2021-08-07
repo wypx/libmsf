@@ -758,16 +758,16 @@ bool BindAddress(const int fd, const struct sockaddr *addr,
     int e = errno;
     switch (e) {
       case 0:
-        LOG(ERROR) << "Could not bind socket.";
+        LOG(ERROR) << "could not bind socket.";
         break;
       case EADDRINUSE:
-        LOG(ERROR) << "IP addr is in use.";
+        LOG(ERROR) << "ip addr is in use.";
         break;
       case EADDRNOTAVAIL:
-        LOG(ERROR) << "IP addr maybe has been changed.";
+        LOG(ERROR) << "ip addr maybe has been changed.";
         break;
       default:
-        LOG(ERROR) << "Could not bind UDP receive port errno: " << e;
+        LOG(ERROR) << "could not bind UDP receive port errno: " << e;
         break;
     }
     return false;

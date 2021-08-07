@@ -23,7 +23,8 @@ Connector::Connector(EventLoop *loop, const InetAddress &peer)
 Connector::~Connector() {}
 
 bool Connector::Connect() {
-  int fd = ConnectTcpServer("127.0.01", 8888, SOCK_STREAM);
+  LOG(INFO) << peer_.host() << ":" << peer_.port();
+  int fd = ConnectTcpServer(peer_.host(), peer_.port(), SOCK_STREAM);
   if (fd < 0) {
     return false;
   }

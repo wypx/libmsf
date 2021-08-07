@@ -170,6 +170,11 @@ Logger::Logger(const char* file, int line) : impl_(INFO, 0, file, line) {}
 Logger::Logger(const char* file, int line, LogLevel level, const char* func)
     : impl_(level, 0, file, line) {
   impl_.stream_ << func << ' ';
+  // Dup to stdout
+  // isatty
+  if (g_output == defaultOutput) {
+    // Set color
+  }
 }
 
 Logger::Logger(const char* file, int line, LogLevel level)

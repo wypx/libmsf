@@ -17,6 +17,17 @@
 
 namespace MSF {
 
+//! Thread priorities
+enum class ThreadPriority : uint8_t {
+  IDLE = 0x00,     //!< Idle thread priority
+  LOWEST = 0x1F,   //!< Lowest thread priority
+  LOW = 0x3F,      //!< Low thread priority
+  NORMAL = 0x7F,   //!< Normal thread priority
+  HIGH = 0x9F,     //!< High thread priority
+  HIGHEST = 0xBF,  //!< Highest thread priority
+  REALTIME = 0xFF  //!< Realtime thread priority
+};
+
 int process_pin_to_cpu(uint32_t cpu_id);
 int thread_pin_to_cpu(uint32_t cpu_id);
 int msf_set_nice(int increment);

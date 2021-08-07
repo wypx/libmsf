@@ -355,7 +355,9 @@ void* Thread::ThreadLoop(const ThreadCallback& init_cb, CountDownLatch& latch) {
 void Thread::YieldCurrentThread() {
 #if defined(WIN32) || defined(WIN64)
   ::SwitchToThread();
-#elif defined(__linux__)
+#elif defined(unix) || defined(__unix) || defined(__unix__)
+  ::pthread_yield();
+#elif defined(__APPLE__) || defined(__CYGWIN__)
   ::sched_yield();
 #else
   ::usleep(1);

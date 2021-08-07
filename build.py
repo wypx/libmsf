@@ -75,6 +75,7 @@ def InstallDependencies():
     dependLibs.append("make")
     dependLibs.append("cmake3")
     # apt-get install libaio-dev 
+    # apt-get install liburing-dev 
     dependLibs.append("libnuma-dev")
     dependLibs.append("libprotobuf-dev")
     dependLibs.append("protobuf-compiler")

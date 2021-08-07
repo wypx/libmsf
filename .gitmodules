@@ -61,3 +61,6 @@
 [submodule "thirdparty/bootstrap-dht"]
 	path = thirdparty/bootstrap-dht
 	url = https://github.com/bittorrent/bootstrap-dht.git
+[submodule "thirdparty/liburing"]
+	path = thirdparty/liburing
+	url = https://github.com/axboe/liburing.git

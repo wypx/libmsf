@@ -39,8 +39,10 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 # crypto.a
 # snappy.a
 # z.a
-set(COMMLIBS MSF numa.a
-    liburing.a
+set(COMMLIBS MSF
+    numa.a
+    uring.a
+    snappy.a
     protobuf.a
     protoc.a
     uuid

@@ -13,7 +13,6 @@
  **************************************************************************/
 #include "epoll_poller.h"
 
-#include <signal.h>
 #include <base/logging.h>
 
 #include "event.h"
@@ -168,13 +167,13 @@ int EPollPoller::Poll(int timeout_ms, EventList* active_events) {
   // https://www.cnblogs.com/likwo/archive/2012/12/20/2826988.html
   uint64_t sigmask = 0;
   if (has_signal_profile()) {
-    ::sigemptyset(&sigset);
-    ::sigaddset(&sigset, SIGPROF);
+    ::sigemptyset(&sigset_);
+    ::sigaddset(&sigset_, SIGPROF);
     sigmask |= 1 << (SIGPROF - 1);
   }
 
   if (sigmask != 0 && use_epoll_pwait_) {
-    if (::pthread_sigmask(SIG_BLOCK, &sigset, nullptr)) {
+    if (::pthread_sigmask(SIG_BLOCK, &sigset_, nullptr)) {
       LOG(ERROR) << "pthread sigmask sig block errno: " << errno;
       use_epoll_pwait_ = false;
     }
@@ -185,7 +184,7 @@ int EPollPoller::Poll(int timeout_ms, EventList* active_events) {
   if (use_epoll_pwait_) {
     num_events = ::epoll_pwait(poll_fd_, &*poll_events_.begin(),
                                static_cast<int>(poll_events_.size()),
-                               timeout_ms, &sigset);
+                               timeout_ms, &sigset_);
     if (num_events == -1 && errno == ENOSYS) {
       use_epoll_pwait_ = false;
     }
@@ -196,11 +195,11 @@ int EPollPoller::Poll(int timeout_ms, EventList* active_events) {
   }
 
   if (use_epoll_pwait_) {
-    if (::pthread_sigmask(SIG_UNBLOCK, &sigset, nullptr) < 0) {
+    if (::pthread_sigmask(SIG_UNBLOCK, &sigset_, nullptr) < 0) {
       use_epoll_pwait_ = false;
     }
   }
-  if (::pthread_sigmask(SIG_UNBLOCK, &sigset, NULL)) abort();
+  if (::pthread_sigmask(SIG_UNBLOCK, &sigset_, NULL)) abort();
   // LOG(INFO) << "_activeevents_ size: " << active_events.size();
   // Timestamp now(Timestamp::now());
   if (num_events > 0) {

@@ -64,7 +64,7 @@ class EventLoop {
   ///
   // uint64_t pollReturnTime() const { return pollReturnTime_; }
 
-  uint16_t flags_() const { return flags_; }
+  uint16_t flags() const { return flags_; }
   void set_flags(uint16_t flags) { flags_ |= flags; }
 
   int64_t iteration() const { return iteration_; }

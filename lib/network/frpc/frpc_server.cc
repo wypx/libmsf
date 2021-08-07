@@ -94,7 +94,7 @@ void FastRpcServer::HandleFrpcMessage(const ConnectionPtr& conn) {
         LOG(INFO) << "request received: \n" << frpc->DebugString();
 
         // construct service by method name
-        auto method_ptr = GetFastMethod(frpc->opcode());
+        const auto& method_ptr = GetFastMethod(frpc->opcode());
         if (!method_ptr) {
           conn->Free(buffer);
           conn->CloseConn();
@@ -160,13 +160,13 @@ void FastRpcServer::HandleFastRPClose(const ConnectionPtr& conn) {}
 void FastRpcServer::CancelRequest(int client_id, const std::string& call_id) {}
 
 void FastRpcServer::HookService(google::protobuf::Service* service) {
-  const ::google::protobuf::ServiceDescriptor* descriptor =
+  const google::protobuf::ServiceDescriptor* descriptor =
       service->GetDescriptor();
   for (int i = 0; i < descriptor->method_count(); ++i) {
-    const ::google::protobuf::MethodDescriptor* method = descriptor->method(i);
-    const ::google::protobuf::Message* request =
+    const google::protobuf::MethodDescriptor* method = descriptor->method(i);
+    const google::protobuf::Message* request =
         &service->GetRequestPrototype(method);
-    const ::google::protobuf::Message* response =
+    const google::protobuf::Message* response =
         &service->GetResponsePrototype(method);
 
     FastRpcMethodPtr method_ptr(

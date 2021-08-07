@@ -71,9 +71,9 @@ struct FastRpcRequest {
 class FastRpcMethod : public noncopyable {
  public:
   FastRpcMethod(google::protobuf::Service* service,
-                google::protobuf::MethodDescriptor* method,
-                google::protobuf::Message* request,
-                google::protobuf::Message* response)
+                const google::protobuf::MethodDescriptor* method,
+                const google::protobuf::Message* request,
+                const google::protobuf::Message* response)
       : service_(service),
         method_(method),
         request_(request),
@@ -81,19 +81,19 @@ class FastRpcMethod : public noncopyable {
 
   ~FastRpcMethod() = default;
   google::protobuf::Service* service() { return service_; }
-  google::protobuf::MethodDescriptor* method() { return method_; }
-  google::protobuf::Message* request() {
+  const google::protobuf::MethodDescriptor* method() { return method_; }
+  const google::protobuf::Message* request() {
     return request_;
   };
-  google::protobuf::Message* response() {
+  const google::protobuf::Message* response() {
     return response_;
   };
 
  private:
   google::protobuf::Service* service_;
-  google::protobuf::MethodDescriptor* method_;
-  google::protobuf::Message* request_;
-  google::protobuf::Message* response_;
+  const google::protobuf::MethodDescriptor* method_;
+  const google::protobuf::Message* request_;
+  const google::protobuf::Message* response_;
 };
 
 typedef std::shared_ptr<FastRpcMethod> FastRpcMethodPtr;

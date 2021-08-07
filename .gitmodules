@@ -64,3 +64,12 @@
 [submodule "thirdparty/liburing"]
 	path = thirdparty/liburing
 	url = https://github.com/axboe/liburing.git
+[submodule "thirdparty/baidu/bfs"]
+	path = thirdparty/baidu/bfs
+	url = https://github.com/baidu/bfs.git
+[submodule "thirdparty/baidu/brpc_source_code_analysis"]
+	path = thirdparty/baidu/brpc_source_code_analysis
+	url = https://github.com/ronaldo8210/brpc_source_code_analysis.git
+[submodule "thirdparty/baidu/leveldb_source_code_analysis"]
+	path = thirdparty/baidu/leveldb_source_code_analysis
+	url = https://github.com/ronaldo8210/leveldb_source_code_analysis.git

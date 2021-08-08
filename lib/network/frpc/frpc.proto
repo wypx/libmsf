@@ -64,12 +64,8 @@ message FastMessage {
   fixed32 magic     = 2; // message magic
   fixed32 type      = 3; // message type
   fixed32 length    = 4; // next lenght
-  string call_id    = 5; // call uuid
-  string method     = 6; // mothod name
-  string service    = 7; // service name
-  uint32 opcode     = 8; // opcode=mothod/service
-  CompressType request_compress_type = 9;
-  CompressType response_compress_type = 10;
-  int32 retcode     = 11; // return code
-  string message    = 12; // rc not zero
+  fixed32 call_id   = 5; // call uuid hash
+  fixed32 opcode    = 8; // opcode: mothod hash
+  fixed32 compress  = 9; // 16 bit request/response
+  fixed32 retcode   = 10;// return code
 }

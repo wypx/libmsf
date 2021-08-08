@@ -76,11 +76,11 @@ class FastRpcChannel : public google::protobuf::RpcChannel, public noncopyable {
   void SendMessageCb(bool success, const std::string& reason,
                      std::string call_id);
 
-  void CancelCallMethod(const std::string& call_id);
+  void CancelCallMethod(const uint32_t call_id);
   void CopyMessage(google::protobuf::Message& dest,
                    const google::protobuf::Message& src);
-  bool IsCallCompleted(const std::string& call_id);
-  void HandleRequestTimeout(const std::string& call_id);
+  bool IsCallCompleted(const uint32_t call_id);
+  void HandleRequestTimeout(const uint32_t call_id);
 
   void SendMessage(const void* buffer, size_t len, const ResponseCallback& cb);
 
@@ -110,7 +110,7 @@ class FastRpcChannel : public google::protobuf::RpcChannel, public noncopyable {
   // map for waiting response: key is request call_id,
   // value is the parameters in the CallMethod())
   typedef std::shared_ptr<WaitingResponse> WaitingResponsePtr;
-  std::unordered_map<std::string, WaitingResponsePtr> waiting_responses_;
+  std::unordered_map<uint32_t, WaitingResponsePtr> waiting_responses_;
 
   std::mutex mutex_;
   std::condition_variable cond_;

@@ -40,4 +40,4 @@ set(CMAKE_INSTALL_PREFIX /home/luotang.me)
 
 add_subdirectory (watchdog Watchdog)
 add_subdirectory (shell Shell)
-# add_subdirectory (mobile Mobile)
+add_subdirectory (mobile Mobile)

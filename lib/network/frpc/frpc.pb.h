@@ -263,62 +263,6 @@ class FastMessage : public ::google::protobuf::Message /* @@protoc_insertion_poi
 
   // accessors -------------------------------------------------------
 
-  // string call_id = 5;
-  void clear_call_id();
-  static const int kCallIdFieldNumber = 5;
-  const ::std::string& call_id() const;
-  void set_call_id(const ::std::string& value);
-  #if LANG_CXX11
-  void set_call_id(::std::string&& value);
-  #endif
-  void set_call_id(const char* value);
-  void set_call_id(const char* value, size_t size);
-  ::std::string* mutable_call_id();
-  ::std::string* release_call_id();
-  void set_allocated_call_id(::std::string* call_id);
-
-  // string method = 6;
-  void clear_method();
-  static const int kMethodFieldNumber = 6;
-  const ::std::string& method() const;
-  void set_method(const ::std::string& value);
-  #if LANG_CXX11
-  void set_method(::std::string&& value);
-  #endif
-  void set_method(const char* value);
-  void set_method(const char* value, size_t size);
-  ::std::string* mutable_method();
-  ::std::string* release_method();
-  void set_allocated_method(::std::string* method);
-
-  // string service = 7;
-  void clear_service();
-  static const int kServiceFieldNumber = 7;
-  const ::std::string& service() const;
-  void set_service(const ::std::string& value);
-  #if LANG_CXX11
-  void set_service(::std::string&& value);
-  #endif
-  void set_service(const char* value);
-  void set_service(const char* value, size_t size);
-  ::std::string* mutable_service();
-  ::std::string* release_service();
-  void set_allocated_service(::std::string* service);
-
-  // string message = 12;
-  void clear_message();
-  static const int kMessageFieldNumber = 12;
-  const ::std::string& message() const;
-  void set_message(const ::std::string& value);
-  #if LANG_CXX11
-  void set_message(::std::string&& value);
-  #endif
-  void set_message(const char* value);
-  void set_message(const char* value, size_t size);
-  ::std::string* mutable_message();
-  ::std::string* release_message();
-  void set_allocated_message(::std::string* message);
-
   // fixed32 version = 1;
   void clear_version();
   static const int kVersionFieldNumber = 1;
@@ -343,46 +287,42 @@ class FastMessage : public ::google::protobuf::Message /* @@protoc_insertion_poi
   ::google::protobuf::uint32 length() const;
   void set_length(::google::protobuf::uint32 value);
 
-  // uint32 opcode = 8;
+  // fixed32 call_id = 5;
+  void clear_call_id();
+  static const int kCallIdFieldNumber = 5;
+  ::google::protobuf::uint32 call_id() const;
+  void set_call_id(::google::protobuf::uint32 value);
+
+  // fixed32 opcode = 8;
   void clear_opcode();
   static const int kOpcodeFieldNumber = 8;
   ::google::protobuf::uint32 opcode() const;
   void set_opcode(::google::protobuf::uint32 value);
 
-  // .frpc.CompressType request_compress_type = 9;
-  void clear_request_compress_type();
-  static const int kRequestCompressTypeFieldNumber = 9;
-  ::frpc::CompressType request_compress_type() const;
-  void set_request_compress_type(::frpc::CompressType value);
+  // fixed32 compress = 9;
+  void clear_compress();
+  static const int kCompressFieldNumber = 9;
+  ::google::protobuf::uint32 compress() const;
+  void set_compress(::google::protobuf::uint32 value);
 
-  // .frpc.CompressType response_compress_type = 10;
-  void clear_response_compress_type();
-  static const int kResponseCompressTypeFieldNumber = 10;
-  ::frpc::CompressType response_compress_type() const;
-  void set_response_compress_type(::frpc::CompressType value);
-
-  // int32 retcode = 11;
+  // fixed32 retcode = 10;
   void clear_retcode();
-  static const int kRetcodeFieldNumber = 11;
-  ::google::protobuf::int32 retcode() const;
-  void set_retcode(::google::protobuf::int32 value);
+  static const int kRetcodeFieldNumber = 10;
+  ::google::protobuf::uint32 retcode() const;
+  void set_retcode(::google::protobuf::uint32 value);
 
   // @@protoc_insertion_point(class_scope:frpc.FastMessage)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
-  ::google::protobuf::internal::ArenaStringPtr call_id_;
-  ::google::protobuf::internal::ArenaStringPtr method_;
-  ::google::protobuf::internal::ArenaStringPtr service_;
-  ::google::protobuf::internal::ArenaStringPtr message_;
   ::google::protobuf::uint32 version_;
   ::google::protobuf::uint32 magic_;
   ::google::protobuf::uint32 type_;
   ::google::protobuf::uint32 length_;
+  ::google::protobuf::uint32 call_id_;
   ::google::protobuf::uint32 opcode_;
-  int request_compress_type_;
-  int response_compress_type_;
-  ::google::protobuf::int32 retcode_;
+  ::google::protobuf::uint32 compress_;
+  ::google::protobuf::uint32 retcode_;
   mutable ::google::protobuf::internal::CachedSize _cached_size_;
   friend struct ::protobuf_frpc_2eproto::TableStruct;
 };
@@ -453,166 +393,21 @@ inline void FastMessage::set_length(::google::protobuf::uint32 value) {
   // @@protoc_insertion_point(field_set:frpc.FastMessage.length)
 }
 
-// string call_id = 5;
+// fixed32 call_id = 5;
 inline void FastMessage::clear_call_id() {
-  call_id_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  call_id_ = 0u;
 }
-inline const ::std::string& FastMessage::call_id() const {
+inline ::google::protobuf::uint32 FastMessage::call_id() const {
   // @@protoc_insertion_point(field_get:frpc.FastMessage.call_id)
-  return call_id_.GetNoArena();
+  return call_id_;
 }
-inline void FastMessage::set_call_id(const ::std::string& value) {
+inline void FastMessage::set_call_id(::google::protobuf::uint32 value) {
   
-  call_id_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  call_id_ = value;
   // @@protoc_insertion_point(field_set:frpc.FastMessage.call_id)
 }
-#if LANG_CXX11
-inline void FastMessage::set_call_id(::std::string&& value) {
-  
-  call_id_.SetNoArena(
-    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:frpc.FastMessage.call_id)
-}
-#endif
-inline void FastMessage::set_call_id(const char* value) {
-  GOOGLE_DCHECK(value != NULL);
-  
-  call_id_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:frpc.FastMessage.call_id)
-}
-inline void FastMessage::set_call_id(const char* value, size_t size) {
-  
-  call_id_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:frpc.FastMessage.call_id)
-}
-inline ::std::string* FastMessage::mutable_call_id() {
-  
-  // @@protoc_insertion_point(field_mutable:frpc.FastMessage.call_id)
-  return call_id_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline ::std::string* FastMessage::release_call_id() {
-  // @@protoc_insertion_point(field_release:frpc.FastMessage.call_id)
-  
-  return call_id_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline void FastMessage::set_allocated_call_id(::std::string* call_id) {
-  if (call_id != NULL) {
-    
-  } else {
-    
-  }
-  call_id_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), call_id);
-  // @@protoc_insertion_point(field_set_allocated:frpc.FastMessage.call_id)
-}
 
-// string method = 6;
-inline void FastMessage::clear_method() {
-  method_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline const ::std::string& FastMessage::method() const {
-  // @@protoc_insertion_point(field_get:frpc.FastMessage.method)
-  return method_.GetNoArena();
-}
-inline void FastMessage::set_method(const ::std::string& value) {
-  
-  method_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:frpc.FastMessage.method)
-}
-#if LANG_CXX11
-inline void FastMessage::set_method(::std::string&& value) {
-  
-  method_.SetNoArena(
-    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:frpc.FastMessage.method)
-}
-#endif
-inline void FastMessage::set_method(const char* value) {
-  GOOGLE_DCHECK(value != NULL);
-  
-  method_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:frpc.FastMessage.method)
-}
-inline void FastMessage::set_method(const char* value, size_t size) {
-  
-  method_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:frpc.FastMessage.method)
-}
-inline ::std::string* FastMessage::mutable_method() {
-  
-  // @@protoc_insertion_point(field_mutable:frpc.FastMessage.method)
-  return method_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline ::std::string* FastMessage::release_method() {
-  // @@protoc_insertion_point(field_release:frpc.FastMessage.method)
-  
-  return method_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline void FastMessage::set_allocated_method(::std::string* method) {
-  if (method != NULL) {
-    
-  } else {
-    
-  }
-  method_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), method);
-  // @@protoc_insertion_point(field_set_allocated:frpc.FastMessage.method)
-}
-
-// string service = 7;
-inline void FastMessage::clear_service() {
-  service_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline const ::std::string& FastMessage::service() const {
-  // @@protoc_insertion_point(field_get:frpc.FastMessage.service)
-  return service_.GetNoArena();
-}
-inline void FastMessage::set_service(const ::std::string& value) {
-  
-  service_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:frpc.FastMessage.service)
-}
-#if LANG_CXX11
-inline void FastMessage::set_service(::std::string&& value) {
-  
-  service_.SetNoArena(
-    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:frpc.FastMessage.service)
-}
-#endif
-inline void FastMessage::set_service(const char* value) {
-  GOOGLE_DCHECK(value != NULL);
-  
-  service_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:frpc.FastMessage.service)
-}
-inline void FastMessage::set_service(const char* value, size_t size) {
-  
-  service_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:frpc.FastMessage.service)
-}
-inline ::std::string* FastMessage::mutable_service() {
-  
-  // @@protoc_insertion_point(field_mutable:frpc.FastMessage.service)
-  return service_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline ::std::string* FastMessage::release_service() {
-  // @@protoc_insertion_point(field_release:frpc.FastMessage.service)
-  
-  return service_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline void FastMessage::set_allocated_service(::std::string* service) {
-  if (service != NULL) {
-    
-  } else {
-    
-  }
-  service_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), service);
-  // @@protoc_insertion_point(field_set_allocated:frpc.FastMessage.service)
-}
-
-// uint32 opcode = 8;
+// fixed32 opcode = 8;
 inline void FastMessage::clear_opcode() {
   opcode_ = 0u;
 }
@@ -626,99 +421,32 @@ inline void FastMessage::set_opcode(::google::protobuf::uint32 value) {
   // @@protoc_insertion_point(field_set:frpc.FastMessage.opcode)
 }
 
-// .frpc.CompressType request_compress_type = 9;
-inline void FastMessage::clear_request_compress_type() {
-  request_compress_type_ = 0;
+// fixed32 compress = 9;
+inline void FastMessage::clear_compress() {
+  compress_ = 0u;
 }
-inline ::frpc::CompressType FastMessage::request_compress_type() const {
-  // @@protoc_insertion_point(field_get:frpc.FastMessage.request_compress_type)
-  return static_cast< ::frpc::CompressType >(request_compress_type_);
+inline ::google::protobuf::uint32 FastMessage::compress() const {
+  // @@protoc_insertion_point(field_get:frpc.FastMessage.compress)
+  return compress_;
 }
-inline void FastMessage::set_request_compress_type(::frpc::CompressType value) {
+inline void FastMessage::set_compress(::google::protobuf::uint32 value) {
   
-  request_compress_type_ = value;
-  // @@protoc_insertion_point(field_set:frpc.FastMessage.request_compress_type)
+  compress_ = value;
+  // @@protoc_insertion_point(field_set:frpc.FastMessage.compress)
 }
 
-// .frpc.CompressType response_compress_type = 10;
-inline void FastMessage::clear_response_compress_type() {
-  response_compress_type_ = 0;
-}
-inline ::frpc::CompressType FastMessage::response_compress_type() const {
-  // @@protoc_insertion_point(field_get:frpc.FastMessage.response_compress_type)
-  return static_cast< ::frpc::CompressType >(response_compress_type_);
-}
-inline void FastMessage::set_response_compress_type(::frpc::CompressType value) {
-  
-  response_compress_type_ = value;
-  // @@protoc_insertion_point(field_set:frpc.FastMessage.response_compress_type)
-}
-
-// int32 retcode = 11;
+// fixed32 retcode = 10;
 inline void FastMessage::clear_retcode() {
-  retcode_ = 0;
+  retcode_ = 0u;
 }
-inline ::google::protobuf::int32 FastMessage::retcode() const {
+inline ::google::protobuf::uint32 FastMessage::retcode() const {
   // @@protoc_insertion_point(field_get:frpc.FastMessage.retcode)
   return retcode_;
 }
-inline void FastMessage::set_retcode(::google::protobuf::int32 value) {
+inline void FastMessage::set_retcode(::google::protobuf::uint32 value) {
   
   retcode_ = value;
   // @@protoc_insertion_point(field_set:frpc.FastMessage.retcode)
-}
-
-// string message = 12;
-inline void FastMessage::clear_message() {
-  message_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline const ::std::string& FastMessage::message() const {
-  // @@protoc_insertion_point(field_get:frpc.FastMessage.message)
-  return message_.GetNoArena();
-}
-inline void FastMessage::set_message(const ::std::string& value) {
-  
-  message_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:frpc.FastMessage.message)
-}
-#if LANG_CXX11
-inline void FastMessage::set_message(::std::string&& value) {
-  
-  message_.SetNoArena(
-    &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:frpc.FastMessage.message)
-}
-#endif
-inline void FastMessage::set_message(const char* value) {
-  GOOGLE_DCHECK(value != NULL);
-  
-  message_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:frpc.FastMessage.message)
-}
-inline void FastMessage::set_message(const char* value, size_t size) {
-  
-  message_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-      ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:frpc.FastMessage.message)
-}
-inline ::std::string* FastMessage::mutable_message() {
-  
-  // @@protoc_insertion_point(field_mutable:frpc.FastMessage.message)
-  return message_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline ::std::string* FastMessage::release_message() {
-  // @@protoc_insertion_point(field_release:frpc.FastMessage.message)
-  
-  return message_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-}
-inline void FastMessage::set_allocated_message(::std::string* message) {
-  if (message != NULL) {
-    
-  } else {
-    
-  }
-  message_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), message);
-  // @@protoc_insertion_point(field_set_allocated:frpc.FastMessage.message)
 }
 
 #ifdef __GNUC__

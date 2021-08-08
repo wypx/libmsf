@@ -118,9 +118,6 @@ void FastRpcServer::HandleFrpcMessage(const ConnectionPtr& conn) {
 
         LOG(INFO) << request->DebugString();
 
-        LOG(INFO) << "find service by method:" << frpc->method()
-                  << ", execute request:" << frpc->service();
-
         auto ctrl = FastRpcController::NewController();
 
         auto pending_request = FastRpcRequest::NewFastRpcRequest(
@@ -206,7 +203,6 @@ void FastRpcServer::SendResponse(FastRpcRequestPtr msg) {
   // serialize the message
   frpc->set_type(frpc::FRPC_MESSAGE_RESPONSE);
   frpc->set_length(response->ByteSizeLong());
-  frpc->set_service(response->GetDescriptor()->full_name());
 
   LOG(INFO) << "send response: \n" << frpc->DebugString();
 

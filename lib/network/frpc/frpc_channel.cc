@@ -54,7 +54,8 @@ void FastRpcChannel::CallMethod(
     google::protobuf::Message* response, google::protobuf::Closure* done) {
 
   // each call will allocate a unique call_id for parallel processing reason
-  std::string call_id = NewUuid();
+  std::string uuid = NewUuid();
+  uint32_t call_id = std::hash<std::string>()(uuid);
 
   if (controller) {
     FastRpcController* ctrl = dynamic_cast<FastRpcController*>(controller);
@@ -79,8 +80,8 @@ void FastRpcChannel::CallMethod(
   frpc.set_type(frpc::FRPC_MESSAGE_REQUEST);
   frpc.set_length(request->ByteSizeLong());
   frpc.set_call_id(call_id);
-  frpc.set_service(request->GetDescriptor()->full_name());
-  frpc.set_method(method->full_name());
+  // frpc.set_service(request->GetDescriptor()->full_name());
+  // frpc.set_method(method->full_name());
   frpc.set_opcode(std::hash<std::string>()(method->full_name()));
 
   LOG(INFO) << "send message " << frpc.ByteSizeLong() << " " << frpc.length();
@@ -331,7 +332,7 @@ void FastRpcChannel::FastRPCCloseCallback(const ConnectionPtr& conn) {
   }
 }
 
-void FastRpcChannel::CancelCallMethod(const std::string& call_id) {
+void FastRpcChannel::CancelCallMethod(const uint32_t call_id) {
   // if the request may still on-going, send cancel request to server
   loop_->RunInLoop([this, call_id] {
     if (waiting_responses_.find(call_id) != waiting_responses_.end()) {
@@ -364,11 +365,11 @@ void FastRpcChannel::CopyMessage(google::protobuf::Message& dest,
   }
 }
 
-bool FastRpcChannel::IsCallCompleted(const std::string& call_id) {
+bool FastRpcChannel::IsCallCompleted(const uint32_t call_id) {
   return (waiting_responses_.find(call_id) == waiting_responses_.end());
 }
 
-void FastRpcChannel::HandleRequestTimeout(const std::string& call_id) {
+void FastRpcChannel::HandleRequestTimeout(const uint32_t call_id) {
   LOG(INFO) << "timeout: " << call_id;
   auto it = waiting_responses_.find(call_id);
   if (it == waiting_responses_.end()) {

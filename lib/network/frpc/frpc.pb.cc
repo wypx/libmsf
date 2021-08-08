@@ -59,13 +59,9 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::frpc::FastMessage, type_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::frpc::FastMessage, length_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::frpc::FastMessage, call_id_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::frpc::FastMessage, method_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::frpc::FastMessage, service_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::frpc::FastMessage, opcode_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::frpc::FastMessage, request_compress_type_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::frpc::FastMessage, response_compress_type_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::frpc::FastMessage, compress_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::frpc::FastMessage, retcode_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::frpc::FastMessage, message_),
 };
 static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::frpc::FastMessage)},
@@ -96,46 +92,43 @@ void protobuf_RegisterTypes(const ::std::string&) {
 void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-      "\n\nfrpc.proto\022\004frpc\"\226\002\n\013FastMessage\022\017\n\007ve"
+      "\n\nfrpc.proto\022\004frpc\"\217\001\n\013FastMessage\022\017\n\007ve"
       "rsion\030\001 \001(\007\022\r\n\005magic\030\002 \001(\007\022\014\n\004type\030\003 \001(\007"
-      "\022\016\n\006length\030\004 \001(\007\022\017\n\007call_id\030\005 \001(\t\022\016\n\006met"
-      "hod\030\006 \001(\t\022\017\n\007service\030\007 \001(\t\022\016\n\006opcode\030\010 \001"
-      "(\r\0221\n\025request_compress_type\030\t \001(\0162\022.frpc"
-      ".CompressType\0222\n\026response_compress_type\030"
-      "\n \001(\0162\022.frpc.CompressType\022\017\n\007retcode\030\013 \001"
-      "(\005\022\017\n\007message\030\014 \001(\t*u\n\013MessageType\022\030\n\024FR"
-      "PC_MESSAGE_UNKNOWN\020\000\022\030\n\024FRPC_MESSAGE_REQ"
-      "UEST\020\001\022\031\n\025FRPC_MESSAGE_RESPONSE\020\002\022\027\n\023FRP"
-      "C_MESSAGE_CANCEL\020\003*/\n\tMessageID\022\016\n\nFRPC_"
-      "LOGIN\020\000\022\022\n\016FRPC_HEARTBEAT\020\001*\302\006\n\nReturnCo"
-      "de\022\020\n\014FRPC_SUCCESS\020\000\022\023\n\017FRPC_NO_SERVICE\020"
-      "\001\022\022\n\016FRPC_NO_METHOD\020\002\022\030\n\024FRPC_INVALID_RE"
-      "QUEST\020\003\022\030\n\024FRPC_INVALID_REPONSE\020\004\022\033\n\027RPC"
-      "_ERROR_PARSE_REQUEST\020\005\022\032\n\026RPC_ERROR_PARS"
-      "E_REPONS\020\006\022\033\n\027RPC_ERROR_COMPRESS_TYPE\020\007\022"
-      "\034\n\030RPC_ERROR_NO_METHOD_NAME\020\010\022\037\n\033RPC_ERR"
-      "OR_PARSE_METHOD_NAME\020\t\022\033\n\027RPC_ERROR_FOUN"
-      "D_SERVICE\020\n\022\032\n\026RPC_ERROR_FOUND_METHOD\020\013\022"
-      "\034\n\030RPC_ERROR_CHANNEL_BROKEN\020\014\022\037\n\033RPC_ERR"
-      "OR_CONNECTION_CLOSED\020\r\022\035\n\031RPC_ERROR_REQU"
-      "EST_TIMEOUT\020\016\022\036\n\032RPC_ERROR_REQUEST_CANCE"
-      "LED\020\017\022 \n\034RPC_ERROR_SERVER_UNAVAILABLE\020\020\022"
-      " \n\034RPC_ERROR_SERVER_UNREACHABLE\020\021\022\035\n\031RPC"
-      "_ERROR_SERVER_SHUTDOWN\020\022\022\036\n\032RPC_ERROR_SE"
-      "ND_BUFFER_FULL\020\023\022\037\n\033RPC_ERROR_SERIALIZE_"
-      "REQUEST\020\024\022 \n\034RPC_ERROR_SERIALIZE_RESPONS"
-      "E\020\025\022\035\n\031RPC_ERROR_RESOLVE_ADDRESS\020\026\022\033\n\027RP"
-      "C_ERROR_CREATE_STREAM\020\027\022\034\n\030RPC_ERROR_NOT"
-      "_IN_RUNNING\020\030\022\031\n\025RPC_ERROR_SERVER_BUSY\020\031"
-      "\022!\n\035RPC_ERROR_TOO_MANY_OPEN_FILES\020\032\022\033\n\027R"
-      "PC_ERROR_RESON_UNKNOWN\020\033*\222\001\n\014CompressTyp"
-      "e\022\024\n\020CompressTypeNone\020\000\022\024\n\020CompressTypeG"
-      "zip\020\001\022\024\n\020CompressTypeZlib\020\002\022\026\n\022CompressT"
-      "ypeSnappy\020\003\022\023\n\017CompressTypeLZ4\020\004\022\023\n\017Comp"
-      "ressTypeMax\020\005B\003\200\001\001b\006proto3"
+      "\022\016\n\006length\030\004 \001(\007\022\017\n\007call_id\030\005 \001(\007\022\016\n\006opc"
+      "ode\030\010 \001(\007\022\020\n\010compress\030\t \001(\007\022\017\n\007retcode\030\n"
+      " \001(\007*u\n\013MessageType\022\030\n\024FRPC_MESSAGE_UNKN"
+      "OWN\020\000\022\030\n\024FRPC_MESSAGE_REQUEST\020\001\022\031\n\025FRPC_"
+      "MESSAGE_RESPONSE\020\002\022\027\n\023FRPC_MESSAGE_CANCE"
+      "L\020\003*/\n\tMessageID\022\016\n\nFRPC_LOGIN\020\000\022\022\n\016FRPC"
+      "_HEARTBEAT\020\001*\302\006\n\nReturnCode\022\020\n\014FRPC_SUCC"
+      "ESS\020\000\022\023\n\017FRPC_NO_SERVICE\020\001\022\022\n\016FRPC_NO_ME"
+      "THOD\020\002\022\030\n\024FRPC_INVALID_REQUEST\020\003\022\030\n\024FRPC"
+      "_INVALID_REPONSE\020\004\022\033\n\027RPC_ERROR_PARSE_RE"
+      "QUEST\020\005\022\032\n\026RPC_ERROR_PARSE_REPONS\020\006\022\033\n\027R"
+      "PC_ERROR_COMPRESS_TYPE\020\007\022\034\n\030RPC_ERROR_NO"
+      "_METHOD_NAME\020\010\022\037\n\033RPC_ERROR_PARSE_METHOD"
+      "_NAME\020\t\022\033\n\027RPC_ERROR_FOUND_SERVICE\020\n\022\032\n\026"
+      "RPC_ERROR_FOUND_METHOD\020\013\022\034\n\030RPC_ERROR_CH"
+      "ANNEL_BROKEN\020\014\022\037\n\033RPC_ERROR_CONNECTION_C"
+      "LOSED\020\r\022\035\n\031RPC_ERROR_REQUEST_TIMEOUT\020\016\022\036"
+      "\n\032RPC_ERROR_REQUEST_CANCELED\020\017\022 \n\034RPC_ER"
+      "ROR_SERVER_UNAVAILABLE\020\020\022 \n\034RPC_ERROR_SE"
+      "RVER_UNREACHABLE\020\021\022\035\n\031RPC_ERROR_SERVER_S"
+      "HUTDOWN\020\022\022\036\n\032RPC_ERROR_SEND_BUFFER_FULL\020"
+      "\023\022\037\n\033RPC_ERROR_SERIALIZE_REQUEST\020\024\022 \n\034RP"
+      "C_ERROR_SERIALIZE_RESPONSE\020\025\022\035\n\031RPC_ERRO"
+      "R_RESOLVE_ADDRESS\020\026\022\033\n\027RPC_ERROR_CREATE_"
+      "STREAM\020\027\022\034\n\030RPC_ERROR_NOT_IN_RUNNING\020\030\022\031"
+      "\n\025RPC_ERROR_SERVER_BUSY\020\031\022!\n\035RPC_ERROR_T"
+      "OO_MANY_OPEN_FILES\020\032\022\033\n\027RPC_ERROR_RESON_"
+      "UNKNOWN\020\033*\222\001\n\014CompressType\022\024\n\020CompressTy"
+      "peNone\020\000\022\024\n\020CompressTypeGzip\020\001\022\024\n\020Compre"
+      "ssTypeZlib\020\002\022\026\n\022CompressTypeSnappy\020\003\022\023\n\017"
+      "CompressTypeLZ4\020\004\022\023\n\017CompressTypeMax\020\005B\003"
+      "\200\001\001b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 1466);
+      descriptor, 1331);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "frpc.proto", &protobuf_RegisterTypes);
 }
@@ -251,13 +244,9 @@ const int FastMessage::kMagicFieldNumber;
 const int FastMessage::kTypeFieldNumber;
 const int FastMessage::kLengthFieldNumber;
 const int FastMessage::kCallIdFieldNumber;
-const int FastMessage::kMethodFieldNumber;
-const int FastMessage::kServiceFieldNumber;
 const int FastMessage::kOpcodeFieldNumber;
-const int FastMessage::kRequestCompressTypeFieldNumber;
-const int FastMessage::kResponseCompressTypeFieldNumber;
+const int FastMessage::kCompressFieldNumber;
 const int FastMessage::kRetcodeFieldNumber;
-const int FastMessage::kMessageFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 FastMessage::FastMessage()
@@ -271,22 +260,6 @@ FastMessage::FastMessage(const FastMessage& from)
   : ::google::protobuf::Message(),
       _internal_metadata_(NULL) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  call_id_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  if (from.call_id().size() > 0) {
-    call_id_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.call_id_);
-  }
-  method_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  if (from.method().size() > 0) {
-    method_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.method_);
-  }
-  service_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  if (from.service().size() > 0) {
-    service_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.service_);
-  }
-  message_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  if (from.message().size() > 0) {
-    message_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.message_);
-  }
   ::memcpy(&version_, &from.version_,
     static_cast<size_t>(reinterpret_cast<char*>(&retcode_) -
     reinterpret_cast<char*>(&version_)) + sizeof(retcode_));
@@ -294,10 +267,6 @@ FastMessage::FastMessage(const FastMessage& from)
 }
 
 void FastMessage::SharedCtor() {
-  call_id_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  method_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  service_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  message_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&version_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&retcode_) -
       reinterpret_cast<char*>(&version_)) + sizeof(retcode_));
@@ -309,10 +278,6 @@ FastMessage::~FastMessage() {
 }
 
 void FastMessage::SharedDtor() {
-  call_id_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  method_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  service_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  message_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 
 void FastMessage::SetCachedSize(int size) const {
@@ -335,10 +300,6 @@ void FastMessage::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  call_id_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  method_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  service_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
-  message_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   ::memset(&version_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&retcode_) -
       reinterpret_cast<char*>(&version_)) + sizeof(retcode_));
@@ -411,61 +372,27 @@ bool FastMessage::MergePartialFromCodedStream(
         break;
       }
 
-      // string call_id = 5;
+      // fixed32 call_id = 5;
       case 5: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(42u /* 42 & 0xFF */)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_call_id()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->call_id().data(), static_cast<int>(this->call_id().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "frpc.FastMessage.call_id"));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // string method = 6;
-      case 6: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(50u /* 50 & 0xFF */)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_method()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->method().data(), static_cast<int>(this->method().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "frpc.FastMessage.method"));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // string service = 7;
-      case 7: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(58u /* 58 & 0xFF */)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_service()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->service().data(), static_cast<int>(this->service().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "frpc.FastMessage.service"));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // uint32 opcode = 8;
-      case 8: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(64u /* 64 & 0xFF */)) {
+            static_cast< ::google::protobuf::uint8>(45u /* 45 & 0xFF */)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_FIXED32>(
+                 input, &call_id_)));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // fixed32 opcode = 8;
+      case 8: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(69u /* 69 & 0xFF */)) {
+
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_FIXED32>(
                  input, &opcode_)));
         } else {
           goto handle_unusual;
@@ -473,60 +400,28 @@ bool FastMessage::MergePartialFromCodedStream(
         break;
       }
 
-      // .frpc.CompressType request_compress_type = 9;
+      // fixed32 compress = 9;
       case 9: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(72u /* 72 & 0xFF */)) {
-          int value;
+            static_cast< ::google::protobuf::uint8>(77u /* 77 & 0xFF */)) {
+
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
-                 input, &value)));
-          set_request_compress_type(static_cast< ::frpc::CompressType >(value));
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_FIXED32>(
+                 input, &compress_)));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // .frpc.CompressType response_compress_type = 10;
+      // fixed32 retcode = 10;
       case 10: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(80u /* 80 & 0xFF */)) {
-          int value;
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
-                 input, &value)));
-          set_response_compress_type(static_cast< ::frpc::CompressType >(value));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // int32 retcode = 11;
-      case 11: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(88u /* 88 & 0xFF */)) {
+            static_cast< ::google::protobuf::uint8>(85u /* 85 & 0xFF */)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_FIXED32>(
                  input, &retcode_)));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // string message = 12;
-      case 12: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(98u /* 98 & 0xFF */)) {
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->mutable_message()));
-          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-            this->message().data(), static_cast<int>(this->message().length()),
-            ::google::protobuf::internal::WireFormatLite::PARSE,
-            "frpc.FastMessage.message"));
         } else {
           goto handle_unusual;
         }
@@ -579,66 +474,24 @@ void FastMessage::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteFixed32(4, this->length(), output);
   }
 
-  // string call_id = 5;
-  if (this->call_id().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->call_id().data(), static_cast<int>(this->call_id().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "frpc.FastMessage.call_id");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      5, this->call_id(), output);
+  // fixed32 call_id = 5;
+  if (this->call_id() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteFixed32(5, this->call_id(), output);
   }
 
-  // string method = 6;
-  if (this->method().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->method().data(), static_cast<int>(this->method().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "frpc.FastMessage.method");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      6, this->method(), output);
-  }
-
-  // string service = 7;
-  if (this->service().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->service().data(), static_cast<int>(this->service().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "frpc.FastMessage.service");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      7, this->service(), output);
-  }
-
-  // uint32 opcode = 8;
+  // fixed32 opcode = 8;
   if (this->opcode() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(8, this->opcode(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteFixed32(8, this->opcode(), output);
   }
 
-  // .frpc.CompressType request_compress_type = 9;
-  if (this->request_compress_type() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteEnum(
-      9, this->request_compress_type(), output);
+  // fixed32 compress = 9;
+  if (this->compress() != 0) {
+    ::google::protobuf::internal::WireFormatLite::WriteFixed32(9, this->compress(), output);
   }
 
-  // .frpc.CompressType response_compress_type = 10;
-  if (this->response_compress_type() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteEnum(
-      10, this->response_compress_type(), output);
-  }
-
-  // int32 retcode = 11;
+  // fixed32 retcode = 10;
   if (this->retcode() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteInt32(11, this->retcode(), output);
-  }
-
-  // string message = 12;
-  if (this->message().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->message().data(), static_cast<int>(this->message().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "frpc.FastMessage.message");
-    ::google::protobuf::internal::WireFormatLite::WriteStringMaybeAliased(
-      12, this->message(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteFixed32(10, this->retcode(), output);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -675,70 +528,24 @@ void FastMessage::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteFixed32ToArray(4, this->length(), target);
   }
 
-  // string call_id = 5;
-  if (this->call_id().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->call_id().data(), static_cast<int>(this->call_id().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "frpc.FastMessage.call_id");
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        5, this->call_id(), target);
+  // fixed32 call_id = 5;
+  if (this->call_id() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFixed32ToArray(5, this->call_id(), target);
   }
 
-  // string method = 6;
-  if (this->method().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->method().data(), static_cast<int>(this->method().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "frpc.FastMessage.method");
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        6, this->method(), target);
-  }
-
-  // string service = 7;
-  if (this->service().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->service().data(), static_cast<int>(this->service().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "frpc.FastMessage.service");
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        7, this->service(), target);
-  }
-
-  // uint32 opcode = 8;
+  // fixed32 opcode = 8;
   if (this->opcode() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(8, this->opcode(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteFixed32ToArray(8, this->opcode(), target);
   }
 
-  // .frpc.CompressType request_compress_type = 9;
-  if (this->request_compress_type() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
-      9, this->request_compress_type(), target);
+  // fixed32 compress = 9;
+  if (this->compress() != 0) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteFixed32ToArray(9, this->compress(), target);
   }
 
-  // .frpc.CompressType response_compress_type = 10;
-  if (this->response_compress_type() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
-      10, this->response_compress_type(), target);
-  }
-
-  // int32 retcode = 11;
+  // fixed32 retcode = 10;
   if (this->retcode() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(11, this->retcode(), target);
-  }
-
-  // string message = 12;
-  if (this->message().size() > 0) {
-    ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
-      this->message().data(), static_cast<int>(this->message().length()),
-      ::google::protobuf::internal::WireFormatLite::SERIALIZE,
-      "frpc.FastMessage.message");
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
-        12, this->message(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteFixed32ToArray(10, this->retcode(), target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -758,34 +565,6 @@ size_t FastMessage::ByteSizeLong() const {
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
-  // string call_id = 5;
-  if (this->call_id().size() > 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
-        this->call_id());
-  }
-
-  // string method = 6;
-  if (this->method().size() > 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
-        this->method());
-  }
-
-  // string service = 7;
-  if (this->service().size() > 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
-        this->service());
-  }
-
-  // string message = 12;
-  if (this->message().size() > 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::StringSize(
-        this->message());
-  }
-
   // fixed32 version = 1;
   if (this->version() != 0) {
     total_size += 1 + 4;
@@ -806,30 +585,24 @@ size_t FastMessage::ByteSizeLong() const {
     total_size += 1 + 4;
   }
 
-  // uint32 opcode = 8;
+  // fixed32 call_id = 5;
+  if (this->call_id() != 0) {
+    total_size += 1 + 4;
+  }
+
+  // fixed32 opcode = 8;
   if (this->opcode() != 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::UInt32Size(
-        this->opcode());
+    total_size += 1 + 4;
   }
 
-  // .frpc.CompressType request_compress_type = 9;
-  if (this->request_compress_type() != 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::EnumSize(this->request_compress_type());
+  // fixed32 compress = 9;
+  if (this->compress() != 0) {
+    total_size += 1 + 4;
   }
 
-  // .frpc.CompressType response_compress_type = 10;
-  if (this->response_compress_type() != 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::EnumSize(this->response_compress_type());
-  }
-
-  // int32 retcode = 11;
+  // fixed32 retcode = 10;
   if (this->retcode() != 0) {
-    total_size += 1 +
-      ::google::protobuf::internal::WireFormatLite::Int32Size(
-        this->retcode());
+    total_size += 1 + 4;
   }
 
   int cached_size = ::google::protobuf::internal::ToCachedSize(total_size);
@@ -859,22 +632,6 @@ void FastMessage::MergeFrom(const FastMessage& from) {
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  if (from.call_id().size() > 0) {
-
-    call_id_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.call_id_);
-  }
-  if (from.method().size() > 0) {
-
-    method_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.method_);
-  }
-  if (from.service().size() > 0) {
-
-    service_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.service_);
-  }
-  if (from.message().size() > 0) {
-
-    message_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.message_);
-  }
   if (from.version() != 0) {
     set_version(from.version());
   }
@@ -887,14 +644,14 @@ void FastMessage::MergeFrom(const FastMessage& from) {
   if (from.length() != 0) {
     set_length(from.length());
   }
+  if (from.call_id() != 0) {
+    set_call_id(from.call_id());
+  }
   if (from.opcode() != 0) {
     set_opcode(from.opcode());
   }
-  if (from.request_compress_type() != 0) {
-    set_request_compress_type(from.request_compress_type());
-  }
-  if (from.response_compress_type() != 0) {
-    set_response_compress_type(from.response_compress_type());
+  if (from.compress() != 0) {
+    set_compress(from.compress());
   }
   if (from.retcode() != 0) {
     set_retcode(from.retcode());
@@ -925,21 +682,13 @@ void FastMessage::Swap(FastMessage* other) {
 }
 void FastMessage::InternalSwap(FastMessage* other) {
   using std::swap;
-  call_id_.Swap(&other->call_id_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-    GetArenaNoVirtual());
-  method_.Swap(&other->method_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-    GetArenaNoVirtual());
-  service_.Swap(&other->service_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-    GetArenaNoVirtual());
-  message_.Swap(&other->message_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
-    GetArenaNoVirtual());
   swap(version_, other->version_);
   swap(magic_, other->magic_);
   swap(type_, other->type_);
   swap(length_, other->length_);
+  swap(call_id_, other->call_id_);
   swap(opcode_, other->opcode_);
-  swap(request_compress_type_, other->request_compress_type_);
-  swap(response_compress_type_, other->response_compress_type_);
+  swap(compress_, other->compress_);
   swap(retcode_, other->retcode_);
   _internal_metadata_.Swap(&other->_internal_metadata_);
 }

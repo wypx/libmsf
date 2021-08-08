@@ -29,6 +29,9 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>  // IWYU pragma: export
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
+#include <google/protobuf/map.h>  // IWYU pragma: export
+#include <google/protobuf/map_entry.h>
+#include <google/protobuf/map_field_inl.h>
 #include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/service.h>
 #include <google/protobuf/unknown_field_set.h>
@@ -40,7 +43,7 @@ namespace protobuf_echo_2eproto {
 struct TableStruct {
   static const ::google::protobuf::internal::ParseTableField entries[];
   static const ::google::protobuf::internal::AuxillaryParseTableField aux[];
-  static const ::google::protobuf::internal::ParseTable schema[4];
+  static const ::google::protobuf::internal::ParseTable schema[5];
   static const ::google::protobuf::internal::FieldMetadata field_metadata[];
   static const ::google::protobuf::internal::SerializationTable serialization_table[];
   static const ::google::protobuf::uint32 offsets[];
@@ -57,6 +60,9 @@ extern ChronoCloneLoginPbResponseDefaultTypeInternal _ChronoCloneLoginPbResponse
 class EchoRequest;
 class EchoRequestDefaultTypeInternal;
 extern EchoRequestDefaultTypeInternal _EchoRequest_default_instance_;
+class EchoRequest_PeopleEntry_DoNotUse;
+class EchoRequest_PeopleEntry_DoNotUseDefaultTypeInternal;
+extern EchoRequest_PeopleEntry_DoNotUseDefaultTypeInternal _EchoRequest_PeopleEntry_DoNotUse_default_instance_;
 class EchoResponse;
 class EchoResponseDefaultTypeInternal;
 extern EchoResponseDefaultTypeInternal _EchoResponse_default_instance_;
@@ -66,6 +72,7 @@ namespace protobuf {
 template<> ::echo::ChronoCloneLoginPbRequest* Arena::CreateMaybeMessage<::echo::ChronoCloneLoginPbRequest>(Arena*);
 template<> ::echo::ChronoCloneLoginPbResponse* Arena::CreateMaybeMessage<::echo::ChronoCloneLoginPbResponse>(Arena*);
 template<> ::echo::EchoRequest* Arena::CreateMaybeMessage<::echo::EchoRequest>(Arena*);
+template<> ::echo::EchoRequest_PeopleEntry_DoNotUse* Arena::CreateMaybeMessage<::echo::EchoRequest_PeopleEntry_DoNotUse>(Arena*);
 template<> ::echo::EchoResponse* Arena::CreateMaybeMessage<::echo::EchoResponse>(Arena*);
 }  // namespace protobuf
 }  // namespace google
@@ -118,6 +125,27 @@ inline bool ResponseCode_Parse(
 }
 // ===================================================================
 
+class EchoRequest_PeopleEntry_DoNotUse : public ::google::protobuf::internal::MapEntry<EchoRequest_PeopleEntry_DoNotUse, 
+    ::std::string, ::google::protobuf::uint64,
+    ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+    ::google::protobuf::internal::WireFormatLite::TYPE_UINT64,
+    0 > {
+public:
+  typedef ::google::protobuf::internal::MapEntry<EchoRequest_PeopleEntry_DoNotUse, 
+    ::std::string, ::google::protobuf::uint64,
+    ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+    ::google::protobuf::internal::WireFormatLite::TYPE_UINT64,
+    0 > SuperType;
+  EchoRequest_PeopleEntry_DoNotUse();
+  EchoRequest_PeopleEntry_DoNotUse(::google::protobuf::Arena* arena);
+  void MergeFrom(const EchoRequest_PeopleEntry_DoNotUse& other);
+  static const EchoRequest_PeopleEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const EchoRequest_PeopleEntry_DoNotUse*>(&_EchoRequest_PeopleEntry_DoNotUse_default_instance_); }
+  void MergeFrom(const ::google::protobuf::Message& other) final;
+  ::google::protobuf::Metadata GetMetadata() const;
+};
+
+// -------------------------------------------------------------------
+
 class EchoRequest : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:echo.EchoRequest) */ {
  public:
   EchoRequest();
@@ -147,13 +175,19 @@ class EchoRequest : public ::google::protobuf::Message /* @@protoc_insertion_poi
   static const ::google::protobuf::Descriptor* descriptor();
   static const EchoRequest& default_instance();
 
+  enum RequestreplyCase {
+    kRequest = 3,
+    kResonse = 4,
+    REQUESTREPLY_NOT_SET = 0,
+  };
+
   static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
   static inline const EchoRequest* internal_default_instance() {
     return reinterpret_cast<const EchoRequest*>(
                &_EchoRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    0;
+    1;
 
   void Swap(EchoRequest* other);
   friend void swap(EchoRequest& a, EchoRequest& b) {
@@ -203,7 +237,17 @@ class EchoRequest : public ::google::protobuf::Message /* @@protoc_insertion_poi
 
   // nested types ----------------------------------------------------
 
+
   // accessors -------------------------------------------------------
+
+  // map<string, uint64> people = 2;
+  int people_size() const;
+  void clear_people();
+  static const int kPeopleFieldNumber = 2;
+  const ::google::protobuf::Map< ::std::string, ::google::protobuf::uint64 >&
+      people() const;
+  ::google::protobuf::Map< ::std::string, ::google::protobuf::uint64 >*
+      mutable_people();
 
   // string message = 1;
   void clear_message();
@@ -219,12 +263,66 @@ class EchoRequest : public ::google::protobuf::Message /* @@protoc_insertion_poi
   ::std::string* release_message();
   void set_allocated_message(::std::string* message);
 
+  // string request = 3;
+  private:
+  bool has_request() const;
+  public:
+  void clear_request();
+  static const int kRequestFieldNumber = 3;
+  const ::std::string& request() const;
+  void set_request(const ::std::string& value);
+  #if LANG_CXX11
+  void set_request(::std::string&& value);
+  #endif
+  void set_request(const char* value);
+  void set_request(const char* value, size_t size);
+  ::std::string* mutable_request();
+  ::std::string* release_request();
+  void set_allocated_request(::std::string* request);
+
+  // string resonse = 4;
+  private:
+  bool has_resonse() const;
+  public:
+  void clear_resonse();
+  static const int kResonseFieldNumber = 4;
+  const ::std::string& resonse() const;
+  void set_resonse(const ::std::string& value);
+  #if LANG_CXX11
+  void set_resonse(::std::string&& value);
+  #endif
+  void set_resonse(const char* value);
+  void set_resonse(const char* value, size_t size);
+  ::std::string* mutable_resonse();
+  ::std::string* release_resonse();
+  void set_allocated_resonse(::std::string* resonse);
+
+  void clear_requestreply();
+  RequestreplyCase requestreply_case() const;
   // @@protoc_insertion_point(class_scope:echo.EchoRequest)
  private:
+  void set_has_request();
+  void set_has_resonse();
+
+  inline bool has_requestreply() const;
+  inline void clear_has_requestreply();
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::MapField<
+      EchoRequest_PeopleEntry_DoNotUse,
+      ::std::string, ::google::protobuf::uint64,
+      ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+      ::google::protobuf::internal::WireFormatLite::TYPE_UINT64,
+      0 > people_;
   ::google::protobuf::internal::ArenaStringPtr message_;
+  union RequestreplyUnion {
+    RequestreplyUnion() {}
+    ::google::protobuf::internal::ArenaStringPtr request_;
+    ::google::protobuf::internal::ArenaStringPtr resonse_;
+  } requestreply_;
   mutable ::google::protobuf::internal::CachedSize _cached_size_;
+  ::google::protobuf::uint32 _oneof_case_[1];
+
   friend struct ::protobuf_echo_2eproto::TableStruct;
 };
 // -------------------------------------------------------------------
@@ -264,7 +362,7 @@ class EchoResponse : public ::google::protobuf::Message /* @@protoc_insertion_po
                &_EchoResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    1;
+    2;
 
   void Swap(EchoResponse* other);
   friend void swap(EchoResponse& a, EchoResponse& b) {
@@ -375,7 +473,7 @@ class ChronoCloneLoginPbRequest : public ::google::protobuf::Message /* @@protoc
                &_ChronoCloneLoginPbRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    2;
+    3;
 
   void Swap(ChronoCloneLoginPbRequest* other);
   friend void swap(ChronoCloneLoginPbRequest& a, ChronoCloneLoginPbRequest& b) {
@@ -581,7 +679,7 @@ class ChronoCloneLoginPbResponse : public ::google::protobuf::Message /* @@proto
                &_ChronoCloneLoginPbResponse_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    3;
+    4;
 
   void Swap(ChronoCloneLoginPbResponse* other);
   friend void swap(ChronoCloneLoginPbResponse& a, ChronoCloneLoginPbResponse& b) {
@@ -737,6 +835,8 @@ class EchoService_Stub : public EchoService {
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // EchoRequest
 
 // string message = 1;
@@ -792,6 +892,219 @@ inline void EchoRequest::set_allocated_message(::std::string* message) {
   // @@protoc_insertion_point(field_set_allocated:echo.EchoRequest.message)
 }
 
+// map<string, uint64> people = 2;
+inline int EchoRequest::people_size() const {
+  return people_.size();
+}
+inline void EchoRequest::clear_people() {
+  people_.Clear();
+}
+inline const ::google::protobuf::Map< ::std::string, ::google::protobuf::uint64 >&
+EchoRequest::people() const {
+  // @@protoc_insertion_point(field_map:echo.EchoRequest.people)
+  return people_.GetMap();
+}
+inline ::google::protobuf::Map< ::std::string, ::google::protobuf::uint64 >*
+EchoRequest::mutable_people() {
+  // @@protoc_insertion_point(field_mutable_map:echo.EchoRequest.people)
+  return people_.MutableMap();
+}
+
+// string request = 3;
+inline bool EchoRequest::has_request() const {
+  return requestreply_case() == kRequest;
+}
+inline void EchoRequest::set_has_request() {
+  _oneof_case_[0] = kRequest;
+}
+inline void EchoRequest::clear_request() {
+  if (has_request()) {
+    requestreply_.request_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    clear_has_requestreply();
+  }
+}
+inline const ::std::string& EchoRequest::request() const {
+  // @@protoc_insertion_point(field_get:echo.EchoRequest.request)
+  if (has_request()) {
+    return requestreply_.request_.GetNoArena();
+  }
+  return *&::google::protobuf::internal::GetEmptyStringAlreadyInited();
+}
+inline void EchoRequest::set_request(const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:echo.EchoRequest.request)
+  if (!has_request()) {
+    clear_requestreply();
+    set_has_request();
+    requestreply_.request_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  requestreply_.request_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:echo.EchoRequest.request)
+}
+#if LANG_CXX11
+inline void EchoRequest::set_request(::std::string&& value) {
+  // @@protoc_insertion_point(field_set:echo.EchoRequest.request)
+  if (!has_request()) {
+    clear_requestreply();
+    set_has_request();
+    requestreply_.request_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  requestreply_.request_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:echo.EchoRequest.request)
+}
+#endif
+inline void EchoRequest::set_request(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  if (!has_request()) {
+    clear_requestreply();
+    set_has_request();
+    requestreply_.request_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  requestreply_.request_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:echo.EchoRequest.request)
+}
+inline void EchoRequest::set_request(const char* value, size_t size) {
+  if (!has_request()) {
+    clear_requestreply();
+    set_has_request();
+    requestreply_.request_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  requestreply_.request_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(
+      reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:echo.EchoRequest.request)
+}
+inline ::std::string* EchoRequest::mutable_request() {
+  if (!has_request()) {
+    clear_requestreply();
+    set_has_request();
+    requestreply_.request_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_mutable:echo.EchoRequest.request)
+  return requestreply_.request_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* EchoRequest::release_request() {
+  // @@protoc_insertion_point(field_release:echo.EchoRequest.request)
+  if (has_request()) {
+    clear_has_requestreply();
+    return requestreply_.request_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  } else {
+    return NULL;
+  }
+}
+inline void EchoRequest::set_allocated_request(::std::string* request) {
+  if (!has_request()) {
+    requestreply_.request_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  clear_requestreply();
+  if (request != NULL) {
+    set_has_request();
+    requestreply_.request_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), request);
+  }
+  // @@protoc_insertion_point(field_set_allocated:echo.EchoRequest.request)
+}
+
+// string resonse = 4;
+inline bool EchoRequest::has_resonse() const {
+  return requestreply_case() == kResonse;
+}
+inline void EchoRequest::set_has_resonse() {
+  _oneof_case_[0] = kResonse;
+}
+inline void EchoRequest::clear_resonse() {
+  if (has_resonse()) {
+    requestreply_.resonse_.DestroyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+    clear_has_requestreply();
+  }
+}
+inline const ::std::string& EchoRequest::resonse() const {
+  // @@protoc_insertion_point(field_get:echo.EchoRequest.resonse)
+  if (has_resonse()) {
+    return requestreply_.resonse_.GetNoArena();
+  }
+  return *&::google::protobuf::internal::GetEmptyStringAlreadyInited();
+}
+inline void EchoRequest::set_resonse(const ::std::string& value) {
+  // @@protoc_insertion_point(field_set:echo.EchoRequest.resonse)
+  if (!has_resonse()) {
+    clear_requestreply();
+    set_has_resonse();
+    requestreply_.resonse_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  requestreply_.resonse_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
+  // @@protoc_insertion_point(field_set:echo.EchoRequest.resonse)
+}
+#if LANG_CXX11
+inline void EchoRequest::set_resonse(::std::string&& value) {
+  // @@protoc_insertion_point(field_set:echo.EchoRequest.resonse)
+  if (!has_resonse()) {
+    clear_requestreply();
+    set_has_resonse();
+    requestreply_.resonse_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  requestreply_.resonse_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
+  // @@protoc_insertion_point(field_set_rvalue:echo.EchoRequest.resonse)
+}
+#endif
+inline void EchoRequest::set_resonse(const char* value) {
+  GOOGLE_DCHECK(value != NULL);
+  if (!has_resonse()) {
+    clear_requestreply();
+    set_has_resonse();
+    requestreply_.resonse_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  requestreply_.resonse_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
+      ::std::string(value));
+  // @@protoc_insertion_point(field_set_char:echo.EchoRequest.resonse)
+}
+inline void EchoRequest::set_resonse(const char* value, size_t size) {
+  if (!has_resonse()) {
+    clear_requestreply();
+    set_has_resonse();
+    requestreply_.resonse_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  requestreply_.resonse_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(
+      reinterpret_cast<const char*>(value), size));
+  // @@protoc_insertion_point(field_set_pointer:echo.EchoRequest.resonse)
+}
+inline ::std::string* EchoRequest::mutable_resonse() {
+  if (!has_resonse()) {
+    clear_requestreply();
+    set_has_resonse();
+    requestreply_.resonse_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  // @@protoc_insertion_point(field_mutable:echo.EchoRequest.resonse)
+  return requestreply_.resonse_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+}
+inline ::std::string* EchoRequest::release_resonse() {
+  // @@protoc_insertion_point(field_release:echo.EchoRequest.resonse)
+  if (has_resonse()) {
+    clear_has_requestreply();
+    return requestreply_.resonse_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  } else {
+    return NULL;
+  }
+}
+inline void EchoRequest::set_allocated_resonse(::std::string* resonse) {
+  if (!has_resonse()) {
+    requestreply_.resonse_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
+  }
+  clear_requestreply();
+  if (resonse != NULL) {
+    set_has_resonse();
+    requestreply_.resonse_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), resonse);
+  }
+  // @@protoc_insertion_point(field_set_allocated:echo.EchoRequest.resonse)
+}
+
+inline bool EchoRequest::has_requestreply() const {
+  return requestreply_case() != REQUESTREPLY_NOT_SET;
+}
+inline void EchoRequest::clear_has_requestreply() {
+  _oneof_case_[0] = REQUESTREPLY_NOT_SET;
+}
+inline EchoRequest::RequestreplyCase EchoRequest::requestreply_case() const {
+  return EchoRequest::RequestreplyCase(_oneof_case_[0]);
+}
 // -------------------------------------------------------------------
 
 // EchoResponse
@@ -1276,6 +1589,8 @@ inline void ChronoCloneLoginPbResponse::set_ark_version(::google::protobuf::uint
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

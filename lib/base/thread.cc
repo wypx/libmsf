@@ -184,6 +184,24 @@ struct ThreadAttributes {
 #endif
   }
 
+#if SUPPORTS_PTHREAD_NAMING
+#define PTHREAD_MAX_THREADNAME_LEN_INCLUDING_NULL_BYTE 16
+  // Attempts to get the name from the operating system, returning true and
+  // updating 'name' if successful. Note that during normal operation this
+  // may fail, if the thread exits prior to the system call.
+  bool GetNameFromOS(std::string& name) {
+    // Verify that the name got written into the thread as expected.
+    char buf[PTHREAD_MAX_THREADNAME_LEN_INCLUDING_NULL_BYTE];
+    pthread_t thread_handle;
+    const int get_name_rc = pthread_getname_np(thread_handle, buf, sizeof(buf));
+    if (get_name_rc != 0) {
+      return false;
+    }
+    name = buf;
+    return true;
+  }
+#endif
+
   // Set the stack stack size to 1M
   bool SetStackSize(size_t stacksize = 1024 * 1024) {
     return (::pthread_attr_setstacksize(&attr_, stacksize) == 0);

@@ -6,6 +6,11 @@ option cc_generic_services = true;
 message EchoRequest
 {
   string message = 1;
+  map<string, uint64> people = 2;
+  oneof requestreply {
+    string request = 3;
+    string resonse = 4;
+  }
 }
 
 message EchoResponse

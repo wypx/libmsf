@@ -17,6 +17,12 @@
 #include "os.h"
 #include "utils.h"
 
+#if defined(TCMALLOC)
+#include <tcmalloc/malloc_extension.h>
+#elif defined(GPERFTOOLS_TCMALLOC)
+#include <gperftools/malloc_extension.h>
+#endif
+
 using namespace MSF;
 
 namespace MSF {
@@ -293,6 +299,132 @@ int64_t RamFree() {
   return status.ullAvailPhys;
 #else
 #error Unsupported platform
+#endif
+}
+
+#if defined(TCMALLOC)
+
+uint64_t totalCurrentlyAllocated() {
+  return tcmalloc::MallocExtension::GetNumericProperty(
+      "generic.current_allocated_bytes").value_or(0);
+}
+
+uint64_t totalCurrentlyReserved() {
+  // In Google's tcmalloc the semantics of generic.heap_size has
+  // changed: it doesn't include unmapped bytes.
+  return tcmalloc::MallocExtension::GetNumericProperty("generic.heap_size")
+             .value_or(0) +
+         tcmalloc::MallocExtension::GetNumericProperty(
+             "tcmalloc.pageheap_unmapped_bytes").value_or(0);
+}
+
+uint64_t totalThreadCacheBytes() {
+  return tcmalloc::MallocExtension::GetNumericProperty(
+      "tcmalloc.current_total_thread_cache_bytes").value_or(0);
+}
+
+uint64_t totalPageHeapFree() {
+  return tcmalloc::MallocExtension::GetNumericProperty(
+      "tcmalloc.pageheap_free_bytes").value_or(0);
+}
+
+uint64_t totalPageHeapUnmapped() {
+  return tcmalloc::MallocExtension::GetNumericProperty(
+      "tcmalloc.pageheap_unmapped_bytes").value_or(0);
+}
+
+uint64_t totalPhysicalBytes() {
+  return tcmalloc::MallocExtension::GetProperties()
+      ["generic.physical_memory_used"].value;
+}
+
+void dumpStatsToLog() {
+  LOG(INFO) << "TCMalloc stats: " << tcmalloc::MallocExtension::GetStats();
+}
+
+#elif defined(GPERFTOOLS_TCMALLOC)
+
+uint64_t totalCurrentlyAllocated() {
+  size_t value = 0;
+  MallocExtension::instance()->GetNumericProperty(
+      "generic.current_allocated_bytes", &value);
+  return value;
+}
+
+uint64_t totalCurrentlyReserved() {
+  size_t value = 0;
+  MallocExtension::instance()->GetNumericProperty("generic.heap_size", &value);
+  return value;
+}
+
+uint64_t totalThreadCacheBytes() {
+  size_t value = 0;
+  MallocExtension::instance()->GetNumericProperty(
+      "tcmalloc.current_total_thread_cache_bytes", &value);
+  return value;
+}
+
+uint64_t totalPageHeapFree() {
+  size_t value = 0;
+  MallocExtension::instance()->GetNumericProperty(
+      "tcmalloc.pageheap_free_bytes", &value);
+  return value;
+}
+
+uint64_t totalPageHeapUnmapped() {
+  size_t value = 0;
+  MallocExtension::instance()->GetNumericProperty(
+      "tcmalloc.pageheap_unmapped_bytes", &value);
+  return value;
+}
+
+uint64_t totalPhysicalBytes() {
+  size_t value = 0;
+  MallocExtension::instance()->GetNumericProperty(
+      "generic.total_physical_bytes", &value);
+  return value;
+}
+
+void dumpStatsToLog() {
+  constexpr int buffer_size = 100000;
+  auto buffer = std::make_unique<char[]>(buffer_size);
+  MallocExtension::instance()->GetStats(buffer.get(), buffer_size);
+  LOG(INFO) << "TCMalloc stats: " << buffer.get();
+}
+
+#endif
+
+#if defined(TCMALLOC) || defined(GPERFTOOLS_TCMALLOC)
+// TODO(zyfjeff): Make max unfreed memory byte configurable
+constexpr uint64_t MAX_UNFREED_MEMORY_BYTE = 100 * 1024 * 1024;
+#endif
+
+void ReleaseFreeMemory() {
+#if defined(TCMALLOC)
+  tcmalloc::MallocExtension::ReleaseMemoryToSystem(MAX_UNFREED_MEMORY_BYTE);
+#elif defined(GPERFTOOLS_TCMALLOC)
+  MallocExtension::instance()->ReleaseFreeMemory();
+#endif
+}
+
+/*
+  The purpose of this function is to release the cache introduced by tcmalloc,
+  mainly in xDS config updates, admin handler, and so on. all work on the main
+  thread,
+  so the overall impact on performance is small.
+  Ref: https://github.com/envoyproxy/envoy/pull/9471#discussion_r363825985
+*/
+void TryShrinkHeap() {
+#if defined(TCMALLOC) || defined(GPERFTOOLS_TCMALLOC)
+  auto total_physical_bytes = totalPhysicalBytes();
+  auto allocated_size_by_app = totalCurrentlyAllocated();
+
+  assert(total_physical_bytes >= allocated_size_by_app);
+
+  if ((total_physical_bytes - allocated_size_by_app) >=
+      MAX_UNFREED_MEMORY_BYTE) {
+    ReleaseFreeMemory();
+  }
 #endif
 }
 

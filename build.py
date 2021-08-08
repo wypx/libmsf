@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import multiprocessing
 
 def DisplayGithub():
     print("\n")
@@ -37,16 +38,18 @@ def MakeBuildDir(buildPath):
     else:
         print("-- Dir \'" + buildPath + '\' has already exist now.')
 
+cpu_core_num = multiprocessing.cpu_count()
+
 def MakeBuildLib(BuildRoot):
     os.chdir(BuildRoot + "/build/lib")
     os.system("cmake ../../lib")
-    os.system("make -j1")
+    os.system("make -j" + str(cpu_core_num))
     os.system("make install")
 
 def MakeBuildApp(BuildRoot):
     os.chdir(BuildRoot + "/build/app")
     os.system("cmake ../../app")
-    os.system("make -j1")
+    os.system("make -j" + str(cpu_core_num))
     os.system("make install")
 
 def MakeBuildProto(BuildRoot):
@@ -56,7 +59,7 @@ def MakeBuildProto(BuildRoot):
     os.chdir(BuildRoot + "/lib/network/fraft/proto")
     os.system("protoc -I=./ --cpp_out=./ *.proto")
     os.chdir(BuildRoot)
-    if os._exists(BuildRoot + "/app/mobile/src/Mobile.proto"):
+    if os.path.exists(BuildRoot + "/app/mobile/src/mobile.proto"):
         os.chdir(BuildRoot + "/app/mobile/src")
         os.system("protoc -I=./ --cpp_out=./ *.proto")
         os.chdir(BuildRoot)

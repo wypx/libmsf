@@ -13,8 +13,9 @@
 #ifndef BASE_BLOOM_H_
 #define BASE_BLOOM_H_
 
-#include "slice.h"
 #include <string>
+
+#include "slice.h"
 
 using namespace MSF;
 

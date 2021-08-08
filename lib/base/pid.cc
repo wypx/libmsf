@@ -20,13 +20,13 @@
 #include <syslog.h>
 #include <termios.h>
 #include <unistd.h>
-#include <vector>
-#include <string>
-#include <iostream>
+
+#include <fstream>
 #include <iomanip>
 #include <iosfwd>
-#include <fstream>
-#include <base/logging.h>
+#include <iostream>
+#include <string>
+#include <vector>
 
 /// the structure corresponding the content in /proc/<pid>/stat
 struct ProcStat {
@@ -127,7 +127,6 @@ struct ProcStat {
   bool update() { return update(getpid()); }
 
   friend std::ostream &operator<<(std::ostream &out, ProcStat const &stat) {
-
 #define set_value(value)                                                   \
   out << "| " << std::left << std::setw(16) << #value << "|" << std::right \
       << std::setw(24) << stat.value << " |" << std::endl

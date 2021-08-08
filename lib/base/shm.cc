@@ -16,8 +16,8 @@
 #include <base/logging.h>
 #include <sys/ipc.h>
 #include <sys/mman.h>
-#include <sys/shm.h>
 #include <sys/sem.h>
+#include <sys/shm.h>
 #include <sys/types.h>
 
 #include "file.h"
@@ -144,7 +144,9 @@ bool ShmManager::Initialize() {
     case kAllocateSysvShmget: {
       return InitializeSysv();
     };
-    case kAllocatePosixShmopen: { return InitializePosix(); }
+    case kAllocatePosixShmopen: {
+      return InitializePosix();
+    }
     default:
       break;
   }
@@ -287,11 +289,21 @@ bool ShmManager::AllocateShmopen() {
 
 bool ShmManager::Allocate() {
   switch (alloc_method_) {
-    case kAllocateMappingFile: { return AllocateMappingFile(); }
-    case kAllocateMappingMem: { return AllocateMappingMem(); }
-    case kAllocateMappingDevZero: { return AllocateMappingDevZero(); }
-    case kAllocateSysvShmget: { return AllocateShmget(); }
-    case kAllocatePosixShmopen: { return AllocateShmopen(); }
+    case kAllocateMappingFile: {
+      return AllocateMappingFile();
+    }
+    case kAllocateMappingMem: {
+      return AllocateMappingMem();
+    }
+    case kAllocateMappingDevZero: {
+      return AllocateMappingDevZero();
+    }
+    case kAllocateSysvShmget: {
+      return AllocateShmget();
+    }
+    case kAllocatePosixShmopen: {
+      return AllocateShmopen();
+    }
     default: {
       LOG(ERROR) << "not support this way.";
       break;
@@ -359,13 +371,13 @@ bool ShmManager::ReadLock() const {
 }
 bool ShmManager::WriteLock() const {
   /*  包含两个信号量,第一个为写信号量，第二个为读信号量
-  * 获取写锁
-  * 尝试等待写信号量（第一个）变为0：{0, 0, SEM_UNDO},
-  * 并且等待读信号量（第二个）变为0：{0, 0, SEM_UNDO}
-  * 把写信号量（第一个）加一：{0, 1, SEM_UNDO}
-  **/
-  struct sembuf sops[3] = {{0, 0, SEM_UNDO}, {1, 0, SEM_UNDO},
-                           {0, 1, SEM_UNDO}};
+   * 获取写锁
+   * 尝试等待写信号量（第一个）变为0：{0, 0, SEM_UNDO},
+   * 并且等待读信号量（第二个）变为0：{0, 0, SEM_UNDO}
+   * 把写信号量（第一个）加一：{0, 1, SEM_UNDO}
+   **/
+  struct sembuf sops[3] = {
+      {0, 0, SEM_UNDO}, {1, 0, SEM_UNDO}, {0, 1, SEM_UNDO}};
   size_t nsops = 3;
   int ret = -1;
   do {
@@ -417,9 +429,9 @@ bool ShmManager::TryWriteLock() const {
 }
 bool ShmManager::UnReadLock() const {
   /*  包含两个信号量,第一个为写信号量，第二个为读信号量
-    * 解除读锁
-    * 把读信号量（第二个）减一：{1, -1, SEM_UNDO}
-    **/
+   * 解除读锁
+   * 把读信号量（第二个）减一：{1, -1, SEM_UNDO}
+   **/
   struct sembuf sops[1] = {{1, -1, SEM_UNDO}};
   size_t nsops = 1;
   int ret = -1;
@@ -431,8 +443,8 @@ bool ShmManager::UnReadLock() const {
 bool ShmManager::UnWriteLock() const {
   /* 包含两个信号量,第一个为写信号量，第二个为读信号量
    * 解除写锁
-  *  把写信号量（第一个）减一：{0, -1, SEM_UNDO}
-  **/
+   *  把写信号量（第一个）减一：{0, -1, SEM_UNDO}
+   **/
   struct sembuf sops[1] = {{0, -1, SEM_UNDO}};
   size_t nsops = 1;
   int ret = -1;

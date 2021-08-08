@@ -4,6 +4,7 @@
 #include <sys/sysctl.h>
 #elif defined(unix) || defined(__unix) || defined(__unix__)
 #include <unistd.h>
+
 #include <fstream>
 #include <regex>
 #elif defined(WIN32) || defined(WIN64)
@@ -196,8 +197,8 @@ int64_t CPU::ClockSpeed() {
 
   DWORD dwMHz = 0;
   DWORD dwBufferSize = sizeof(DWORD);
-  lError = RegQueryValueExA(key.get(), "~MHz", nullptr, nullptr,
-                            (LPBYTE) & dwMHz, &dwBufferSize);
+  lError = RegQueryValueExA(key.get(), "~MHz", nullptr, nullptr, (LPBYTE)&dwMHz,
+                            &dwBufferSize);
   if (lError != ERROR_SUCCESS) return -1;
 
   return dwMHz * 1000000;

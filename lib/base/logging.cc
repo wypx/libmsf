@@ -1,14 +1,16 @@
-#include <time.h>
-#include <stdint.h>
-#include <stdlib.h>
+#include "logging.h"
+
 #include <assert.h>
-#include <stdio.h>
 #include <errno.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <time.h>
+
+#include "thread.h"
 #include "time_stamp.h"
 #include "time_zone.h"
-#include "thread.h"
-#include "logging.h"
 
 using namespace MSF;
 
@@ -43,8 +45,9 @@ LogLevel initLogLevel() {
 
 LogLevel g_logLevel = initLogLevel();
 
-const char* LogLevelName[NUM_LOG_LEVELS] = {"TRACE ", "DEBUG ", "INFO  ",
-                                            "WARN  ", "ERROR ", "FATAL ", };
+const char* LogLevelName[NUM_LOG_LEVELS] = {
+    "TRACE ", "DEBUG ", "INFO  ", "WARN  ", "ERROR ", "FATAL ",
+};
 
 // helper class for known string length at compile time
 class T {

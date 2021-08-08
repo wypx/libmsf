@@ -1,9 +1,10 @@
 #include "log_file.h"
-#include <time.h>
-#include <string.h>
-#include <dirent.h>
-#include <unistd.h>
+
 #include <assert.h>
+#include <dirent.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
 
 using namespace MSF;
 
@@ -23,9 +24,7 @@ LogFile::LogFile(const std::string& file_path_, int64_t rollSize,
   rollFile();
 }
 
-LogFile::~LogFile() {
-  flush();
-};
+LogFile::~LogFile() { flush(); };
 
 void LogFile::append(const char* logline, int len) {
   if (mutex_) {

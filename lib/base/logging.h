@@ -14,6 +14,7 @@
 #define LIB_LOGGER_H_
 
 #include <string.h>
+
 #include "log_stream.h"
 #include "time_stamp.h"
 

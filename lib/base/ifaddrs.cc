@@ -2,12 +2,12 @@
 
 #if defined(OS_WINDOWS)
 #include <errno.h>
-#include <winsock2.h>
-#include <wincrypt.h>
-#include <iphlpapi.h>
-#include <ws2tcpip.h>
 #include <ifaddrs.h>
+#include <iphlpapi.h>
 #include <stdio.h>
+#include <wincrypt.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 
 int getifaddrs(struct ifaddrs **ifap) {
   int ret = 0;

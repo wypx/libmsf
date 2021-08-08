@@ -1,8 +1,10 @@
-#include <stdio.h>
-#include <assert.h>
-#include <algorithm>
-#include <inttypes.h>
 #include "log_stream.h"
+
+#include <assert.h>
+#include <inttypes.h>
+#include <stdio.h>
+
+#include <algorithm>
 
 using namespace MSF;
 

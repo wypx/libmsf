@@ -8,9 +8,10 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
+#include "cpu_time.h"
+
 #include <base/logging.h>
 
-#include "cpu_time.h"
 #include "time_utils.h"
 
 #if defined(__linux__)
@@ -88,8 +89,8 @@ int64_t GetThreadCpuTimeNanos() {
   mach_port_t thread_port = mach_thread_self();
   thread_basic_info_data_t info;
   mach_msg_type_number_t count = THREAD_BASIC_INFO_COUNT;
-  kern_return_t kr = thread_info(thread_port, THREAD_BASIC_INFO,
-                                 (thread_info_t) & info, &count);
+  kern_return_t kr =
+      thread_info(thread_port, THREAD_BASIC_INFO, (thread_info_t)&info, &count);
   mach_port_deallocate(mach_task_self(), thread_port);
   if (kr == KERN_SUCCESS) {
     return info.user_time.seconds * kNumNanosecsPerSec +
@@ -118,4 +119,4 @@ int64_t GetThreadCpuTimeNanos() {
   return -1;
 }
 
-}  // namespace rtc
+}  // namespace MSF

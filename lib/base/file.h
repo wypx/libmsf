@@ -390,7 +390,7 @@ class File {
     }
     return (size_t)fs.f_bsize; /*每个block里面包含的字节数*/
   }
-#elif(MSF_HAVE_STATVFS)
+#elif (MSF_HAVE_STATVFS)
   size_t FileSysBlockSize(const std::string& dev) {
     struct statvfs fs;
 
@@ -418,19 +418,15 @@ class File {
   bool ownsFd_;
   /* Suggest flags to open this file */
   bool flags_read_only;
-  enum FileType {
-    FTYPE_DIR,
-    FTYPE_FILE,
-    FTYPE_LINK
-  };
+  enum FileType { FTYPE_DIR, FTYPE_FILE, FTYPE_LINK };
   int file_type;
-/*
- * -rw-rw-r--
- * 一共有10位数
- *　　其中： 最前面那个 - 代表的是类型
- *　　中间那三个 rw- 代表的是所有者（user）
- *　　然后那三个 rw- 代表的是组群（group）
- *　　最后那三个 r-- 代表的是其他人（other）*/
+  /*
+   * -rw-rw-r--
+   * 一共有10位数
+   *　　其中： 最前面那个 - 代表的是类型
+   *　　中间那三个 rw- 代表的是所有者（user）
+   *　　然后那三个 rw- 代表的是组群（group）
+   *　　最后那三个 r-- 代表的是其他人（other）*/
 
 #define MSF_FILE_DEFAULT_ACCESS 0644
 #define MSF_FILE_OWNER_ACCESS 0600
@@ -448,7 +444,7 @@ class File {
   bool isDirectIO : 1;  //当文件大小大于directio xxx
   bool exec_access;
   bool read_access;
-  ino_t uniq;    //文件inode节点号 同一个设备中的每个文件,这个值都是不同的
+  ino_t uniq;  //文件inode节点号 同一个设备中的每个文件,这个值都是不同的
   time_t mtime;  //文件最后被修改的时间,last modify time
 };
 

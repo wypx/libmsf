@@ -42,8 +42,10 @@ std::string GetCompileTime() {
   char month_str[8] = {0};
   sscanf(__DATE__, "%4s %d %d", month_str, &day, &year);
 
-  static std::string kMonthes[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                                   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", };
+  static std::string kMonthes[] = {
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  };
 
   for (uint32_t i = 0; i < MSF_ARRAY_SIZE(kMonthes); ++i) {
     if (strstr(month_str, kMonthes[i].c_str())) {
@@ -117,7 +119,8 @@ static void BuildLogo(void) {
                "\n"
             << "                       '.:::::'                    ':'````..   "
                "\n"
-               "\n" << std::endl;
+               "\n"
+            << std::endl;
 }
 
 static void BuildInfo(void) {

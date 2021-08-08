@@ -1,7 +1,8 @@
 
+#include <base/logging.h>
+
 #include "crc.h"
 #include "gcc_attr.h"
-#include <base/logging.h>
 
 using namespace MSF;
 
@@ -19,13 +20,13 @@ extern CRCFunction g_Crc32;
 #endif
 
 #define CRC32CX(crc, value) \
-  __asm__("crc32cx %w[c], %w[c], %x[v]" : [c] "+r"(*&crc) : [v] "r"(+value))
+  __asm__("crc32cx %w[c], %w[c], %x[v]" : [ c ] "+r"(*&crc) : [ v ] "r"(+value))
 #define CRC32CW(crc, value) \
-  __asm__("crc32cw %w[c], %w[c], %w[v]" : [c] "+r"(*&crc) : [v] "r"(+value))
+  __asm__("crc32cw %w[c], %w[c], %w[v]" : [ c ] "+r"(*&crc) : [ v ] "r"(+value))
 #define CRC32CH(crc, value) \
-  __asm__("crc32ch %w[c], %w[c], %w[v]" : [c] "+r"(*&crc) : [v] "r"(+value))
+  __asm__("crc32ch %w[c], %w[c], %w[v]" : [ c ] "+r"(*&crc) : [ v ] "r"(+value))
 #define CRC32CB(crc, value) \
-  __asm__("crc32cb %w[c], %w[c], %w[v]" : [c] "+r"(*&crc) : [v] "r"(+value))
+  __asm__("crc32cb %w[c], %w[c], %w[v]" : [ c ] "+r"(*&crc) : [ v ] "r"(+value))
 
 /*
  * __wt_checksum_hw --
@@ -80,4 +81,4 @@ __attribute_cold__ __attribute_noinline__ void arm64_checksum_init(void) {
   g_Crc32 = checksum_sw;
 #endif
 }
-}
+}  // namespace MSF

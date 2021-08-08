@@ -1,8 +1,8 @@
 #pragma once
 
 #include <atomic>  // std::atomic_flag, std::atomic_signal_fence
-#include <thread>  // std::this_thread
 #include <chrono>  // std::chrono::milliseconds
+#include <thread>  // std::this_thread
 #if defined(_MSC_VER)
 #include <windows.h>  // YieldProcessor
 #endif                /*_MSC_VER*/
@@ -58,7 +58,7 @@ namespace MSF {
 ////////////////////////////////////////////////////////////////
 
 inline void yield(unsigned k) {
-  if (k < 4) {/* Do nothing */
+  if (k < 4) { /* Do nothing */
   } else if (k < 16) {
     MSF_SPIN_LOCK_PAUSE_();
   } else if (k < 32) {
@@ -86,4 +86,4 @@ class SpinLock {
   void unlock(void) { lc_.clear(std::memory_order_release); }
 };
 
-}  // namespace capo
+}  // namespace MSF

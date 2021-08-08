@@ -10,7 +10,7 @@
 /*
  * Compiler & system detection for IPC_DECL_EXPORT & MSF_DECL_EXPORT.
  * Not using QtCore cause it shouldn't depend on Qt.
-*/
+ */
 
 #if defined(_MSC_VER)
 #define IPC_DECL_EXPORT __declspec(dllexport)
@@ -41,7 +41,7 @@
 
 /*
  * Define MSF_EXPORT for exporting function & class.
-*/
+ */
 
 #ifndef MSF_EXPORT
 #if defined(__MSF_LIBRARY__)

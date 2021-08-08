@@ -13,7 +13,6 @@
 #include "signal_manager.h"
 
 #include <base/logging.h>
-
 #include <base/os.h>
 
 using namespace MSF;

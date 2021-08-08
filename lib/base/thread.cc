@@ -14,21 +14,20 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <malloc.h>
 #include <signal.h>
 #include <stdio.h>
 #include <sys/prctl.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <malloc.h>
-#include <sys/syscall.h>
 #define gettid() syscall(__NR_gettid)
+
+#include <base/exception.h>
+#include <base/logging.h>
 
 #include <iostream>
 #include <type_traits>
-
-#include <base/logging.h>
-#include <base/exception.h>
 
 using namespace MSF;
 
@@ -326,19 +325,16 @@ void* Thread::ThreadLoop(const ThreadCallback& init_cb, CountDownLatch& latch) {
     option_.loop_cb();
     started_ = false;
     CurrentThread::t_threadName = "finished";
-  }
-  catch (const Exception& ex) {
+  } catch (const Exception& ex) {
     CurrentThread::t_threadName = "crashed";
     LOG(FATAL) << "exception caught in thread " << option_.name()
                << ",reason: " << ex.what()
                << "stack trace: " << ex.stackTrace();
-  }
-  catch (const std::exception& ex) {
+  } catch (const std::exception& ex) {
     CurrentThread::t_threadName = "crashed";
     LOG(FATAL) << "exception caught in thread " << option_.name()
                << ",reason: " << ex.what();
-  }
-  catch (...) {
+  } catch (...) {
     CurrentThread::t_threadName = "crashed";
     LOG(FATAL) << "unknown exception caught in thread " << option_.name();
     throw;  // rethrow
@@ -425,21 +421,18 @@ void Thread::Start(const ThreadCallback& init_cb) {
     thread_ = std::thread(
         std::bind(&Thread::ThreadLoop, this, init_cb, std::ref(latch)));
     latch.Wait();
-  }
-  catch (const Exception& ex) {
+  } catch (const Exception& ex) {
     CurrentThread::t_threadName = "crashed";
     LOG(FATAL) << "fail to create thread " << option_.name()
                << ",reason: " << ex.what()
                << "stack trace: " << ex.stackTrace();
     started_ = false;
-  }
-  catch (const std::exception& ex) {
+  } catch (const std::exception& ex) {
     CurrentThread::t_threadName = "crashed";
     LOG(FATAL) << "fail to create thread " << option_.name()
                << ",reason: " << ex.what();
     started_ = false;
-  }
-  catch (...) {
+  } catch (...) {
     CurrentThread::t_threadName = "crashed";
     LOG(FATAL) << "fail to create thread, unkown exception " << option_.name();
     started_ = false;

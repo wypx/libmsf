@@ -3,12 +3,13 @@
 
 #include <stddef.h>
 #include <stdint.h>
+
 #include <mutex>
 
-#include "rate_statistics.h"
 #include "gcc_attr.h"
-#include "time_utils.h"
 #include "noncopyable.h"
+#include "rate_statistics.h"
+#include "time_utils.h"
 
 namespace MSF {
 
@@ -40,6 +41,6 @@ class RateLimiter : public noncopyable {
   uint32_t max_rate_bps_;
 };
 
-}  // namespace webrtc
+}  // namespace MSF
 
 #endif  // RTC_BASE_RATE_LIMITER_H_

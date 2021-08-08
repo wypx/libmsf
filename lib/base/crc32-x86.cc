@@ -1,11 +1,10 @@
 
-#include "crc.h"
-#include "gcc_attr.h"
-
+#include <base/logging.h>
 #include <cpuid.h>
 #include <smmintrin.h>
 
-#include <base/logging.h>
+#include "crc.h"
+#include "gcc_attr.h"
 
 using namespace MSF;
 
@@ -97,8 +96,8 @@ static uint32_t checksum_hw(const uint8_t *chunk, size_t len) {
 }
 #endif
 
-inline
-    __attribute__((always_inline)) uint32_t vpp_crc32c(uint8_t *s, size_t len) {
+inline __attribute__((always_inline)) uint32_t vpp_crc32c(uint8_t *s,
+                                                          size_t len) {
   uint32_t v = 0;
 
 #if __x86_64__
@@ -107,7 +106,7 @@ inline
 /* workaround weird GCC bug when using _mm_crc32_u32
    which happens with -O2 optimization */
 #if !defined(__i686__)
-  volatile("" :: : "memory");
+  volatile("" ::: "memory");
 #endif
 
   for (; len >= 4; len -= 4, s += 4) v = _mm_crc32_u32(v, *((uint32_t *)s));
@@ -177,4 +176,4 @@ __attribute_cold__ __attribute_noinline__ void checksum_init(void) {
   g_Crc32 = checksum_sw;
 #endif /* HAVE_CRC32_HARDWARE */
 }
-}
+}  // namespace MSF

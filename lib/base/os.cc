@@ -14,28 +14,27 @@
 
 #include <base/logging.h>
 #include <base/utils.h>
-
 #include <cxxabi.h>
+#include <dirent.h>
 #include <execinfo.h>
 #include <fcntl.h>
-#include <dirent.h>
 #include <numaif.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 // #include <grp.h>
-#include <sys/reboot.h>
-#include <sys/sysinfo.h>
 #include <mntent.h>
 #include <sys/mount.h>
+#include <sys/reboot.h>
+#include <sys/sysinfo.h>
 
 #include <algorithm>
 #include <fstream>
-#include <thread>
 #include <regex>
+#include <thread>
 
 #ifdef WIN32
-#include <WinSock2.h>
 #include <Shlobj.h>
+#include <WinSock2.h>
 #else
 #include <pwd.h>
 #endif
@@ -287,7 +286,7 @@ bool OsInfo::setMaxOpenFds(const uint64_t maxOpenFds) {
 
 /* allow coredump after setuid() in Linux 2.4.x */
 bool OsInfo::EnableCoredump() {
-#if HAVE_PRCTL&& defined(PR_SET_DUMPABLE)
+#if HAVE_PRCTL && defined(PR_SET_DUMPABLE)
   /* Set Linux DUMPABLE flag */
   if (prctl(PR_SET_DUMPABLE, 1, 0, 0, 0) != 0) {
     LOG(ERROR) << "prctl: " << strerror(errno);
@@ -1041,8 +1040,8 @@ int64_t ClockSpeed() {
 
   DWORD dwMHz = 0;
   DWORD dwBufferSize = sizeof(DWORD);
-  lError = RegQueryValueExA(key.get(), "~MHz", nullptr, nullptr,
-                            (LPBYTE) & dwMHz, &dwBufferSize);
+  lError = RegQueryValueExA(key.get(), "~MHz", nullptr, nullptr, (LPBYTE)&dwMHz,
+                            &dwBufferSize);
   if (lError != ERROR_SUCCESS) return -1;
 
   return dwMHz * 1000000;
@@ -1162,14 +1161,14 @@ bool OsInfo::GetHddUsage() {
 }
 
 /*
-  * $ cat /proc/meminfo
-  * MemTotal:        8120568 kB
-  * MemFree:         2298932 kB
-  * Cached:          1907240 kB
-  * SwapCached:            0 kB
-  * SwapTotal:      15859708 kB
-  * SwapFree:       15859708 kB
-  */
+ * $ cat /proc/meminfo
+ * MemTotal:        8120568 kB
+ * MemFree:         2298932 kB
+ * Cached:          1907240 kB
+ * SwapCached:            0 kB
+ * SwapTotal:      15859708 kB
+ * SwapFree:       15859708 kB
+ */
 bool OsInfo::GetMemInfo(struct MemInfo& mem) {
   // https://www.cnblogs.com/JCSU/articles/1190685.html
   std::ifstream fin("/proc/meminfo");
@@ -1459,11 +1458,11 @@ std::string OsInfo::OSVersion() {
 
   return "<linux>";
 #elif defined(_WIN32) || defined(_WIN64)
-  static NTSTATUS(__stdcall* RtlGetVersion)(
+  static NTSTATUS(__stdcall * RtlGetVersion)(
       OUT PRTL_OSVERSIONINFOEXW lpVersionInformation) =
       (NTSTATUS(__stdcall*)(PRTL_OSVERSIONINFOEXW))GetProcAddress(
           GetModuleHandle("ntdll.dll"), "RtlGetVersion");
-  static void(__stdcall* GetNativeSystemInfo)(OUT LPSYSTEM_INFO lpSystemInfo) =
+  static void(__stdcall * GetNativeSystemInfo)(OUT LPSYSTEM_INFO lpSystemInfo) =
       (void(__stdcall*)(LPSYSTEM_INFO))GetProcAddress(
           GetModuleHandle("kernel32.dll"), "GetNativeSystemInfo");
   static BOOL(__stdcall * GetProductInfo)(
@@ -1822,7 +1821,8 @@ static void FileValuesParse(const std::map<std::string, std::string>& kvm,
 bool OsReleaseParse(std::map<std::string, std::string>* m) {
 #if defined(__linux__)
   static const std::map<std::string, std::string> kvm = {
-      {"distro", "ID="}, {"distro_description", "PRETTY_NAME="},
+      {"distro", "ID="},
+      {"distro_description", "PRETTY_NAME="},
       {"distro_version", "VERSION_ID="}};
 
   FILE* fp = ::fopen("/etc/os-release", "r");

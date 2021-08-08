@@ -14,9 +14,9 @@
 #define BASE_FLOCK_H_
 
 #include <cassert>
-#include <string>
-#include <mutex>
 #include <condition_variable>
+#include <mutex>
+#include <string>
 
 #include "noncopyable.h"
 namespace MSF {
@@ -58,7 +58,7 @@ class FileRwLock {
 
   void ReadLockAcquire() {
     std::unique_lock<std::mutex> lock(mutex_);
-    cond_read_.wait(lock, [=]()->bool {
+    cond_read_.wait(lock, [=]() -> bool {
       return (write_count_ == 0) && (wait_write_count_ == 0);
     });
     ++read_count_;
@@ -78,7 +78,7 @@ class FileRwLock {
   void WriteLockAcquire() {
     std::unique_lock<std::mutex> lock(mutex_);
     ++wait_write_count_;
-    cond_write_.wait(lock, [=]()->bool {
+    cond_write_.wait(lock, [=]() -> bool {
       return (write_count_ == 0) && (read_count_ == 0);
     });
     assert(write_count_ == 0);
@@ -106,5 +106,5 @@ class FileRwLock {
   std::condition_variable cond_write_;
   std::condition_variable cond_read_;
 };
-}
+}  // namespace MSF
 #endif

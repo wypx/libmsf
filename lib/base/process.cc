@@ -13,16 +13,16 @@
 // #include <algorithm>
 
 #if defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
-#include <unistd.h>
 #include <fcntl.h>
-#include <sys/wait.h>
-#include <sys/types.h>
-#include <sys/ioctl.h>
 #include <signal.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 // #include <stdlib.h>
 #elif defined(WIN32) || defined(WIN64)
-#include <windows.h>
 #include <tlhelp32.h>
+#include <windows.h>
 #endif
 #include <base/logging.h>
 #include <base/thread.h>
@@ -266,7 +266,7 @@ uint64_t Process::ParentProcessId() {
   PROCESSENTRY32 pe = {0};
   pe.dwSize = sizeof(PROCESSENTRY32);
   HANDLE hSnapshot = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-  if (hSnapshot == INVALID_HANDLE_VALUE) return (uint64_t) - 1;
+  if (hSnapshot == INVALID_HANDLE_VALUE) return (uint64_t)-1;
 
   // Smart resource cleaner pattern
   auto snapshot =
@@ -281,7 +281,7 @@ uint64_t Process::ParentProcessId() {
     } while (::Process32Next(snapshot.get(), &pe));
   }
 
-  return (uint64_t) - 1;
+  return (uint64_t)-1;
 #endif
 }
 
@@ -370,12 +370,12 @@ bool Process::Spwan(ProcessDesc &desc) {
   }
 
   /* Making the second socket nonblocking is a bit subtle, given that we
-  * ignore any EAGAIN returns when writing to it, and you don't usally
-  * do that for a nonblocking socket. But if the kernel gives us EAGAIN,
-  * then there's no need to add any more data to the buffer, since
-  * the main thread is already either about to wake up and drain it,
-  * or woken up and in the process of draining it.
-  */
+   * ignore any EAGAIN returns when writing to it, and you don't usally
+   * do that for a nonblocking socket. But if the kernel gives us EAGAIN,
+   * then there's no need to add any more data to the buffer, since
+   * the main thread is already either about to wake up and drain it,
+   * or woken up and in the process of draining it.
+   */
   if (!CreateSocketPair(channel)) {
     LOG(ERROR) << "failed to create pipe, errno: " << errno;
     return false;
@@ -572,11 +572,11 @@ Process Process::Execute(const std::string &command,
   // Create a new process
   PROCESS_INFORMATION pi;
   if (!::CreateProcessW(
-           nullptr, (wchar_t *)command_line.c_str(), nullptr, nullptr,
-           bInheritHandles, CREATE_UNICODE_ENVIRONMENT,
-           environment.empty() ? nullptr : (LPVOID)environment.data(),
-           (!directory) ? nullptr : Encoding::FromUTF8(*directory).c_str(), &si,
-           &pi)) {
+          nullptr, (wchar_t *)command_line.c_str(), nullptr, nullptr,
+          bInheritHandles, CREATE_UNICODE_ENVIRONMENT,
+          environment.empty() ? nullptr : (LPVOID)environment.data(),
+          (!directory) ? nullptr : Encoding::FromUTF8(*directory).c_str(), &si,
+          &pi)) {
     LOG(FATAL) << "failed to execute a new process with command: " << command;
   }
 
@@ -598,4 +598,4 @@ Process Process::Execute(const std::string &command,
   return result;
 #endif
 }
-}
+}  // namespace MSF

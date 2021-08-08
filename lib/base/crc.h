@@ -19,5 +19,5 @@ void checksum_init(void);
 
 uint32_t checksum_sw(const uint8_t *chunk, size_t len)
     __attribute__((visibility("default")));
-}
+}  // namespace MSF
 #endif

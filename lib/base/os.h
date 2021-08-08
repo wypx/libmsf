@@ -177,19 +177,19 @@ class OsInfo {
   }
 
   /* 其他方法:
-  * 1. /proc/pid/status
-  * 2. 进程名字既可以指向argv[0]你,
-  *    也可以阅读/proc/self/status.
-  *    或者你可以使用getenv("_"),
-  *    不确定是谁设置的,​​以及它的可靠性.
-  * 3. 如果你使用glibc，那么：
-  *    #define _GNU_SOURCE
-  *    #include <errno.h>
-  *    extern char *program_invocation_name;
-  *    extern char *program_invocation_short_name;
-  *    在大多数Unices下,__progname也由libc定义.
-  *    唯一便携的方式是使用argv[0]
-  * */
+   * 1. /proc/pid/status
+   * 2. 进程名字既可以指向argv[0]你,
+   *    也可以阅读/proc/self/status.
+   *    或者你可以使用getenv("_"),
+   *    不确定是谁设置的,​​以及它的可靠性.
+   * 3. 如果你使用glibc，那么：
+   *    #define _GNU_SOURCE
+   *    #include <errno.h>
+   *    extern char *program_invocation_name;
+   *    extern char *program_invocation_short_name;
+   *    在大多数Unices下,__progname也由libc定义.
+   *    唯一便携的方式是使用argv[0]
+   * */
   /// read /proc/self/status
   std::string GetProcStatus();
 

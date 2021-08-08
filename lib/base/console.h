@@ -14,6 +14,7 @@
 #define BASE_CONSOLE_H_
 
 #include <stdio.h>
+
 #include "noncopyable.h"
 
 namespace MSF {

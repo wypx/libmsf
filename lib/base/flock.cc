@@ -11,9 +11,10 @@
  *
  **************************************************************************/
 #include "flock.h"
+
+#include <base/logging.h>
 #include <fcntl.h>
 #include <sys/file.h>
-#include <base/logging.h>
 
 namespace MSF {
 
@@ -136,8 +137,8 @@ bool PosixFileLock::LockRead(uint32_t start, uint32_t whence, uint32_t len) {
 }
 
 /* 该将会阻塞进程的执行,使用时需要非常谨慎,
-* 它可能会导致worker进程宁可睡眠也不处理其他正常请
-*/
+ * 它可能会导致worker进程宁可睡眠也不处理其他正常请
+ */
 bool PosixFileLock::LockWrite() {
   struct flock fl;
   ::memset(&fl, 0, sizeof(struct flock));
@@ -158,10 +159,10 @@ bool PosixFileLock::TryLockRead(uint32_t start, uint32_t whence, uint32_t len) {
 }
 
 /* flock锁的释放非常具有特色:
-* 即可调用LOCK_UN参数来释放文件锁
-* 也可以通过关闭fd的方式来释放文件锁
-* 意味着flock会随着进程的关闭而被自动释放掉
-*/
+ * 即可调用LOCK_UN参数来释放文件锁
+ * 也可以通过关闭fd的方式来释放文件锁
+ * 意味着flock会随着进程的关闭而被自动释放掉
+ */
 bool PosixFileLock::TryLockWrite() {
   struct flock fl;
   /* 这个文件锁并不用于锁文件中的内容,填充为0 */
@@ -195,4 +196,4 @@ bool PosixFileLock::unlock() {
   }
   return true;
 }
-}
+}  // namespace MSF

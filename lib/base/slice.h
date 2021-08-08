@@ -17,8 +17,9 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
-#include <string>
+
 #include <stdexcept>
+#include <string>
 
 namespace MSF {
 
@@ -102,6 +103,6 @@ inline bool operator!=(const Slice& x, const Slice& y) { return !(x == y); }
 inline bool operator<(const Slice& x, const Slice& y) {
   return x.compare(y) < 0;
 }
-}
+}  // namespace MSF
 
 #endif

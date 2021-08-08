@@ -13,16 +13,16 @@
 #ifndef LIB_ASYNC_LOGGING_H_
 #define LIB_ASYNC_LOGGING_H_
 
+#include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <string>
-#include <condition_variable>
 
 #include "latch.h"
-#include "thread.h"
-#include "log_stream.h"
 #include "log_file.h"
+#include "log_stream.h"
 #include "spin_lock.h"
+#include "thread.h"
 
 using namespace MSF;
 
@@ -76,7 +76,6 @@ class LoggingBase {
 
 class AsyncLoggingDoubleBufferingShards
     : public LoggingBase<FixedBuffer<kLargeBuffer>, SpinLock> {
-
  public:
   AsyncLoggingDoubleBufferingShards(const std::string& basename,
                                     size_t rollSize, int flushInterval = 1)

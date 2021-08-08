@@ -40,7 +40,7 @@ class FunctionView<RetT(ArgT...)> final {
           // Not for function pointers; we have another constructor for that
           // below.
           !std::is_function<typename std::remove_pointer<
-               typename std::remove_reference<F>::type>::type>::value &&
+              typename std::remove_reference<F>::type>::type>::value &&
           // Not for nullptr; we have another constructor for that below.
           !std::is_same<std::nullptr_t,
                         typename std::remove_cv<F>::type>::value &&
@@ -68,13 +68,10 @@ class FunctionView<RetT(ArgT...)> final {
   }
 
   // Constructor that accepts nullptr. It creates an empty FunctionView.
-  template <
-      typename F,
-      typename std::enable_if<std::is_same<
-          std::nullptr_t, typename std::remove_cv<F>::type>::value>::type* =
-          nullptr>
-  FunctionView(F&&)
-      : call_(nullptr) {}
+  template <typename F, typename std::enable_if<std::is_same<
+                            std::nullptr_t, typename std::remove_cv<F>::type>::
+                                                    value>::type* = nullptr>
+  FunctionView(F&&) : call_(nullptr) {}
 
   // Default constructor. Creates an empty FunctionView.
   FunctionView() : call_(nullptr) {}

@@ -12,11 +12,12 @@
  *
  **************************************************************************/
 #include "serial.h"
-#include "utils.h"
 
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+
+#include "utils.h"
 
 #if defined(__linux__)
 #include <linux/serial.h>
@@ -107,7 +108,7 @@ int SetSerialBits(const int fd, SerialByteSize bytesize = EightBits) {
     return -1;
   }
   // setup char len
-  opt.c_cflag &= (tcflag_t) ~CSIZE;
+  opt.c_cflag &= (tcflag_t)~CSIZE;
   if (bytesize == EightBits)
     opt.c_cflag |= CS8;
   else if (bytesize == SevenBits)
@@ -126,7 +127,12 @@ struct serl_attr {
   int baudrate; /* 38400, or 9600 , or others. */
   int parity;   /* 0-> no, 1->odd, 2->even */
 };
-struct serl_attr attr = {8, 1, 115200, 0, };
+struct serl_attr attr = {
+    8,
+    1,
+    115200,
+    0,
+};
 
 void SetParity(struct termios *options, SerialParity parity = ParityNone) {
   options->c_iflag &= (tcflag_t) ~(INPCK | ISTRIP);
@@ -216,10 +222,10 @@ int SetSerialRawMode(const int fd, SerialFlowControl flowcontrol) {
   opt.c_oflag &= ~OPOST; /* output */
 
 #ifdef IUCLC
-  opt.c_iflag &= (tcflag_t) ~IUCLC;
+  opt.c_iflag &= (tcflag_t)~IUCLC;
 #endif
 #ifdef PARMRK
-  opt.c_iflag &= (tcflag_t) ~PARMRK;
+  opt.c_iflag &= (tcflag_t)~PARMRK;
 #endif
 
   // setup flow control

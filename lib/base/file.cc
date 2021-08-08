@@ -933,7 +933,7 @@ int IsZFS(int basedir_fd) {
 }
 
 int PosixFallocate(int fd, off_t offset, off_t len) {
-// Return 0 if oke, otherwise errno > 0
+  // Return 0 if oke, otherwise errno > 0
 
 #ifdef HAVE_POSIX_FALLOCATE
   if (IsZFS(fd)) {

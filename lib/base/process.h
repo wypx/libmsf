@@ -33,10 +33,11 @@
 // #include "gcc_attr.h"
 // #include "plugin.h"
 
+#include <base/flock.h>
+#include <base/time_stamp.h>
+
 #include <map>
 #include <vector>
-#include <base/time_stamp.h>
-#include <base/flock.h>
 
 using namespace MSF;
 
@@ -264,12 +265,12 @@ class Process {
    * param error - Error communication pipe (default is nullptr)
    * return Created process
    */
-  static Process Execute(const std::string &command,
-                         const std::vector<std::string> *arguments = nullptr,
-                         const std::map<std::string, std::string> *envars =
-                             nullptr,
-                         const std::string *directory = nullptr, int input = 0,
-                         int output = 1, int error = 2);
+  static Process Execute(
+      const std::string &command,
+      const std::vector<std::string> *arguments = nullptr,
+      const std::map<std::string, std::string> *envars = nullptr,
+      const std::string *directory = nullptr, int input = 0, int output = 1,
+      int error = 2);
 
 #if defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
   pid_t pid_;

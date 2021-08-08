@@ -12,15 +12,14 @@
  **************************************************************************/
 #include "daemon.h"
 
+#include <base/logging.h>
 #include <fcntl.h>
 #include <signal.h>
-#include <sysexits.h>
 #include <sys/wait.h>
+#include <sysexits.h>
 
-#include <base/logging.h>
-
-#include "utils.h"
 #include "sock_utils.h"
+#include "utils.h"
 
 using namespace MSF;
 

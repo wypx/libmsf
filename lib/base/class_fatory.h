@@ -37,7 +37,7 @@ namespace MSF {
 class ClassHandle {
  public:
   ClassHandle() { std::cout << "ClassHandle construct" << std::endl; }
-  virtual ~ClassHandle() {};
+  virtual ~ClassHandle(){};
   virtual void handleMessage(const int fd, void* head, void* body) {
     std::cout << "ClassHandle handle message " << std::endl;
   }
@@ -67,7 +67,7 @@ class ClassHandleFactory {
     }
     return static_cast<ClassHandleFactory*>(ppppp);
   }
-  virtual ~ClassHandleFactory() {};
+  virtual ~ClassHandleFactory(){};
 
   const uint32_t funcSize() const {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -145,10 +145,7 @@ class ClassHandleFactory {
 template <typename... TArgs>
 ClassHandleFactory<TArgs...>* ClassHandleFactory<TArgs...>::m_pActorFactory;
 
-enum TestCmd {
-  TEST_CMD1 = 10,
-  TEST_CMD2 = 11
-};
+enum TestCmd { TEST_CMD1 = 10, TEST_CMD2 = 11 };
 
 static uint32_t cmd = 99;
 
@@ -188,20 +185,18 @@ class DynamicCreator {
     register_.do_nothing();
   }
 
-  virtual ~DynamicCreator() {
-    register_.do_nothing();
-  };
+  virtual ~DynamicCreator() { register_.do_nothing(); };
 
   static T* CreateObject(TArgs&&... args) {
     std::cout << abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr,
-                                     nullptr) << std::endl;
+                                     nullptr)
+              << std::endl;
     std::cout << "static Actor* DynamicCreator::CreateObject(Targs... args)"
               << std::endl;
     T* t = nullptr;
     try {
       t = new T(std::forward<TArgs>(args)...);
-    }
-    catch (std::bad_alloc& e) {
+    } catch (std::bad_alloc& e) {
       std::cout << "new object" << std::endl;
       return nullptr;
     }
@@ -277,16 +272,20 @@ void ActorTest() {
   // Actor* p3 = ActorFactory<>::Instance()->Create(std::string("Cmd"));
   Worker W;
   std::cout << "---------------------------------------------------------------"
-               "-------" << std::endl;
+               "-------"
+            << std::endl;
   ClassHandle* p1 = W.CreateActor(100, "CLASS CMD", 1000);
   p1->handleMessage(0, nullptr, nullptr);
   std::cout << abi::__cxa_demangle(typeid(Worker).name(), nullptr, nullptr,
-                                   nullptr) << std::endl;
+                                   nullptr)
+            << std::endl;
   std::cout << "---------------------------------------------------------------"
-               "-------" << std::endl;
+               "-------"
+            << std::endl;
   ClassHandle* p2 = W.CreateActor(101, "CLASS STEP", 10001);
   std::cout << "---------------------------------------------------------------"
-               "-------" << std::endl;
+               "-------"
+            << std::endl;
   p2->handleMessage(0, nullptr, nullptr);
 }
 

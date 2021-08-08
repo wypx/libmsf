@@ -150,19 +150,16 @@ void ThreadPool::RunInThread() {
         task();
       }
     }
-  }
-  catch (const MSF::Exception& ex) {
+  } catch (const MSF::Exception& ex) {
     LOG(FATAL) << "exception caught in ThreadPool "
                << ",reason: " << ex.what()
                << "stack trace: " << ex.stackTrace();
     abort();
-  }
-  catch (const std::exception& ex) {
+  } catch (const std::exception& ex) {
     LOG(FATAL) << "exception caught in ThreadPool "
                << ",reason: " << ex.what();
     abort();
-  }
-  catch (...) {
+  } catch (...) {
     LOG(FATAL) << "unknown exception caught in ThreadPool ";
     throw;  // rethrow
   }

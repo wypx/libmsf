@@ -13,8 +13,8 @@
 #include "file_utils.h"
 
 #include <sys/file.h>
-#include <unistd.h>
 #include <sys/statvfs.h>
+#include <unistd.h>
 
 #include "file_details.h"
 #include "uio.h"

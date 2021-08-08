@@ -12,6 +12,7 @@
 
 #include <algorithm>
 #include <cassert>
+
 #include "time_utils.h"
 
 namespace MSF {
@@ -30,8 +31,8 @@ RateTracker::RateTracker(int64_t bucket_milliseconds, size_t bucket_count)
 
 RateTracker::~RateTracker() { delete[] sample_buckets_; }
 
-double RateTracker::ComputeRateForInterval(int64_t interval_milliseconds)
-    const {
+double RateTracker::ComputeRateForInterval(
+    int64_t interval_milliseconds) const {
   if (bucket_start_time_milliseconds_ == kTimeUnset) {
     return 0.0;
   }
@@ -109,8 +110,8 @@ void RateTracker::AddSamples(int64_t sample_count) {
   // Advance the current bucket as needed for the current time, and reset
   // bucket counts as we advance.
   for (size_t i = 0;
-       i <= bucket_count_ && current_time >= bucket_start_time_milliseconds_ +
-                                                 bucket_milliseconds_;
+       i <= bucket_count_ &&
+       current_time >= bucket_start_time_milliseconds_ + bucket_milliseconds_;
        ++i) {
     bucket_start_time_milliseconds_ += bucket_milliseconds_;
     current_bucket_ = NextBucketIndex(current_bucket_);

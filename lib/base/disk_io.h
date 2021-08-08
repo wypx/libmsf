@@ -19,14 +19,14 @@ class MSF_CACHE {
  public:
 #if (HAVE_F_READAHEAD)
 #define ReadAHead(fd, n) ::fcntl(fd, F_READAHEAD, (int)n)
-#elif(HAVE_POSIX_FADVISE)
+#elif (HAVE_POSIX_FADVISE)
   int ReadAHead(int fd, size_t n) {
     int err;
     /*
-      * Thishttps://blog.csdn.net/skdkjzz/article/details/46473207
-      * https://www.cnblogs.com/aquester/p/9891632.html
-      * https://www.yiibai.com/unix_system_calls/posix_fadvise.html
-      * */
+     * Thishttps://blog.csdn.net/skdkjzz/article/details/46473207
+     * https://www.cnblogs.com/aquester/p/9891632.html
+     * https://www.yiibai.com/unix_system_calls/posix_fadvise.html
+     * */
     err = ::posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL);
     if (err == 0) {
       return 0;
@@ -81,9 +81,9 @@ class MSF_AIO {
     }
     return fcntl(fd, F_SETFL, flags & ~O_DIRECT);
   }
-#elif(MSF_HAVE_F_NOCACHE)
+#elif (MSF_HAVE_F_NOCACHE)
   int EnableDirectIO(int fd) { return fcntl(fd, F_NOCACHE, 1); }
-#elif(MSF_HAVE_DIRECTIO)
+#elif (MSF_HAVE_DIRECTIO)
   int EnableDirectIO(int fd) { return directio(fd, DIRECTIO_ON); }
 #else
 #define EnableDirectIO(fd) ()

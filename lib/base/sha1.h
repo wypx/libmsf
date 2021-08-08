@@ -18,5 +18,5 @@ struct SHA1_CTX {
 void SHA1_init(SHA1_CTX* context);
 void SHA1_update(SHA1_CTX* context, const uint8_t* data, size_t len);
 void SHA1_final(SHA1_CTX* context, uint8_t digest[SHA1_DIGEST_SIZE]);
-}
+}  // namespace MSF
 #endif

@@ -13,9 +13,10 @@
 #ifndef BASE_EXCEPTION_H_
 #define BASE_EXCEPTION_H_
 
-#include <iostream>
 #include <errno.h>
 #include <string.h>
+
+#include <iostream>
 
 #include "gcc_attr.h"
 
@@ -32,16 +33,16 @@ class Exception : public std::exception {
   const char* stackTrace() const noexcept { return stack_.c_str(); }
 
   /** Dump current stack trace to a stream.
-    * Thanks to http://stackoverflow.com/questions/77005.
-     * \code
-    * #include <iostream>
-    * std::cerr << zypp::dumpBacktrace << std::endl;
-    * \endcode
-    * \code
-    * #include <zypp/base/String.h>
-    * std::string trace( str::Str() << zypp::dumpBacktrace );
-    * \endcode
-    */
+   * Thanks to http://stackoverflow.com/questions/77005.
+   * \code
+   * #include <iostream>
+   * std::cerr << zypp::dumpBacktrace << std::endl;
+   * \endcode
+   * \code
+   * #include <zypp/base/String.h>
+   * std::string trace( str::Str() << zypp::dumpBacktrace );
+   * \endcode
+   */
   std::ostream& DumpBacktrace(std::ostream& stream_r);
 
   static int GetLastSystemError() __attribute_unused__;

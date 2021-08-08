@@ -27,4 +27,4 @@ template <template <typename...> class Ret, typename... T>
 inline return_t<Ret, T...> make(T&&... args) {
   return return_t<Ret, T...>(std::forward<T>(args)...);
 }
-}
+}  // namespace MSF

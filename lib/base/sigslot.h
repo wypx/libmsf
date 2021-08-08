@@ -293,15 +293,14 @@ class _opaque_connection {
 
  public:
   template <typename DestT, typename... Args>
-  _opaque_connection(DestT* pd, void (DestT::*pm)(Args...))
-      : pdest(pd) {
+  _opaque_connection(DestT* pd, void (DestT::*pm)(Args...)) : pdest(pd) {
     typedef void (DestT::*pm_t)(Args...);
     static_assert(sizeof(pm_t) <= sizeof(pmethod),
                   "Size of slot function pointer too large.");
 
     std::memcpy(pmethod, &pm, sizeof(pm_t));
 
-    typedef void (*em_t)(const _opaque_connection * self, Args...);
+    typedef void (*em_t)(const _opaque_connection* self, Args...);
     union_caster<em_t, emit_t> caster2;
     caster2.from = &_opaque_connection::emitter<DestT, Args...>;
     pemit = caster2.to;

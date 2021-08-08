@@ -90,7 +90,7 @@ namespace MSF {
 #define MSF_LIB_EXTENSION "dll"
 static std::string dynamicLibraryExtension("dll");
 #else
-#define MSF_DLHANDLE void *
+#define MSF_DLHANDLE void*
 #define MSF_DLOPEN_L(name) dlopen((name), RTLD_LAZY | RTLD_GLOBAL)
 #define MSF_DLOPEN_N(name) dlopen((name), RTLD_NOW)
 #define MSF_DLSYM(handle, symbol) dlsym((handle), (symbol))

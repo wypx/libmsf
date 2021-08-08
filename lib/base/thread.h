@@ -22,8 +22,8 @@
 #include <iostream>
 #include <thread>  // std::thread
 
-#include "latch.h"
 #include "gcc_attr.h"
+#include "latch.h"
 
 using namespace MSF;
 

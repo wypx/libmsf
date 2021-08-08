@@ -13,11 +13,11 @@
 #ifndef BASE_ENDIAN_H_
 #define BASE_ENDIAN_H_
 
+#include <arpa/inet.h>
 #include <byteswap.h>
 #include <endian.h>
-#include <sys/types.h>
-#include <arpa/inet.h>
 #include <stdint.h>
+#include <sys/types.h>
 
 namespace MSF {
 

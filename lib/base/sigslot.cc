@@ -19,4 +19,4 @@ pthread_mutex_t* multi_threaded_global::get_mutex() {
 
 #endif  // _SIGSLOT_HAS_POSIX_THREADS
 
-}  // namespace sigslot
+}  // namespace MSF

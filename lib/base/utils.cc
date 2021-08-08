@@ -10,16 +10,16 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
+#include "utils.h"
+
 #include <endian.h>
 #include <netinet/in.h>
 
+#include <algorithm>
+#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <algorithm>
-
-#include "utils.h"
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN

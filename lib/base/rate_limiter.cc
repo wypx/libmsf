@@ -61,4 +61,4 @@ bool RateLimiter::SetWindowSize(int64_t window_size_ms) {
   return current_rate_.SetWindowSize(window_size_ms, TimeMillis());
 }
 
-}  // namespace webrtc
+}  // namespace MSF

@@ -89,8 +89,7 @@ class scoped_refptr {
   }
 
   template <typename U>
-  scoped_refptr(const scoped_refptr<U>& r)
-      : ptr_(r.get()) {
+  scoped_refptr(const scoped_refptr<U>& r) : ptr_(r.get()) {
     if (ptr_) ptr_->AddRef();
   }
 

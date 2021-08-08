@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "match.h"
+
 #include <cctype>
 
 namespace MSF {
@@ -22,8 +23,8 @@ int memcasecmp(const char* s1, const char* s2, size_t len) {
   const unsigned char* us2 = reinterpret_cast<const unsigned char*>(s2);
 
   for (size_t i = 0; i < len; i++) {
-    const int diff = int { static_cast<unsigned char>(std::tolower(us1[i])) }
-    -int {static_cast<unsigned char>(std::tolower(us2[i]))};
+    const int diff = int{static_cast<unsigned char>(std::tolower(us1[i]))} -
+                     int{static_cast<unsigned char>(std::tolower(us2[i]))};
     if (diff != 0) return diff;
   }
   return 0;
@@ -44,4 +45,4 @@ bool EndsWithIgnoreCase(std::string_view text, std::string_view suffix) {
          EqualsIgnoreCase(text.substr(text.size() - suffix.size()), suffix);
 }
 
-}  // namespace absl
+}  // namespace MSF

@@ -12,4 +12,4 @@ uint32_t Crc32(uint8_t *chunk, size_t len) {
   else
     return checksum_sw(chunk, len);
 }
-}
+}  // namespace MSF

@@ -229,7 +229,7 @@ void msf_numa_tonode_memory(void *mem, size_t size, int node) {
   numa_tonode_memory(mem, size, node);
 }
 
-long long msf_numa_node_size(int node, long long *freep) {
+long long msf_numa_node_size(int node, long *freep) {
   return numa_node_size(node, freep);
 }
 
@@ -272,13 +272,12 @@ int64_t RamFree() {
   vm_statistics_data_t vmstat;
   mach_msg_type_number_t count = HOST_VM_INFO_COUNT;
   kern_return_t kernReturn =
-      host_statistics(host_port, HOST_VM_INFO, (host_info_t) & vmstat, &count);
+      host_statistics(host_port, HOST_VM_INFO, (host_info_t)&vmstat, &count);
   if (kernReturn != KERN_SUCCESS) return -1;
 
   [[maybe_unused]] int64_t used_mem =
-                       (vmstat.active_count + vmstat.inactive_count +
-                        vmstat.wire_count) *
-                       page_size;
+      (vmstat.active_count + vmstat.inactive_count + vmstat.wire_count) *
+      page_size;
   int64_t free_mem = vmstat.free_count * page_size;
   return free_mem;
 #elif defined(unix) || defined(__unix) || defined(__unix__)

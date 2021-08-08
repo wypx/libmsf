@@ -13,6 +13,7 @@
 #include "arch.h"
 
 #include <stdio.h>
+
 #include <mutex>
 
 #if defined(ARCH_X86_64)
@@ -30,19 +31,18 @@
 #endif
 
 #if defined(ARCH_PPC)
-#include <sys/auxv.h>
 #include <asm/cputable.h>
+#include <sys/auxv.h>
 #endif
 
 using namespace MSF;
 namespace MSF {
 
 static void ProbeArchitectureIntel(Architecture* arch) {
-
 #if defined(ARCH_X86_64) || defined(ARCH_I386)
 
-/* http://en.wikipedia.org/wiki/CPUID#EAX.3D1:_Processor_Info_and_Feature_Bits
- */
+  /* http://en.wikipedia.org/wiki/CPUID#EAX.3D1:_Processor_Info_and_Feature_Bits
+   */
 
 #define CPUID_PCLMUL (1 << 1)
 #define CPUID_SSE42 (1 << 20)
@@ -82,7 +82,6 @@ static void ProbeArchitectureIntel(Architecture* arch) {
 }
 
 static void ProbeArchitectureARM(Architecture* arch) {
-
 #if defined(OS_LINUX)
   unsigned long hwcap = ::getauxval(AT_HWCAP);
 #if defined(ARCH_ARM)
@@ -97,7 +96,6 @@ static void ProbeArchitectureARM(Architecture* arch) {
 }
 
 static void ProbeArchitecturePPC(Architecture* arch) {
-
 #if defined(ARCH_PPC)
 
 #ifndef PPC_FEATURE2_VEC_CRYPTO

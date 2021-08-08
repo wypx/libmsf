@@ -13,9 +13,9 @@
 #ifndef LIB_LOG_FILE_H_
 #define LIB_LOG_FILE_H_
 
-#include <string>
-#include <mutex>
 #include <memory>
+#include <mutex>
+#include <string>
 #include <vector>
 
 #include "file_utils.h"

@@ -24,8 +24,7 @@ class RefCountedObject : public T {
   RefCountedObject() {}
 
   template <class P0>
-  explicit RefCountedObject(P0&& p0)
-      : T(std::forward<P0>(p0)) {}
+  explicit RefCountedObject(P0&& p0) : T(std::forward<P0>(p0)) {}
 
   template <class P0, class P1, class... Args>
   RefCountedObject(P0&& p0, P1&& p1, Args&&... args)

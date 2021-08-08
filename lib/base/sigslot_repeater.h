@@ -51,6 +51,6 @@ template <typename... Args>
 using repeater =
     repeater_with_thread_policy<SIGSLOT_DEFAULT_MT_POLICY, Args...>;
 
-}  // namespace sigslot
+}  // namespace MSF
 
 #endif  // RTC_BASE_SIGSLOT_REPEATER_H__

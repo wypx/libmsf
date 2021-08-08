@@ -40,16 +40,18 @@ std::string StringUtils::ToLTrim(std::string_view str) {
 }
 
 std::string StringUtils::ToRTrim(std::string_view str) {
-  return std::string(
-      str.begin(), std::find_if(str.rbegin(), str.rend(),
-                                [](int c) { return !std::isspace(c); }).base());
+  return std::string(str.begin(),
+                     std::find_if(str.rbegin(), str.rend(), [](int c) {
+                       return !std::isspace(c);
+                     }).base());
 }
 
 std::string StringUtils::ToTrim(std::string_view str) {
   auto start = std::find_if(str.begin(), str.end(),
                             [](int c) { return !std::isspace(c); });
-  auto end = std::find_if(str.rbegin(), str.rend(),
-                          [](int c) { return !std::isspace(c); }).base();
+  auto end = std::find_if(str.rbegin(), str.rend(), [](int c) {
+               return !std::isspace(c);
+             }).base();
 
   return (start != str.end()) ? std::string(start, end) : std::string();
 }
@@ -62,7 +64,8 @@ std::string& StringUtils::LTrim(std::string& str) {
 
 std::string& StringUtils::RTrim(std::string& str) {
   str.erase(std::find_if(str.rbegin(), str.rend(),
-                         [](int c) { return !std::isspace(c); }).base(),
+                         [](int c) { return !std::isspace(c); })
+                .base(),
             str.end());
   return str;
 }
@@ -75,8 +78,8 @@ bool StringUtils::CompareNoCase(std::string_view str1, std::string_view str2) {
   if (str1.size() != str2.size()) return false;
   return std::equal(str1.cbegin(), str1.cend(), str2.cbegin(),
                     [](std::string::value_type l, std::string::value_type r) {
-    return std::tolower(l) == std::tolower(r);
-  });
+                      return std::tolower(l) == std::tolower(r);
+                    });
 }
 
 size_t StringUtils::CountAll(std::string_view str, std::string_view substr) {

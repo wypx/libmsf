@@ -13,17 +13,19 @@
 #ifndef LIB_LOG_STREAM_H_
 #define LIB_LOG_STREAM_H_
 
-#include <unistd.h>
+#include <assert.h>
+#include <pthread.h>
+#include <sched.h>
 #include <stdio.h>
 #include <string.h>
-#include <string>
+#include <unistd.h>
+
 #include <atomic>
+#include <string>
 #include <vector>
-#include <sched.h>
-#include <pthread.h>
-#include <assert.h>
-#include "utils.h"
+
 #include "noncopyable.h"
+#include "utils.h"
 
 namespace MSF {
 
@@ -165,7 +167,6 @@ class CircularBufferTemplate {
   }
 
   void setZero_(size_t origin_start, size_t len) {
-
     auto overflow_len = (origin_start + len - read_count) - capacity;
     if (len > overflow_len) {
       // 说明这一次write_count的分配是占用了实际长度的,否则直接减即可
@@ -348,7 +349,7 @@ class FmtMicroSeconds {
     pthread_once(
         &ponce_,
         &FmtMicroSeconds::
-             init);  //第一次调用会在init函数内部创建，pthread_once保证该函数只被调用一次！！！！
+            init);  //第一次调用会在init函数内部创建，pthread_once保证该函数只被调用一次！！！！
     append(microSeconds / 1000, microSeconds % 1000);
   }
 
@@ -397,7 +398,7 @@ class FmtMicroSeconds {
 };
 
 class Fmt  // : noncopyable
-    {
+{
  public:
   template <typename T>
   Fmt(const char* fmt, T val);

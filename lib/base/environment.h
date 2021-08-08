@@ -14,8 +14,9 @@
 #define BASE_ENV_H_
 
 #include <stdlib.h>
-#include <string>
+
 #include <memory>
+#include <string>
 
 namespace MSF {
 

@@ -84,9 +84,9 @@ class AtomicOps {
 #else
 #define CpuPause()
 #endif
-#elif(__amd64__ || __amd64)
+#elif (__amd64__ || __amd64)
 #define kSmpLock "lock;"
-#define MemoryBarrier() __asm__ volatile("" :: : "memory")
+#define MemoryBarrier() __asm__ volatile("" ::: "memory")
 #define CpuPause() __asm__("pause")
   //#define CpuPause() _mm_pause();
 
@@ -140,29 +140,29 @@ class AtomicOps {
     return add;
   }
 
-#elif(__i386__ || __i386) /* x86*/
+#elif (__i386__ || __i386) /* x86*/
 
   /*
-  * "cmpxchgl  r, [m]":
-  *
-  *     if (eax == [m]) {
-  *         zf = 1;
-  *         [m] = r;
-  *     } else {
-  *         zf = 0;
-  *         eax = [m];
-  *     }
-  *
-  *
-  * The "r" means the general register.
-  * The "=a" and "a" are the %eax register.
-  * Although we can return result in any register, we use "a" because it is
-  * used in cmpxchgl anyway.  The result is actually in %al but not in %eax,
-  * however, as the code is inlined gcc can test %al as well as %eax,
-  * and icc adds "movzbl %al, %eax" by itself.
-  *
-  * The "cc" means that flags were changed.
-  */
+   * "cmpxchgl  r, [m]":
+   *
+   *     if (eax == [m]) {
+   *         zf = 1;
+   *         [m] = r;
+   *     } else {
+   *         zf = 0;
+   *         eax = [m];
+   *     }
+   *
+   *
+   * The "r" means the general register.
+   * The "=a" and "a" are the %eax register.
+   * Although we can return result in any register, we use "a" because it is
+   * used in cmpxchgl anyway.  The result is actually in %al but not in %eax,
+   * however, as the code is inlined gcc can test %al as well as %eax,
+   * and icc adds "movzbl %al, %eax" by itself.
+   *
+   * The "cc" means that flags were changed.
+   */
 
   inline atomic_t AtomicCmpSet(atomic_t* lock, atomic_t old, atomic_t set) {
     uint8_t res;
@@ -175,28 +175,28 @@ class AtomicOps {
     return res;
   }
 
-/*
-* "xaddl  r, [m]":
-*
-*     temp = [m];
-*     [m] += r;
-*     r = temp;
-*
-*
-* The "+r" means the general register.
-* The "cc" means that flags were changed.
-*/
+  /*
+   * "xaddl  r, [m]":
+   *
+   *     temp = [m];
+   *     [m] += r;
+   *     r = temp;
+   *
+   *
+   * The "+r" means the general register.
+   * The "cc" means that flags were changed.
+   */
 
 #if !((__GNUC__ == 2 && __GNUC_MINOR__ <= 7) || (__INTEL_COMPILER >= 800))
 
   /*
-  * icc 8.1 and 9.0 compile broken code with -march=pentium4 option:
-  * ngx_atomic_fetch_add() always return the input "add" value,
-  * so we use the gcc 2.7 version.
-  *
-  * icc 8.1 and 9.0 with -march=pentiumpro option or icc 7.1 compile
-  * correct code.
-  */
+   * icc 8.1 and 9.0 compile broken code with -march=pentium4 option:
+   * ngx_atomic_fetch_add() always return the input "add" value,
+   * so we use the gcc 2.7 version.
+   *
+   * icc 8.1 and 9.0 with -march=pentiumpro option or icc 7.1 compile
+   * correct code.
+   */
 
   inline atomic_t AtomicFetchAdd(atomic_t* value, atomic_t add) {
     __asm__ volatile(kSmpLock "    xaddl  %0, %1;   "
@@ -210,10 +210,10 @@ class AtomicOps {
 #else
 
   /*
-  * gcc 2.7 does not support "+r", so we have to use the fixed
-  * %eax ("=a" and "a") and this adds two superfluous instructions in the end
-  * of code, something like this: "mov %eax, %edx / mov %edx, %eax".
-  */
+   * gcc 2.7 does not support "+r", so we have to use the fixed
+   * %eax ("=a" and "a") and this adds two superfluous instructions in the end
+   * of code, something like this: "mov %eax, %edx / mov %edx, %eax".
+   */
 
   inline atomic_t AtomicFetchAdd(atomic_t* value, atomic_t add) {
     atomic_t old;
@@ -228,12 +228,12 @@ class AtomicOps {
 
 #endif
 
-/*
-* on x86 the write operations go in a program order, so we need only
-* to disable the gcc reorder optimizations
-*/
+  /*
+   * on x86 the write operations go in a program order, so we need only
+   * to disable the gcc reorder optimizations
+   */
 
-#define MemoryBarrier() __asm__ volatile("" :: : "memory")
+#define MemoryBarrier() __asm__ volatile("" ::: "memory")
 /* old "as" does not support "pause" opcode */
 #define CpuPause() __asm__(".byte 0xf3, 0x90")
 

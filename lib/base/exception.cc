@@ -21,7 +21,7 @@ std::string strerror(int e) {
   ::FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
                        FORMAT_MESSAGE_IGNORE_INSERTS,
                    nullptr, e, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-                   (LPSTR) & buf, 0, nullptr);
+                   (LPSTR)&buf, 0, nullptr);
 
   if (buf) {
     std::string s = (char*)buf;

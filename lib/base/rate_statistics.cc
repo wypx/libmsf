@@ -10,11 +10,12 @@
 
 #include "rate_statistics.h"
 
+#include <base/logging.h>
+
 #include <algorithm>
+#include <cassert>
 #include <limits>
 #include <memory>
-#include <cassert>
-#include <base/logging.h>
 
 namespace MSF {
 
@@ -62,8 +63,9 @@ void RateStatistics::Update(int64_t count, int64_t now_ms) {
 
   if (buckets_.empty() || now_ms != buckets_.back().timestamp) {
     if (!buckets_.empty() && now_ms < buckets_.back().timestamp) {
-      LOG(WARNING) << "Timestamp " << now_ms << " is before the last added "
-                                                "timestamp in the rate window: "
+      LOG(WARNING) << "Timestamp " << now_ms
+                   << " is before the last added "
+                      "timestamp in the rate window: "
                    << buckets_.back().timestamp << ", aligning to that.";
       now_ms = buckets_.back().timestamp;
     }

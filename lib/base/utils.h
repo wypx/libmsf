@@ -13,6 +13,7 @@
 #ifndef BASE_UTILS_H_
 #define BASE_UTILS_H_
 
+#include <stdint.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
@@ -28,7 +29,6 @@
 #include <ctime>
 #include <string>
 #include <vector>
-#include <stdint.h>
 
 namespace MSF {
 

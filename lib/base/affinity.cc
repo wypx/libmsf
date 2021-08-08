@@ -16,8 +16,11 @@
 #include <unistd.h>
 
 #include <algorithm>
+#include <bitset>
+#include <thread>
 
 #include "os.h"
+#include "affinity.h"
 
 using namespace MSF;
 
@@ -91,30 +94,28 @@ void SetAffinity(const std::bitset<64> &affinity) {
 #endif
 }
 
-void SetAffinity(std::thread &thread, const std::bitset<64> &affinity)
+void SetAffinity(std::thread &thread, const std::bitset<64> &affinity) {
 #if defined(__APPLE__)
-    LOG(ERROR)
-    << "Apple platform does not allow to set the given thread CPU affinity!";
+  LOG(ERROR)
+      << "Apple platform does not allow to set the given thread CPU affinity!";
 #elif defined(__CYGWIN__)
-                        LOG(ERROR)
-                        << "Cygwin platform does not allow to set the given "
-                           "thread CPU affinity!";
+  LOG(ERROR) << "Cygwin platform does not allow to set the given "
+                "thread CPU affinity!";
 #elif defined(unix) || defined(__unix) || defined(__unix__)
-                                        cpu_set_t cpuset;
-CPU_ZERO(&cpuset);
-for (int i = 0; i < std::min(CPU_SETSIZE, 64); ++i)
-  if (affinity[i]) CPU_SET(i, &cpuset);
-int result = ::pthread_setaffinity_np(thread.native_handle(), sizeof(cpu_set_t),
-                                      &cpuset);
-if (result != 0) LOG(ERROR) << "Failed to set the given thread CPU affinity!";
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+  for (int i = 0; i < std::min(CPU_SETSIZE, 64); ++i)
+    if (affinity[i]) CPU_SET(i, &cpuset);
+  int result = ::pthread_setaffinity_np(thread.native_handle(),
+                                        sizeof(cpu_set_t), &cpuset);
+  if (result != 0) LOG(ERROR) << "Failed to set the given thread CPU affinity!";
 #elif defined(_WIN32) || defined(_WIN64)
-                                        DWORD_PTR dwThreadAffinityMask =
-                                            (DWORD_PTR)affinity.to_ullong();
-if (!SetThreadAffinityMask((HANDLE)thread.native_handle(),
-                           dwThreadAffinityMask))
-  LOG(ERROR) << "Failed to set the given thread CPU affinity!";
+  DWORD_PTR dwThreadAffinityMask = (DWORD_PTR)affinity.to_ullong();
+  if (!SetThreadAffinityMask((HANDLE)thread.native_handle(),
+                             dwThreadAffinityMask))
+    LOG(ERROR) << "Failed to set the given thread CPU affinity!";
 #endif
-}
+}  // namespace MSF
 
 std::bitset<64> GetAffinity() {
 #if defined(__APPLE__) || defined(__CYGWIN__)
@@ -150,8 +151,8 @@ std::bitset<64> GetAffinity() {
   static NTSTATUS(__stdcall * NtQueryInformationThread)(
       IN HANDLE ThreadHandle, IN THREADINFOCLASS ThreadInformationClass,
       OUT PVOID ThreadInformation, IN ULONG ThreadInformationLength,
-      OUT PULONG ReturnLength) =
-      (NTSTATUS(__stdcall *)(HANDLE, THREADINFOCLASS, PVOID, ULONG, PULONG))
+      OUT PULONG ReturnLength) = (NTSTATUS(__stdcall *)(HANDLE, THREADINFOCLASS,
+                                                        PVOID, ULONG, PULONG))
       GetProcAddress(GetModuleHandle("ntdll.dll"), "NtQueryInformationThread");
 
   if (NtQueryInformationThread != nullptr) {
@@ -204,8 +205,8 @@ std::bitset<64> GetAffinity(std::thread &thread) {
   static NTSTATUS(__stdcall * NtQueryInformationThread)(
       IN HANDLE ThreadHandle, IN THREADINFOCLASS ThreadInformationClass,
       OUT PVOID ThreadInformation, IN ULONG ThreadInformationLength,
-      OUT PULONG ReturnLength) =
-      (NTSTATUS(__stdcall *)(HANDLE, THREADINFOCLASS, PVOID, ULONG, PULONG))
+      OUT PULONG ReturnLength) = (NTSTATUS(__stdcall *)(HANDLE, THREADINFOCLASS,
+                                                        PVOID, ULONG, PULONG))
       GetProcAddress(GetModuleHandle("ntdll.dll"), "NtQueryInformationThread");
 
   if (NtQueryInformationThread != nullptr) {
@@ -252,7 +253,7 @@ int process_pin_to_cpu(uint32_t cpu_id) {
   return rc;
 }
 
-#elif(MSF_HAVE_SCHED_SETAFFINITY)
+#elif (MSF_HAVE_SCHED_SETAFFINITY)
 
 int process_pin_to_cpu(uint32_t cpu_id) {
   s32 rc = -1;
@@ -319,7 +320,7 @@ void set_cpu_affinity(uint16_t cpu_id) {
   thread_port_t mach_thread = pthread_mach_thread_np(pthread_self());
 
   thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY,
-                    (thread_policy_t) & policy, 1);
+                    (thread_policy_t)&policy, 1);
 #else
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);

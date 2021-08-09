@@ -255,7 +255,7 @@ int main(int argc, char *argv[]) {
 
   EventLoop loop;
 
-  InetAddress addr("139.162.88.87", 9999, AF_INET, SOCK_STREAM);
+  InetAddress addr("0.0.0.0", 9999, AF_INET, SOCK_STREAM);
   FastRpcServer *server = new FastRpcServer(&loop, addr);
 
   EchoServiceImpl echo_impl(1);

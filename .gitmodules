@@ -1,24 +1,6 @@
 [submodule "app/mobile"]
 	path = app/mobile
 	url = https://github.com/wypx/mobile
-[submodule "thirdparty/numactl"]
-	path = thirdparty/numactl
-	url = https://github.com/numactl/numactl.git
-[submodule "thirdparty/dpdk"]
-	path = thirdparty/dpdk
-	url = https://github.com/DPDK/dpdk.git
-[submodule "thirdparty/spdk"]
-	path = thirdparty/spdk
-	url = https://github.com/spdk/spdk.git
-[submodule "thirdparty/mongo-cxx-driver"]
-	path = thirdparty/mongo-cxx-driver
-	url = https://github.com/mongodb/mongo-cxx-driver.git
-[submodule "thirdparty/mongo-c-driver"]
-	path = thirdparty/mongo-c-driver
-	url = https://github.com/mongodb/mongo-c-driver
-[submodule "thirdparty/libaio"]
-	path = thirdparty/libaio
-	url = https://github.com/leitao/libaio.git
 [submodule "thirdparty/baidu/incubator-brpc"]
 	path = thirdparty/baidu/incubator-brpc
 	url = https://github.com/wypx/incubator-brpc.git
@@ -37,15 +19,6 @@
 [submodule "thirdparty/libvma"]
 	path = thirdparty/libvma
 	url = https://github.com/Mellanox/libvma.git
-[submodule "thirdparty/qemu"]
-	path = thirdparty/qemu
-	url = https://github.com/qemu/qemu.git
-[submodule "thirdparty/vpp"]
-	path = thirdparty/vpp
-	url = https://github.com/FDio/vpp.git
-[submodule "thirdparty/seastar"]
-	path = thirdparty/seastar
-	url = https://github.com/scylladb/seastar.git
 [submodule "thirdparty/watchdog"]
 	path = thirdparty/watchdog
 	url = https://github.com/ivanvanderbyl/watchdog
@@ -61,11 +34,6 @@
 [submodule "thirdparty/bootstrap-dht"]
 	path = thirdparty/bootstrap-dht
 	url = https://github.com/bittorrent/bootstrap-dht.git
-[submodule "thirdparty/liburing"]
-	path = thirdparty/liburing
-	url = https://github.com/axboe/liburing.git
-[submodule "thirdparty/baidu/bfs"]
-	path = thirdparty/baidu/bfs
 	url = https://github.com/baidu/bfs.git
 [submodule "thirdparty/baidu/brpc_source_code_analysis"]
 	path = thirdparty/baidu/brpc_source_code_analysis
@@ -271,3 +239,6 @@
 [submodule "thirdparty/storage/curve"]
 	path = thirdparty/storage/curve
 	url = https://github.com/opencurve/curve.git
+[submodule "thirdparty/storage/mongo-cxx-driver"]
+	path = thirdparty/storage/mongo-cxx-driver
+	url = https://github.com/mongodb/mongo-cxx-driver.git

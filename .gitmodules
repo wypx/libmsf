@@ -73,3 +73,201 @@
 [submodule "thirdparty/baidu/leveldb_source_code_analysis"]
 	path = thirdparty/baidu/leveldb_source_code_analysis
 	url = https://github.com/ronaldo8210/leveldb_source_code_analysis.git
+[submodule "thirdparty/storage/Dragonfly"]
+	path = thirdparty/storage/Dragonfly
+	url = https://github.com/alibaba/Dragonfly
+[submodule "thirdparty/storage/ClickHouse"]
+	path = thirdparty/storage/ClickHouse
+	url = https://github.com/ClickHouse/ClickHouse.git
+[submodule "thirdparty/storage/wiredtiger"]
+	path = thirdparty/storage/wiredtiger
+	url = https://github.com/wiredtiger/wiredtiger.git
+[submodule "thirdparty/storage/tfs"]
+	path = thirdparty/storage/tfs
+	url = https://github.com/alibaba/tfs.git
+[submodule "thirdparty/storage/strata"]
+	path = thirdparty/storage/strata
+	url = https://github.com/ut-osa/strata.git
+[submodule "thirdparty/storage/spdk-append-demo"]
+	path = thirdparty/storage/spdk-append-demo
+	url = https://github.com/xiaq1/spdk-append-demo.git
+[submodule "thirdparty/storage/spdk"]
+	path = thirdparty/storage/spdk
+	url = https://github.com/spdk/spdk.git
+[submodule "thirdparty/storage/raft-zh_cn"]
+	path = thirdparty/storage/raft-zh_cn
+	url = https://github.com/maemual/raft-zh_cn.git
+[submodule "thirdparty/storage/qfs"]
+	path = thirdparty/storage/qfs
+	url = https://github.com/quantcast/qfs.git
+[submodule "thirdparty/storage/qemu"]
+	path = thirdparty/storage/qemu
+	url = https://github.com/qemu/qemu.git
+[submodule "thirdparty/storage/openafs"]
+	path = thirdparty/storage/openafs
+	url = https://github.com/openafs/openafs.git
+[submodule "thirdparty/storage/openGauss-server"]
+	path = thirdparty/storage/openGauss-server
+	url = https://github.com/opengauss-mirror/openGauss-server.git
+[submodule "thirdparty/storage/Gopherwood"]
+	path = thirdparty/storage/Gopherwood
+	url = https://github.com/HashDataInc/Gopherwood.git
+[submodule "thirdparty/storage/azure-storage-fuse"]
+	path = thirdparty/storage/azure-storage-fuse
+	url = https://github.com/Azure/azure-storage-fuse.git
+[submodule "thirdparty/storage/elliptics"]
+	path = thirdparty/storage/elliptics
+	url = https://github.com/reverbrain/elliptics.git
+[submodule "thirdparty/storage/s3fs-cryptopp-fuse-s3"]
+	path = thirdparty/storage/s3fs-cryptopp-fuse-s3
+	url = https://github.com/jonnynabors/s3fs-cryptopp-fuse-s3.git
+[submodule "thirdparty/storage/volumedriver"]
+	path = thirdparty/storage/volumedriver
+	url = https://github.com/openvstorage/volumedriver.git
+[submodule "thirdparty/storage/nebula-storage"]
+	path = thirdparty/storage/nebula-storage
+	url = https://github.com/vesoft-inc/nebula-storage.git
+[submodule "thirdparty/storage/nebula"]
+	path = thirdparty/storage/nebula
+	url = https://github.com/vesoft-inc/nebula.git
+[submodule "thirdparty/storage/nbd"]
+	path = thirdparty/storage/nbd
+	url = https://github.com/NetworkBlockDevice/nbd.git
+[submodule "thirdparty/storage/nbdkit"]
+	path = thirdparty/storage/nbdkit
+	url = https://github.com/libguestfs/nbdkit.git
+[submodule "thirdparty/storage/libguestfs"]
+	path = thirdparty/storage/libguestfs
+	url = https://github.com/libguestfs/libguestfs.git
+[submodule "thirdparty/storage/moosefs"]
+	path = thirdparty/storage/moosefs
+	url = https://github.com/moosefs/moosefs.git
+[submodule "thirdparty/storage/lizardfs"]
+	path = thirdparty/storage/lizardfs
+	url = https://gitee.com/mirrors/lizardfs.git
+[submodule "thirdparty/storage/libaio"]
+	path = thirdparty/storage/libaio
+	url = https://github.com/leitao/libaio.git
+[submodule "thirdparty/storage/kfs"]
+	path = thirdparty/storage/kfs
+	url = https://github.com/brinkqiang/kfs.git
+[submodule "thirdparty/storage/hypertable"]
+	path = thirdparty/storage/hypertable
+	url = https://github.com/vicaya/hypertable.git
+[submodule "thirdparty/storage/clickhouse-cpp"]
+	path = thirdparty/storage/clickhouse-cpp
+	url = https://github.com/ClickHouse/clickhouse-cpp.git
+[submodule "thirdparty/storage/ceph"]
+	path = thirdparty/storage/ceph
+	url = https://github.com/ceph/ceph.git
+[submodule "thirdparty/storage/aio_performance"]
+	path = thirdparty/storage/aio_performance
+	url = https://github.com/xuke-coder/aio_performance.git
+[submodule "thirdparty/storage/Opendfs"]
+	path = thirdparty/storage/Opendfs
+	url = https://github.com/liaosanity/Opendfs.git
+[submodule "thirdparty/storage/KVRocks"]
+	path = thirdparty/storage/KVRocks
+	url = https://github.com/OpenMPDK/KVRocks.git
+[submodule "thirdparty/storage/JuiceFS"]
+	path = thirdparty/storage/JuiceFS
+	url = https://gitee.com/juicedata/JuiceFS
+[submodule "thirdparty/storage/FastCFS/FastCFS"]
+	path = thirdparty/storage/FastCFS/FastCFS
+	url = https://github.com/happyfish100/FastCFS
+[submodule "thirdparty/storage/FastCFS/fastDIR"]
+	path = thirdparty/storage/FastCFS/fastDIR
+	url = https://github.com/happyfish100/fastDIR
+[submodule "thirdparty/storage/FastCFS/fastdfs"]
+	path = thirdparty/storage/FastCFS/fastdfs
+	url = https://github.com/happyfish100/fastdfs.git
+[submodule "thirdparty/storage/FastCFS/fastdht"]
+	path = thirdparty/storage/FastCFS/fastdht
+	url = https://github.com/happyfish100/fastdht.git
+[submodule "thirdparty/storage/FastCFS/faststore"]
+	path = thirdparty/storage/FastCFS/faststore
+	url = https://github.com/happyfish100/faststore
+[submodule "thirdparty/storage/FastCFS/libfastcommon"]
+	path = thirdparty/storage/FastCFS/libfastcommon
+	url = https://github.com/happyfish100/libfastcommon
+[submodule "thirdparty/storage/FastCFS/libserverframe"]
+	path = thirdparty/storage/FastCFS/libserverframe
+	url = https://github.com/happyfish100/libserverframe
+[submodule "thirdparty/storage/FastCFS/libshmcache"]
+	path = thirdparty/storage/FastCFS/libshmcache
+	url = https://github.com/happyfish100/libshmcache.git
+[submodule "thirdparty/storage/FastCFS/watchd"]
+	path = thirdparty/storage/FastCFS/watchd
+	url = https://github.com/happyfish100/watchd.git
+[submodule "thirdparty/storage/vpp"]
+	path = thirdparty/storage/vpp
+	url = https://github.com/FDio/vpp.git
+[submodule "thirdparty/storage/seastar"]
+	path = thirdparty/storage/seastar
+	url = https://github.com/scylladb/seastar.git
+[submodule "thirdparty/storage/numactl"]
+	path = thirdparty/storage/numactl
+	url = https://github.com/numactl/numactl.git
+[submodule "thirdparty/storage/odp"]
+	path = thirdparty/storage/odp
+	url = https://github.com/OpenDataPlane/odp.git
+[submodule "thirdparty/storage/odp-dpdk"]
+	path = thirdparty/storage/odp-dpdk
+	url = https://github.com/OpenDataPlane/odp-dpdk.git
+[submodule "thirdparty/storage/open-iscsi"]
+	path = thirdparty/storage/open-iscsi
+	url = https://github.com/open-iscsi/open-iscsi.git
+[submodule "thirdparty/storage/tgt"]
+	path = thirdparty/storage/tgt
+	url = https://github.com/openvstorage/tgt.git
+[submodule "thirdparty/storage/libiscsi"]
+	path = thirdparty/storage/libiscsi
+	url = https://github.com/sahlberg/libiscsi.git
+[submodule "thirdparty/storage/openebs/istgt"]
+	path = thirdparty/storage/openebs/istgt
+	url = https://github.com/openebs/istgt.git
+[submodule "thirdparty/storage/openebs/mayastor"]
+	path = thirdparty/storage/openebs/mayastor
+	url = https://github.com/openebs/mayastor.git
+[submodule "thirdparty/storage/openebs/zfs-localpv"]
+	path = thirdparty/storage/openebs/zfs-localpv
+	url = https://github.com/openebs/zfs-localpv.git
+[submodule "thirdparty/storage/openebs/lvm-localpv"]
+	path = thirdparty/storage/openebs/lvm-localpv
+	url = https://github.com/openebs/lvm-localpv.git
+[submodule "thirdparty/storage/openebs/libcstor"]
+	path = thirdparty/storage/openebs/libcstor
+	url = https://github.com/openebs/libcstor.git
+[submodule "thirdparty/storage/openebs/cstor"]
+	path = thirdparty/storage/openebs/cstor
+	url = https://github.com/openebs/cstor.git
+[submodule "thirdparty/storage/openebs/opensea-transport"]
+	path = thirdparty/storage/openebs/opensea-transport
+	url = https://github.com/openebs/opensea-transport.git
+[submodule "thirdparty/storage/openebs/openSeaChest"]
+	path = thirdparty/storage/openebs/openSeaChest
+	url = https://github.com/openebs/openSeaChest.git
+[submodule "thirdparty/storage/openebs/dbench"]
+	path = thirdparty/storage/openebs/dbench
+	url = https://github.com/openebs/dbench.git
+[submodule "thirdparty/storage/openebs/opensea-operations"]
+	path = thirdparty/storage/openebs/opensea-operations
+	url = https://github.com/openebs/opensea-operations.git
+[submodule "thirdparty/storage/openebs/vhost-user"]
+	path = thirdparty/storage/openebs/vhost-user
+	url = https://github.com/openebs/vhost-user.git
+[submodule "thirdparty/storage/mongo"]
+	path = thirdparty/storage/mongo
+	url = https://github.com/mongodb/mongo.git
+[submodule "thirdparty/storage/target-isns"]
+	path = thirdparty/storage/target-isns
+	url = https://github.com/open-iscsi/target-isns.git
+[submodule "thirdparty/storage/mongo-c-driver"]
+	path = thirdparty/storage/mongo-c-driver
+	url = https://github.com/mongodb/mongo-c-driver.git
+[submodule "thirdparty/storage/liburing"]
+	path = thirdparty/storage/liburing
+	url = https://github.com/axboe/liburing.git
+[submodule "thirdparty/storage/curve"]
+	path = thirdparty/storage/curve
+	url = https://github.com/opencurve/curve.git

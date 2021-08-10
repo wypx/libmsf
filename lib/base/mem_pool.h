@@ -101,7 +101,6 @@ struct MemSlab {
   uint32_t padding_;
   uint32_t used_blk_nr_;
   std::list<MemBlk> free_blk_list_;
-  ;
   std::list<MemBlk> used_blk_list_;
   uint32_t flags_;
 
@@ -128,7 +127,7 @@ struct MemSlab {
     if (free_blk_list_.empty()) {
       return nullptr;
     }
-    auto &blk = free_blk_list_.front();
+    auto blk = free_blk_list_.front();
     free_blk_list_.pop_front();
     return blk.buffer();
   }

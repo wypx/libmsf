@@ -10,9 +10,10 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include <snappy.h>
-#include <snappy-sinksource.h>
 #include "frpc_compress_snappy.h"
+
+#include <snappy-sinksource.h>
+#include <snappy.h>
 
 #if 0
 

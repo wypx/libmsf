@@ -13,9 +13,9 @@
 #ifndef FRPC_HANDLE_H_
 #define FRPC_HANDLE_H_
 
+#include <functional>
 #include <mutex>
 #include <unordered_map>
-#include <functional>
 
 #include "frpc.pb.h"
 
@@ -60,14 +60,13 @@ class FastRpcHandleFactory {
   mutable std::mutex mutex_;
   std::unordered_map<uint32_t, FastRpcHandleCreateCb> handle_creators_;
 };
-}
+}  // namespace MSF
 
 #if 1
-#define FRPC_HANDLE_FACTORY_IMPLEMENT(ClassName, type)                        \
-  static ClassName* ClassName##CreateMySelf() { return new ClassName(); }     \
-  static bool                                                                 \
-      __attribute__((unused)) FastRpcHandleFactory::Instance()->RegistHandle( \
-          type, ClassName##CreateMySelf);
+#define FRPC_HANDLE_FACTORY_IMPLEMENT(ClassName, type)                    \
+  static ClassName* ClassName##CreateMySelf() { return new ClassName(); } \
+  static bool __attribute__((unused)) FastRpcHandleFactory::Instance()    \
+      ->RegistHandle(type, ClassName##CreateMySelf);
 
 #define FRPC_HANDLE_FACTORY_MEMBER(ClassName)                        \
   ClassName();                                                       \

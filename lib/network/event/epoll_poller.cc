@@ -106,7 +106,7 @@ bool EPollPoller::AddEvent(const Event* ev) {
       }
     }
   }
-  LOG(TRACE) << "epoll Add"
+  LOG(TRACE) << "epoll add"
              << " on " << ev->fd() << " succeeded.";
   poll_events_.resize(poll_events_.size() + 1);
   return true;

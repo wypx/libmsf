@@ -73,4 +73,4 @@ FastRpcHandle* FastRpcHandleFactory::NewHandle(const uint32_t type,
 // };
 
 // FRPC_HANDLE_FACTORY_IMPLEMENT(FastRpcEchoRequest, 1);
-}
+}  // namespace MSF

@@ -14,11 +14,12 @@
 #define FRPC_CONTROLLER_H_
 
 #include <google/protobuf/service.h>
-#include <iostream>
-#include <string>
+
 #include <functional>
+#include <iostream>
 #include <mutex>
 #include <set>
+#include <string>
 
 #include "frpc.pb.h"
 
@@ -183,6 +184,6 @@ class FastRpcController : public google::protobuf::RpcController {
   friend class FastRpcUtil;
   friend class FastRpcServer;
 };
-}
+}  // namespace MSF
 
 #endif

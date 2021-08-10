@@ -16,14 +16,13 @@
 // https://github.com/xiongfengOrz/MiniRPC
 // https://github.com/LiveMirror/nominate-gitee-feimat-fastrpc
 
-#include <unordered_map>
-#include <list>
-
-#include <google/protobuf/service.h>
 #include <google/protobuf/message.h>
-
+#include <google/protobuf/service.h>
 #include <network/sock/tcp_server.h>
 #include <network/sock/udp_server.h>
+
+#include <list>
+#include <unordered_map>
 
 #include "frpc_handle.h"
 
@@ -82,12 +81,8 @@ class FastRpcMethod : public noncopyable {
   ~FastRpcMethod() = default;
   google::protobuf::Service* service() { return service_; }
   const google::protobuf::MethodDescriptor* method() { return method_; }
-  const google::protobuf::Message* request() {
-    return request_;
-  };
-  const google::protobuf::Message* response() {
-    return response_;
-  };
+  const google::protobuf::Message* request() { return request_; };
+  const google::protobuf::Message* response() { return response_; };
 
  private:
   google::protobuf::Service* service_;
@@ -149,5 +144,5 @@ class FastRpcServer : public noncopyable {
   std::set<FastRpcRequestPtr> pending_request_;
   std::unique_ptr<FastServer> server_;
 };
-}
+}  // namespace MSF
 #endif

@@ -13,11 +13,12 @@
 #ifndef FRPC_MESSAGE_H_
 #define FRPC_MESSAGE_H_
 
-#include <google/protobuf/service.h>
-#include <google/protobuf/message.h>
 #include <google/protobuf/descriptor.h>
-#include <string>
+#include <google/protobuf/message.h>
+#include <google/protobuf/service.h>
+
 #include <iostream>
+#include <string>
 
 #include "frpc.pb.h"
 
@@ -45,5 +46,5 @@ class FastRPCMessage {
     return msg;
   }
 };
-}
+}  // namespace MSF
 #endif

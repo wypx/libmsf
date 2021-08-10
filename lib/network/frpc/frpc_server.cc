@@ -10,17 +10,18 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include "frpc_controller.h"
 #include "frpc_server.h"
-#include "frpc_message.h"
-#include "frpc_channel.h"
+
+#include <base/gcc_attr.h>
+#include <base/logging.h>
+#include <base/utils.h>
+#include <network/event/event_loop.h>
 
 #include <sstream>
 
-#include <base/logging.h>
-#include <base/utils.h>
-#include <base/gcc_attr.h>
-#include <network/event/event_loop.h>
+#include "frpc_channel.h"
+#include "frpc_controller.h"
+#include "frpc_message.h"
 
 namespace MSF {
 
@@ -134,9 +135,13 @@ void FastRpcServer::HandleFrpcMessage(const ConnectionPtr& conn) {
         break;
       }
 
-      case frpc::FRPC_MESSAGE_RESPONSE: { break; }
+      case frpc::FRPC_MESSAGE_RESPONSE: {
+        break;
+      }
 
-      case frpc::FRPC_MESSAGE_CANCEL: { break; }
+      case frpc::FRPC_MESSAGE_CANCEL: {
+        break;
+      }
 
       default:
         break;
@@ -225,4 +230,4 @@ void FastRpcServer::SendResponse(FastRpcRequestPtr msg) {
 
   pending_request_.erase(msg);
 }
-}  // end name space MSF
+}  // namespace MSF

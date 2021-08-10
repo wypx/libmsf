@@ -45,5 +45,5 @@ class WriteBuffer : public google::protobuf::io::ZeroCopyOutputStream {
   void BackUp(int count);
   int64_t ByteCount() const;
 };
-}
+}  // namespace MSF
 #endif

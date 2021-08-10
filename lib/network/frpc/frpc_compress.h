@@ -14,6 +14,7 @@
 #define FRPC_COMPRESS_H_
 
 #include <base/buffer.h>
+
 #include "frpc.pb.h"
 
 namespace MSF {
@@ -201,6 +202,6 @@ inline void RPCCompressor::clear() {
   }
 }
 
-}  // namespace srpc
+}  // namespace MSF
 
 #endif

@@ -10,10 +10,13 @@
  * and/or fitness for purpose.
  *
  **************************************************************************/
-#include "frpc_message.h"
 #include "frpc_controller.h"
+
 #include <base/utils.h>
+
 #include <sstream>
+
+#include "frpc_message.h"
 
 namespace MSF {
 
@@ -47,8 +50,8 @@ void FastRpcController::StartCancel() {
 }
 
 /**
-  * Server side method
-  */
+ * Server side method
+ */
 void FastRpcController::SetFailed(const std::string& reason) {
   failed_ = true;
   failed_reason_ = reason;
@@ -82,4 +85,4 @@ void FastRpcController::complete() {
     (*iter)->Run();
   }
 }
-}
+}  // namespace MSF

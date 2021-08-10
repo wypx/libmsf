@@ -55,6 +55,6 @@ class SnappyManager {
   static int SnappyLeaseSize(size_t origin_size);
 };
 
-}  // end namespace srpc
+}  // namespace MSF
 
 #endif

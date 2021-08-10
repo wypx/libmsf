@@ -60,5 +60,5 @@ struct RpcChannelOptions {
   RpcChannelOptions()
       : connect_timeout(10), server_load_capacity(0), create_with_init(true) {}
 };
-}
+}  // namespace MSF
 #endif

@@ -89,9 +89,9 @@ inline bool RPCInputStream::Skip(int count) {
 inline void RPCInputStream::BackUp(int count) { this->buf->seek(0 - count); }
 
 inline int64_t RPCInputStream::ByteCount() const {
-  return (int64_t) this->buf->size();
+  return (int64_t)this->buf->size();
 }
 
-}  // namespace srpc
+}  // namespace MSF
 
 #endif

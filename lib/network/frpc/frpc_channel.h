@@ -13,17 +13,18 @@
 #ifndef FRPC_CHANNEL_H_
 #define FRPC_CHANNEL_H_
 
-#include <string>
-#include <mutex>
-#include <list>
-#include <iostream>
-#include <sstream>
-#include <condition_variable>
 #include <google/protobuf/service.h>
 
-#include "noncopyable.h"
+#include <condition_variable>
+#include <iostream>
+#include <list>
+#include <mutex>
+#include <sstream>
+#include <string>
+
 #include "connector.h"
 #include "frpc_handle.h"
+#include "noncopyable.h"
 
 using namespace MSF;
 
@@ -117,5 +118,5 @@ class FastRpcChannel : public google::protobuf::RpcChannel, public noncopyable {
 };
 
 typedef std::shared_ptr<FastRpcChannel> FastRpcChannelPtr;
-}
+}  // namespace MSF
 #endif

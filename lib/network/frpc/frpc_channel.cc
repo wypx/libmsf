@@ -11,13 +11,15 @@
  *
  **************************************************************************/
 #include "frpc_channel.h"
-#include <network/event/event_loop.h>
-#include <base/utils.h>
+
 #include <base/gcc_attr.h>
 #include <base/logging.h>
-#include "frpc_message.h"
-#include "frpc_controller.h"
+#include <base/utils.h>
+#include <network/event/event_loop.h>
+
 #include "frpc.pb.h"
+#include "frpc_controller.h"
+#include "frpc_message.h"
 namespace MSF {
 
 FastRpcChannel::FastRpcChannel(EventLoop* loop, const InetAddress& addr,
@@ -52,7 +54,6 @@ void FastRpcChannel::CallMethod(
     google::protobuf::RpcController* controller,
     const google::protobuf::Message* request,
     google::protobuf::Message* response, google::protobuf::Closure* done) {
-
   // each call will allocate a unique call_id for parallel processing reason
   std::string uuid = NewUuid();
   uint32_t call_id = std::hash<std::string>()(uuid);
@@ -74,49 +75,49 @@ void FastRpcChannel::CallMethod(
   // Write uint32 to desc FastMessage length
 
   // serialize the message
-  frpc::FastMessage frpc;
-  frpc.set_version(123);
-  frpc.set_magic(456);
-  frpc.set_type(frpc::FRPC_MESSAGE_REQUEST);
-  frpc.set_length(request->ByteSizeLong());
-  frpc.set_call_id(call_id);
-  // frpc.set_service(request->GetDescriptor()->full_name());
-  // frpc.set_method(method->full_name());
-  frpc.set_opcode(std::hash<std::string>()(method->full_name()));
+  frpc::FastMessage inner_message;
+  inner_message.set_version(123);
+  inner_message.set_magic(456);
+  inner_message.set_type(frpc::FRPC_MESSAGE_REQUEST);
+  inner_message.set_length(request->ByteSizeLong());
+  inner_message.set_call_id(call_id);
+  inner_message.set_opcode(std::hash<std::string>()(method->full_name()));
 
-  LOG(INFO) << "send message " << frpc.ByteSizeLong() << " " << frpc.length();
+  LOG(INFO) << "frpc message " << inner_message.ByteSizeLong();
 
-  LOG(INFO) << frpc.DebugString();
+  LOG(INFO) << inner_message.DebugString();
   LOG(INFO) << request->DebugString();
 
-  loop_->RunInLoop([this, frpc, request] {
+  loop_->RunInLoop([this, inner_message, request] {
     if (!ctor_) {
       Connect();
     }
 
-    uint32_t frpc_len = frpc.ByteSizeLong();
+    uint32_t frpc_len = inner_message.ByteSizeLong();
 
-    char* buffer = static_cast<char*>(
-        ctor_->conn()->Malloc(sizeof(uint32_t) + frpc_len + frpc.length(), 64));
+    char* buffer = static_cast<char*>(ctor_->conn()->Malloc(
+        sizeof(uint32_t) + frpc_len + inner_message.length(), 64));
     if (!buffer) {
       LOG(ERROR) << "conn malloc buffer failed";
       // no mem in pool
       return;
     }
+    LOG(INFO) << buffer;
     ::memcpy(buffer, &frpc_len, sizeof(uint32_t));
 
-    frpc.SerializeToArray(buffer + sizeof(uint32_t), frpc_len);
+    inner_message.SerializeToArray(buffer + sizeof(uint32_t), frpc_len);
     request->SerializeToArray(buffer + sizeof(uint32_t) + frpc_len,
-                              frpc.length());
+                              inner_message.length());
 
     ctor_->conn()->SubmitWriteBufferSafe(
-        buffer, sizeof(uint32_t) + frpc_len + frpc.length());
+        buffer, sizeof(uint32_t) + frpc_len + inner_message.length());
+    LOG(INFO) << "enable write";
     ctor_->conn()->AddWriteEvent();
 
     // start a timer if timeout is enabled
     if (timeout_ > 0) {
       loop_->RunAfter(timeout_, std::bind(&FastRpcChannel::HandleRequestTimeout,
-                                          this, frpc.call_id()));
+                                          this, inner_message.call_id()));
     }
   });
 
@@ -401,4 +402,4 @@ void FastRpcChannel::HandleRequestTimeout(const uint32_t call_id) {
   }
   waiting_responses_.erase(call_id);
 }
-}
+}  // namespace MSF

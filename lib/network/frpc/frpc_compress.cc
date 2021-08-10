@@ -11,9 +11,10 @@
  *
  **************************************************************************/
 #include "frpc_compress.h"
+
 #include "frpc_compress_gzip.h"
-#include "frpc_compress_snappy.h"
 #include "frpc_compress_lz4.h"
+#include "frpc_compress_snappy.h"
 
 #if 0
 namespace MSF {

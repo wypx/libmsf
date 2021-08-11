@@ -241,3 +241,12 @@
 [submodule "thirdparty/storage/mongo-cxx-driver"]
 	path = thirdparty/storage/mongo-cxx-driver
 	url = https://github.com/mongodb/mongo-cxx-driver.git
+[submodule "thirdparty/storage/lizardfs_project/lizardfs-docker-volume-plugin"]
+	path = thirdparty/storage/lizardfs_project/lizardfs-docker-volume-plugin
+	url = https://github.com/lizardfs/lizardfs-docker-volume-plugin.git
+[submodule "thirdparty/storage/lizardfs_project/lizardfs"]
+	path = thirdparty/storage/lizardfs_project/lizardfs
+	url = https://github.com/lizardfs/lizardfs.git
+[submodule "thirdparty/storage/lizardfs_project/lizardfs-docker-for-testing"]
+	path = thirdparty/storage/lizardfs_project/lizardfs-docker-for-testing
+	url = https://github.com/lizardfs/lizardfs-docker-for-testing.git

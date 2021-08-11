@@ -34,7 +34,6 @@
 [submodule "thirdparty/bootstrap-dht"]
 	path = thirdparty/bootstrap-dht
 	url = https://github.com/bittorrent/bootstrap-dht.git
-	url = https://github.com/baidu/bfs.git
 [submodule "thirdparty/baidu/brpc_source_code_analysis"]
 	path = thirdparty/baidu/brpc_source_code_analysis
 	url = https://github.com/ronaldo8210/brpc_source_code_analysis.git

@@ -250,3 +250,219 @@
 [submodule "thirdparty/storage/lizardfs_project/lizardfs-docker-for-testing"]
 	path = thirdparty/storage/lizardfs_project/lizardfs-docker-for-testing
 	url = https://github.com/lizardfs/lizardfs-docker-for-testing.git
+[submodule "thirdparty/alibaba/CBASE"]
+	path = thirdparty/alibaba/CBASE
+	url = https://github.com/BankOfCommunications/CBASE.git
+[submodule "thirdparty/alibaba/PolarDB-for-PostgreSQL"]
+	path = thirdparty/alibaba/PolarDB-for-PostgreSQL
+	url = https://github.com/alibaba/PolarDB-for-PostgreSQL.git
+[submodule "thirdparty/alibaba/fswatch"]
+	path = thirdparty/alibaba/fswatch
+	url = https://github.com/emcrisostomo/fswatch.git
+[submodule "thirdparty/alibaba/obproxy"]
+	path = thirdparty/alibaba/obproxy
+	url = https://github.com/oceanbase/obproxy.git
+[submodule "thirdparty/alibaba/oceanbase"]
+	path = thirdparty/alibaba/oceanbase
+	url = https://github.com/oceanbase/oceanbase.git
+[submodule "thirdparty/alibaba/tair"]
+	path = thirdparty/alibaba/tair
+	url = https://github.com/alibaba/tair.git
+[submodule "thirdparty/alibaba/tb-common-util"]
+	path = thirdparty/alibaba/tb-common-util
+	url = https://github.com/kayaklee/tb-common-util.git
+[submodule "thirdparty/bitcoin"]
+	path = thirdparty/bitcoin
+	url = https://github.com/bitcoin/bitcoin.git
+[submodule "thirdparty/cloudtalk"]
+	path = thirdparty/cloudtalk
+	url = https://gitee.com/pwsns/cloudtalk.git
+[submodule "thirdparty/storage/Content-Distribution-Network"]
+	path = thirdparty/storage/Content-Distribution-Network
+	url = https://github.com/ydj0604/Content-Distribution-Network.git
+[submodule "thirdparty/cosmos"]
+	path = thirdparty/cosmos
+	url = https://github.com/qicosmos/cosmos.git
+[submodule "thirdparty/storage/etcd"]
+	path = thirdparty/storage/etcd
+	url = https://github.com/etcd-io/etcd.git
+[submodule "thirdparty/storage/etcd-cpp-apiv3"]
+	path = thirdparty/storage/etcd-cpp-apiv3
+	url = https://github.com/etcd-cpp-apiv3/etcd-cpp-apiv3.git
+[submodule "thirdparty/facebook/FBOpenSSH"]
+	path = thirdparty/facebook/FBOpenSSH
+	url = https://github.com/facebookincubator/FBOpenSSH.git
+[submodule "thirdparty/facebook/bistro"]
+	path = thirdparty/facebook/bistro
+	url = https://github.com/facebook/bistro.git
+[submodule "thirdparty/facebook/fboss"]
+	path = thirdparty/facebook/fboss
+	url = https://github.com/facebook/fboss.git
+[submodule "thirdparty/facebook/fbthrift"]
+	path = thirdparty/facebook/fbthrift
+	url = https://github.com/facebook/fbthrift.git
+[submodule "thirdparty/facebook/folly"]
+	path = thirdparty/facebook/folly
+	url = https://github.com/facebook/folly.git
+[submodule "thirdparty/facebook/oomd"]
+	path = thirdparty/facebook/oomd
+	url = https://github.com/facebookincubator/oomd.git
+[submodule "thirdparty/facebook/openr"]
+	path = thirdparty/facebook/openr
+	url = https://github.com/facebook/openr.git
+[submodule "thirdparty/facebook/proxygen"]
+	path = thirdparty/facebook/proxygen
+	url = https://github.com/facebook/proxygen.git
+[submodule "thirdparty/facebook/rocksdb"]
+	path = thirdparty/facebook/rocksdb
+	url = https://github.com/facebook/rocksdb.git
+[submodule "thirdparty/facebook/wangle"]
+	path = thirdparty/facebook/wangle
+	url = https://github.com/facebook/wangle.git
+[submodule "thirdparty/facebook/watchman"]
+	path = thirdparty/facebook/watchman
+	url = https://github.com/facebook/watchman.git
+[submodule "thirdparty/storage/fio"]
+	path = thirdparty/storage/fio
+	url = https://github.com/axboe/fio.git
+[submodule "thirdparty/flamingo"]
+	path = thirdparty/flamingo
+	url = https://github.com/balloonwj/flamingo.git
+[submodule "thirdparty/fping"]
+	path = thirdparty/fping
+	url = https://github.com/schweikert/fping.git
+[submodule "thirdparty/storage/FreeNOS"]
+	path = thirdparty/storage/FreeNOS
+	url = https://github.com/nieklinnenbank/FreeNOS.git
+[submodule "thirdparty/google/cctz"]
+	path = thirdparty/google/cctz
+	url = https://github.com/google/cctz.git
+[submodule "thirdparty/google/glog"]
+	path = thirdparty/google/glog
+	url = https://github.com/google/glog
+[submodule "thirdparty/google/gperftools"]
+	path = thirdparty/google/gperftools
+	url = https://github.com/gperftools/gperftools.git
+[submodule "thirdparty/google/libweave"]
+	path = thirdparty/google/libweave
+	url = https://weave.googlesource.com/weave/libweave
+[submodule "thirdparty/google/protobuf"]
+	path = thirdparty/google/protobuf
+	url = https://github.com/protocolbuffers/protobuf.git
+[submodule "thirdparty/google/snappy"]
+	path = thirdparty/google/snappy
+	url = https://github.com/google/snappy.git
+[submodule "thirdparty/google/webrtc"]
+	path = thirdparty/google/webrtc
+	url = https://github.com/HackWebRTC/webrtc.git
+[submodule "thirdparty/google/g3log"]
+	path = thirdparty/google/g3log
+	url = https://github.com/KjellKod/g3log.git
+[submodule "thirdparty/ip2region"]
+	path = thirdparty/ip2region
+	url = https://gitee.com/lionsoul/ip2region.git
+[submodule "thirdparty/ipt2socks"]
+	path = thirdparty/ipt2socks
+	url = https://github.com/zfl9/ipt2socks.git
+[submodule "thirdparty/libbitcoin-network"]
+	path = thirdparty/libbitcoin-network
+	url = https://github.com/libbitcoin/libbitcoin-network.git
+[submodule "thirdparty/libtorrent"]
+	path = thirdparty/libtorrent
+	url = https://github.com/arvidn/libtorrent.git
+[submodule "thirdparty/libevent"]
+	path = thirdparty/libevent
+	url = https://github.com/libevent/libevent.git
+[submodule "thirdparty/libsourcey"]
+	path = thirdparty/libsourcey
+	url = https://github.com/sourcey/libsourcey.git
+[submodule "thirdparty/libice"]
+	path = thirdparty/libice
+	url = https://github.com/ZhaoJianliuser/libice.git
+[submodule "thirdparty/libjuice"]
+	path = thirdparty/libjuice
+	url = https://github.com/paullouisageneau/libjuice.git
+[submodule "thirdparty/mellanox/eRPC"]
+	path = thirdparty/mellanox/eRPC
+	url = https://github.com/erpc-io/eRPC.git
+[submodule "thirdparty/mellanox/libbacktrace"]
+	path = thirdparty/mellanox/libbacktrace
+	url = https://github.com/ianlancetaylor/libbacktrace.git
+[submodule "thirdparty/mellanox/libvma"]
+	path = thirdparty/mellanox/libvma
+	url = https://github.com/Mellanox/libvma.git
+[submodule "thirdparty/mellanox/rdma-core"]
+	path = thirdparty/mellanox/rdma-core
+	url = https://github.com/linux-rdma/rdma-core.git
+[submodule "thirdparty/mellanox/sockperf"]
+	path = thirdparty/mellanox/sockperf
+	url = https://github.com/Mellanox/sockperf.git
+[submodule "thirdparty/mellanox/ucx"]
+	path = thirdparty/mellanox/ucx
+	url = https://github.com/openucx/ucx.git
+[submodule "thirdparty/microsoft/Freeflow"]
+	path = thirdparty/microsoft/Freeflow
+	url = https://github.com/microsoft/Freeflow.git
+[submodule "thirdparty/microsoft/dbfs"]
+	path = thirdparty/microsoft/dbfs
+	url = https://github.com/microsoft/dbfs
+[submodule "thirdparty/microsoft/envoy"]
+	path = thirdparty/microsoft/envoy
+	url = https://github.com/envoyproxy/envoy.git
+[submodule "thirdparty/microsoft/mimalloc"]
+	path = thirdparty/microsoft/mimalloc
+	url = https://github.com/microsoft/mimalloc.git
+[submodule "thirdparty/muduo"]
+	path = thirdparty/muduo
+	url = https://github.com/chenshuo/muduo.git
+[submodule "thirdparty/ormpp"]
+	path = thirdparty/ormpp
+	url = https://github.com/qicosmos/ormpp.git
+[submodule "thirdparty/nghttp3"]
+	path = thirdparty/nghttp3
+	url = git@github.com:ngtcp2/nghttp3.git
+[submodule "thirdparty/SpeedTestC"]
+	path = thirdparty/SpeedTestC
+	url = https://github.com/mobrembski/SpeedTestC.git
+[submodule "thirdparty/TeamTalk"]
+	path = thirdparty/TeamTalk
+	url = https://github.com/balloonwj/TeamTalk.git
+[submodule "thirdparty/coding/reading-code-of-nginx-1.9.2"]
+	path = thirdparty/coding/reading-code-of-nginx-1.9.2
+	url = https://github.com/y123456yz/reading-code-of-nginx-1.9.2.git
+[submodule "thirdparty/coding/Reading-and-comprehense-twemproxy0.4.1"]
+	path = thirdparty/coding/Reading-and-comprehense-twemproxy0.4.1
+	url = https://github.com/y123456yz/Reading-and-comprehense-twemproxy0.4.1.git
+[submodule "thirdparty/coding/Reading-and-comprehense-redis-cluster"]
+	path = thirdparty/coding/Reading-and-comprehense-redis-cluster
+	url = https://github.com/y123456yz/Reading-and-comprehense-redis-cluster.git
+[submodule "thirdparty/coding/Reading-and-comprehense-memcached-1.4.22"]
+	path = thirdparty/coding/Reading-and-comprehense-memcached-1.4.22
+	url = https://github.com/y123456yz/Reading-and-comprehense-memcached-1.4.22.git
+[submodule "thirdparty/coding/Reading-and-comprehense-linux-Kernel-network-protocol-stack"]
+	path = thirdparty/coding/Reading-and-comprehense-linux-Kernel-network-protocol-stack
+	url = https://github.com/y123456yz/Reading-and-comprehense-linux-Kernel-network-protocol-stack.git
+[submodule "thirdparty/coding/reading-and-annotate-wiredtiger-3.0.0"]
+	path = thirdparty/coding/reading-and-annotate-wiredtiger-3.0.0
+	url = https://github.com/y123456yz/reading-and-annotate-wiredtiger-3.0.0.git
+[submodule "thirdparty/coding/reading-and-annotate-rocksdb-6.1.2"]
+	path = thirdparty/coding/reading-and-annotate-rocksdb-6.1.2
+	url = https://github.com/y123456yz/reading-and-annotate-rocksdb-6.1.2.git
+[submodule "thirdparty/coding/reading-and-annotate-rocketmq-3.4.6"]
+	path = thirdparty/coding/reading-and-annotate-rocketmq-3.4.6
+	url = https://github.com/y123456yz/reading-and-annotate-rocketmq-3.4.6.git
+[submodule "thirdparty/coding/reading-and-annotate-quic"]
+	path = thirdparty/coding/reading-and-annotate-quic
+	url = https://github.com/y123456yz/reading-and-annotate-quic.git
+[submodule "thirdparty/coding/reading-and-annotate-mongodb-3.6"]
+	path = thirdparty/coding/reading-and-annotate-mongodb-3.6
+	url = https://github.com/y123456yz/reading-and-annotate-mongodb-3.6.git
+[submodule "thirdparty/coding/reading-and-annotate-mesos-1.2.0"]
+	path = thirdparty/coding/reading-and-annotate-mesos-1.2.0
+	url = https://github.com/y123456yz/reading-and-annotate-mesos-1.2.0.git
+[submodule "thirdparty/coding/reading-and-annotate-lxc-1.0.9"]
+	path = thirdparty/coding/reading-and-annotate-lxc-1.0.9
+	url = https://github.com/y123456yz/reading-and-annotate-lxc-1.0.9.git
+[submodule "thirdparty/coding/reading-and-annotate-docker-17.05.0"]
+	path = thirdparty/coding/reading-and-annotate-docker-17.05.0
+	url = https://github.com/y123456yz/reading-and-annotate-docker-17.05.0.git

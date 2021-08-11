@@ -276,7 +276,7 @@
 	url = https://github.com/bitcoin/bitcoin.git
 [submodule "thirdparty/cloudtalk"]
 	path = thirdparty/cloudtalk
-	url = https://gitee.com/pwsns/cloudtalk.git
+	url = https://github.com/cloudtalk-im/cloudtalk.git
 [submodule "thirdparty/storage/Content-Distribution-Network"]
 	path = thirdparty/storage/Content-Distribution-Network
 	url = https://github.com/ydj0604/Content-Distribution-Network.git
@@ -360,7 +360,7 @@
 	url = https://github.com/KjellKod/g3log.git
 [submodule "thirdparty/ip2region"]
 	path = thirdparty/ip2region
-	url = https://gitee.com/lionsoul/ip2region.git
+	url = https://github.com/lionsoul2014/ip2region.git
 [submodule "thirdparty/ipt2socks"]
 	path = thirdparty/ipt2socks
 	url = https://github.com/zfl9/ipt2socks.git

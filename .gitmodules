@@ -109,9 +109,6 @@
 [submodule "thirdparty/storage/moosefs"]
 	path = thirdparty/storage/moosefs
 	url = https://github.com/moosefs/moosefs.git
-[submodule "thirdparty/storage/lizardfs"]
-	path = thirdparty/storage/lizardfs
-	url = https://gitee.com/mirrors/lizardfs.git
 [submodule "thirdparty/storage/libaio"]
 	path = thirdparty/storage/libaio
 	url = https://github.com/leitao/libaio.git

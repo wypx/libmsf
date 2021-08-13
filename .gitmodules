@@ -331,6 +331,12 @@
 [submodule "thirdparty/storage/FreeNOS"]
 	path = thirdparty/storage/FreeNOS
 	url = https://github.com/nieklinnenbank/FreeNOS.git
+[submodule "thirdparty/google/chromium"]
+        path = thirdparty/google/chromium
+        url = https://github.com/chromium/chromium.git
+[submodule "thirdparty/google/gecko-dev"]
+        path = thirdparty/google/gecko-dev
+        url = https://github.com/mozilla/gecko-dev.git
 [submodule "thirdparty/google/cctz"]
 	path = thirdparty/google/cctz
 	url = https://github.com/google/cctz.git

@@ -13,6 +13,7 @@
 #ifndef FRPC_BUFFER_H_
 #define FRPC_BUFFER_H_
 
+#include <base/buffer.h>
 #include <google/protobuf/io/zero_copy_stream.h>
 
 // https://www.dazhuanlan.com/gd1998/topics/1405434
@@ -23,21 +24,30 @@
 
 namespace MSF {
 
-class ReadBuffer : public google::protobuf::io::ZeroCopyInputStream {
+class BufferStream : public google::protobuf::io::ZeroCopyInputStream {
  public:
-  ReadBuffer();
-  virtual ~ReadBuffer();
+  BufferStream(Buffer* buffer) : buffer_(buffer), original_size_(buffer_->ReadableBytes()) {}
+  virtual ~BufferStream();
 
   // implements ZeroCopyInputStream ----------------------------------
-  bool Next(const void** data, int* size) override;
-  void BackUp(int count) override;
+  bool Next(const void** data, int* size) override {
+    return true;
+  }
+  void BackUp(int count) override {
+
+  }
   bool Skip(int count) override;
-  int64_t ByteCount() const override;
+  int64_t ByteCount() const override {
+  }
+
+  private:
+    Buffer* buffer_;
+    size_t original_size_;
 };
 
 class WriteBuffer : public google::protobuf::io::ZeroCopyOutputStream {
  public:
-  WriteBuffer();
+  WriteBuffer(Buffer* buffer);
   virtual ~WriteBuffer();
 
   // implements ZeroCopyOutputStream ---------------------------------

@@ -88,9 +88,7 @@ class Event {
   bool IsNoneEvent() const { return events_ == kNoneEvent; }
 
   // void Remove();
-  EventLoop* OwnerLoop() {
-    return loop_;
-  };
+  EventLoop* OwnerLoop() { return loop_; };
 
   // for Poller
   int index() { return index_; }

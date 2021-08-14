@@ -32,6 +32,7 @@ set(CMAKE_CXX_FLAGS "$ENV{CXXFLAGS} ${DEFINE_CLOCK_GETTIME} -DGFLAGS_NS=${GFLAGS
 
 # 设置依赖库
 set(COMMLIBS MSF
+    natpmp.a
     miniupnpc.a
     numa.a
     uring.a

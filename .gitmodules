@@ -472,3 +472,6 @@
 [submodule "thirdparty/upnp/miniupnp"]
 	path = thirdparty/upnp/miniupnp
 	url = https://github.com/miniupnp/miniupnp.git
+[submodule "thirdparty/upnp/libnatpmp"]
+	path = thirdparty/upnp/libnatpmp
+	url = https://github.com/getlantern/libnatpmp.git

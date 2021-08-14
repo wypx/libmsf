@@ -126,7 +126,6 @@ enum {
   UPNP_IGD_INVALID = 3
 };
 
-
 bool UPnPManager::Pluse(uint16_t port, bool enable, bool port_check) {
   UPnPMapKey tcp_key = std::make_pair("TCP", port);
   UPnPMapKey udp_key = std::make_pair("UDP", port);

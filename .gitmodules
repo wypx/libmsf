@@ -469,3 +469,6 @@
 [submodule "thirdparty/coding/reading-and-annotate-docker-17.05.0"]
 	path = thirdparty/coding/reading-and-annotate-docker-17.05.0
 	url = https://github.com/y123456yz/reading-and-annotate-docker-17.05.0.git
+[submodule "thirdparty/upnp/miniupnp"]
+	path = thirdparty/upnp/miniupnp
+	url = https://github.com/miniupnp/miniupnp.git

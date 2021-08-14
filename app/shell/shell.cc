@@ -14,6 +14,7 @@
 #include <network/event/event_loop.h>
 #include <network/frpc/frpc_controller.h>
 #include <network/frpc/frpc_channel.h>
+#include <upnp/upnp.h>
 
 using namespace MSF;
 
@@ -82,6 +83,9 @@ int EchoTest() {
 
   LOG(INFO) << "Received: " << response.response().size() << " bytes";
   LOG(INFO) << "Received: " << response.response();
+
+  UPnPManager upnp;
+  upnp.Pluse(1111, true, true);
 
   stack->StartMain();
   return 0;

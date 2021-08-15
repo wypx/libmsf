@@ -475,3 +475,6 @@
 [submodule "thirdparty/upnp/libnatpmp"]
 	path = thirdparty/upnp/libnatpmp
 	url = https://github.com/getlantern/libnatpmp.git
+[submodule "thirdparty/mediaelement"]
+	path = thirdparty/mediaelement
+	url = https://github.com/mediaelement/mediaelement.git

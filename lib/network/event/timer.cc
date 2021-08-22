@@ -18,9 +18,9 @@
 
 #include "atomic.h"
 #include "event_loop.h"
-#include "time_utils.h"
 #include "mem.h"
 #include "thread.h"
+#include "time_utils.h"
 
 using namespace MSF;
 

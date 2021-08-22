@@ -27,7 +27,7 @@ class EventHandle : noncopyable {
  public:
   EventHandle() {}
   explicit EventHandle(const Agent::AgentCommand cmd) { cmd = cmd_; }
-  virtual ~EventHandle() {};
+  virtual ~EventHandle(){};
   virtual void handleMessage(ConnectionPtr c, void* head, void* body) {}
   virtual void handleMessage(ConnectionPtr c, Agent::AgentBhs& bhs) {}
   const Agent::AgentCommand cmd() const { return cmd_; }
@@ -42,7 +42,7 @@ class EventHandleFactory : noncopyable {
 
  public:
   EventHandleFactory() = default;
-  ~EventHandleFactory() {};
+  ~EventHandleFactory(){};
   static EventHandleFactory& Instance() {
     static EventHandleFactory intance;
     return intance;
@@ -122,13 +122,13 @@ class EventHandleCreator {
 
   static T* CreateObject(TArgs&&... args) {
     std::cout << abi::__cxa_demangle(typeid(T).name(), nullptr, nullptr,
-                                     nullptr) << std::endl;
+                                     nullptr)
+              << std::endl;
     std::cout << "CreateObject now" << std::endl;
     T* t = nullptr;
     try {
       t = new T(std::forward<TArgs>(args)...);
-    }
-    catch (std::bad_alloc& e) {
+    } catch (std::bad_alloc& e) {
       std::cout << "New object failed" << std::endl;
       return nullptr;
     }

@@ -100,14 +100,12 @@ bool IOUringPoller::AddEvent(const Event* ev) {
 }
 
 bool IOUringPoller::ModifyEvent(const Event* ev) {
-
   LOG(TRACE) << "Epoll MOD"
              << " on " << ev->fd() << " succeeded.";
   return true;
 }
 
 bool IOUringPoller::DeleteEvent(const Event* ev) {
-
   LOG(TRACE) << "Epoll Del"
              << " on " << ev->fd() << " succeeded.";
   return true;

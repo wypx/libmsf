@@ -23,8 +23,8 @@
 #include <mutex>
 #include <vector>
 
-#include "timer.h"
 #include "mem_pool.h"
+#include "timer.h"
 
 using namespace MSF;
 

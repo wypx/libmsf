@@ -111,5 +111,5 @@ int inotifytools_get_max_queued_events();
 #ifdef __cplusplus
 }
 #endif
-}
+}  // namespace MSF
 #endif

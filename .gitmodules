@@ -469,3 +469,21 @@
 [submodule "thirdparty/coding/reading-and-annotate-docker-17.05.0"]
 	path = thirdparty/coding/reading-and-annotate-docker-17.05.0
 	url = https://github.com/y123456yz/reading-and-annotate-docker-17.05.0.git
+[submodule "thirdparty/torrent"]
+	path = thirdparty/torrent
+	url = https://github.com/anacrolix/torrent.git
+[submodule "thirdparty/dht"]
+	path = thirdparty/dht
+	url = https://github.com/anacrolix/dht.git
+[submodule "thirdparty/storage/spdk-csi"]
+	path = thirdparty/storage/spdk-csi
+	url = https://github.com/spdk/spdk-csi.git
+[submodule "thirdparty/storage/spdk_rocksdb"]
+	path = thirdparty/storage/spdk_rocksdb
+	url = https://github.com/spdk/rocksdb.git
+[submodule "thirdparty/storage/nvme-cli"]
+	path = thirdparty/storage/nvme-cli
+	url = https://github.com/spdk/nvme-cli.git
+[submodule "thirdparty/storage/spdk_tests"]
+	path = thirdparty/storage/spdk_tests
+	url = https://github.com/spdk/tests.git

@@ -496,3 +496,6 @@
 [submodule "thirdparty/linux"]
 	path = thirdparty/linux
 	url = https://github.com/torvalds/linux.git
+[submodule "thirdparty/storage/alist"]
+	path = thirdparty/storage/alist
+	url = https://github.com/Xhofe/alist.git

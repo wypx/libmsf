@@ -499,3 +499,15 @@
 [submodule "thirdparty/storage/alist"]
 	path = thirdparty/storage/alist
 	url = https://github.com/Xhofe/alist.git
+[submodule "thirdparty/storage/gonelist"]
+	path = thirdparty/storage/gonelist
+	url = https://github.com/gonelist/gonelist.git
+[submodule "thirdparty/storage/PanIndex"]
+	path = thirdparty/storage/PanIndex
+	url = https://github.com/libsgh/PanIndex.git
+[submodule "thirdparty/storage/DownloadBot"]
+	path = thirdparty/storage/DownloadBot
+	url = https://github.com/gaowanliang/DownloadBot.git
+[submodule "thirdparty/storage/LightUploader"]
+	path = thirdparty/storage/LightUploader
+	url = https://github.com/gaowanliang/LightUploader.git

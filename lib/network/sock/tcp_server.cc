@@ -11,6 +11,7 @@
  *
  **************************************************************************/
 #include "tcp_server.h"
+
 #include "logging.h"
 
 namespace MSF {
@@ -37,4 +38,4 @@ void FastTcpServer::ConnNewCallback(const int fd) {
 
   ConnSuccCallback(conn);
 }
-}
+}  // namespace MSF

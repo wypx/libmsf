@@ -17,8 +17,8 @@
 #include <fcntl.h>
 #include <sys/epoll.h>
 
-#include "gcc_attr.h"
 #include "event_loop.h"
+#include "gcc_attr.h"
 
 using namespace MSF;
 
@@ -174,8 +174,8 @@ bool Acceptor::HandleError(int error) {
       //系统的上限ENFILE 进程的上限EMFILE
       LOG(ERROR) << "too many open connections, give up accept.";
       /* Read the section named "The special problem of
-      * accept()ing when you can't" in libev's doc.
-      * By Marc Lehmann, author of libev.*/
+       * accept()ing when you can't" in libev's doc.
+       * By Marc Lehmann, author of libev.*/
       DiscardAccept();
       CloseListen();
       return true;

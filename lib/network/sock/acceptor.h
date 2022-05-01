@@ -13,12 +13,13 @@
 #ifndef SOCK_ACCEPTTOR_H_
 #define SOCK_ACCEPTTOR_H_
 
+#include <network/sock/callback.h>
+#include <network/sock/inet_address.h>
+#include <network/sock/sock_utils.h>
+
 #include <functional>
 #include <memory>
 
-#include <network/sock/callback.h>
-#include <network/sock/sock_utils.h>
-#include <network/sock/inet_address.h>
 #include "event.h"
 
 using namespace MSF;

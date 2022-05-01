@@ -63,7 +63,7 @@ int EchoTest() {
 
   EventLoop *base_loop = stack->GetBaseLoop();
     
-  InetAddress addr("47.241.175.191", 9999, AF_INET, SOCK_STREAM);
+  InetAddress addr("127.0.0.1", 9999, AF_INET, SOCK_STREAM);
   FastRpcChannelPtr channel(new FastRpcChannel(base_loop, addr));
 
   echo::EchoRequest request;

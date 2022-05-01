@@ -13,8 +13,8 @@
 #ifndef SOCK_CONNECTION_POOL_H_
 #define SOCK_CONNECTION_POOL_H_
 
-#include "event.h"
 #include "connection.h"
+#include "event.h"
 
 using namespace MSF;
 

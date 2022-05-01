@@ -19,8 +19,8 @@
 #include <mutex>
 #include <vector>
 
-#include "callback.h"
 #include "buffer.h"
+#include "callback.h"
 #include "event.h"
 #include "inet_address.h"
 
@@ -30,16 +30,9 @@ namespace MSF {
 
 class EventLoop;
 
-enum ShutdownMode {
-  kShutdownBoth,
-  kShutdownRead,
-  kShutdownWrite
-};
+enum ShutdownMode { kShutdownBoth, kShutdownRead, kShutdownWrite };
 
-enum BufferType {
-  kBufferCircle,
-  kBufferVector
-};
+enum BufferType { kBufferCircle, kBufferVector };
 
 typedef std::vector<struct iovec> BufferIovec;
 
@@ -166,6 +159,6 @@ class Connection : public std::enable_shared_from_this<Connection> {
   HighWaterCallback io_water_cb_;
   WriteIOCPCallback write_iocp_cb_;
 };
-}
+}  // namespace MSF
 
 #endif

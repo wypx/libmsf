@@ -1,10 +1,11 @@
 
 #include "connection.h"
-#include "sock_utils.h"
-#include "event.h"
-#include "event_loop.h"
 
 #include <base/logging.h>
+
+#include "event.h"
+#include "event_loop.h"
+#include "sock_utils.h"
 
 namespace MSF {
 

@@ -11,6 +11,7 @@
  *
  **************************************************************************/
 #include "fast_server.h"
+
 #include "logging.h"
 
 namespace MSF {
@@ -60,4 +61,4 @@ void FastServer::ConnCloseCallback(const ConnectionPtr &conn) {
   if (ccb_) ccb_(conn);
   connections_.erase(conn->cid());
 }
-}
+}  // namespace MSF

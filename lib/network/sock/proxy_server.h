@@ -11,13 +11,13 @@
  *
  **************************************************************************/
 
-#include "proxy_client.h"
-
+#include <atomic>
 #include <iostream>
 #include <list>
 #include <map>
 #include <memory>
-#include <atomic>
+
+#include "proxy_client.h"
 
 namespace MSF {
 
@@ -62,9 +62,9 @@ class ProxyServer {
   uint16_t zk_port_;
 
   /*
- * Each thread instance has a wakeup pipe, which other threads
- * can use to signal that they've put a new connection on its queue.
- */
+   * Each thread instance has a wakeup pipe, which other threads
+   * can use to signal that they've put a new connection on its queue.
+   */
   int max_queue_;
   uint32_t work_thread_num_;
 

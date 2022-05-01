@@ -14,6 +14,7 @@
 #define SOCK_INETADDRESS_H_
 
 #include <arpa/inet.h>
+#include <base/noncopyable.h>
 #include <linux/in6.h>
 #include <net/ethernet.h>
 #include <netdb.h>
@@ -22,8 +23,6 @@
 #include <sys/un.h>
 
 #include <iostream>
-
-#include <base/noncopyable.h>
 
 using namespace MSF;
 
@@ -71,20 +70,8 @@ struct ipv6_mreq {
 
 class InetAddress : public copyable {
  public:
-  enum NetworkType {
-    UNIX,
-    TCP,
-    UDP,
-    SCTP,
-    NETLINK,
-    MUTICAST,
-    Undefined
-  };
-  enum AddrFamily {
-    IPV4,
-    IPV6,
-    UNKNOWN
-  };
+  enum NetworkType { UNIX, TCP, UDP, SCTP, NETLINK, MUTICAST, Undefined };
+  enum AddrFamily { IPV4, IPV6, UNKNOWN };
 
  public:
   explicit InetAddress(const std::string& host = DEFAULT_IPANY,

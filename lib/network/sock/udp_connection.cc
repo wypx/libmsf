@@ -11,9 +11,10 @@
  *
  **************************************************************************/
 #include "udp_connection.h"
-#include "sock_utils.h"
 
 #include <base/logging.h>
+
+#include "sock_utils.h"
 
 namespace MSF {
 

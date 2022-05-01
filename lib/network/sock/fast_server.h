@@ -15,8 +15,8 @@
 
 #include <unordered_map>
 
-#include "callback.h"
 #include "acceptor.h"
+#include "callback.h"
 #include "connection.h"
 #include "connector.h"
 
@@ -73,14 +73,16 @@ class FastServer {
   // The network bandwidth is shared by all connections:
   // * busy connections get more bandwidth.
   // * the total bandwidth of all connections will not exceed the limit.
-  int max_throughput_in_;       // max network in throughput for all connections.
-                                // in MB/s, should >= -1, -1 means no limit, default -1.
-  int max_throughput_out_;      // max network out throughput for all connections.
-                                // in MB/s, should >= -1, -1 means no limit, default -1.
+  int max_throughput_in_;   // max network in throughput for all connections.
+                            // in MB/s, should >= -1, -1 means no limit, default
+                            // -1.
+  int max_throughput_out_;  // max network out throughput for all connections.
+                            // in MB/s, should >= -1, -1 means no limit, default
+                            // -1.
 
-  //If disable Nagle's algorithm in tcp protocol.
-  //default:true
-  bool no_delay_; 
+  // If disable Nagle's algorithm in tcp protocol.
+  // default:true
+  bool no_delay_;
 
   SuccCallback scb_;
   ReadCallback rcb_;
@@ -90,6 +92,6 @@ class FastServer {
   std::unordered_map<uint64_t, ConnectionPtr> connections_;
   std::unordered_map<uint64_t, ConnectorPtr> connectors_;
 };
-}
+}  // namespace MSF
 
 #endif

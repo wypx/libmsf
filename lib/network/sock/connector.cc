@@ -11,8 +11,10 @@
  *
  **************************************************************************/
 #include "connector.h"
-#include "sock_utils.h"
+
 #include <base/logging.h>
+
+#include "sock_utils.h"
 #include "tcp_connection.h"
 
 namespace MSF {

@@ -19,8 +19,9 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <sstream>
+
 #include <iomanip>
+#include <sstream>
 
 #define __KERNEL__
 #include <linux/ethtool.h>
@@ -111,7 +112,7 @@ std::string GetGateway(const std::string &iface) {
       LOG(ERROR) << "fail to scanf route file, item not match";
       break;
     }
-    if (!(flags & RTF_UP)) {/* Skip interfaces that are down. */
+    if (!(flags & RTF_UP)) { /* Skip interfaces that are down. */
       continue;
     }
     if (strcmp(devname, iface.c_str()) != 0) {
@@ -460,7 +461,7 @@ bool delIPv6(const std::string &ipv6, const uint32_t prefix) {
   }
 
   strlcpy(ifr.ifr_name, "eth0", sizeof(ifr.ifr_name));
-  if (ioctl(fd, SIOCGIFINDEX, (caddr_t) & ifr) < 0) {
+  if (ioctl(fd, SIOCGIFINDEX, (caddr_t)&ifr) < 0) {
     close(fd);
     return false;
   }
@@ -785,7 +786,7 @@ bool setSpeed(const std::string &iface, int speed, int duplex, bool autoneg) {
 
   ecmd.cmd = ETHTOOL_GSET;
 
-  ifr.ifr_data = (caddr_t) & ecmd;
+  ifr.ifr_data = (caddr_t)&ecmd;
   err = ioctl(fd, SIOCETHTOOL, &ifr);
   if (err < 0) {
     LOG(ERROR) << "Cannot get current device settings.";
@@ -826,7 +827,7 @@ bool setSpeed(const std::string &iface, int speed, int duplex, bool autoneg) {
 
     /* Try to perform the update. */
     ecmd.cmd = ETHTOOL_SSET;
-    ifr.ifr_data = (caddr_t) & ecmd;
+    ifr.ifr_data = (caddr_t)&ecmd;
     err = ioctl(fd, SIOCETHTOOL, &ifr);
     if (err < 0) {
       LOG(ERROR) << "Cannot set new settings: " << strerror(errno);

@@ -31,8 +31,6 @@ void NatPMP::SetCommandTime() {
 }
 
 bool NatPMP::Pulse(uint16_t private_port, bool enabled, uint16_t* public_port) {
-  int ret;
-
   if (enabled && (state_ == TR_NATPMP_DISCOVER)) {
     int ret = ::initnatpmp(&natpmp_, 0, 0);
     ret = ::sendpublicaddressrequest(&natpmp_);

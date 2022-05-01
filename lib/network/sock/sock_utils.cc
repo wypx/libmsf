@@ -14,7 +14,9 @@
 #include "sock_utils.h"
 
 #include <arpa/inet.h>
+#include <dirent.h>
 #include <fcntl.h>
+#include <linux/netfilter_ipv4.h>
 #include <linux/netlink.h>
 #include <net/if.h>
 #include <netdb.h>
@@ -28,13 +30,10 @@
 #include <sys/socket.h>
 #include <sys/timerfd.h>
 #include <sys/un.h>
-#include <dirent.h>
-#include <linux/netfilter_ipv4.h>
 // #include <linux/netfilter_ipv6/ip6_tables.h>
 
-#include <linux/sockios.h>  // SIOCGSTAMP
-
 #include <base/logging.h>
+#include <linux/sockios.h>  // SIOCGSTAMP
 
 #include "gcc_attr.h"
 #include "utils.h"
@@ -584,7 +583,7 @@ bool SetReuseAddr(const int fd, bool on) {
 }
 
 bool SetReusePort(const int fd, bool on) {
-#if defined __linux__ &&defined(SO_REUSEPORT)
+#if defined __linux__ && defined(SO_REUSEPORT)
   int one = on;
   /* REUSEPORT on Linux 3.9+ means, "Multiple servers (processes or
    * threads) can bind to the same port if they each set the option. */
@@ -663,7 +662,7 @@ bool SetKeepAlive(const int fd, bool on) {
   return true;
 #elif defined(__MINGW32__) || defined(__CYGWIN__)
 // don't see how this can be performed right now
-#elif(__APPLE__)
+#elif (__APPLE__)
   int result =
       ::setsockopt(fd, IPPROTO_TCP, TCP_KEEPALIVE, (char *)&val, sizeof(val));
   if (result < 0) {
@@ -1343,7 +1342,7 @@ int SendFdMessage(int fd, char *buf, int buflen, int *fds, int fd_num) {
     ::memcpy(CMSG_DATA(cmsg), fds, CMSG_SPACE(fdsize));
 #else
     /* do not support muti transfer socket rights now*/
-    cmsg.msg_accrights = (caddr_t) & fds[0];
+    cmsg.msg_accrights = (caddr_t)&fds[0];
     cmsg.msg_accrightslen = sizeof(int);
 #endif
 

@@ -13,12 +13,13 @@
 #ifndef SOCK_SOCK_UITILS_H_
 #define SOCK_SOCK_UITILS_H_
 
-#include <unistd.h>
 #include <fcntl.h>
-#include <stdint.h>
 #include <signal.h>
-#include <sys/uio.h>
+#include <stdint.h>
 #include <sys/epoll.h>
+#include <sys/uio.h>
+#include <unistd.h>
+
 #include <string>
 
 #define HAVE_MSGHDR_MSG_CONTROL 1

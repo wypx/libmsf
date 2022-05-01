@@ -26,6 +26,6 @@ class FastTcpServer : public FastServer {
  protected:
   void ConnNewCallback(const int fd) override;
 };
-}
+}  // namespace MSF
 
 #endif

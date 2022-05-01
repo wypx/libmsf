@@ -13,8 +13,8 @@
 #ifndef SOCK_CONNECTOR_H_
 #define SOCK_CONNECTOR_H_
 
-#include "event.h"
 #include "connection.h"
+#include "event.h"
 
 using namespace MSF;
 

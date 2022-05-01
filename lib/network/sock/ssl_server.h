@@ -1,4 +1,3 @@
-
 // /**************************************************************************
 //  *
 //  * Copyright (c) 2017-2021, luotang.me <wypx520@gmail.com>, China.
@@ -11,28 +10,22 @@
 //  * and/or fitness for purpose.
 //  *
 //  **************************************************************************/
-#include "callback.h"
-#include "latch.h"
+// #ifndef SOCK_SSL_SERVER_H_
+// #define SOCK_SSL_SERVER_H_
 
-namespace MSF {
+// #include "fast_server.h"
+// #include "tcp_connection.h"
 
-class ProxyConnection {
- public:
- private:
-  ConnectionPtr conn_;
-};
+// namespace MSF {
 
-class ProxyPDU {
- public:
-  bool WaitAck(const uint32_t ts) { return latch_.WaitFor(ts); }
-  void PostAck() { return latch_.CountDown(); }
+// class FastSSLServer : public FastServer {
+//  public:
+//   FastTcpServer(EventLoop *loop, const InetAddress &addr);
+//   virtual ~FastTcpServer();
 
- private:
-  uint16_t remote_id_;
-  uint16_t local_id_;
-  uint32_t command_;
+//  protected:
+//   void ConnNewCallback(const int fd) override;
+// };
+// }
 
-  CountDownLatch latch_;
-};
-
-}  // namespace MSF
+// #endif
